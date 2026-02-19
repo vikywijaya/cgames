@@ -1,110 +1,101 @@
 import { useState } from 'react';
-import { MemoryMatch } from './games/MemoryMatch/MemoryMatch';
-import { WordRecall } from './games/WordRecall/WordRecall';
-import { PatternSequence } from './games/PatternSequence/PatternSequence';
-import { DailyArithmetic } from './games/DailyArithmetic/DailyArithmetic';
-import { WordSearch } from './games/WordSearch/WordSearch';
-import { CatchFallingFruit } from './games/CatchFallingFruit/CatchFallingFruit';
-import { RightTime } from './games/RightTime/RightTime';
-import { BalloonPop } from './games/BalloonPop/BalloonPop';
-import { FlagQuiz } from './games/FlagQuiz/FlagQuiz';
-import { useMusic } from './hooks/useMusic';
+import { MemoryMatch }      from './games/MemoryMatch/MemoryMatch';
+import { WordRecall }       from './games/WordRecall/WordRecall';
+import { PatternSequence }  from './games/PatternSequence/PatternSequence';
+import { DailyArithmetic }  from './games/DailyArithmetic/DailyArithmetic';
+import { WordSearch }       from './games/WordSearch/WordSearch';
+import { CatchFallingFruit }from './games/CatchFallingFruit/CatchFallingFruit';
+import { RightTime }        from './games/RightTime/RightTime';
+import { BalloonPop }       from './games/BalloonPop/BalloonPop';
+import { FlagQuiz }         from './games/FlagQuiz/FlagQuiz';
+import { ColourMemory }     from './games/ColourMemory/ColourMemory';
+import { WhackAMole }       from './games/WhackAMole/WhackAMole';
+import { OddOneOut }        from './games/OddOneOut/OddOneOut';
+import { CapitalQuiz }      from './games/CapitalQuiz/CapitalQuiz';
+import { NumberSort }       from './games/NumberSort/NumberSort';
+import { useMusic }         from './hooks/useMusic';
 import './design/globals.css';
 import styles from './App.module.css';
 
 const MUSIC_SRC = import.meta.env.BASE_URL + 'music.mp3';
 
 const GAME_MAP = {
-  'memory-match': MemoryMatch,
-  'word-recall': WordRecall,
-  'pattern-sequence': PatternSequence,
-  'daily-arithmetic': DailyArithmetic,
-  'word-search': WordSearch,
+  'memory-match':      MemoryMatch,
+  'word-recall':       WordRecall,
+  'pattern-sequence':  PatternSequence,
+  'daily-arithmetic':  DailyArithmetic,
+  'word-search':       WordSearch,
   'catch-falling-fruit': CatchFallingFruit,
-  'right-time': RightTime,
-  'balloon-pop': BalloonPop,
-  'flag-quiz': FlagQuiz,
+  'right-time':        RightTime,
+  'balloon-pop':       BalloonPop,
+  'flag-quiz':         FlagQuiz,
+  'colour-memory':     ColourMemory,
+  'whack-a-mole':      WhackAMole,
+  'odd-one-out':       OddOneOut,
+  'capital-quiz':      CapitalQuiz,
+  'number-sort':       NumberSort,
 };
 
-const GAME_INFO = [
+// Games grouped by cognitive category
+const GAME_GROUPS = [
   {
-    id: 'memory-match',
-    title: 'Memory Match',
-    description: 'Flip cards to find matching pairs. Exercises visual working memory.',
-    icon: '🃏',
-    domain: 'Visual Memory',
+    category: 'Memory',
+    icon: '🧠',
+    games: [
+      { id: 'memory-match',  title: 'Memory Match',   icon: '🃏', domain: 'Visual Memory',  description: 'Flip cards to find matching pairs.' },
+      { id: 'word-recall',   title: 'Word Recall',    icon: '📝', domain: 'Verbal Memory',  description: 'Study a list, then recall as many words as you can.' },
+      { id: 'colour-memory', title: 'Colour Memory',  icon: '🎨', domain: 'Sequence Memory', description: 'Watch a colour sequence light up, then repeat it back.' },
+    ],
   },
   {
-    id: 'word-recall',
-    title: 'Word Recall',
-    description: 'Study a word list, then type as many as you remember. Exercises verbal memory.',
-    icon: '📝',
-    domain: 'Verbal Memory',
+    category: 'Attention & Reflexes',
+    icon: '⚡',
+    games: [
+      { id: 'pattern-sequence', title: 'Pattern Sequence', icon: '🎵', domain: 'Attention',     description: 'Watch and repeat a light-pad sequence.' },
+      { id: 'balloon-pop',      title: 'Balloon Pop',      icon: '🎈', domain: 'Reaction Speed', description: 'Tap balloons before they float away!' },
+      { id: 'whack-a-mole',     title: 'Whack-a-Mole',    icon: '🐹', domain: 'Reaction Speed', description: 'Tap the moles before they disappear!' },
+    ],
   },
   {
-    id: 'pattern-sequence',
-    title: 'Pattern Sequence',
-    description: 'Watch and repeat a sequence of coloured pads. Exercises attention and sequencing.',
-    icon: '🎵',
-    domain: 'Attention',
-  },
-  {
-    id: 'daily-arithmetic',
-    title: 'Daily Arithmetic',
-    description: 'Solve simple maths questions at your own pace. Exercises numeric reasoning.',
+    category: 'Numbers & Logic',
     icon: '🔢',
-    domain: 'Numeric Reasoning',
+    games: [
+      { id: 'daily-arithmetic', title: 'Daily Arithmetic', icon: '🔢', domain: 'Numeric Reasoning', description: 'Solve simple maths questions at your own pace.' },
+      { id: 'number-sort',      title: 'Number Sort',      icon: '🔢', domain: 'Numeric Ordering',   description: 'Tap numbers from smallest to largest.' },
+    ],
   },
   {
-    id: 'word-search',
-    title: 'Word Search',
-    description: 'Find hidden words in a letter grid. Exercises visual scanning and vocabulary.',
-    icon: '🔍',
-    domain: 'Visual Scanning',
+    category: 'Visual & Spatial',
+    icon: '👁',
+    games: [
+      { id: 'word-search',        title: 'Word Search',  icon: '🔍', domain: 'Visual Scanning',  description: 'Find hidden words in a letter grid.' },
+      { id: 'right-time',         title: 'Right Time',   icon: '🕐', domain: 'Visual Cognition', description: 'Read the analog clock and choose the correct time.' },
+      { id: 'catch-falling-fruit',title: 'Catch the Fruit', icon: '🧺', domain: 'Coordination', description: 'Slide to catch falling fruit in your basket.' },
+      { id: 'odd-one-out',        title: 'Odd One Out',  icon: '🔎', domain: 'Visual Reasoning', description: 'Spot the one emoji that doesn\'t belong.' },
+    ],
   },
   {
-    id: 'catch-falling-fruit',
-    title: 'Catch the Falling Fruit',
-    description: 'Move the basket to catch falling fruit before it hits the ground. Exercises reflexes and coordination.',
-    icon: '🧺',
-    domain: 'Coordination',
-  },
-  {
-    id: 'right-time',
-    title: 'Right Time',
-    description: 'Read the analog clock and choose the correct time. Exercises visual cognition and time-telling.',
-    icon: '🕐',
-    domain: 'Visual Cognition',
-  },
-  {
-    id: 'balloon-pop',
-    title: 'Balloon Pop',
-    description: 'Tap the balloons before they float away! Exercises attention and reaction speed.',
-    icon: '🎈',
-    domain: 'Reaction Speed',
-  },
-  {
-    id: 'flag-quiz',
-    title: 'Flag Quiz',
-    description: 'Identify countries by their flags. Exercises general knowledge and visual recognition.',
-    icon: '🏳️',
-    domain: 'General Knowledge',
+    category: 'General Knowledge',
+    icon: '🌍',
+    games: [
+      { id: 'flag-quiz',    title: 'Flag Quiz',         icon: '🏳️', domain: 'Geography', description: 'Identify countries by their flags.' },
+      { id: 'capital-quiz', title: 'Capital City Quiz', icon: '🗺️', domain: 'Geography', description: 'Name the capital city of each country.' },
+    ],
   },
 ];
 
+// Flat list for embedded mode lookup
+const ALL_GAMES = GAME_GROUPS.flatMap(g => g.games);
+
 // Read URL params for iframe / embedded mode
 const params = new URLSearchParams(window.location.search);
-const urlGameId = params.get('gameId');
-const urlMemberId = params.get('memberId') ?? 'anonymous';
-const urlDifficulty = params.get('difficulty') ?? 'easy';
+const urlGameId      = params.get('gameId');
+const urlMemberId    = params.get('memberId')    ?? 'anonymous';
+const urlDifficulty  = params.get('difficulty')  ?? 'easy';
 const urlCallbackUrl = params.get('callbackUrl') ?? undefined;
 
-/**
- * If a gameId is specified in the URL, render that game directly (embedded/iframe mode).
- * Otherwise render the full game lobby (development / standalone demo).
- */
 export function App() {
-  const [selectedGame, setSelectedGame] = useState(null);
+  const [selectedGame,       setSelectedGame]       = useState(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
   const { muted, toggle: toggleMusic } = useMusic(MUSIC_SRC);
 
@@ -119,7 +110,7 @@ export function App() {
     </button>
   );
 
-  // Embedded mode — render single game from URL params
+  // Embedded mode
   if (urlGameId && GAME_MAP[urlGameId]) {
     const GameComponent = GAME_MAP[urlGameId];
     return (
@@ -129,14 +120,12 @@ export function App() {
         callbackUrl={urlCallbackUrl}
         musicMuted={muted}
         onToggleMusic={toggleMusic}
-        onComplete={(result) => {
-          console.log('[CaritaHub Game Result]', result);
-        }}
+        onComplete={(result) => console.log('[CaritaHub Game Result]', result)}
       />
     );
   }
 
-  // Lobby mode — show selected game or game selector
+  // Playing a game
   if (selectedGame) {
     const GameComponent = GAME_MAP[selectedGame];
     return (
@@ -146,14 +135,13 @@ export function App() {
         callbackUrl={undefined}
         musicMuted={muted}
         onToggleMusic={toggleMusic}
-        onComplete={(result) => {
-          console.log('[CaritaHub Game Result]', result);
-        }}
+        onComplete={(result) => console.log('[CaritaHub Game Result]', result)}
         onBack={() => setSelectedGame(null)}
       />
     );
   }
 
+  // Lobby
   return (
     <div className={styles.lobby}>
       <header className={styles.lobbyHeader}>
@@ -167,9 +155,7 @@ export function App() {
       </header>
 
       <div className={styles.difficultyRow}>
-        <label className={styles.difficultyLabel} htmlFor="difficulty-select">
-          Difficulty:
-        </label>
+        <label className={styles.difficultyLabel} htmlFor="difficulty-select">Difficulty:</label>
         <select
           id="difficulty-select"
           className={styles.difficultySelect}
@@ -183,27 +169,33 @@ export function App() {
         </select>
       </div>
 
-      <div className={styles.gameGrid} role="list" aria-label="Available games">
-        {GAME_INFO.map((game) => (
-          <div key={game.id} className={styles.gameCard} role="listitem">
-            <div className={styles.gameIcon} aria-hidden="true">
-              {game.icon}
-            </div>
-            <div className={styles.gameMeta}>
-              <span className={styles.gameDomain}>{game.domain}</span>
-              <h2 className={styles.gameCardTitle}>{game.title}</h2>
-              <p className={styles.gameCardDesc}>{game.description}</p>
-            </div>
-            <button
-              className={styles.playButton}
-              onClick={() => setSelectedGame(game.id)}
-              aria-label={`Play ${game.title}`}
-            >
-              Play
-            </button>
+      {/* Grouped sections */}
+      {GAME_GROUPS.map(group => (
+        <section key={group.category} className={styles.gameSection} aria-label={group.category}>
+          <h2 className={styles.sectionTitle}>
+            <span aria-hidden="true">{group.icon}</span> {group.category}
+          </h2>
+          <div className={styles.gameGrid} role="list">
+            {group.games.map(game => (
+              <div key={game.id} className={styles.gameCard} role="listitem">
+                <div className={styles.gameIcon} aria-hidden="true">{game.icon}</div>
+                <div className={styles.gameMeta}>
+                  <span className={styles.gameDomain}>{game.domain}</span>
+                  <h3 className={styles.gameCardTitle}>{game.title}</h3>
+                  <p className={styles.gameCardDesc}>{game.description}</p>
+                </div>
+                <button
+                  className={styles.playButton}
+                  onClick={() => setSelectedGame(game.id)}
+                  aria-label={`Play ${game.title}`}
+                >
+                  Play
+                </button>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </section>
+      ))}
     </div>
   );
 }

@@ -1,0 +1,101 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  width: 100%;
+  padding: var(--space-4) 0;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+  font-size: var(--text-sm);
+}
+.roundLabel { color: var(--color-text-muted); }
+.roundLabel strong { color: var(--color-primary); }
+.instruction { color: var(--color-text-muted); font-style: italic; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 380px;
+}
+
+.numBtn {
+  aspect-ratio: 1;
+  font-size: clamp(1.6rem, 7vw, 2.4rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  color: var(--color-text);
+  cursor: pointer;
+  position: relative;
+  transition: transform 80ms ease, border-color var(--transition-fast),
+    background var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.numBtn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: rgba(245,158,11,0.08);
+  transform: scale(1.05);
+}
+.numBtn:disabled { cursor: default; }
+
+.numTapped {
+  background: rgba(96,165,250,0.15) !important;
+  border-color: #60a5fa !important;
+  color: #60a5fa !important;
+}
+
+.numShake {
+  animation: shake 0.35s ease;
+  border-color: #f87171 !important;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-8px); }
+  40%       { transform: translateX(8px); }
+  60%       { transform: translateX(-5px); }
+  80%       { transform: translateX(5px); }
+}
+
+.orderBadge {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #60a5fa;
+  line-height: 1;
+}
+
+.correctRow {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.correctNum {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: #4ade80;
+  font-variant-numeric: tabular-nums;
+}
+
+.feedbackBad {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: #f87171;
+  text-align: center;
+}
