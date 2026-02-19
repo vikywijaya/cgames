@@ -8,13 +8,13 @@
   -webkit-user-select: none;
 }
 
-/* ── Status row (lives + score) ───────────────────── */
+/* ── Status row ───────────────────────────────────── */
 .statusRow {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  max-width: 480px;
+  max-width: 560px;
   padding: 0 var(--space-2);
 }
 
@@ -37,32 +37,68 @@
   font-size: var(--text-lg);
 }
 
+/* ── Game row: [◄ button] [game area] [► button] ─── */
+.gameRow {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 560px;
+}
+
+/* ── Side buttons (outside game area — no touch conflicts) ── */
+.sideBtn {
+  flex-shrink: 0;
+  width: 56px;
+  min-height: 80px;         /* tall so easy to tap anywhere on the side */
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 1.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: color var(--transition-fast), border-color var(--transition-fast),
+    background var(--transition-fast);
+  /* no touch-action restriction — these are outside the game area */
+}
+.sideBtnLeft  { border-radius: var(--radius-xl) var(--radius-md) var(--radius-md) var(--radius-xl); }
+.sideBtnRight { border-radius: var(--radius-md) var(--radius-xl) var(--radius-xl) var(--radius-md); }
+.sideBtn:hover,
+.sideBtn:active {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: rgba(245, 158, 11, 0.08);
+}
+
 /* ── Game area ────────────────────────────────────── */
 .gameArea {
   position: relative;
-  width: 100%;
-  max-width: 480px;
+  flex: 1;
   height: 420px;
   border-radius: var(--radius-xl);
   border: 1px solid var(--color-border);
   overflow: hidden;
-  touch-action: none;   /* prevent scroll while playing */
-  cursor: none;         /* hide cursor — fruit/basket is enough feedback */
+  /* touch-action: none prevents all browser scroll/zoom within this element.
+     The actual touch listeners are attached imperatively with { passive: false }
+     so preventDefault() works and the page doesn't scroll during play. */
+  touch-action: none;
+  cursor: none;
 
-  /* Sky gradient background */
   background:
     radial-gradient(ellipse 60% 40% at 25% 30%, rgba(96, 165, 250, 0.12) 0%, transparent 70%),
     radial-gradient(ellipse 50% 35% at 75% 20%, rgba(96, 165, 250, 0.08) 0%, transparent 70%),
     linear-gradient(180deg, #0d1b2e 0%, #0f2340 40%, #132a1e 100%);
 }
 
-/* Subtle ground strip */
+/* Ground strip */
 .gameArea::after {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  bottom: 0; left: 0; right: 0;
   height: 18px;
   background: linear-gradient(180deg, transparent, rgba(74, 222, 128, 0.08));
   border-top: 1px solid rgba(74, 222, 128, 0.12);
@@ -79,7 +115,7 @@
   text-align: center;
   pointer-events: none;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
-  will-change: transform, top;
+  will-change: top;
 }
 
 /* ── Basket ───────────────────────────────────────── */
@@ -92,38 +128,11 @@
   text-align: center;
   pointer-events: none;
   filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
-  transition: left 40ms linear;
+  /* NO transition — instant response is critical for touch feel */
   will-change: left;
 }
 
-/* ── Tap zones (senior-friendly side buttons) ─────── */
-.tapZone {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 52px;
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.18);
-  font-size: 2rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  transition: color var(--transition-fast), background var(--transition-fast);
-  z-index: 2;
-}
-.tapZone:hover,
-.tapZone:active {
-  color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.05);
-}
-.tapZoneLeft  { left: 0;  border-radius: var(--radius-xl) 0 0 var(--radius-xl); }
-.tapZoneRight { right: 0; border-radius: 0 var(--radius-xl) var(--radius-xl) 0; }
-
-/* ── Hint text ────────────────────────────────────── */
+/* ── Hint ─────────────────────────────────────────── */
 .hint {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
@@ -131,11 +140,11 @@
   opacity: 0.7;
 }
 
-/* ── Responsive: shorter game area on small screens ─ */
+/* ── Responsive ───────────────────────────────────── */
 @media (max-height: 680px) {
   .gameArea { height: 320px; }
 }
 @media (max-width: 380px) {
+  .sideBtn { width: 44px; font-size: 1.5rem; }
   .gameArea { height: 340px; }
-  .tapZone  { width: 44px; }
 }

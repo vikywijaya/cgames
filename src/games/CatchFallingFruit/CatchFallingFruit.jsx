@@ -12,113 +12,101 @@ const DIFFICULTY_CONFIG = {
 };
 
 const FRUITS = ['🍎', '🍊', '🍋', '🍇', '🍓', '🍑', '🍒', '🥝'];
-const FRUIT_SIZE  = 40; // px — rendered size
-const BASKET_H    = 44; // px
+const FRUIT_SIZE = 40; // px
+const BASKET_H   = 44; // px
+const TAP_STEP   = 0.18; // how far a side-button tap moves the basket (normalised)
 
 let nextId = 0;
 
-// ── Inner game (rAF loop, input handling) ─────────────────────────
+// ── Inner game ─────────────────────────────────────────────────────
 function CatchGame({ difficulty, onComplete, reportScore, secondsLeft }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
-  const areaRef     = useRef(null);
-  const rafRef      = useRef(null);
-  const fruitsRef   = useRef([]);        // mutable array, no re-render per frame
-  const basketXRef  = useRef(0.5);       // 0–1 normalised position
-  const scoreRef    = useRef(0);
-  const livesRef    = useRef(config.lives);
-  const spawnTimerRef = useRef(null);
-  const doneRef     = useRef(false);
-  const totalSpawnedRef = useRef(0);
+  const areaRef       = useRef(null);
+  const rafRef        = useRef(null);
+  const fruitsRef     = useRef([]);
+  const basketXRef    = useRef(0.5);   // 0–1 normalised centre of basket
+  const scoreRef      = useRef(0);
+  const livesRef      = useRef(config.lives);
+  const spawnRef      = useRef(null);
+  const doneRef       = useRef(false);
+  const totalRef      = useRef(0);
 
-  // React state only for things that drive UI repaints
   const [displayScore, setDisplayScore] = useState(0);
   const [displayLives, setDisplayLives] = useState(config.lives);
-  const [, forceUpdate] = useState(0); // triggers re-render to reposition fruit spans
+  const [, forceUpdate] = useState(0);
 
-  // ── Finish game ────────────────────────────────────────────────
+  // ── Finish ──────────────────────────────────────────────────────
   const finish = useCallback((completed) => {
     if (doneRef.current) return;
     doneRef.current = true;
-    clearInterval(spawnTimerRef.current);
+    clearInterval(spawnRef.current);
     cancelAnimationFrame(rafRef.current);
-    onComplete({
-      finalScore: scoreRef.current,
-      maxScore: totalSpawnedRef.current || 1,
-      completed,
-    });
+    onComplete({ finalScore: scoreRef.current, maxScore: totalRef.current || 1, completed });
   }, [onComplete]);
 
-  // ── Time-up detection ──────────────────────────────────────────
+  // ── Time-up ─────────────────────────────────────────────────────
   useEffect(() => {
-    if (secondsLeft === 0 && !doneRef.current) {
-      finish(false);
-    }
+    if (secondsLeft === 0 && !doneRef.current) finish(false);
   }, [secondsLeft, finish]);
 
-  // ── Spawn fruit ────────────────────────────────────────────────
+  // ── Spawn ────────────────────────────────────────────────────────
   useEffect(() => {
-    spawnTimerRef.current = setInterval(() => {
+    spawnRef.current = setInterval(() => {
       if (doneRef.current) return;
-      const x = Math.random() * 0.8 + 0.1; // 10%–90% of area width
       fruitsRef.current.push({
         id:    nextId++,
         emoji: FRUITS[Math.floor(Math.random() * FRUITS.length)],
-        x,      // normalised 0–1
-        y: -FRUIT_SIZE,  // px from top, starts above visible area
+        x:     Math.random() * 0.8 + 0.1,
+        y:     -FRUIT_SIZE,
       });
-      totalSpawnedRef.current += 1;
+      totalRef.current += 1;
     }, config.spawnMs);
-
-    return () => clearInterval(spawnTimerRef.current);
+    return () => clearInterval(spawnRef.current);
   }, [config.spawnMs]);
 
-  // ── rAF loop ───────────────────────────────────────────────────
+  // ── rAF loop ─────────────────────────────────────────────────────
   useEffect(() => {
     let lastTime = null;
-
-    function tick(timestamp) {
+    function tick(ts) {
       if (doneRef.current) return;
-      const dt = lastTime ? Math.min((timestamp - lastTime) / 16.67, 3) : 1; // cap at 3× normal
-      lastTime = timestamp;
+      const dt = lastTime ? Math.min((ts - lastTime) / 16.67, 3) : 1;
+      lastTime = ts;
 
       const area = areaRef.current;
       if (!area) { rafRef.current = requestAnimationFrame(tick); return; }
       const areaH = area.clientHeight;
       const areaW = area.clientWidth;
-      const basketX = basketXRef.current * areaW; // pixel centre of basket
-      const catchBottom = areaH - BASKET_H - 4;   // y threshold to test catch
+      const bx    = basketXRef.current * areaW;
+      const catchBottom = areaH - BASKET_H - 4;
       const catchTop    = catchBottom - FRUIT_SIZE;
+      const halfBasket  = config.basketWidth / 2 + FRUIT_SIZE / 2;
 
-      const survived = [];
       let scoreChanged = false;
       let livesChanged = false;
+      const survived = [];
 
       for (const fruit of fruitsRef.current) {
         fruit.y += config.fallSpeed * dt;
 
+        // Catch zone check
         if (fruit.y >= catchTop && fruit.y <= catchBottom + config.fallSpeed * dt + 4) {
-          // In the catch zone — check horizontal overlap
-          const fruitCx = fruit.x * areaW;
-          const halfBasket = (config.basketWidth / 2) + FRUIT_SIZE / 2;
-          if (Math.abs(fruitCx - basketX) <= halfBasket) {
-            // CAUGHT
+          if (Math.abs(fruit.x * areaW - bx) <= halfBasket) {
             scoreRef.current += 1;
             scoreChanged = true;
-            continue; // remove fruit
+            continue;
           }
         }
 
+        // Missed — past bottom
         if (fruit.y > areaH) {
-          // MISSED
           livesRef.current -= 1;
           livesChanged = true;
-          continue; // remove fruit
+          continue;
         }
 
         survived.push(fruit);
       }
-
       fruitsRef.current = survived;
 
       if (scoreChanged) {
@@ -127,54 +115,75 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft }) {
       }
       if (livesChanged) {
         setDisplayLives(livesRef.current);
-        if (livesRef.current <= 0) {
-          finish(true);
-          return;
-        }
+        if (livesRef.current <= 0) { finish(true); return; }
       }
 
-      forceUpdate(n => n + 1); // repaint fruit positions
+      forceUpdate(n => n + 1);
       rafRef.current = requestAnimationFrame(tick);
     }
-
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
   }, [config.fallSpeed, config.basketWidth, finish, reportScore]);
 
-  // ── Input: mouse ───────────────────────────────────────────────
+  // ── Touch input: attach with { passive: false } so preventDefault works ──
+  // This is the critical fix — React's onTouchMove uses passive listeners
+  // which silently ignore preventDefault(), letting the page scroll instead.
+  useEffect(() => {
+    const area = areaRef.current;
+    if (!area) return;
+
+    function getX(e) {
+      const rect = area.getBoundingClientRect();
+      const touch = e.touches[0] ?? e.changedTouches[0];
+      return Math.max(0.05, Math.min(0.95, (touch.clientX - rect.left) / rect.width));
+    }
+
+    function onTouchStart(e) {
+      e.preventDefault();
+      basketXRef.current = getX(e);
+    }
+    function onTouchMove(e) {
+      e.preventDefault();
+      basketXRef.current = getX(e);
+    }
+
+    area.addEventListener('touchstart', onTouchStart, { passive: false });
+    area.addEventListener('touchmove',  onTouchMove,  { passive: false });
+    return () => {
+      area.removeEventListener('touchstart', onTouchStart);
+      area.removeEventListener('touchmove',  onTouchMove);
+    };
+  }, []);
+
+  // ── Mouse input ───────────────────────────────────────────────────
   const handleMouseMove = useCallback((e) => {
     const rect = areaRef.current?.getBoundingClientRect();
     if (!rect) return;
     basketXRef.current = Math.max(0.05, Math.min(0.95, (e.clientX - rect.left) / rect.width));
   }, []);
 
-  // ── Input: touch ───────────────────────────────────────────────
-  const handleTouchMove = useCallback((e) => {
-    e.preventDefault();
-    const rect = areaRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const touch = e.touches[0];
-    basketXRef.current = Math.max(0.05, Math.min(0.95, (touch.clientX - rect.left) / rect.width));
-  }, []);
-
-  // ── Input: keyboard ────────────────────────────────────────────
+  // ── Keyboard input ────────────────────────────────────────────────
   useEffect(() => {
-    const step = 0.06; // ~6% of width per keypress
-    function handleKey(e) {
+    const step = 0.06;
+    function onKey(e) {
       if (e.key === 'ArrowLeft')  basketXRef.current = Math.max(0.05, basketXRef.current - step);
       if (e.key === 'ArrowRight') basketXRef.current = Math.min(0.95, basketXRef.current + step);
     }
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // ── Render ─────────────────────────────────────────────────────
-  const area = areaRef.current;
-  const areaW = area?.clientWidth ?? 320;
+  // ── Side-button tap handler (pointer, not touch, avoids duplicate events) ──
+  const tapLeft  = useCallback(() => {
+    basketXRef.current = Math.max(0.05, basketXRef.current - TAP_STEP);
+  }, []);
+  const tapRight = useCallback(() => {
+    basketXRef.current = Math.min(0.95, basketXRef.current + TAP_STEP);
+  }, []);
 
   return (
     <div className={styles.wrapper}>
-      {/* Lives + score row */}
+      {/* Lives + score */}
       <div className={styles.statusRow}>
         <div className={styles.livesRow} aria-label={`${displayLives} lives remaining`}>
           {Array.from({ length: config.lives }).map((_, i) => (
@@ -188,59 +197,56 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft }) {
         </div>
       </div>
 
-      {/* Game area */}
-      <div
-        ref={areaRef}
-        className={styles.gameArea}
-        onMouseMove={handleMouseMove}
-        onTouchMove={handleTouchMove}
-        onTouchStart={handleTouchMove}
-        role="application"
-        aria-label="Catch the fruit — move left or right with arrow keys"
-      >
-        {/* Falling fruit */}
-        {fruitsRef.current.map(fruit => (
-          <span
-            key={fruit.id}
-            className={styles.fruit}
-            style={{
-              left: `calc(${fruit.x * 100}% - ${FRUIT_SIZE / 2}px)`,
-              top:  fruit.y,
-            }}
-            aria-hidden="true"
-          >
-            {fruit.emoji}
-          </span>
-        ))}
-
-        {/* Basket */}
-        <div
-          className={styles.basket}
-          style={{
-            left: `calc(${basketXRef.current * 100}% - ${config.basketWidth / 2}px)`,
-            width: config.basketWidth,
-          }}
-          aria-hidden="true"
-        >
-          🧺
-        </div>
-
-        {/* Left/right tap zones (senior-friendly alternative to precise drag) */}
+      {/* Controls row: left button | game area | right button */}
+      <div className={styles.gameRow}>
         <button
-          className={`${styles.tapZone} ${styles.tapZoneLeft}`}
-          onPointerDown={() => { basketXRef.current = Math.max(0.05, basketXRef.current - 0.15); }}
+          className={`${styles.sideBtn} ${styles.sideBtnLeft}`}
+          onPointerDown={tapLeft}
           aria-label="Move basket left"
           tabIndex={-1}
         >‹</button>
+
+        <div
+          ref={areaRef}
+          className={styles.gameArea}
+          onMouseMove={handleMouseMove}
+          role="application"
+          aria-label="Catch the fruit game area"
+        >
+          {/* Falling fruit */}
+          {fruitsRef.current.map(fruit => (
+            <span
+              key={fruit.id}
+              className={styles.fruit}
+              style={{ left: `calc(${fruit.x * 100}% - ${FRUIT_SIZE / 2}px)`, top: fruit.y }}
+              aria-hidden="true"
+            >
+              {fruit.emoji}
+            </span>
+          ))}
+
+          {/* Basket */}
+          <div
+            className={styles.basket}
+            style={{
+              left:  `calc(${basketXRef.current * 100}% - ${config.basketWidth / 2}px)`,
+              width: config.basketWidth,
+            }}
+            aria-hidden="true"
+          >
+            🧺
+          </div>
+        </div>
+
         <button
-          className={`${styles.tapZone} ${styles.tapZoneRight}`}
-          onPointerDown={() => { basketXRef.current = Math.min(0.95, basketXRef.current + 0.15); }}
+          className={`${styles.sideBtn} ${styles.sideBtnRight}`}
+          onPointerDown={tapRight}
           aria-label="Move basket right"
           tabIndex={-1}
         >›</button>
       </div>
 
-      <p className={styles.hint}>Move your finger or mouse to guide the basket</p>
+      <p className={styles.hint}>Slide your finger across the game area to move the basket</p>
     </div>
   );
 }
@@ -252,7 +258,7 @@ CatchGame.propTypes = {
   secondsLeft: PropTypes.number,
 };
 
-// ── Outer wrapper (GameShell wiring) ──────────────────────────────
+// ── Outer wrapper ──────────────────────────────────────────────────
 export function CatchFallingFruit({
   memberId,
   difficulty = 'easy',
@@ -267,15 +273,15 @@ export function CatchFallingFruit({
 
   const instructions = (
     <>
-      <p>Fruit will fall from the sky — guide the basket to catch them!</p>
+      <p>Fruit will fall from the sky — catch them in the basket!</p>
       <ul style={{ marginTop: 8, paddingLeft: 20, lineHeight: 1.8 }}>
-        <li><strong>Mouse / finger:</strong> move over the game area</li>
-        <li><strong>Touch:</strong> tap the ‹ › arrows on the sides</li>
+        <li><strong>Touch:</strong> slide your finger across the game area</li>
+        <li><strong>Buttons:</strong> tap ‹ › on either side to jump the basket</li>
         <li><strong>Keyboard:</strong> ← → arrow keys</li>
       </ul>
       <p style={{ marginTop: 8 }}>
-        You have {config.lives} {config.lives === 5 ? '❤️❤️❤️❤️❤️' : '❤️❤️❤️'} lives.
-        Miss a fruit and you lose one!
+        You have {config.lives === 5 ? '❤️❤️❤️❤️❤️' : '❤️❤️❤️'} lives.
+        Miss a fruit and lose one!
       </p>
     </>
   );
