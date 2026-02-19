@@ -1,0 +1,100 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-2) 0;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+  font-size: var(--text-sm);
+}
+.tip { color: var(--color-text-muted); font-style: italic; }
+.scoreLabel { color: var(--color-text-muted); }
+.scoreLabel strong { color: var(--color-primary); font-size: var(--text-md); }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--size), 1fr);
+  width: min(90vw, 380px);
+  height: min(90vw, 380px);
+  background: #0d1117;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(0.7rem, 2.5vw, 1.1rem);
+  background: transparent;
+  border: 0.5px solid rgba(255,255,255,0.03);
+  line-height: 1;
+}
+
+.head {
+  background: rgba(74,222,128,0.15);
+  border-radius: 3px;
+}
+
+.body {
+  background: rgba(74,222,128,0.25);
+  border-radius: 3px;
+}
+
+.food {
+  background: transparent;
+}
+
+/* D-Pad controls */
+.dpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.dpadRow {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.dpadBtn {
+  width: 54px;
+  height: 54px;
+  font-size: 1.2rem;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+.dpadBtn:active {
+  background: rgba(245,158,11,0.15);
+  border-color: var(--color-primary);
+}
+
+.dpadCenter {
+  width: 54px;
+  height: 54px;
+  background: #0d1117;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
