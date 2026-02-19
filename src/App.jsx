@@ -4,8 +4,11 @@ import { WordRecall } from './games/WordRecall/WordRecall';
 import { PatternSequence } from './games/PatternSequence/PatternSequence';
 import { DailyArithmetic } from './games/DailyArithmetic/DailyArithmetic';
 import { WordSearch } from './games/WordSearch/WordSearch';
+import { useMusic } from './hooks/useMusic';
 import './design/globals.css';
 import styles from './App.module.css';
+
+const MUSIC_SRC = import.meta.env.BASE_URL + 'music.mp3';
 
 const GAME_MAP = {
   'memory-match': MemoryMatch,
@@ -67,6 +70,18 @@ const urlCallbackUrl = params.get('callbackUrl') ?? undefined;
 export function App() {
   const [selectedGame, setSelectedGame] = useState(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
+  const { muted, toggle: toggleMusic } = useMusic(MUSIC_SRC);
+
+  const musicBtn = (
+    <button
+      className={styles.musicToggle}
+      onClick={toggleMusic}
+      aria-label={muted ? 'Unmute background music' : 'Mute background music'}
+      title={muted ? 'Turn music on' : 'Turn music off'}
+    >
+      {muted ? '🔇' : '🎵'}
+    </button>
+  );
 
   // Embedded mode — render single game from URL params
   if (urlGameId && GAME_MAP[urlGameId]) {
@@ -76,6 +91,8 @@ export function App() {
         memberId={urlMemberId}
         difficulty={urlDifficulty}
         callbackUrl={urlCallbackUrl}
+        musicMuted={muted}
+        onToggleMusic={toggleMusic}
         onComplete={(result) => {
           console.log('[CaritaHub Game Result]', result);
         }}
@@ -91,6 +108,8 @@ export function App() {
         memberId="demo-user"
         difficulty={selectedDifficulty}
         callbackUrl={undefined}
+        musicMuted={muted}
+        onToggleMusic={toggleMusic}
         onComplete={(result) => {
           console.log('[CaritaHub Game Result]', result);
         }}
@@ -108,6 +127,7 @@ export function App() {
         <p className={styles.lobbySubtitle}>
           Fun exercises to keep your mind sharp. Choose a game to begin.
         </p>
+        {musicBtn}
       </header>
 
       <div className={styles.difficultyRow}>

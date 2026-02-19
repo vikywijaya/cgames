@@ -127,7 +127,7 @@ PatternSequenceGame.propTypes = {
   reportScore: PropTypes.func,
 };
 
-export function PatternSequence({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack }) {
+export function PatternSequence({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const { fireComplete } = useGameCallback({
     memberId,
     gameId: GAME_IDS.PATTERN_SEQUENCE,
@@ -144,6 +144,8 @@ export function PatternSequence({ memberId, difficulty = 'easy', onComplete, cal
       timeLimitSeconds={null}
       onGameComplete={fireComplete}
       onBack={onBack}
+      musicMuted={musicMuted}
+      onToggleMusic={onToggleMusic}
     >
       {({ onComplete: shellComplete, reportScore }) => (
         <PatternSequenceGame difficulty={difficulty} onComplete={shellComplete} reportScore={reportScore} />
@@ -158,4 +160,6 @@ PatternSequence.propTypes = {
   onComplete: PropTypes.func.isRequired,
   callbackUrl: PropTypes.string,
   onBack: PropTypes.func,
+  musicMuted: PropTypes.bool,
+  onToggleMusic: PropTypes.func,
 };

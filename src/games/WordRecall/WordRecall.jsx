@@ -167,7 +167,7 @@ WordRecallGame.propTypes = {
   reportScore: PropTypes.func,
 };
 
-export function WordRecall({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack }) {
+export function WordRecall({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const { fireComplete } = useGameCallback({
     memberId,
     gameId: GAME_IDS.WORD_RECALL,
@@ -184,6 +184,8 @@ export function WordRecall({ memberId, difficulty = 'easy', onComplete, callback
       timeLimitSeconds={null}
       onGameComplete={fireComplete}
       onBack={onBack}
+      musicMuted={musicMuted}
+      onToggleMusic={onToggleMusic}
     >
       {({ onComplete: shellComplete, reportScore }) => (
         <WordRecallGame difficulty={difficulty} onComplete={shellComplete} reportScore={reportScore} />
@@ -198,4 +200,6 @@ WordRecall.propTypes = {
   onComplete: PropTypes.func.isRequired,
   callbackUrl: PropTypes.string,
   onBack: PropTypes.func,
+  musicMuted: PropTypes.bool,
+  onToggleMusic: PropTypes.func,
 };

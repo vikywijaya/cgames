@@ -104,6 +104,20 @@
 }
 .hudBack:hover { color: var(--color-text); border-color: var(--color-border-hover); }
 
+.hudMusic {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  background-color: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: 1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color var(--transition-fast);
+}
+.hudMusic:hover { border-color: var(--color-border-hover); }
+
 .hudScore { flex: 1; font-size: var(--text-md); font-weight: 700; color: var(--color-primary); }
 .hudScoreLabel { font-size: var(--text-sm); color: var(--color-text-muted); font-weight: 400; }
 

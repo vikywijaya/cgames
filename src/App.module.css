@@ -164,6 +164,21 @@
 .playButton:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 .playButton:active { transform: scale(0.97); }
 
+/* ── Music Toggle ─────────────────────────────── */
+.musicToggle {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.musicToggle:hover { border-color: var(--color-border-hover); box-shadow: var(--shadow-md); }
+.musicToggle:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+
 /* Narrow screens: full-width Play button */
 @media (max-width: 480px) {
   .gameCard {

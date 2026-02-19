@@ -150,7 +150,7 @@ WordSearchGame.propTypes = {
   reportScore: PropTypes.func,
 };
 
-export function WordSearch({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack }) {
+export function WordSearch({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const { fireComplete } = useGameCallback({
     memberId,
     gameId: GAME_IDS.WORD_SEARCH,
@@ -167,6 +167,8 @@ export function WordSearch({ memberId, difficulty = 'easy', onComplete, callback
       timeLimitSeconds={null}
       onGameComplete={fireComplete}
       onBack={onBack}
+      musicMuted={musicMuted}
+      onToggleMusic={onToggleMusic}
     >
       {({ onComplete: shellComplete, reportScore }) => (
         <WordSearchGame difficulty={difficulty} onComplete={shellComplete} reportScore={reportScore} />
@@ -181,4 +183,6 @@ WordSearch.propTypes = {
   onComplete: PropTypes.func.isRequired,
   callbackUrl: PropTypes.string,
   onBack: PropTypes.func,
+  musicMuted: PropTypes.bool,
+  onToggleMusic: PropTypes.func,
 };

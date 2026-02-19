@@ -23,6 +23,8 @@ export function GameShell({
   children,
   onGameComplete,
   onBack,
+  musicMuted,
+  onToggleMusic,
 }) {
   const [phase, setPhase] = useState('idle'); // 'idle' | 'playing' | 'finished'
   const [result, setResult] = useState(null);
@@ -177,6 +179,16 @@ export function GameShell({
             <span className={styles.hudTimerLabel}>Untimed</span>
           )}
         </div>
+        {onToggleMusic && (
+          <button
+            className={styles.hudMusic}
+            onClick={onToggleMusic}
+            aria-label={musicMuted ? 'Unmute background music' : 'Mute background music'}
+            title={musicMuted ? 'Turn music on' : 'Turn music off'}
+          >
+            {musicMuted ? '🔇' : '🎵'}
+          </button>
+        )}
       </div>
       <div className={styles.gameBody}>
         {children({
@@ -198,4 +210,6 @@ GameShell.propTypes = {
   children: PropTypes.func.isRequired,
   onGameComplete: PropTypes.func,
   onBack: PropTypes.func,
+  musicMuted: PropTypes.bool,
+  onToggleMusic: PropTypes.func,
 };

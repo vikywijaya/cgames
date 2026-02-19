@@ -98,7 +98,7 @@ MemoryMatchGame.propTypes = {
   secondsLeft: PropTypes.number,
 };
 
-export function MemoryMatch({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack }) {
+export function MemoryMatch({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const { fireComplete } = useGameCallback({
     memberId,
     gameId: GAME_IDS.MEMORY_MATCH,
@@ -118,6 +118,8 @@ export function MemoryMatch({ memberId, difficulty = 'easy', onComplete, callbac
       timeLimitSeconds={timeLimitSeconds}
       onGameComplete={fireComplete}
       onBack={onBack}
+      musicMuted={musicMuted}
+      onToggleMusic={onToggleMusic}
     >
       {({ onComplete: shellComplete, reportScore, secondsLeft }) => (
         <MemoryMatchGame
@@ -137,4 +139,6 @@ MemoryMatch.propTypes = {
   onComplete: PropTypes.func.isRequired,
   callbackUrl: PropTypes.string,
   onBack: PropTypes.func,
+  musicMuted: PropTypes.bool,
+  onToggleMusic: PropTypes.func,
 };

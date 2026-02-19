@@ -114,6 +114,8 @@ export function DailyArithmetic({
   onComplete,
   callbackUrl,
   onBack,
+  musicMuted,
+  onToggleMusic,
 }) {
   const { fireComplete } = useGameCallback({
     memberId,
@@ -131,6 +133,8 @@ export function DailyArithmetic({
       timeLimitSeconds={null}
       onGameComplete={fireComplete}
       onBack={onBack}
+      musicMuted={musicMuted}
+      onToggleMusic={onToggleMusic}
     >
       {({ onComplete: shellComplete, reportScore }) => (
         <ArithmeticGame difficulty={difficulty} onComplete={shellComplete} reportScore={reportScore} />
@@ -145,4 +149,6 @@ DailyArithmetic.propTypes = {
   onComplete: PropTypes.func.isRequired,
   callbackUrl: PropTypes.string,
   onBack: PropTypes.func,
+  musicMuted: PropTypes.bool,
+  onToggleMusic: PropTypes.func,
 };
