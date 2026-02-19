@@ -6,59 +6,52 @@
   min-height: var(--min-target);
   min-width: var(--min-target);
   padding: var(--space-3) var(--space-8);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-full);
   font-family: var(--font-base);
   font-size: var(--text-md);
   font-weight: 600;
   cursor: pointer;
   transition: background-color var(--transition-fast),
     transform var(--transition-fast),
-    box-shadow var(--transition-fast);
+    box-shadow var(--transition-fast),
+    border-color var(--transition-fast);
   user-select: none;
-  border: 2px solid transparent;
+  border: 1px solid transparent;
   white-space: nowrap;
+  letter-spacing: 0.01em;
 }
 
-.button:active {
-  transform: scale(0.97);
-}
-
-.button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
+.button:active { transform: scale(0.97); }
+.button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
 
 /* Variants */
 .primary {
   background-color: var(--color-primary);
-  color: var(--color-bg);
+  color: #0a0a0f;
   border-color: var(--color-primary);
 }
-
 .primary:hover:not(:disabled) {
   background-color: var(--color-primary-light);
   border-color: var(--color-primary-light);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-glow);
 }
 
 .secondary {
   background-color: transparent;
-  color: var(--color-primary);
-  border-color: var(--color-primary);
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
 }
-
 .secondary:hover:not(:disabled) {
-  background-color: rgba(232, 184, 75, 0.1);
-  box-shadow: var(--shadow-sm);
+  color: var(--color-text);
+  border-color: var(--color-border-hover);
+  background-color: var(--color-surface);
 }
 
 .ghost {
   background-color: transparent;
   color: var(--color-text-muted);
-  border-color: var(--color-border);
+  border-color: transparent;
 }
-
 .ghost:hover:not(:disabled) {
   background-color: var(--color-surface);
   color: var(--color-text);
@@ -67,20 +60,18 @@
 .danger {
   background-color: var(--color-error-bg);
   color: var(--color-error);
-  border-color: var(--color-error);
+  border-color: rgba(248, 113, 113, 0.3);
 }
-
 .danger:hover:not(:disabled) {
   background-color: var(--color-error);
-  color: var(--color-bg);
+  color: #0a0a0f;
 }
 
 /* Sizes */
 .large {
   font-size: var(--text-lg);
   padding: var(--space-4) var(--space-12);
-  min-height: 60px;
-  border-radius: var(--radius-lg);
+  min-height: 56px;
 }
 
 .small {

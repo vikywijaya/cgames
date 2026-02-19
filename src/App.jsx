@@ -102,7 +102,9 @@ export function App() {
   return (
     <div className={styles.lobby}>
       <header className={styles.lobbyHeader}>
+        <div className={styles.lobbyIcon} aria-hidden="true">🧠</div>
         <h1 className={styles.lobbyTitle}>CaritaHub Cognitive Games</h1>
+        <hr className={styles.lobbyDivider} />
         <p className={styles.lobbySubtitle}>
           Fun exercises to keep your mind sharp. Choose a game to begin.
         </p>

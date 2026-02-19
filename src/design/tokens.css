@@ -1,47 +1,51 @@
 :root {
-  /* Typography — minimum 18px everywhere */
+  /* Typography */
   --font-base: 'Inter', system-ui, sans-serif;
-  --text-xs: 1rem;        /* 16px — decorative labels only */
-  --text-sm: 1.125rem;    /* 18px — minimum body text */
-  --text-md: 1.25rem;     /* 20px — default body */
-  --text-lg: 1.5rem;      /* 24px — section headings */
-  --text-xl: 2rem;        /* 32px — page headings */
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --text-xs: 0.75rem;     /* 12px — labels */
+  --text-sm: 1rem;        /* 16px — secondary text */
+  --text-md: 1.125rem;    /* 18px — default body */
+  --text-lg: 1.375rem;    /* 22px — section headings */
+  --text-xl: 1.75rem;     /* 28px — page headings */
   --text-game: 2.5rem;    /* 40px — numbers/tiles in games */
 
-  /* High-contrast dark palette (WCAG AA throughout) */
-  --color-bg: #1a1a2e;          /* Deep navy — reduces glare vs pure black */
-  --color-surface: #16213e;
-  --color-surface-2: #0f3460;
-  --color-border: #4a5568;
-  --color-primary: #e8b84b;     /* Warm gold — 7.2:1 contrast on bg */
-  --color-primary-dk: #c99a2e;
-  --color-primary-light: #f5d48a;
-  --color-success: #48bb78;     /* Green — 5.1:1 on bg */
-  --color-success-bg: #1c4532;
-  --color-error: #fc8181;       /* Soft red — 4.8:1 on bg */
-  --color-error-bg: #4a1414;
-  --color-warning: #f6ad55;
-  --color-text: #f7fafc;        /* Near-white */
-  --color-text-muted: #a0aec0;
-  --color-focus: #63b3ed;       /* Sky blue focus ring */
-  --color-card-back: #0f3460;
+  /* Dark palette matching storybook-collection */
+  --color-bg: #0a0a0f;
+  --color-surface: #13131a;
+  --color-surface-2: #1a1a25;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-hover: rgba(255, 255, 255, 0.18);
+  --color-primary: #f59e0b;       /* Warm amber — matches storybook accent-warm */
+  --color-primary-dk: #d97706;
+  --color-primary-light: #fbbf24;
+  --color-accent: #60a5fa;        /* Cool blue — matches storybook accent-cool */
+  --color-success: #4ade80;
+  --color-success-bg: rgba(74, 222, 128, 0.1);
+  --color-error: #f87171;
+  --color-error-bg: rgba(248, 113, 113, 0.1);
+  --color-warning: #fbbf24;
+  --color-text: #e4e4e7;
+  --color-text-muted: #9ca3af;
+  --color-focus: #60a5fa;
+  --color-card-back: #1a1a25;
   --color-card-front: #f7fafc;
 
   /* Pad colors for Pattern Sequence */
-  --color-pad-red: #e53e3e;
-  --color-pad-blue: #3182ce;
-  --color-pad-yellow: #d69e2e;
-  --color-pad-green: #38a169;
-  --color-pad-red-lit: #fc8181;
-  --color-pad-blue-lit: #63b3ed;
-  --color-pad-yellow-lit: #f6e05e;
-  --color-pad-green-lit: #68d391;
+  --color-pad-red: #ef4444;
+  --color-pad-blue: #3b82f6;
+  --color-pad-yellow: #eab308;
+  --color-pad-green: #22c55e;
+  --color-pad-red-lit: #fca5a5;
+  --color-pad-blue-lit: #93c5fd;
+  --color-pad-yellow-lit: #fde047;
+  --color-pad-green-lit: #86efac;
 
   /* Spacing scale */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
+  --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
   --space-10: 40px;
@@ -49,23 +53,25 @@
   --space-16: 64px;
 
   /* Interactive targets */
-  --min-target: 48px;   /* WCAG 2.5.5 AA minimum tap target */
+  --min-target: 48px;
 
-  /* Borders */
+  /* Borders — rounder to match storybook */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-xl: 20px;   /* matches storybook card radius */
+  --radius-full: 999px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.7);
+  --shadow-glow: 0 0 20px rgba(245, 158, 11, 0.15);
 
   /* Motion */
   --transition-fast: 150ms ease;
   --transition-base: 250ms ease;
-  --transition-flip: 600ms ease;
+  --transition-flip: 500ms ease;
 }
 
 @media (prefers-reduced-motion: reduce) {
