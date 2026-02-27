@@ -80,11 +80,6 @@ export function GameShell({
   if (phase === 'idle') {
     return (
       <div className={styles.shell}>
-        {onBack && (
-          <button className={styles.backBtn} onClick={onBack} aria-label="Back to game lobby">
-            ← Back to Games
-          </button>
-        )}
         <div className={styles.startScreen}>
           <h1 className={styles.gameTitle}>{title}</h1>
           <span className={`${styles.difficultyBadge} ${diffBadgeClass}`}>{diffLabel}</span>
@@ -142,11 +137,6 @@ export function GameShell({
             <Button size="large" onClick={handlePlayAgain} autoFocus>
               Play Again
             </Button>
-            {onBack && (
-              <Button size="large" variant="secondary" onClick={onBack}>
-                All Games
-              </Button>
-            )}
           </div>
         </div>
       </div>
@@ -159,11 +149,6 @@ export function GameShell({
   return (
     <div className={styles.shell}>
       <div className={styles.hud} role="banner" aria-label="Game status">
-        {onBack && (
-          <button className={styles.hudBack} onClick={onBack} aria-label="Back to game lobby">
-            ←
-          </button>
-        )}
         <div className={styles.hudScore} aria-live="polite" aria-atomic="true">
           <span className={styles.hudScoreLabel}>Score </span>
           <span>{liveScore}</span>
