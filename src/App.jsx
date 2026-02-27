@@ -274,6 +274,14 @@ export function App() {
 
     return (
       <div className={styles.dailyWrapper}>
+        <TopBar
+          title="Daily Challenge"
+          onBack={abortDailyChallenge}
+          memberId={urlMemberId}
+          muted={muted}
+          onToggleMusic={toggleMusic}
+          noBleed
+        />
         {/* Progress strip */}
         <div className={styles.dailyProgress} role="progressbar"
           aria-label={`Game ${index + 1} of ${games.length}`}>

@@ -9,9 +9,9 @@ function getInitials(name) {
     .slice(0, 2) || '?';
 }
 
-export function TopBar({ title, onBack, memberId, muted, onToggleMusic }) {
+export function TopBar({ title, onBack, memberId, muted, onToggleMusic, noBleed = false }) {
   return (
-    <header className={styles.topBar}>
+    <header className={`${styles.topBar} ${noBleed ? styles.topBarNoBleed : ''}`}>
       <div className={styles.topBarLeft}>
         {onBack && (
           <button className={styles.topBarBack} onClick={onBack} aria-label="Go back">
