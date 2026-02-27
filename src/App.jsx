@@ -569,6 +569,7 @@ export function App() {
           alt="CaritaHub Cognitive Games"
           className={styles.homeTitle}
         />
+        <div className={styles.homeAvatar} aria-hidden="true" />
         <p className={styles.homeGreeting}>Hello, {urlMemberId}! 👋</p>
         <p className={styles.homeProgressHint}>{getProgressHint(getAllScores(), ALL_GAMES.length)}</p>
         
