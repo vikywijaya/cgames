@@ -68,7 +68,7 @@
 .homeScreen {
   max-width: 640px;
   margin: 0 auto;
-  padding: var(--space-10) var(--space-6) var(--space-16);
+  padding: 0 var(--space-6) var(--space-16);  /* top=0: TopBar anchors the top */
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
@@ -309,6 +309,7 @@
 .interResult {
   max-width: 520px;
   margin: 0 auto;
+  padding: 0 var(--space-6);    /* side padding so TopBar negative-margins work */
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
@@ -319,7 +320,7 @@
   align-items: flex-start;
   justify-content: center;
   gap: var(--space-2);
-  padding: var(--space-4) var(--space-6);
+  padding: var(--space-4) 0;          /* side padding handled by .interResult */
   background-color: var(--color-surface-2);
   border-bottom: 1.5px solid var(--color-border);
   flex-wrap: wrap;
@@ -331,7 +332,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-4);
-  padding: var(--space-10) var(--space-6);
+  padding: var(--space-10) 0;         /* side padding handled by .interResult */
   text-align: center;
 }
 
@@ -382,7 +383,7 @@
 .dailyResult {
   max-width: 520px;
   margin: 0 auto;
-  padding: var(--space-10) var(--space-6) var(--space-16);
+  padding: 0 var(--space-6) var(--space-16);  /* top=0: TopBar anchors the top */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -460,7 +461,7 @@
 .scoresView {
   max-width: 900px;
   margin: 0 auto;
-  padding: var(--space-10) var(--space-6) var(--space-16);
+  padding: 0 var(--space-6) var(--space-16);  /* top=0: TopBar anchors the top */
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
@@ -634,7 +635,7 @@
 .lobby {
   max-width: 900px;
   margin: 0 auto;
-  padding: var(--space-10) var(--space-6) var(--space-16);
+  padding: 0 var(--space-6) var(--space-16);  /* top=0: TopBar anchors the top */
   display: flex;
   flex-direction: column;
   gap: var(--space-10);
@@ -880,34 +881,12 @@
 .playButton:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 .playButton:active { transform: scale(0.97); }
 
-/* ── Music Toggle — fixed top-right on all lobby/home/scores screens ── */
-.musicToggle {
-  position: fixed;
-  top: var(--space-4);
-  right: var(--space-4);
-  z-index: 200;
-  min-width: 52px;
-  min-height: 52px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--color-bg);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-full);
-  font-size: 1.5rem;
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-  color: var(--color-text);
-}
-.musicToggle:hover { border-color: var(--color-primary); box-shadow: var(--shadow-md); }
-.musicToggle:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+/* .musicToggle removed — sound control is now in the TopBar component */
 
 /* ── Narrow screens (mobile phones) ──────────────── */
 @media (max-width: 480px) {
   /* Home screen layout */
-  .homeScreen   { padding: var(--space-6) var(--space-4) var(--space-10); gap: var(--space-5); }
+  .homeScreen   { padding: 0 var(--space-4) var(--space-10); gap: var(--space-5); }
   .homeHeader   { gap: var(--space-3); }
   .homeTitle    { max-width: 360px; }
   .homeGreeting { font-size: var(--text-sm); }
@@ -923,7 +902,7 @@
   .menuBtnCta   { height: 40px; font-size: var(--text-xs); }
 
   /* Game lobby */
-  .lobby    { padding: var(--space-6) var(--space-4) var(--space-10); gap: var(--space-8); }
+  .lobby    { padding: 0 var(--space-4) var(--space-10); gap: var(--space-8); }
   .gameGrid { grid-template-columns: 1fr; gap: var(--space-5); }
   .gameCard { padding: 0; }
   .gameIconBox { width: 100%; height: 120px; font-size: 3.5rem; }
@@ -932,7 +911,7 @@
   .difficultyRadio { padding: 0 var(--space-4); font-size: var(--text-xs); }
 
   /* Scores */
-  .scoresView      { padding: var(--space-6) var(--space-4) var(--space-10); gap: var(--space-6); }
+  .scoresView      { padding: 0 var(--space-4) var(--space-10); gap: var(--space-6); }
   .scoreRow        { flex-wrap: wrap; gap: var(--space-2); }
   /* info takes the full width of its line so the play button can't overlap it */
   .scoreRowInfo    { flex: 1 1 0; min-width: 0; }
@@ -940,7 +919,8 @@
   .scoreRowStats   { align-items: flex-start; flex: 1; }
 
   /* Daily result */
-  .dailyResult   { padding: var(--space-6) var(--space-4) var(--space-10); }
+  .dailyResult   { padding: 0 var(--space-4) var(--space-10); }
+  .interResult   { padding: 0 var(--space-4); }
   .resultActions { flex-direction: column; align-items: stretch; }
   .primaryBtn, .outlineBtn { width: 100%; text-align: center; }
 

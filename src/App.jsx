@@ -28,6 +28,7 @@ import { TileFlip }         from './games/TileFlip/TileFlip';
 import { useMusic }         from './hooks/useMusic';
 import { saveScore, getAllScores } from './utils/scoreStore';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
+import { TopBar } from './components/TopBar/TopBar.jsx';
 import './design/globals.css';
 import styles from './App.module.css';
 
@@ -195,16 +196,6 @@ export function App() {
 
   const { muted, toggle: toggleMusic } = useMusic(MUSIC_SRC);
 
-  const musicBtn = (
-    <button
-      className={styles.musicToggle}
-      onClick={toggleMusic}
-      aria-label={muted ? 'Unmute background music' : 'Mute background music'}
-      title={muted ? 'Turn music on' : 'Turn music off'}
-    >
-      {muted ? '🔇' : '🎵'}
-    </button>
-  );
 
   /* ── Daily challenge handlers ── */
   function startDailyChallenge() {
@@ -324,6 +315,13 @@ export function App() {
 
     return (
       <div className={styles.interResult}>
+        <TopBar
+          title="Daily Challenge"
+          onBack={abortDailyChallenge}
+          memberId={urlMemberId}
+          muted={muted}
+          onToggleMusic={toggleMusic}
+        />
         <div className={styles.interProgress}>
           {games.map((g, i) => (
             <div
@@ -382,6 +380,13 @@ export function App() {
 
     return (
       <div className={styles.dailyResult}>
+        <TopBar
+          title="Daily Challenge"
+          onBack={() => { setView('home'); setDailyChallenge(null); }}
+          memberId={urlMemberId}
+          muted={muted}
+          onToggleMusic={toggleMusic}
+        />
         <div className={styles.resultTrophy}>{trophy}</div>
         <h2 className={styles.resultHeadline}>Challenge Complete!</h2>
         <div className={styles.resultAvgScore}>{avg}<small className={styles.resultPct}>%</small></div>
@@ -433,8 +438,14 @@ export function App() {
 
     return (
       <div className={styles.scoresView}>
+        <TopBar
+          title="Your Scores"
+          onBack={() => setView('home')}
+          memberId={urlMemberId}
+          muted={muted}
+          onToggleMusic={toggleMusic}
+        />
         <div className={styles.scoresHeader}>
-          <button className={styles.backBtn} onClick={() => setView('home')}>← Back</button>
           <div className={styles.scoresHero}>
             <div className={styles.scoresHeroIcon}>🏆</div>
             <div>
@@ -442,7 +453,6 @@ export function App() {
               <p className={styles.scoresMeta}>{totalPlayed} of {ALL_GAMES.length} games played</p>
             </div>
           </div>
-          {musicBtn}
         </div>
 
         {GAME_GROUPS.map(group => (
@@ -498,13 +508,18 @@ export function App() {
   if (view === 'games') {
     return (
       <div className={styles.lobby}>
+        <TopBar
+          title="Cognitive Games"
+          onBack={() => setView('home')}
+          memberId={urlMemberId}
+          muted={muted}
+          onToggleMusic={toggleMusic}
+        />
         <header className={styles.lobbyHeader}>
-          <button className={styles.backBtn} onClick={() => setView('home')}>← Back</button>
           <div className={styles.lobbyIcon} aria-hidden="true">🎮</div>
           <h1 className={styles.lobbyTitle}>Cognitive Games</h1>
           <hr className={styles.lobbyDivider} />
           <p className={styles.lobbySubtitle}>Browse all {ALL_GAMES.length} games and choose one to play.</p>
-          {musicBtn}
         </header>
 
         <div className={styles.difficultyRow}>
@@ -563,17 +578,21 @@ export function App() {
   /* ── Home screen (default) ── */
   return (
     <div className={styles.homeScreen}>
+      <TopBar
+        title="CaritaHub Games"
+        onBack={null}
+        memberId={urlMemberId}
+        muted={muted}
+        onToggleMusic={toggleMusic}
+      />
       <div className={styles.homeHeader}>
         <img
           src={cognitiveGameTitle}
           alt="CaritaHub Cognitive Games"
           className={styles.homeTitle}
         />
-        <div className={styles.homeAvatar} aria-hidden="true" />
         <p className={styles.homeGreeting}>Hello, {urlMemberId}! 👋</p>
         <p className={styles.homeProgressHint}>{getProgressHint(getAllScores(), ALL_GAMES.length)}</p>
-        
-        {musicBtn}
       </div>
 
       <nav className={styles.homeMenu} aria-label="Main menu">
