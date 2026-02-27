@@ -557,8 +557,10 @@ export function App() {
             <span className={styles.menuBtnDesc}>
               Play {GAME_GROUPS.length} random games — one from each category. Track your daily progress!
             </span>
+            <span className={styles.menuBtnFooter}>
+              <span className={styles.menuBtnCta}>Start →</span>
+            </span>
           </span>
-          <span className={styles.menuBtnArrow} aria-hidden="true">›</span>
         </button>
 
         <button
@@ -572,8 +574,10 @@ export function App() {
             <span className={styles.menuBtnDesc}>
               Browse all {ALL_GAMES.length} games across {GAME_GROUPS.length} categories and play any game you like.
             </span>
+            <span className={styles.menuBtnFooter}>
+              <span className={styles.menuBtnCta}>Browse →</span>
+            </span>
           </span>
-          <span className={styles.menuBtnArrow} aria-hidden="true">›</span>
         </button>
 
         <button
@@ -587,8 +591,10 @@ export function App() {
             <span className={styles.menuBtnDesc}>
               View your best scores, completion times, and performance for every game you've played.
             </span>
+            <span className={styles.menuBtnFooter}>
+              <span className={styles.menuBtnCta}>View →</span>
+            </span>
           </span>
-          <span className={styles.menuBtnArrow} aria-hidden="true">›</span>
         </button>
 
       </nav>
