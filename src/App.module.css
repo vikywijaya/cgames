@@ -115,13 +115,13 @@
 
 .menuBtn {
   position: relative;
-  overflow: visible;           /* let icon bleed out */
+  overflow: hidden;
   display: flex;
   align-items: center;
   width: 100%;
-  /* left padding reserves space for the floating icon */
-  padding: var(--space-5) var(--space-6) var(--space-5) 144px;
-  min-height: 120px;
+  /* left padding reserves space for the icon column */
+  padding: var(--space-5) var(--space-6) var(--space-5) 216px;
+  min-height: 200px;
   background-color: #ffffff;
   border: none;
   border-radius: 24px;
@@ -137,16 +137,15 @@
 /* Floating icon — same overflow trick as game cards */
 .menuBtnIcon {
   position: absolute;
-  left: 10px;
-  top: -24px;
-  bottom: -24px;
-  width: 120px;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 200px;
+  min-width: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 5.5rem;
-  background: var(--color-primary-light);
-  border-radius: var(--radius-xl);
+  font-size: 6rem;
   pointer-events: none;
 }
 
@@ -728,14 +727,13 @@
 
 .gameCard {
   position: relative;
-  overflow: visible;           /* allow icon to bleed out of card edges */
+  overflow: hidden;
   background-color: #ffffff;
   border: none;
   border-radius: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  /* left padding makes room for the overflowing icon */
-  padding: var(--space-5) var(--space-6) var(--space-5) 144px;
-  min-height: 120px;
+  padding: var(--space-5) var(--space-6) var(--space-5) 216px;
+  min-height: 200px;
   display: flex;
   align-items: center;
   transition: box-shadow var(--transition-fast), transform var(--transition-fast);
@@ -745,19 +743,18 @@
   transform: translateY(-2px);
 }
 
-/* Emoji overflows the card's top & bottom edges — mimics a product image */
+/* Icon sits flush inside the card, no overflow */
 .gameIconBox {
   position: absolute;
-  left: 10px;
-  top: -24px;
-  bottom: -24px;
-  width: 120px;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 200px;
+  min-width: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 5.5rem;
-  background: var(--color-primary-light);
-  border-radius: var(--radius-xl);
+  font-size: 6rem;
   pointer-events: none;
 }
 
@@ -857,12 +854,12 @@
   .homeScreen { padding: var(--space-6) var(--space-4) var(--space-10); gap: var(--space-6); }
   .homeTitle  { font-size: var(--text-lg); }
   .menuBtn     { padding: var(--space-5) var(--space-4) var(--space-5) 90px; min-height: 90px; }
-  .menuBtnIcon { font-size: 4rem; width: 96px; }
-  .menuBtn  { padding: var(--space-5) var(--space-4) var(--space-5) 112px; min-height: 100px; }
+  .menuBtnIcon { width: 140px; min-width: 140px; font-size: 5rem; }
+  .menuBtn  { padding: var(--space-5) var(--space-4) var(--space-5) 152px; min-height: 160px; }
 
   .lobby    { padding: var(--space-6) var(--space-4) var(--space-10); gap: var(--space-8); }
-  .gameCard { padding: var(--space-5) var(--space-4) var(--space-5) 112px; min-height: 100px; }
-  .gameIconBox { width: 96px; font-size: 4rem; }
+  .gameCard { padding: var(--space-5) var(--space-4) var(--space-5) 152px; min-height: 160px; }
+  .gameIconBox { width: 140px; min-width: 140px; font-size: 5rem; }
 
   .difficultyRadio { padding: 0 var(--space-4); font-size: var(--text-xs); }
 
