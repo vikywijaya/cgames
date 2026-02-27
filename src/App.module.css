@@ -1,11 +1,506 @@
 /* ═══════════════════════════════════════════════════════
-   App Lobby — Brand: Modern B2B SaaS
+   App — Brand: Modern B2B SaaS
    Colors:  #1155cc (primary), #cfe2f3 (light blue),
             #efefef (light gray), #000 (text), #fff (bg)
    Font:    Helvetica Neue Bold / Light
    Style:   Minimalist, card-based, rounded rectangles
 ═══════════════════════════════════════════════════════ */
 
+/* ── Shared back button ───────────────────────────────── */
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--min-target);
+  padding: 0 var(--space-4);
+  background: transparent;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-base);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+  align-self: flex-start;
+}
+.backBtn:hover  { border-color: var(--color-primary); color: var(--color-primary); }
+.backBtn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+
+/* ── Shared primary / outline buttons ────────────────── */
+.primaryBtn {
+  min-height: var(--min-target);
+  padding: var(--space-3) var(--space-8);
+  background-color: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-xl);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-base);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+.primaryBtn:hover  { background-color: var(--color-primary-dk); transform: scale(1.02); }
+.primaryBtn:active { transform: scale(0.98); }
+.primaryBtn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+
+.outlineBtn {
+  min-height: var(--min-target);
+  padding: var(--space-3) var(--space-8);
+  background: transparent;
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+  border-radius: var(--radius-xl);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-base);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+.outlineBtn:hover  { background-color: var(--color-primary-light); transform: scale(1.02); }
+.outlineBtn:active { transform: scale(0.98); }
+.outlineBtn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+
+/* ══════════════════════════════════════════════════════
+   HOME SCREEN — 3-button start menu
+══════════════════════════════════════════════════════ */
+.homeScreen {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--space-10) var(--space-6) var(--space-16);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  background-color: var(--color-bg);
+  min-height: 100dvh;
+}
+
+.homeHeader {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.homeIcon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.homeTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.homeSubtitle {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-light);
+  color: var(--color-text-muted);
+  max-width: 420px;
+  line-height: 1.6;
+}
+
+/* ── 3 Main Menu Buttons ─────────────────────────────── */
+.homeMenu {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.menuBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  width: 100%;
+  padding: var(--space-6);
+  background-color: var(--color-surface-card);
+  border: none;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  text-align: left;
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast),
+    background-color var(--transition-fast);
+  position: relative;
+  overflow: hidden;
+}
+.menuBtn::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 0 0;
+  width: 5px;
+  border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+}
+.menuBtn:hover  { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.menuBtn:active { transform: translateY(0) scale(0.99); }
+.menuBtn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+
+/* Color accent strip per button */
+.menuBtnDaily::before  { background: #1155cc; }
+.menuBtnGames::before  { background: #22c55e; }
+.menuBtnScores::before { background: #f59e0b; }
+
+.menuBtnIcon {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 48px;
+  text-align: center;
+}
+
+.menuBtnBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.menuBtnTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.menuBtnDesc {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-light);
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.menuBtnArrow {
+  font-size: 1.6rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: transform var(--transition-fast), color var(--transition-fast);
+}
+.menuBtn:hover .menuBtnArrow {
+  transform: translateX(4px);
+  color: var(--color-primary);
+}
+
+/* ══════════════════════════════════════════════════════
+   DAILY CHALLENGE — playing wrapper + progress strip
+══════════════════════════════════════════════════════ */
+.dailyWrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.dailyProgress {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--color-surface-2);
+  border-bottom: 1.5px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.dailyDot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 48px;
+  opacity: 0.45;
+  transition: opacity var(--transition-fast);
+}
+
+.dailyDotActive { opacity: 1; }
+.dailyDotDone   { opacity: 0.7; }
+
+.dailyDotMark {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-muted);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+.dailyDotActive .dailyDotMark {
+  background-color: var(--color-primary);
+  color: #fff;
+}
+.dailyDotDone .dailyDotMark {
+  background-color: var(--color-success);
+  color: #fff;
+}
+
+.dailyDotLabel {
+  font-size: 0.65rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-muted);
+  text-align: center;
+  max-width: 60px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dailyDotActive .dailyDotLabel { color: var(--color-primary); }
+.dailyDotDone   .dailyDotLabel { color: var(--color-success);  }
+
+/* ── Daily Result screen ─────────────────────────────── */
+.dailyResult {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: var(--space-10) var(--space-6) var(--space-16);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  text-align: center;
+}
+
+.resultTrophy {
+  font-size: 5rem;
+  line-height: 1;
+}
+
+.resultHeadline {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+}
+
+.resultAvgScore {
+  font-family: var(--font-heading);
+  font-size: 4rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.resultPct {
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-light);
+  color: var(--color-text-muted);
+  vertical-align: super;
+}
+
+.resultSub {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-light);
+  color: var(--color-text-muted);
+}
+
+.resultList {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background-color: var(--color-surface-card);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+}
+
+.resultRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+.resultRow:last-child { border-bottom: none; }
+
+.resultRowIcon  { font-size: 1.4rem; flex-shrink: 0; }
+.resultRowName  { flex: 1; font-size: var(--text-sm); font-weight: var(--font-weight-bold); color: var(--color-text); text-align: left; }
+.resultRowScore { font-size: var(--text-sm); font-weight: var(--font-weight-bold); flex-shrink: 0; }
+
+.resultActions {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: var(--space-2);
+}
+
+/* ══════════════════════════════════════════════════════
+   SCORES VIEW
+══════════════════════════════════════════════════════ */
+.scoresView {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-10) var(--space-6) var(--space-16);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.scoresHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.scoresHero {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.scoresHeroIcon { font-size: 2.5rem; line-height: 1; }
+
+.scoresTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+}
+
+.scoresMeta {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-light);
+  color: var(--color-text-muted);
+}
+
+/* ── Category section ────────────────────────────────── */
+.scoreSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.scoreSectionTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-heading);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  padding-bottom: var(--space-3);
+  border-bottom: 1.5px solid var(--color-border);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.scoreTable {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.scoreRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  background-color: var(--color-surface-card);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4) var(--space-5);
+  flex-wrap: wrap;
+  transition: box-shadow var(--transition-fast);
+}
+.scoreRow:hover { box-shadow: var(--shadow-sm); }
+
+.scoreRowIcon {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  width: 40px;
+  text-align: center;
+}
+
+.scoreRowInfo {
+  flex: 1;
+  min-width: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scoreRowName {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+}
+
+.scoreRowDomain {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-primary);
+}
+
+.scoreRowStats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 80px;
+}
+
+.scoreBest {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.scoreLast {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-light);
+  color: var(--color-text-muted);
+}
+
+.scorePlays {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-light);
+  color: var(--color-text-muted);
+}
+
+.scoreTime {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-light);
+  color: var(--color-text-muted);
+}
+
+.scoreUnplayed {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-light);
+  font-style: italic;
+  flex: 1;
+  text-align: right;
+}
+
+/* Small play button in scores view */
+.playBtnSm {
+  min-height: 36px;
+  padding: 0 var(--space-4);
+  background-color: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-xl);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-base);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+.playBtnSm:hover  { background-color: var(--color-primary-dk); transform: scale(1.03); }
+.playBtnSm:active { transform: scale(0.97); }
+.playBtnSm:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+
+/* ══════════════════════════════════════════════════════
+   GAMES LOBBY (existing, now behind "Cognitive Games" btn)
+══════════════════════════════════════════════════════ */
 .lobby {
   max-width: 900px;
   margin: 0 auto;
@@ -30,17 +525,15 @@
   line-height: 1;
 }
 
-/* H1 Headline: Helvetica Bold 30pt */
 .lobbyTitle {
   font-family: var(--font-heading);
-  font-size: var(--text-xl);           /* 2.5rem = 40px ≈ 30pt */
+  font-size: var(--text-xl);
   font-weight: var(--font-weight-bold);
   color: var(--color-text);
   line-height: 1.15;
   letter-spacing: -0.01em;
 }
 
-/* Solid brand-blue accent bar — no gradients per brand */
 .lobbyDivider {
   width: 48px;
   height: 3px;
@@ -50,7 +543,6 @@
   margin: var(--space-1) 0;
 }
 
-/* Body Text: Helvetica Light 14pt */
 .lobbySubtitle {
   font-size: var(--text-sm);
   font-weight: var(--font-weight-light);
@@ -67,7 +559,6 @@
   justify-content: center;
 }
 
-/* H2 Subhead: Helvetica Bold 14pt */
 .difficultyLabel {
   font-size: var(--text-sm);
   font-weight: var(--font-weight-bold);
@@ -99,13 +590,12 @@
   gap: var(--space-4);
 }
 
-/* Slide Title: Helvetica Bold 20pt */
 .sectionTitle {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   font-family: var(--font-heading);
-  font-size: var(--text-lg);           /* 1.667rem ≈ 20pt */
+  font-size: var(--text-lg);
   font-weight: var(--font-weight-bold);
   color: var(--color-text);
   padding-bottom: var(--space-3);
@@ -113,13 +603,12 @@
 }
 
 /* ── Game Cards ───────────────────────────────────── */
-/* Minimalist card-based, rounded rectangles per brand */
 .gameGrid { display: flex; flex-direction: column; gap: var(--space-3); }
 
 .gameCard {
-  background-color: var(--color-surface-card);   /* #efefef light gray */
+  background-color: var(--color-surface-card);
   border: none;
-  border-radius: var(--radius-xl);               /* rounded rectangle */
+  border-radius: var(--radius-xl);
   padding: var(--space-5) var(--space-6);
   display: flex;
   align-items: center;
@@ -142,19 +631,17 @@
 
 .gameMeta { flex: 1; min-width: 0; }
 
-/* Smaller Text label: Helvetica Light 10pt */
 .gameDomain {
-  font-size: var(--text-xs);           /* 0.833rem ≈ 10pt */
+  font-size: var(--text-xs);
   font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  color: var(--color-primary);         /* Primary Blue */
+  color: var(--color-primary);
 }
 
-/* H2 Subhead: Helvetica Bold 14pt */
 .gameCardTitle {
   font-family: var(--font-heading);
-  font-size: var(--text-sm);           /* 1.167rem ≈ 14pt */
+  font-size: var(--text-sm);
   font-weight: var(--font-weight-bold);
   color: var(--color-text);
   margin: var(--space-1) 0;
@@ -163,7 +650,6 @@
   text-overflow: ellipsis;
 }
 
-/* Body Text: Helvetica Light 14pt */
 .gameCardDesc {
   font-size: var(--text-sm);
   font-weight: var(--font-weight-light);
@@ -175,12 +661,11 @@
   overflow: hidden;
 }
 
-/* Play button — solid Primary Blue, no gradient */
 .playButton {
   min-height: var(--min-target);
   min-width: 100px;
   padding: var(--space-3) var(--space-6);
-  background-color: var(--color-primary);   /* #1155cc */
+  background-color: var(--color-primary);
   color: #ffffff;
   border: none;
   border-radius: var(--radius-xl);
@@ -197,7 +682,7 @@
   letter-spacing: 0.02em;
 }
 .playButton:hover {
-  background-color: var(--color-primary-dk);  /* darker on hover */
+  background-color: var(--color-primary-dk);
   transform: scale(1.03);
   box-shadow: var(--shadow-glow);
 }
@@ -222,8 +707,25 @@
 
 /* ── Narrow screens ───────────────────────────────── */
 @media (max-width: 480px) {
-  .lobby { padding: var(--space-6) var(--space-4) var(--space-10); gap: var(--space-8); }
-  .gameCard { padding: var(--space-4); gap: var(--space-3); align-items: flex-start; }
+  .homeScreen { padding: var(--space-6) var(--space-4) var(--space-10); gap: var(--space-6); }
+  .homeTitle  { font-size: var(--text-lg); }
+  .menuBtn    { padding: var(--space-4); gap: var(--space-3); }
+  .menuBtnIcon{ font-size: 1.6rem; width: 36px; }
+  .menuBtnArrow { display: none; }
+
+  .lobby      { padding: var(--space-6) var(--space-4) var(--space-10); gap: var(--space-8); }
+  .gameCard   { padding: var(--space-4); gap: var(--space-3); align-items: flex-start; }
   .playButton { max-width: 100%; flex-basis: 100%; }
-  .gameIcon { font-size: 1.8rem; min-width: 36px; }
+  .gameIcon   { font-size: 1.8rem; min-width: 36px; }
+
+  .scoresView { padding: var(--space-6) var(--space-4) var(--space-10); gap: var(--space-6); }
+  .scoreRow   { flex-wrap: wrap; gap: var(--space-2); }
+  .scoreRowStats { align-items: flex-start; }
+
+  .dailyResult { padding: var(--space-6) var(--space-4) var(--space-10); }
+  .resultActions { flex-direction: column; align-items: stretch; }
+  .primaryBtn, .outlineBtn { width: 100%; text-align: center; }
+
+  .dailyDotLabel { display: none; }
+  .dailyDot      { min-width: 36px; }
 }
