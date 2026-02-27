@@ -566,6 +566,7 @@ export function App() {
       <div className={styles.homeHeader}>
         <img src={cognitiveGameTitle} alt="CaritaHub Cognitive Games" className={styles.homeTitle} />
         <p className={styles.homeSubtitle}>Fun brain exercises to keep your mind sharp and healthy.</p>
+        <div className={styles.homeAvatar} aria-hidden="true" />
         <p className={styles.homeGreeting}>Hello, {urlMemberId}! 👋</p>
         <p className={styles.homeProgressHint}>{getProgressHint(getAllScores(), ALL_GAMES.length)}</p>
         

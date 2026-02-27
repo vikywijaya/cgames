@@ -96,6 +96,14 @@
   display: block;
 }
 
+.homeAvatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: var(--color-surface-alt, #e0e0e0);
+  border: 2px solid var(--color-border, #ccc);
+}
+
 .homeGreeting {
   font-size: var(--text-md);
   font-weight: var(--font-weight-bold);
