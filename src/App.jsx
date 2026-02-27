@@ -249,20 +249,31 @@ export function App() {
   /* ── Playing a game from the lobby ── */
   if (selectedGame) {
     const GameComponent = GAME_MAP[selectedGame];
+    const gameInfo = ALL_GAMES.find(g => g.id === selectedGame);
     return (
-      <GameComponent
-        memberId="demo-user"
-        difficulty={selectedDifficulty}
-        callbackUrl={undefined}
-        musicMuted={muted}
-        onToggleMusic={toggleMusic}
-        onComplete={(result) => {
-          const pct = computePct(result);
-          saveScore(selectedGame, pct, result.durationSeconds ?? null);
-          console.log('[CaritaHub Game Result]', result);
-        }}
-        onBack={() => setSelectedGame(null)}
-      />
+      <div className={styles.dailyWrapper}>
+        <TopBar
+          title={gameInfo?.title ?? 'Game'}
+          onBack={() => setSelectedGame(null)}
+          memberId={urlMemberId}
+          muted={muted}
+          onToggleMusic={toggleMusic}
+          noBleed
+        />
+        <GameComponent
+          memberId="demo-user"
+          difficulty={selectedDifficulty}
+          callbackUrl={undefined}
+          musicMuted={muted}
+          onToggleMusic={toggleMusic}
+          onComplete={(result) => {
+            const pct = computePct(result);
+            saveScore(selectedGame, pct, result.durationSeconds ?? null);
+            console.log('[CaritaHub Game Result]', result);
+          }}
+          onBack={() => setSelectedGame(null)}
+        />
+      </div>
     );
   }
 
