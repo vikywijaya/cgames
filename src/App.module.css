@@ -90,7 +90,7 @@
 }
 
 .homeTitle {
-  max-width: 320px;
+  max-width: 480px;
   width: 100%;
   height: auto;
   display: block;
@@ -883,7 +883,7 @@
   /* Home screen layout */
   .homeScreen   { padding: var(--space-6) var(--space-4) var(--space-10); gap: var(--space-5); }
   .homeHeader   { gap: var(--space-3); }
-  .homeTitle    { max-width: 240px; }
+  .homeTitle    { max-width: 360px; }
   .homeGreeting { font-size: var(--text-sm); }
   .homeSubtitle { font-size: var(--text-xs); }
 
