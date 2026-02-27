@@ -183,7 +183,7 @@
   align-items: center;
   height: 40px;
   padding: 0 var(--space-5);
-  background-color: var(--color-text);
+  background-color: var(--color-primary);
   color: #ffffff;
   border-radius: var(--radius-full);
   font-size: var(--text-xs);
@@ -192,6 +192,10 @@
   white-space: nowrap;
   letter-spacing: 0.02em;
   pointer-events: none;        /* card itself is the clickable target */
+  transition: background-color var(--transition-fast);
+}
+.menuBtn:hover .menuBtnCta {
+  background-color: var(--color-primary-dk);
 }
 
 /* ══════════════════════════════════════════════════════
@@ -766,7 +770,7 @@
 .playButton {
   min-height: 40px;
   padding: 0 var(--space-5);
-  background-color: var(--color-text);   /* dark/black pill */
+  background-color: var(--color-primary);
   color: #ffffff;
   border: none;
   border-radius: var(--radius-full);
@@ -781,8 +785,6 @@
 }
 .playButton:hover {
   background-color: var(--color-primary-dk);
-  transform: scale(1.03);
-  box-shadow: var(--shadow-glow);
 }
 .playButton:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 .playButton:active { transform: scale(0.97); }
