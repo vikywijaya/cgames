@@ -90,12 +90,10 @@
 }
 
 .homeTitle {
-  font-family: var(--font-heading);
-  font-size: var(--text-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text);
-  line-height: 1.15;
-  letter-spacing: -0.01em;
+  max-width: 320px;
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .homeGreeting {
@@ -885,8 +883,7 @@
   /* Home screen layout */
   .homeScreen   { padding: var(--space-6) var(--space-4) var(--space-10); gap: var(--space-5); }
   .homeHeader   { gap: var(--space-3); }
-  .homeIcon     { font-size: 2.25rem; }
-  .homeTitle    { font-size: var(--text-lg); }
+  .homeTitle    { max-width: 240px; }
   .homeGreeting { font-size: var(--text-sm); }
   .homeSubtitle { font-size: var(--text-xs); }
 
