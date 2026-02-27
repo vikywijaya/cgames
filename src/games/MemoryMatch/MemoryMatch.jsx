@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
@@ -48,9 +48,15 @@ CardTile.propTypes = {
   onFlip: PropTypes.func.isRequired,
 };
 
-function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess }) {
   const { cards, cardState, flipCard, matchCount, maxMatches, cols, timeLimitSeconds, done } =
     useMemoryMatch(difficulty);
+
+  const prevMatchCountRef = useRef(matchCount);
+  useEffect(() => {
+    if (matchCount > prevMatchCountRef.current) { playSuccess(); }
+    prevMatchCountRef.current = matchCount;
+  }, [matchCount, playSuccess]);
 
   useEffect(() => { reportScore?.(matchCount); }, [matchCount, reportScore]);
 
@@ -83,7 +89,7 @@ function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft }) {
             key={card.id}
             card={card}
             state={cardState[i]}
-            onFlip={() => flipCard(i)}
+            onFlip={() => { playClick(); flipCard(i); }}
           />
         ))}
       </div>
@@ -92,10 +98,13 @@ function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 }
 
 MemoryMatchGame.propTypes = {
-  difficulty: PropTypes.string.isRequired,
-  onComplete: PropTypes.func.isRequired,
+  difficulty:  PropTypes.string.isRequired,
+  onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func,
   secondsLeft: PropTypes.number,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 export function MemoryMatch({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -121,12 +130,15 @@ export function MemoryMatch({ memberId, difficulty = 'easy', onComplete, callbac
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: shellComplete, reportScore, secondsLeft }) => (
+      {({ onComplete: shellComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
         <MemoryMatchGame
           difficulty={difficulty}
           onComplete={shellComplete}
           reportScore={reportScore}
           secondsLeft={secondsLeft}
+          playClick={playClick}
+          playSuccess={playSuccess}
+          playFail={playFail}
         />
       )}
     </GameShell>

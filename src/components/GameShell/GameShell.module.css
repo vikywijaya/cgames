@@ -118,18 +118,26 @@
 .hudBack:hover { color: var(--color-primary); border-color: var(--color-primary); }
 
 .hudMusic {
-  min-width: 36px;
-  min-height: 36px;
+  position: fixed;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 200;
+  min-width: 52px;
+  min-height: 52px;
   padding: 0;
-  background-color: transparent;
-  border: 1.5px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg);
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-full);
-  font-size: 1rem;
+  font-size: 1.5rem;
   cursor: pointer;
-  flex-shrink: 0;
-  transition: border-color var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
-.hudMusic:hover { border-color: var(--color-primary); }
+.hudMusic:hover { border-color: var(--color-primary); box-shadow: var(--shadow-md); }
+.hudMusic:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 
 /* Score — Primary Blue */
 .hudScore { flex: 1; font-size: var(--text-md); font-weight: var(--font-weight-bold); color: var(--color-primary); }

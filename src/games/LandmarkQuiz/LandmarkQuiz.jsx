@@ -63,7 +63,7 @@ function buildQuestion(poolName) {
   return { ...item, options: opts };
 }
 
-function LandmarkQuizGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function LandmarkQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const [round,    setRound]    = useState(0);
   const [score,    setScore]    = useState(0);
@@ -95,8 +95,10 @@ function LandmarkQuizGame({ difficulty, onComplete, reportScore, secondsLeft }) 
 
   const handlePick = useCallback((val) => {
     if (feedback || doneRef.current) return;
+    playClick();
     setPicked(val);
     const correct = val === q.country;
+    if (correct) { playSuccess(); } else { playFail(); }
     setFeedback(correct ? 'correct' : 'wrong');
     let newScore = scoreRef.current;
     if (correct) {
@@ -106,7 +108,7 @@ function LandmarkQuizGame({ difficulty, onComplete, reportScore, secondsLeft }) 
       reportScore(newScore);
     }
     setTimeout(() => nextRound(round + 1, newScore), 800);
-  }, [feedback, q, round, reportScore, nextRound]);
+  }, [feedback, q, round, reportScore, nextRound, playClick, playSuccess, playFail]);
 
   return (
     <div className={styles.wrapper}>
@@ -145,6 +147,9 @@ LandmarkQuizGame.propTypes = {
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
   secondsLeft: PropTypes.number,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 export function LandmarkQuiz({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -162,8 +167,8 @@ export function LandmarkQuiz({ memberId, difficulty = 'easy', onComplete, callba
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <LandmarkQuizGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <LandmarkQuizGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

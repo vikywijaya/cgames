@@ -19,7 +19,7 @@ const TAP_STEP   = 0.18; // how far a side-button tap moves the basket (normalis
 let nextId = 0;
 
 // ── Inner game ─────────────────────────────────────────────────────
-function CatchGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   const areaRef       = useRef(null);
@@ -92,6 +92,7 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft }) {
         // Catch zone check
         if (fruit.y >= catchTop && fruit.y <= catchBottom + config.fallSpeed * dt + 4) {
           if (Math.abs(fruit.x * areaW - bx) <= halfBasket) {
+            playSuccess();
             scoreRef.current += 1;
             scoreChanged = true;
             continue;
@@ -100,6 +101,7 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 
         // Missed — past bottom
         if (fruit.y > areaH) {
+          playFail();
           livesRef.current -= 1;
           livesChanged = true;
           continue;
@@ -123,7 +125,7 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft }) {
     }
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [config.fallSpeed, config.basketWidth, finish, reportScore]);
+  }, [config.fallSpeed, config.basketWidth, finish, reportScore, playSuccess, playFail]);
 
   // ── Touch input: attach with { passive: false } so preventDefault works ──
   // This is the critical fix — React's onTouchMove uses passive listeners
@@ -175,11 +177,13 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 
   // ── Side-button tap handler (pointer, not touch, avoids duplicate events) ──
   const tapLeft  = useCallback(() => {
+    playClick();
     basketXRef.current = Math.max(0.05, basketXRef.current - TAP_STEP);
-  }, []);
+  }, [playClick]);
   const tapRight = useCallback(() => {
+    playClick();
     basketXRef.current = Math.min(0.95, basketXRef.current + TAP_STEP);
-  }, []);
+  }, [playClick]);
 
   return (
     <div className={styles.wrapper}>
@@ -256,6 +260,9 @@ CatchGame.propTypes = {
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
   secondsLeft: PropTypes.number,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 // ── Outer wrapper ──────────────────────────────────────────────────
@@ -298,12 +305,15 @@ export function CatchFallingFruit({
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: shellComplete, reportScore, secondsLeft }) => (
+      {({ onComplete: shellComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
         <CatchGame
           difficulty={difficulty}
           onComplete={shellComplete}
           reportScore={reportScore}
           secondsLeft={secondsLeft}
+          playClick={playClick}
+          playSuccess={playSuccess}
+          playFail={playFail}
         />
       )}
     </GameShell>

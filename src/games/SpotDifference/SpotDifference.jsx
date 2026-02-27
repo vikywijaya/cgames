@@ -46,7 +46,7 @@ function buildPuzzle(gridSize, changes) {
  * SpotDifference — two emoji grids side by side.
  * Player taps a cell in the RIGHT grid that differs from the left.
  */
-function SpotDifferenceGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function SpotDifferenceGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const [round,    setRound]    = useState(0);
   const [score,    setScore]    = useState(0);
@@ -80,12 +80,14 @@ function SpotDifferenceGame({ difficulty, onComplete, reportScore, secondsLeft }
 
   const handleRightTap = useCallback((idx) => {
     if (doneRef.current || found.has(idx)) return;
+    playClick();
     if (puzzle.diffPositions.has(idx)) {
       const newFound = new Set(found);
       newFound.add(idx);
       setFound(newFound);
       if (newFound.size === puzzle.diffPositions.size) {
         // All differences found
+        playSuccess();
         const newScore = scoreRef.current + 1;
         scoreRef.current = newScore;
         setScore(newScore);
@@ -94,10 +96,11 @@ function SpotDifferenceGame({ difficulty, onComplete, reportScore, secondsLeft }
         setTimeout(() => nextRound(round + 1, newScore), 800);
       }
     } else {
+      playFail();
       setWrong(idx);
       setTimeout(() => setWrong(null), 500);
     }
-  }, [found, puzzle, round, reportScore, nextRound]);
+  }, [found, puzzle, round, reportScore, nextRound, playClick, playSuccess, playFail]);
 
   const total = config.gridSize * config.gridSize;
 
@@ -157,6 +160,9 @@ SpotDifferenceGame.propTypes = {
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
   secondsLeft: PropTypes.number,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 export function SpotDifference({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -174,8 +180,8 @@ export function SpotDifference({ memberId, difficulty = 'easy', onComplete, call
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <SpotDifferenceGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <SpotDifferenceGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

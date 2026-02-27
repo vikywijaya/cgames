@@ -18,7 +18,7 @@ const BALLOON_H = 64;
 let nextId = 0;
 
 // ── Inner game ─────────────────────────────────────────────────────
-function BalloonGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function BalloonGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   const areaRef     = useRef(null);
@@ -97,6 +97,7 @@ function BalloonGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 
         if (b.y + BALLOON_H < -20) {
           // escaped
+          playFail();
           livesRef.current -= 1;
           livesChanged = true;
           continue;
@@ -123,10 +124,12 @@ function BalloonGame({ difficulty, onComplete, reportScore, secondsLeft }) {
     if (doneRef.current) return;
     if (poppedIdsRef.current.has(balloon.id)) return;
     poppedIdsRef.current.add(balloon.id);
+    playClick();
 
     // Remove from active list immediately
     balloonsRef.current = balloonsRef.current.filter(b => b.id !== balloon.id);
 
+    playSuccess();
     scoreRef.current += 1;
     setDisplayScore(scoreRef.current);
     reportScore(scoreRef.current);
@@ -210,6 +213,9 @@ BalloonGame.propTypes = {
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
   secondsLeft: PropTypes.number,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 // ── Outer wrapper ──────────────────────────────────────────────────
@@ -229,8 +235,8 @@ export function BalloonPop({ memberId, difficulty = 'easy', onComplete, callback
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <BalloonGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <BalloonGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

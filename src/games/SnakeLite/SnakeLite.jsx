@@ -22,7 +22,7 @@ function randomCell(gridSize, exclude = []) {
   return cells[Math.floor(Math.random() * cells.length)];
 }
 
-function SnakeLiteGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function SnakeLiteGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { gridSize } = config;
   const mid = Math.floor(gridSize / 2);
@@ -74,6 +74,7 @@ function SnakeLiteGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 
       // Wall collision
       if (newHead.x < 0 || newHead.x >= gridSize || newHead.y < 0 || newHead.y >= gridSize) {
+        playFail();
         clearInterval(id);
         setDead(true);
         finish(true);
@@ -81,6 +82,7 @@ function SnakeLiteGame({ difficulty, onComplete, reportScore, secondsLeft }) {
       }
       // Self collision
       if (snakeRef.current.some(c => c.x === newHead.x && c.y === newHead.y)) {
+        playFail();
         clearInterval(id);
         setDead(true);
         finish(true);
@@ -95,6 +97,7 @@ function SnakeLiteGame({ difficulty, onComplete, reportScore, secondsLeft }) {
       setSnake([...newSnake]);
 
       if (ate) {
+        playSuccess();
         const ns = scoreRef.current + 1;
         scoreRef.current = ns;
         setScore(ns);
@@ -106,7 +109,7 @@ function SnakeLiteGame({ difficulty, onComplete, reportScore, secondsLeft }) {
       }
     }, config.intervalMs);
     return () => clearInterval(id);
-  }, [dead, config.intervalMs, gridSize, finish, reportScore]);
+  }, [dead, config.intervalMs, gridSize, finish, reportScore, playSuccess, playFail]);
 
   // Touch swipe
   const touchStart = useRef(null);
@@ -162,13 +165,13 @@ function SnakeLiteGame({ difficulty, onComplete, reportScore, secondsLeft }) {
       </div>
 
       <div className={styles.dpad} aria-label="Directional controls">
-        <button className={styles.dpadBtn} onClick={() => { if ('UP' !== OPPOSITE[dirRef.current]) nextDir.current = 'UP'; }} aria-label="Up">▲</button>
+        <button className={styles.dpadBtn} onClick={() => { playClick(); if ('UP' !== OPPOSITE[dirRef.current]) nextDir.current = 'UP'; }} aria-label="Up">▲</button>
         <div className={styles.dpadRow}>
-          <button className={styles.dpadBtn} onClick={() => { if ('LEFT' !== OPPOSITE[dirRef.current]) nextDir.current = 'LEFT'; }} aria-label="Left">◀</button>
+          <button className={styles.dpadBtn} onClick={() => { playClick(); if ('LEFT' !== OPPOSITE[dirRef.current]) nextDir.current = 'LEFT'; }} aria-label="Left">◀</button>
           <span className={styles.dpadCenter} />
-          <button className={styles.dpadBtn} onClick={() => { if ('RIGHT' !== OPPOSITE[dirRef.current]) nextDir.current = 'RIGHT'; }} aria-label="Right">▶</button>
+          <button className={styles.dpadBtn} onClick={() => { playClick(); if ('RIGHT' !== OPPOSITE[dirRef.current]) nextDir.current = 'RIGHT'; }} aria-label="Right">▶</button>
         </div>
-        <button className={styles.dpadBtn} onClick={() => { if ('DOWN' !== OPPOSITE[dirRef.current]) nextDir.current = 'DOWN'; }} aria-label="Down">▼</button>
+        <button className={styles.dpadBtn} onClick={() => { playClick(); if ('DOWN' !== OPPOSITE[dirRef.current]) nextDir.current = 'DOWN'; }} aria-label="Down">▼</button>
       </div>
     </div>
   );
@@ -179,6 +182,9 @@ SnakeLiteGame.propTypes = {
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
   secondsLeft: PropTypes.number,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 export function SnakeLite({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -196,8 +202,8 @@ export function SnakeLite({ memberId, difficulty = 'easy', onComplete, callbackU
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <SnakeLiteGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <SnakeLiteGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

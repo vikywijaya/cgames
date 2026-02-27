@@ -112,7 +112,7 @@ function buildQuestion(pool, usedIndices) {
 }
 
 // ── Inner game ─────────────────────────────────────────────────────
-function FlagQuizGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function FlagQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const pool   = POOL_MAP[config.pool];
 
@@ -144,14 +144,16 @@ function FlagQuizGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 
   const handleChoice = useCallback((opt) => {
     if (feedback) return;
+    playClick();
     setChosen(opt.code);
     const correct = opt.code === question.correct.code;
+    if (correct) { playSuccess(); } else { playFail(); }
     setFeedback(correct ? 'correct' : 'wrong');
     const ns = correct ? score + 1 : score;
     if (correct) setScore(ns);
     reportScore(ns);
     setTimeout(() => nextQuestion(), 1000);
-  }, [feedback, question.correct.code, score, reportScore, nextQuestion]);
+  }, [feedback, question.correct.code, score, reportScore, nextQuestion, playClick, playSuccess, playFail]);
 
   return (
     <div className={styles.wrapper}>
@@ -204,6 +206,9 @@ FlagQuizGame.propTypes = {
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
   secondsLeft: PropTypes.number,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 // ── Outer wrapper ──────────────────────────────────────────────────
@@ -223,8 +228,8 @@ export function FlagQuiz({ memberId, difficulty = 'easy', onComplete, callbackUr
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <FlagQuizGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <FlagQuizGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

@@ -12,7 +12,7 @@ const INSTRUCTIONS =
   'Answer each arithmetic question by typing your answer and pressing Enter or clicking "Check". ' +
   'Take your time — there is no time limit. A green tick means correct, a red cross means try the next one!';
 
-function ArithmeticGame({ difficulty, onComplete, reportScore }) {
+function ArithmeticGame({ difficulty, onComplete, reportScore, playClick, playSuccess, playFail }) {
   const {
     question,
     currentIndex,
@@ -27,6 +27,16 @@ function ArithmeticGame({ difficulty, onComplete, reportScore }) {
   } = useDailyArithmetic(difficulty);
 
   const inputRef = useRef(null);
+  const prevFeedbackRef = useRef(null);
+
+  // Play sound when feedback changes
+  useEffect(() => {
+    if (feedback && feedback !== prevFeedbackRef.current) {
+      if (feedback === 'correct') { playSuccess(); }
+      else if (feedback === 'wrong') { playFail(); }
+    }
+    prevFeedbackRef.current = feedback;
+  }, [feedback, playSuccess, playFail]);
 
   // Focus input when question changes
   useEffect(() => {
@@ -78,7 +88,7 @@ function ArithmeticGame({ difficulty, onComplete, reportScore }) {
           className={`${styles.numberInput} ${inputClass}`}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && submit()}
+          onKeyDown={(e) => { if (e.key === 'Enter') { playClick(); submit(); } }}
           disabled={feedback !== null || done}
           aria-label="Your answer"
           inputMode="numeric"
@@ -88,7 +98,7 @@ function ArithmeticGame({ difficulty, onComplete, reportScore }) {
           {feedback === 'correct' ? '✅' : feedback === 'wrong' ? '❌' : null}
         </span>
         <Button
-          onClick={submit}
+          onClick={() => { playClick(); submit(); }}
           disabled={feedback !== null || done || inputValue === ''}
         >
           Check
@@ -103,9 +113,12 @@ function ArithmeticGame({ difficulty, onComplete, reportScore }) {
 }
 
 ArithmeticGame.propTypes = {
-  difficulty: PropTypes.string.isRequired,
-  onComplete: PropTypes.func.isRequired,
+  difficulty:  PropTypes.string.isRequired,
+  onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 export function DailyArithmetic({
@@ -136,8 +149,8 @@ export function DailyArithmetic({
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: shellComplete, reportScore }) => (
-        <ArithmeticGame difficulty={difficulty} onComplete={shellComplete} reportScore={reportScore} />
+      {({ onComplete: shellComplete, reportScore, playClick, playSuccess, playFail }) => (
+        <ArithmeticGame difficulty={difficulty} onComplete={shellComplete} reportScore={reportScore} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

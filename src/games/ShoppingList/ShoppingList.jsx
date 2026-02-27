@@ -43,7 +43,7 @@ function buildRound(listSize, choicesSize) {
 }
 
 // phase: 'study' | 'recall'
-function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const [round,   setRound]   = useState(0);
   const [score,   setScore]   = useState(0);
@@ -69,12 +69,13 @@ function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft }) 
 
   const handleTick = useCallback((name) => {
     if (submitted) return;
+    playClick();
     setTicked(prev => {
       const n = new Set(prev);
       n.has(name) ? n.delete(name) : n.add(name);
       return n;
     });
-  }, [submitted]);
+  }, [submitted, playClick]);
 
   const handleSubmit = useCallback(() => {
     if (submitted) return;
@@ -85,6 +86,7 @@ function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft }) 
     const wrong   = [...ticked].filter(n => !listNames.has(n)).length;
     const roundScore = Math.max(0, correct - wrong - missed);
     const newScore = score + (roundScore > 0 ? 1 : 0);
+    if (roundScore > 0) { playSuccess(); } else { playFail(); }
     setResult({ correct, missed, wrong, roundScore });
     setScore(newScore);
     reportScore(newScore);
@@ -103,7 +105,7 @@ function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft }) 
         setResult(null);
       }
     }, 1800);
-  }, [submitted, ticked, data, score, round, config, reportScore, onComplete]);
+  }, [submitted, ticked, data, score, round, config, reportScore, onComplete, playSuccess, playFail]);
 
   if (phase === 'study') {
     return (
@@ -160,7 +162,7 @@ function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft }) 
   );
 }
 
-ShoppingListGame.propTypes = { difficulty: PropTypes.string.isRequired, onComplete: PropTypes.func.isRequired, reportScore: PropTypes.func.isRequired, secondsLeft: PropTypes.number };
+ShoppingListGame.propTypes = { difficulty: PropTypes.string.isRequired, onComplete: PropTypes.func.isRequired, reportScore: PropTypes.func.isRequired, secondsLeft: PropTypes.number, playClick: PropTypes.func.isRequired, playSuccess: PropTypes.func.isRequired, playFail: PropTypes.func.isRequired };
 
 export function ShoppingList({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
@@ -170,8 +172,8 @@ export function ShoppingList({ memberId, difficulty = 'easy', onComplete, callba
       instructions={`Study the shopping list for ${config.studySec} seconds. Then tick every item you remember from the choices shown.`}
       difficulty={difficulty} timeLimitSeconds={null} onGameComplete={fireCallback}
       onBack={onBack} musicMuted={musicMuted} onToggleMusic={onToggleMusic}>
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <ShoppingListGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <ShoppingListGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

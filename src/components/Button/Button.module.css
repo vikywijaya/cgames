@@ -38,9 +38,8 @@
   border-color: var(--color-primary);
 }
 .primary:hover:not(:disabled) {
-  background-color: var(--color-primary-dk); /* #0d44a8 */
+  background-color: var(--color-primary-dk); /* #0d44a8 — dimmed */
   border-color: var(--color-primary-dk);
-  box-shadow: var(--shadow-glow);
 }
 
 /* Secondary — outlined, brand blue border */

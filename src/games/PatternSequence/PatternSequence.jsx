@@ -53,7 +53,7 @@ PadGrid.propTypes = {
   disabled: PropTypes.bool,
 };
 
-function PatternSequenceGame({ difficulty, onComplete, reportScore }) {
+function PatternSequenceGame({ difficulty, onComplete, reportScore, playClick, playSuccess, playFail }) {
   const {
     phase,
     highlightedPad,
@@ -66,6 +66,11 @@ function PatternSequenceGame({ difficulty, onComplete, reportScore }) {
   } = usePatternSequence(difficulty);
 
   useEffect(() => { reportScore?.(score); }, [score, reportScore]);
+
+  useEffect(() => {
+    if (phase === 'correct') { playSuccess(); }
+    if (phase === 'failed')  { playFail(); }
+  }, [phase, playSuccess, playFail]);
 
   useEffect(() => {
     if (phase === 'failed') {
@@ -108,7 +113,7 @@ function PatternSequenceGame({ difficulty, onComplete, reportScore }) {
 
       <PadGrid
         highlightedPad={highlightedPad}
-        onPress={presspad}
+        onPress={(idx) => { playClick(); presspad(idx); }}
         disabled={phase !== 'input'}
       />
 
@@ -122,9 +127,12 @@ function PatternSequenceGame({ difficulty, onComplete, reportScore }) {
 }
 
 PatternSequenceGame.propTypes = {
-  difficulty: PropTypes.string.isRequired,
-  onComplete: PropTypes.func.isRequired,
+  difficulty:  PropTypes.string.isRequired,
+  onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 export function PatternSequence({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -147,8 +155,8 @@ export function PatternSequence({ memberId, difficulty = 'easy', onComplete, cal
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: shellComplete, reportScore }) => (
-        <PatternSequenceGame difficulty={difficulty} onComplete={shellComplete} reportScore={reportScore} />
+      {({ onComplete: shellComplete, reportScore, playClick, playSuccess, playFail }) => (
+        <PatternSequenceGame difficulty={difficulty} onComplete={shellComplete} reportScore={reportScore} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

@@ -1,18 +1,22 @@
 import { useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { useCountdown } from '../../hooks/useCountdown';
+import { useSoundFx } from '../../hooks/useSoundFx';
 import { Button } from '../Button/Button';
 import { ProgressBar } from '../ProgressBar/ProgressBar';
 import styles from './GameShell.module.css';
 
 /**
  * Shared game shell that handles the idle → playing → finished state machine.
- * All 5 games delegate their start/end/HUD rendering to this component.
+ * All games delegate their start/end/HUD rendering to this component.
  *
  * Games use the render prop pattern:
- *   children({ onComplete, reportScore, secondsLeft })
+ *   children({ onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail })
  *   - onComplete({ finalScore, maxScore, completed }) — triggers the end screen
  *   - reportScore(n) — push current score into the HUD live display
+ *   - playClick()   — short UI tick (button / card tap)
+ *   - playSuccess() — rising chime (correct answer / match)
+ *   - playFail()    — descending buzz (wrong answer / miss)
  */
 export function GameShell({
   gameId,
@@ -30,6 +34,7 @@ export function GameShell({
   const [result, setResult] = useState(null);
   const [liveScore, setLiveScore] = useState(0);
   const startTimeRef = useRef(null);
+  const { playClick, playSuccess, playFail, playComplete } = useSoundFx();
 
   const { secondsLeft } = useCountdown({
     seconds: timeLimitSeconds,
@@ -53,6 +58,7 @@ export function GameShell({
     const r = { score: finalScore, maxScore, completed, durationSeconds };
     setResult(r);
     setPhase('finished');
+    playComplete();
     onGameComplete?.({ ...r });
   }
 
@@ -195,6 +201,9 @@ export function GameShell({
           onComplete: handleComplete,
           reportScore: setLiveScore,
           secondsLeft,
+          playClick,
+          playSuccess,
+          playFail,
         })}
       </div>
     </div>

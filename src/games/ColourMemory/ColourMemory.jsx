@@ -24,7 +24,7 @@ function randomSeq(len) {
 }
 
 // phase: 'showing' | 'recalling' | 'feedback'
-function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   const [round, setRound]         = useState(0);
@@ -69,12 +69,14 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft }) 
 
   const handleTap = useCallback((colourId) => {
     if (phase !== 'recalling' || doneRef.current) return;
+    playClick();
     const newInput = [...input, colourId];
     setInput(newInput);
 
     const pos = newInput.length - 1;
     if (newInput[pos] !== seq[pos]) {
       // Wrong
+      playFail();
       setFeedback('wrong');
       setPhase('feedback');
       setTimeout(() => {
@@ -97,6 +99,7 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft }) 
 
     if (newInput.length === seq.length) {
       // Correct!
+      playSuccess();
       const newScore = score + 1;
       setScore(newScore);
       reportScore(newScore);
@@ -118,7 +121,7 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft }) 
         setPhase('showing');
       }, 700);
     }
-  }, [phase, input, seq, round, score, config, onComplete, reportScore]);
+  }, [phase, input, seq, round, score, config, onComplete, reportScore, playClick, playSuccess, playFail]);
 
   const progressDots = seq.map((_, i) => (
     <span
@@ -157,10 +160,13 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft }) 
 }
 
 ColourMemoryGame.propTypes = {
-  difficulty: PropTypes.string.isRequired,
-  onComplete: PropTypes.func.isRequired,
+  difficulty:  PropTypes.string.isRequired,
+  onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
   secondsLeft: PropTypes.number,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 export function ColourMemory({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -177,8 +183,8 @@ export function ColourMemory({ memberId, difficulty = 'easy', onComplete, callba
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <ColourMemoryGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <ColourMemoryGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

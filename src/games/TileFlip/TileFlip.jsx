@@ -15,7 +15,7 @@ const DIFFICULTY_CONFIG = {
  * Player must tap the tiles that were lit in any order.
  * Exercises visual working memory and spatial recall.
  */
-function TileFlipGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function TileFlipGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const total = config.gridSize * config.gridSize;
 
@@ -67,9 +67,11 @@ function TileFlipGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 
   const handleTap = useCallback((idx) => {
     if (phase !== 'recalling' || tapped.has(idx) || doneRef.current) return;
+    playClick();
 
     if (!lit.has(idx)) {
       // Wrong tap
+      playFail();
       setWrong(idx);
       setPhase('feedback');
       setTimeout(() => {
@@ -85,6 +87,7 @@ function TileFlipGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 
     if (newTapped.size === lit.size) {
       // All correct!
+      playSuccess();
       const ns = scoreRef.current + 1;
       scoreRef.current = ns;
       setScore(ns);
@@ -92,7 +95,7 @@ function TileFlipGame({ difficulty, onComplete, reportScore, secondsLeft }) {
       setPhase('feedback');
       setTimeout(() => startRound(round + 1), 700);
     }
-  }, [phase, tapped, lit, round, reportScore, startRound]);
+  }, [phase, tapped, lit, round, reportScore, startRound, playClick, playSuccess, playFail]);
 
   return (
     <div className={styles.wrapper}>
@@ -140,6 +143,9 @@ TileFlipGame.propTypes = {
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
   secondsLeft: PropTypes.number,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 export function TileFlip({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -157,8 +163,8 @@ export function TileFlip({ memberId, difficulty = 'easy', onComplete, callbackUr
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <TileFlipGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <TileFlipGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );
