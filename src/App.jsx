@@ -381,9 +381,6 @@ export function App() {
             <button className={styles.primaryBtn} onClick={advanceDailyChallenge}>
               {isLast ? '🏁 See Results' : 'Next Game →'}
             </button>
-            <button className={styles.outlineBtn} onClick={abortDailyChallenge}>
-              🏠 Back to Home
-            </button>
           </div>
         </div>
         </div>
@@ -446,9 +443,6 @@ export function App() {
         <div className={styles.resultActions}>
           <button className={styles.primaryBtn} onClick={startDailyChallenge}>
             🔄 New Challenge
-          </button>
-          <button className={styles.outlineBtn} onClick={() => { setView('home'); setDailyChallenge(null); }}>
-            🏠 Home
           </button>
         </div>
         </div>
