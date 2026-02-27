@@ -114,7 +114,7 @@ function ClockFace({ h, m, size = 200 }) {
 ClockFace.propTypes = { h: PropTypes.number.isRequired, m: PropTypes.number.isRequired, size: PropTypes.number };
 
 // ── Inner game ─────────────────────────────────────────────────────
-function RightTimeGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function RightTimeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const [qIndex, setQIndex]     = useState(0);
   const [score, setScore]       = useState(0);
@@ -147,15 +147,17 @@ function RightTimeGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 
   const handleChoice = useCallback((opt) => {
     if (feedback) return;
+    playClick();
     setChosen(opt);
     const correct = timesEqual(opt, question.correct);
+    if (correct) { playSuccess(); } else { playFail(); }
     setFeedback(correct ? 'correct' : 'wrong');
     const newScore = correct ? score + 1 : score;
     if (correct) setScore(newScore);
     reportScore(newScore);
 
     setTimeout(() => nextQuestion(), 900);
-  }, [feedback, question.correct, score, reportScore, nextQuestion]);
+  }, [feedback, question.correct, score, reportScore, nextQuestion, playClick, playSuccess, playFail]);
 
   return (
     <div className={styles.wrapper}>
@@ -205,6 +207,9 @@ RightTimeGame.propTypes = {
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
   secondsLeft: PropTypes.number,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 // ── Outer wrapper ──────────────────────────────────────────────────
@@ -224,8 +229,8 @@ export function RightTime({ memberId, difficulty = 'easy', onComplete, callbackU
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <RightTimeGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <RightTimeGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

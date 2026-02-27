@@ -13,7 +13,7 @@ const DIFFICULTY_CONFIG = {
 const TARGETS  = ['⭐','🎯','🌟','💎','🔥','🎪'];
 const DISTRACTORS = ['🔵','🔴','🟢','🟡','🟠','🟣','⚫','⚪','🔶','🔷','🔸','🔹'];
 
-function SpeedTapGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function SpeedTapGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const [round,    setRound]    = useState(0);
   const [score,    setScore]    = useState(0);
@@ -58,28 +58,33 @@ function SpeedTapGame({ difficulty, onComplete, reportScore, secondsLeft }) {
     // Auto-miss if no tap within showMs
     timerRef.current = setTimeout(() => {
       if (doneRef.current) return;
+      playFail();
       setFeedback('miss');
       setWaiting(true);
       setTimeout(() => { setRound(r => { nextRound(r + 1); return r + 1; }); }, 500);
     }, config.showMs);
-  }, [config, finish]);
+  }, [config, finish, playFail]);
 
   // Start first round
   useEffect(() => { nextRound(0); return () => clearTimeout(timerRef.current); }, []); // eslint-disable-line
 
   const handleTap = useCallback((emoji) => {
     if (feedback || waiting || doneRef.current) return;
+    playClick();
     clearTimeout(timerRef.current);
     const correct = emoji === target;
     if (correct) {
+      playSuccess();
       scoreRef.current += 1;
       setScore(scoreRef.current);
       reportScore(scoreRef.current);
+    } else {
+      playFail();
     }
     setFeedback(correct ? 'correct' : 'wrong');
     setWaiting(true);
     setTimeout(() => { setRound(r => { nextRound(r + 1); return r + 1; }); }, 400);
-  }, [feedback, waiting, target, reportScore, nextRound]);
+  }, [feedback, waiting, target, reportScore, nextRound, playClick, playSuccess, playFail]);
 
   return (
     <div className={styles.wrapper}>
@@ -107,7 +112,7 @@ function SpeedTapGame({ difficulty, onComplete, reportScore, secondsLeft }) {
   );
 }
 
-SpeedTapGame.propTypes = { difficulty: PropTypes.string.isRequired, onComplete: PropTypes.func.isRequired, reportScore: PropTypes.func.isRequired, secondsLeft: PropTypes.number };
+SpeedTapGame.propTypes = { difficulty: PropTypes.string.isRequired, onComplete: PropTypes.func.isRequired, reportScore: PropTypes.func.isRequired, secondsLeft: PropTypes.number, playClick: PropTypes.func.isRequired, playSuccess: PropTypes.func.isRequired, playFail: PropTypes.func.isRequired };
 
 export function SpeedTap({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
@@ -117,8 +122,8 @@ export function SpeedTap({ memberId, difficulty = 'easy', onComplete, callbackUr
       instructions="A target emoji appears among distractors — tap it as fast as you can! Each round lasts only a moment."
       difficulty={difficulty} timeLimitSeconds={config.timeLimitSeconds} onGameComplete={fireCallback}
       onBack={onBack} musicMuted={musicMuted} onToggleMusic={onToggleMusic}>
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <SpeedTapGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <SpeedTapGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

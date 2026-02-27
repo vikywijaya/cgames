@@ -47,7 +47,7 @@ function generateSequence(seqLen, maxStep, negatives) {
   return { display, answer, options };
 }
 
-function MissingNumberGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function MissingNumberGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const [round,    setRound]    = useState(0);
   const [score,    setScore]    = useState(0);
@@ -79,8 +79,10 @@ function MissingNumberGame({ difficulty, onComplete, reportScore, secondsLeft })
 
   const handlePick = useCallback((val) => {
     if (feedback || doneRef.current) return;
+    playClick();
     setPicked(val);
     const correct = val === puzzle.answer;
+    if (correct) { playSuccess(); } else { playFail(); }
     setFeedback(correct ? 'correct' : 'wrong');
     let newScore = scoreRef.current;
     if (correct) {
@@ -90,7 +92,7 @@ function MissingNumberGame({ difficulty, onComplete, reportScore, secondsLeft })
       reportScore(newScore);
     }
     setTimeout(() => nextRound(round + 1, newScore), 700);
-  }, [feedback, puzzle, round, reportScore, nextRound]);
+  }, [feedback, puzzle, round, reportScore, nextRound, playClick, playSuccess, playFail]);
 
   return (
     <div className={styles.wrapper}>
@@ -133,6 +135,9 @@ MissingNumberGame.propTypes = {
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
   secondsLeft: PropTypes.number,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 export function MissingNumber({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -150,8 +155,8 @@ export function MissingNumber({ memberId, difficulty = 'easy', onComplete, callb
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <MissingNumberGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <MissingNumberGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

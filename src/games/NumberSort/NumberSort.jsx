@@ -26,7 +26,7 @@ function generateNumbers(count, maxVal) {
 }
 
 // Player taps numbers in ascending order. Tapped numbers highlight and lock in.
-function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   const [round,    setRound]    = useState(0);
@@ -53,6 +53,7 @@ function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 
   const handleTap = useCallback((idx) => {
     if (feedback || selected.includes(idx)) return;
+    playClick();
     const newSelected = [...selected, idx];
 
     // Check if this tap is the correct next in ascending order
@@ -62,6 +63,7 @@ function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 
     if (tappedVal !== expectedVal) {
       // Wrong order
+      playFail();
       setFeedback('wrong');
       setTimeout(() => {
         setSelected([]);
@@ -74,13 +76,14 @@ function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 
     if (newSelected.length === numbers.length) {
       // All correct!
+      playSuccess();
       const newScore = score + 1;
       setScore(newScore);
       reportScore(newScore);
       setFeedback('correct');
       setTimeout(() => nextRound(newScore), 700);
     }
-  }, [feedback, selected, numbers, score, reportScore, nextRound]);
+  }, [feedback, selected, numbers, score, reportScore, nextRound, playClick, playSuccess, playFail]);
 
   const sorted = [...numbers].sort((a, b) => a - b);
 
@@ -130,10 +133,13 @@ function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 }
 
 NumberSortGame.propTypes = {
-  difficulty: PropTypes.string.isRequired,
-  onComplete: PropTypes.func.isRequired,
+  difficulty:  PropTypes.string.isRequired,
+  onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
   secondsLeft: PropTypes.number,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 export function NumberSort({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -151,8 +157,8 @@ export function NumberSort({ memberId, difficulty = 'easy', onComplete, callback
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <NumberSortGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <NumberSortGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

@@ -25,7 +25,7 @@ const COLOURS = [
  * Player taps the button matching the INK colour (not the word meaning).
  * Incongruent trials (word ≠ ink) exercise inhibitory control.
  */
-function StroopGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function StroopGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   const [round,    setRound]    = useState(0);
@@ -84,15 +84,19 @@ function StroopGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 
   const handlePick = useCallback((colourName) => {
     if (feedback || !stimulus || doneRef.current) return;
+    playClick();
     const correct = colourName === stimulus.inkName;
     if (correct) {
+      playSuccess();
       scoreRef.current += 1;
       setScore(scoreRef.current);
       reportScore(scoreRef.current);
+    } else {
+      playFail();
     }
     setFeedback(correct ? 'correct' : 'wrong');
     setTimeout(() => nextRound(round + 1), 500);
-  }, [feedback, stimulus, round, reportScore, nextRound]);
+  }, [feedback, stimulus, round, reportScore, nextRound, playClick, playSuccess, playFail]);
 
   if (!stimulus) return null;
 
@@ -144,6 +148,9 @@ StroopGame.propTypes = {
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
   secondsLeft: PropTypes.number,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 export function StroopColour({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -161,8 +168,8 @@ export function StroopColour({ memberId, difficulty = 'easy', onComplete, callba
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <StroopGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <StroopGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

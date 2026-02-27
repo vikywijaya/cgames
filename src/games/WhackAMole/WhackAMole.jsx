@@ -13,7 +13,7 @@ const DIFFICULTY_CONFIG = {
 const MOLE_EMOJI  = '🐹';
 const BOMBA_EMOJI = '💣'; // don't tap — costs a life (medium/hard only)
 
-function WhackGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config   = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const holes    = config.holes;
   const useBombs = difficulty !== 'easy';
@@ -74,6 +74,7 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft }) {
     if (doneRef.current) return;
     const type = activeRef.current[idx];
     if (!type) return;
+    playClick();
 
     // Hide immediately
     activeRef.current = { ...activeRef.current };
@@ -81,6 +82,7 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft }) {
     setActive({ ...activeRef.current });
 
     if (type === 'mole') {
+      playSuccess();
       scoreRef.current += 1;
       setScore(scoreRef.current);
       reportScore(scoreRef.current);
@@ -89,11 +91,12 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft }) {
       setTimeout(() => setWhacked(prev => { const n = { ...prev }; delete n[idx]; return n; }), 300);
     } else {
       // Bomb tapped
+      playFail();
       livesRef.current -= 1;
       setLives(livesRef.current);
       if (livesRef.current <= 0) finish();
     }
-  }, [finish, reportScore]);
+  }, [finish, reportScore, playClick, playSuccess, playFail]);
 
   return (
     <div className={styles.wrapper}>
@@ -148,10 +151,13 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 }
 
 WhackGame.propTypes = {
-  difficulty: PropTypes.string.isRequired,
-  onComplete: PropTypes.func.isRequired,
+  difficulty:  PropTypes.string.isRequired,
+  onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
   secondsLeft: PropTypes.number,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 export function WhackAMole({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -173,8 +179,8 @@ export function WhackAMole({ memberId, difficulty = 'easy', onComplete, callback
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <WhackGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <WhackGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

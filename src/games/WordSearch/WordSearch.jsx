@@ -19,7 +19,7 @@ const INSTRUCTIONS = (
   </>
 );
 
-function WordSearchGame({ difficulty, onComplete, reportScore }) {
+function WordSearchGame({ difficulty, onComplete, reportScore, playClick, playSuccess, playFail }) {
   const {
     grid,
     words,
@@ -38,6 +38,11 @@ function WordSearchGame({ difficulty, onComplete, reportScore }) {
   const cols = grid[0]?.length ?? 8;
 
   useEffect(() => { reportScore?.(score); }, [score, reportScore]);
+
+  useEffect(() => {
+    if (lastResult === 'found') { playSuccess(); }
+    else if (lastResult === 'miss') { playFail(); }
+  }, [lastResult, playSuccess, playFail]);
 
   useEffect(() => {
     if (done) {
@@ -103,7 +108,7 @@ function WordSearchGame({ difficulty, onComplete, reportScore }) {
               <button
                 key={key}
                 className={cellClass}
-                onClick={() => clickCell(r, c)}
+                onClick={() => { playClick(); clickCell(r, c); }}
                 aria-label={`Row ${r + 1} Col ${c + 1}: ${letter}${isFound ? ', found' : ''}`}
                 aria-pressed={isSelected || isFound}
               >
@@ -145,9 +150,12 @@ function WordSearchGame({ difficulty, onComplete, reportScore }) {
 }
 
 WordSearchGame.propTypes = {
-  difficulty: PropTypes.string.isRequired,
-  onComplete: PropTypes.func.isRequired,
+  difficulty:  PropTypes.string.isRequired,
+  onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 export function WordSearch({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -170,8 +178,8 @@ export function WordSearch({ memberId, difficulty = 'easy', onComplete, callback
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: shellComplete, reportScore }) => (
-        <WordSearchGame difficulty={difficulty} onComplete={shellComplete} reportScore={reportScore} />
+      {({ onComplete: shellComplete, reportScore, playClick, playSuccess, playFail }) => (
+        <WordSearchGame difficulty={difficulty} onComplete={shellComplete} reportScore={reportScore} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

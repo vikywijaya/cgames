@@ -41,7 +41,7 @@ function buildQuestion(gridSize) {
   return { items, oddIndex };
 }
 
-function OddOneOutGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function OddOneOutGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const [qIndex,   setQIndex]   = useState(0);
   const [score,    setScore]    = useState(0);
@@ -65,13 +65,15 @@ function OddOneOutGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 
   const handleTap = useCallback((idx) => {
     if (feedback) return;
+    playClick();
     const correct = idx === question.oddIndex;
+    if (correct) { playSuccess(); } else { playFail(); }
     const newScore = correct ? score + 1 : score;
     if (correct) setScore(newScore);
     reportScore(newScore);
     setFeedback({ correct, chosen: idx });
     setTimeout(() => nextQ(newScore), 900);
-  }, [feedback, question.oddIndex, score, reportScore, nextQ]);
+  }, [feedback, question.oddIndex, score, reportScore, nextQ, playClick, playSuccess, playFail]);
 
   return (
     <div className={styles.wrapper}>
@@ -117,10 +119,13 @@ function OddOneOutGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 }
 
 OddOneOutGame.propTypes = {
-  difficulty: PropTypes.string.isRequired,
-  onComplete: PropTypes.func.isRequired,
+  difficulty:  PropTypes.string.isRequired,
+  onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
   secondsLeft: PropTypes.number,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 export function OddOneOut({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -138,8 +143,8 @@ export function OddOneOut({ memberId, difficulty = 'easy', onComplete, callbackU
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <OddOneOutGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <OddOneOutGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

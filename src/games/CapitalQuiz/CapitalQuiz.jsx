@@ -87,7 +87,7 @@ function buildQuestion(pool) {
   return { correct, options };
 }
 
-function CapitalQuizGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function CapitalQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const pool   = POOL_MAP[config.pool];
 
@@ -118,11 +118,12 @@ function CapitalQuizGame({ difficulty, onComplete, reportScore, secondsLeft }) {
     setChosen(opt.code);
     const correct = opt.code === question.correct.code;
     const newScore = correct ? score + 1 : score;
-    if (correct) setScore(newScore);
+    if (correct) { playSuccess(); setScore(newScore); }
+    else { playFail(); }
     reportScore(newScore);
     setFeedback(correct ? 'correct' : 'wrong');
     setTimeout(() => nextQ(newScore), 1000);
-  }, [feedback, question.correct.code, score, reportScore, nextQ]);
+  }, [feedback, question.correct.code, score, reportScore, nextQ, playSuccess, playFail]);
 
   return (
     <div className={styles.wrapper}>
@@ -148,7 +149,7 @@ function CapitalQuizGame({ difficulty, onComplete, reportScore, secondsLeft }) {
           else if (feedback && isChosen && feedback === 'wrong')  cls = `${styles.optBtn} ${styles.optWrong}`;
           else if (feedback && isCorrect) cls = `${styles.optBtn} ${styles.optCorrect}`;
           return (
-            <button key={opt.code} className={cls} onClick={() => handleChoice(opt)} disabled={!!feedback}>
+            <button key={opt.code} className={cls} onClick={() => { playClick(); handleChoice(opt); }} disabled={!!feedback}>
               {opt.capital}
             </button>
           );
@@ -165,10 +166,13 @@ function CapitalQuizGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 }
 
 CapitalQuizGame.propTypes = {
-  difficulty: PropTypes.string.isRequired,
-  onComplete: PropTypes.func.isRequired,
+  difficulty:  PropTypes.string.isRequired,
+  onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
   secondsLeft: PropTypes.number,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 export function CapitalQuiz({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -186,8 +190,8 @@ export function CapitalQuiz({ memberId, difficulty = 'easy', onComplete, callbac
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <CapitalQuizGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <CapitalQuizGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

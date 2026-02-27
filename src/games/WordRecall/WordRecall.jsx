@@ -14,7 +14,7 @@ const INSTRUCTIONS =
   'the words will disappear and you will type as many as you can remember. ' +
   'Spelling counts, but upper and lower case do not matter.';
 
-function WordRecallGame({ difficulty, onComplete, reportScore }) {
+function WordRecallGame({ difficulty, onComplete, reportScore, playClick, playSuccess, playFail }) {
   const {
     wordList,
     phase,
@@ -47,6 +47,11 @@ function WordRecallGame({ difficulty, onComplete, reportScore }) {
   });
 
   useEffect(() => { reportScore?.(score); }, [score, reportScore]);
+
+  useEffect(() => {
+    if (lastResult === 'found') { playSuccess(); }
+    else if (lastResult === 'notFound') { playFail(); }
+  }, [lastResult, playSuccess, playFail]);
 
   useEffect(() => {
     if (phase === 'recall') inputRef.current?.focus();
@@ -118,14 +123,14 @@ function WordRecallGame({ difficulty, onComplete, reportScore }) {
               className={styles.recallInput}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && submitWord()}
+              onKeyDown={(e) => { if (e.key === 'Enter') { playClick(); submitWord(); } }}
               placeholder="Type a word…"
               aria-label="Type a word you remember"
               autoComplete="off"
               autoCorrect="off"
               spellCheck={false}
             />
-            <Button onClick={submitWord} disabled={!inputValue.trim()}>
+            <Button onClick={() => { playClick(); submitWord(); }} disabled={!inputValue.trim()}>
               Submit
             </Button>
           </div>
@@ -162,9 +167,12 @@ function WordRecallGame({ difficulty, onComplete, reportScore }) {
 }
 
 WordRecallGame.propTypes = {
-  difficulty: PropTypes.string.isRequired,
-  onComplete: PropTypes.func.isRequired,
+  difficulty:  PropTypes.string.isRequired,
+  onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 export function WordRecall({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -187,8 +195,8 @@ export function WordRecall({ memberId, difficulty = 'easy', onComplete, callback
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: shellComplete, reportScore }) => (
-        <WordRecallGame difficulty={difficulty} onComplete={shellComplete} reportScore={reportScore} />
+      {({ onComplete: shellComplete, reportScore, playClick, playSuccess, playFail }) => (
+        <WordRecallGame difficulty={difficulty} onComplete={shellComplete} reportScore={reportScore} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

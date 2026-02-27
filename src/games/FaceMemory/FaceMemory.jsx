@@ -39,7 +39,7 @@ function buildRound(faceCount) {
   return { faces, target, options };
 }
 
-function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const [round,  setRound]  = useState(0);
   const [score,  setScore]  = useState(0);
@@ -62,8 +62,10 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 
   const handleChoice = useCallback((name) => {
     if (feedback) return;
+    playClick();
     setChosen(name);
     const correct = name === data.target.name;
+    if (correct) { playSuccess(); } else { playFail(); }
     const newScore = correct ? score + 1 : score;
     if (correct) setScore(newScore);
     reportScore(newScore);
@@ -77,7 +79,7 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft }) {
         setData(buildRound(config.faceCount)); setChosen(null); setFeedback(null);
       }
     }, 900);
-  }, [feedback, data, score, round, config, reportScore, onComplete]);
+  }, [feedback, data, score, round, config, reportScore, onComplete, playClick, playSuccess, playFail]);
 
   if (phase === 'study') {
     return (
@@ -125,7 +127,7 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft }) {
   );
 }
 
-FaceMemoryGame.propTypes = { difficulty: PropTypes.string.isRequired, onComplete: PropTypes.func.isRequired, reportScore: PropTypes.func.isRequired, secondsLeft: PropTypes.number };
+FaceMemoryGame.propTypes = { difficulty: PropTypes.string.isRequired, onComplete: PropTypes.func.isRequired, reportScore: PropTypes.func.isRequired, secondsLeft: PropTypes.number, playClick: PropTypes.func.isRequired, playSuccess: PropTypes.func.isRequired, playFail: PropTypes.func.isRequired };
 
 export function FaceMemory({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
@@ -135,8 +137,8 @@ export function FaceMemory({ memberId, difficulty = 'easy', onComplete, callback
       instructions={`Study the faces and their names for ${config.studySec} seconds. Then identify who's who!`}
       difficulty={difficulty} timeLimitSeconds={null} onGameComplete={fireCallback}
       onBack={onBack} musicMuted={musicMuted} onToggleMusic={onToggleMusic}>
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <FaceMemoryGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <FaceMemoryGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

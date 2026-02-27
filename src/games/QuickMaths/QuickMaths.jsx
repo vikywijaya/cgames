@@ -36,7 +36,7 @@ function generateQuestion(ops, maxA, maxB) {
   return { a, b, op, answer, options };
 }
 
-function QuickMathsGame({ difficulty, onComplete, reportScore, secondsLeft }) {
+function QuickMathsGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const [round,    setRound]    = useState(0);
   const [score,    setScore]    = useState(0);
@@ -68,8 +68,10 @@ function QuickMathsGame({ difficulty, onComplete, reportScore, secondsLeft }) {
 
   const handlePick = useCallback((val) => {
     if (feedback || doneRef.current) return;
+    playClick();
     setPicked(val);
     const correct = val === q.answer;
+    if (correct) { playSuccess(); } else { playFail(); }
     setFeedback(correct ? 'correct' : 'wrong');
     let newScore = scoreRef.current;
     if (correct) {
@@ -79,7 +81,7 @@ function QuickMathsGame({ difficulty, onComplete, reportScore, secondsLeft }) {
       reportScore(newScore);
     }
     setTimeout(() => nextRound(round + 1, newScore), 600);
-  }, [feedback, q, round, reportScore, nextRound]);
+  }, [feedback, q, round, reportScore, nextRound, playClick, playSuccess, playFail]);
 
   return (
     <div className={styles.wrapper}>
@@ -120,6 +122,9 @@ QuickMathsGame.propTypes = {
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
   secondsLeft: PropTypes.number,
+  playClick:   PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail:    PropTypes.func.isRequired,
 };
 
 export function QuickMaths({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -137,8 +142,8 @@ export function QuickMaths({ memberId, difficulty = 'easy', onComplete, callback
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft }) => (
-        <QuickMathsGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <QuickMathsGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );
