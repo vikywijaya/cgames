@@ -565,9 +565,10 @@ export function App() {
       <div className={styles.homeHeader}>
         <div className={styles.homeIcon} aria-hidden="true">🧠</div>
         <h1 className={styles.homeTitle}>CaritaHub Cognitive Games</h1>
+        <p className={styles.homeSubtitle}>Fun brain exercises to keep your mind sharp and healthy.</p>
         <p className={styles.homeGreeting}>Hello, {urlMemberId}! 👋</p>
         <p className={styles.homeProgressHint}>{getProgressHint(getAllScores(), ALL_GAMES.length)}</p>
-        <p className={styles.homeSubtitle}>Fun brain exercises to keep your mind sharp and healthy.</p>
+        
         {musicBtn}
       </div>
 
