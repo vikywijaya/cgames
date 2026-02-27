@@ -467,7 +467,7 @@
   align-items: center;
   gap: var(--space-3);
   font-family: var(--font-heading);
-  font-size: var(--text-sm);
+  font-size: calc(var(--text-sm) * 0.5);
   font-weight: var(--font-weight-bold);
   color: var(--color-text);
   padding-bottom: var(--space-3);
@@ -722,7 +722,7 @@
   align-items: center;
   gap: var(--space-3);
   font-family: var(--font-heading);
-  font-size: var(--text-lg);
+  font-size: calc(var(--text-lg) * 0.5);
   font-weight: var(--font-weight-bold);
   color: var(--color-text);
   padding-bottom: var(--space-3);
