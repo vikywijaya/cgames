@@ -803,7 +803,7 @@
 }
 
 .gameDomain {
-  font-size: calc(var(--text-xs) * 0.5);
+  font-size: calc(var(--text-xs) * 0.6);
   font-weight: var(--font-weight-regular);
   color: var(--color-text-muted);
   letter-spacing: 0;
