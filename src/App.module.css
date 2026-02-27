@@ -138,18 +138,18 @@
 .homeMenu {
   display: flex;
   flex-direction: column;
-  gap: var(--space-10);
+  gap: var(--space-5);
 }
 
 .menuBtn {
   position: relative;
   overflow: hidden;
   display: flex;
-  align-items: center;
+  flex-direction: column;      /* vertical: icon on top, body below */
+  align-items: stretch;        /* children span full card width */
   width: 100%;
-  /* left padding reserves space for the icon column */
-  padding: var(--space-5) var(--space-6) var(--space-5) 216px;
-  min-height: 200px;
+  padding: 0;                  /* padding lives in menuBtnBody */
+  min-height: 0;               /* driven by icon height + body content */
   background-color: #ffffff;
   border: none;
   border-radius: 24px;
@@ -158,32 +158,41 @@
   text-align: left;
   transition: box-shadow var(--transition-fast), transform var(--transition-fast);
 }
-.menuBtn:hover  { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.13); transform: translateY(-2px); }
+.menuBtn:hover  { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.13); transform: translateY(-3px); }
 .menuBtn:active { transform: translateY(0) scale(0.99); }
 .menuBtn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 
-/* Floating icon — same overflow trick as game cards */
+/* Top icon zone — full-width strip, overflow:hidden on card clips to rounded corners */
 .menuBtnIcon {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 200px;
-  min-width: 200px;
+  position: relative;          /* normal flow, stacks on top */
+  left: unset;
+  top: unset;
+  bottom: unset;
+  width: 100%;
+  min-width: 0;
+  height: 150px;               /* fixed tall icon zone */
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 6rem;
-  background: #f5f5f5;
+  font-size: 5rem;             /* 90px at 18px base — large, centered emoji */
+  background: #f5f5f5;         /* fallback; overridden per-button below */
   pointer-events: none;
 }
+
+/* Per-button icon area color accents */
+.menuBtnDaily  .menuBtnIcon { background: #cfe2f3; }  /* brand light blue  */
+.menuBtnGames  .menuBtnIcon { background: #d4edda; }  /* soft green        */
+.menuBtnScores .menuBtnIcon { background: #fff3cd; }  /* soft amber        */
 
 .menuBtnBody {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2);
   min-width: 0;
+  padding: var(--space-5) var(--space-5) var(--space-5);
+  background-color: #ffffff;
 }
 
 .menuBtnTitle {
@@ -205,13 +214,13 @@
 .menuBtnFooter {
   display: flex;
   justify-content: flex-end;
-  margin-top: var(--space-2);
+  margin-top: var(--space-3);
 }
 
 .menuBtnCta {
   display: inline-flex;
   align-items: center;
-  height: 40px;
+  height: 44px;
   padding: 0 var(--space-5);
   background-color: var(--color-primary);
   color: #ffffff;
@@ -759,7 +768,11 @@
 }
 
 /* ── Game Cards ───────────────────────────────────── */
-.gameGrid { display: flex; flex-direction: column; gap: var(--space-10); }
+.gameGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-6);
+}
 
 .gameCard {
   position: relative;
@@ -768,10 +781,11 @@
   border: none;
   border-radius: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  padding: var(--space-5) var(--space-6) var(--space-5) 216px;
-  min-height: 200px;
+  padding: 0;                  /* padding lives in gameMeta */
+  min-height: 0;               /* driven by icon height + meta content */
   display: flex;
-  align-items: center;
+  flex-direction: column;      /* vertical: icon on top, meta below */
+  align-items: stretch;
   transition: box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 .gameCard:hover {
@@ -779,18 +793,20 @@
   transform: translateY(-2px);
 }
 
-/* Icon sits flush inside the card, no overflow */
+/* Top icon zone — full-width strip, clipped by card's overflow:hidden */
 .gameIconBox {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 200px;
-  min-width: 200px;
+  position: relative;          /* normal flow, stacks on top */
+  left: unset;
+  top: unset;
+  bottom: unset;
+  width: 100%;
+  min-width: 0;
+  height: 140px;               /* fixed icon zone height */
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 6rem;
+  font-size: 4rem;             /* 72px at 18px base */
   background: #f5f5f5;
   pointer-events: none;
 }
@@ -801,6 +817,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+  padding: var(--space-4) var(--space-4) var(--space-4);
+  background-color: #ffffff;
 }
 
 .gameCardTitle {
@@ -895,18 +913,21 @@
   .homeGreeting { font-size: var(--text-sm); }
   .homeSubtitle { font-size: var(--text-xs); }
 
-  /* Menu buttons — smaller icon column so text has room */
-  .homeMenu    { gap: var(--space-5); }
-  .menuBtn     { padding: var(--space-4) var(--space-4) var(--space-4) 108px; min-height: 120px; }
-  .menuBtnIcon { width: 96px; min-width: 96px; font-size: 3.5rem; }
+  /* Menu buttons — vertical portrait cards, reduced icon height on small screens */
+  .homeMenu    { gap: var(--space-4); }
+  .menuBtn     { padding: 0; }
+  .menuBtnIcon { width: 100%; height: 120px; font-size: 4rem; }
+  .menuBtnBody { padding: var(--space-4) var(--space-4) var(--space-4); }
   .menuBtnTitle { font-size: var(--text-sm); }
   .menuBtnDesc  { font-size: var(--text-xs); }
-  .menuBtnCta   { height: 36px; font-size: var(--text-xs); }
+  .menuBtnCta   { height: 40px; font-size: var(--text-xs); }
 
   /* Game lobby */
   .lobby    { padding: var(--space-6) var(--space-4) var(--space-10); gap: var(--space-8); }
-  .gameCard { padding: var(--space-5) var(--space-4) var(--space-5) 108px; min-height: 120px; }
-  .gameIconBox { width: 96px; min-width: 96px; font-size: 3.5rem; }
+  .gameGrid { grid-template-columns: 1fr; gap: var(--space-5); }
+  .gameCard { padding: 0; }
+  .gameIconBox { width: 100%; height: 120px; font-size: 3.5rem; }
+  .gameMeta { padding: var(--space-4) var(--space-4) var(--space-4); }
 
   .difficultyRadio { padding: 0 var(--space-4); font-size: var(--text-xs); }
 
