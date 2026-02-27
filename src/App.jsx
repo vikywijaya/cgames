@@ -510,10 +510,10 @@ export function App() {
             <div className={styles.gameGrid} role="list">
               {group.games.map(game => (
                 <div key={game.id} className={styles.gameCard} role="listitem">
-                  <div className={styles.gameIcon} aria-hidden="true">{game.icon}</div>
+                  <div className={styles.gameIconBox} aria-hidden="true">{game.icon}</div>
                   <div className={styles.gameMeta}>
-                    <span className={styles.gameDomain}>{game.domain}</span>
                     <h3 className={styles.gameCardTitle}>{game.title}</h3>
+                    <span className={styles.gameDomain}>{game.domain}</span>
                     <p className={styles.gameCardDesc}>{game.description}</p>
                   </div>
                   <button
