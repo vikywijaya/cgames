@@ -333,14 +333,16 @@ export function App() {
     const isLast = index + 1 >= games.length;
 
     return (
-      <div className={styles.interResult}>
+      <div className={styles.dailyWrapper}>
         <TopBar
           title="Daily Challenge"
           onBack={abortDailyChallenge}
           memberId={urlMemberId}
           muted={muted}
           onToggleMusic={toggleMusic}
+          noBleed
         />
+        <div className={styles.interResult}>
         <div className={styles.interProgress}>
           {games.map((g, i) => (
             <div
@@ -384,6 +386,7 @@ export function App() {
             </button>
           </div>
         </div>
+        </div>
       </div>
     );
   }
@@ -398,14 +401,16 @@ export function App() {
     const trophy = avg >= 75 ? '🏆' : avg >= 50 ? '🌟' : '💪';
 
     return (
-      <div className={styles.dailyResult}>
+      <div className={styles.dailyWrapper}>
         <TopBar
           title="Daily Challenge"
           onBack={() => { setView('home'); setDailyChallenge(null); }}
           memberId={urlMemberId}
           muted={muted}
           onToggleMusic={toggleMusic}
+          noBleed
         />
+        <div className={styles.dailyResult}>
         <div className={styles.resultTrophy}>{trophy}</div>
         <h2 className={styles.resultHeadline}>Challenge Complete!</h2>
         <div className={styles.resultAvgScore}>{avg}<small className={styles.resultPct}>%</small></div>
@@ -446,6 +451,7 @@ export function App() {
             🏠 Home
           </button>
         </div>
+        </div>
       </div>
     );
   }
@@ -456,14 +462,16 @@ export function App() {
     const totalPlayed = ALL_GAMES.filter(g => allScores[g.id]).length;
 
     return (
-      <div className={styles.scoresView}>
+      <div className={styles.dailyWrapper}>
         <TopBar
           title="Your Scores"
           onBack={() => setView('home')}
           memberId={urlMemberId}
           muted={muted}
           onToggleMusic={toggleMusic}
+          noBleed
         />
+        <div className={styles.scoresView}>
         <div className={styles.scoresHeader}>
           <div className={styles.scoresHero}>
             <div className={styles.scoresHeroIcon}>🏆</div>
@@ -519,6 +527,7 @@ export function App() {
             </div>
           </section>
         ))}
+        </div>
       </div>
     );
   }
@@ -526,14 +535,16 @@ export function App() {
   /* ── Games lobby ── */
   if (view === 'games') {
     return (
-      <div className={styles.lobby}>
+      <div className={styles.dailyWrapper}>
         <TopBar
           title="Cognitive Games"
           onBack={() => setView('home')}
           memberId={urlMemberId}
           muted={muted}
           onToggleMusic={toggleMusic}
+          noBleed
         />
+        <div className={styles.lobby}>
         <header className={styles.lobbyHeader}>
           <div className={styles.lobbyIcon} aria-hidden="true">🎮</div>
           <h1 className={styles.lobbyTitle}>Cognitive Games</h1>
@@ -590,20 +601,23 @@ export function App() {
             </div>
           </section>
         ))}
+        </div>
       </div>
     );
   }
 
   /* ── Home screen (default) ── */
   return (
-    <div className={styles.homeScreen}>
+    <div className={styles.dailyWrapper}>
       <TopBar
         title="CaritaHub Games"
         onBack={null}
         memberId={urlMemberId}
         muted={muted}
         onToggleMusic={toggleMusic}
+        noBleed
       />
+      <div className={styles.homeScreen}>
       <div className={styles.homeHeader}>
         <img
           src={cognitiveGameTitle}
@@ -668,6 +682,7 @@ export function App() {
         </button>
 
       </nav>
+      </div>
     </div>
   );
 }
