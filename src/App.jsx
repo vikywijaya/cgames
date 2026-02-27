@@ -29,7 +29,6 @@ import { useMusic }         from './hooks/useMusic';
 import { saveScore, getAllScores } from './utils/scoreStore';
 import './design/globals.css';
 import styles from './App.module.css';
-import cognitiveGameTitle from './assets/cognitive-game-title.png';
 
 const MUSIC_SRC = import.meta.env.BASE_URL + 'music.mp3';
 
@@ -564,9 +563,8 @@ export function App() {
   return (
     <div className={styles.homeScreen}>
       <div className={styles.homeHeader}>
-        <img src={cognitiveGameTitle} alt="CaritaHub Cognitive Games" className={styles.homeTitle} />
-        <p className={styles.homeSubtitle}>Fun brain exercises to keep your mind sharp and healthy.</p>
-        <div className={styles.homeAvatar} aria-hidden="true" />
+        <div className={styles.homeIcon} aria-hidden="true">🧠</div>
+        <h1 className={styles.homeTitle}>CaritaHub Cognitive Games</h1>
         <p className={styles.homeGreeting}>Hello, {urlMemberId}! 👋</p>
         <p className={styles.homeProgressHint}>{getProgressHint(getAllScores(), ALL_GAMES.length)}</p>
         
