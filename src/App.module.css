@@ -120,8 +120,8 @@
   align-items: center;
   width: 100%;
   /* left padding reserves space for the floating icon */
-  padding: var(--space-5) var(--space-6) var(--space-5) 110px;
-  min-height: 110px;
+  padding: var(--space-5) var(--space-6) var(--space-5) 144px;
+  min-height: 120px;
   background-color: #ffffff;
   border: none;
   border-radius: 24px;
@@ -137,14 +137,16 @@
 /* Floating icon — same overflow trick as game cards */
 .menuBtnIcon {
   position: absolute;
-  left: 8px;
-  top: -16px;
-  bottom: -16px;
-  width: 96px;
+  left: 10px;
+  top: -24px;
+  bottom: -24px;
+  width: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 4.5rem;
+  font-size: 5.5rem;
+  background: var(--color-primary-light);
+  border-radius: var(--radius-xl);
   pointer-events: none;
 }
 
@@ -641,31 +643,66 @@
   align-items: center;
   gap: var(--space-4);
   justify-content: center;
+  flex-wrap: wrap;
 }
 
 .difficultyLabel {
   font-size: var(--text-sm);
   font-weight: var(--font-weight-bold);
   color: var(--color-text);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 
-.difficultySelect {
-  height: var(--min-target);
-  padding: 0 var(--space-5);
-  background-color: var(--color-bg);
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  color: var(--color-text);
-  font-size: var(--text-sm);
-  font-family: var(--font-base);
-  font-weight: var(--font-weight-light);
-  cursor: pointer;
-  outline: none;
-  transition: border-color var(--transition-fast);
+/* Radio pill group */
+.difficultyRadioGroup {
+  display: flex;
+  gap: var(--space-2);
 }
-.difficultySelect:focus { border-color: var(--color-primary); }
+
+.difficultyRadio {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 var(--space-5);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-base);
+  color: var(--color-text-muted);
+  background: #ffffff;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast),
+    color var(--transition-fast);
+  user-select: none;
+}
+
+/* Hide the native radio input visually but keep it accessible */
+.difficultyRadio input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.difficultyRadio:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.difficultyRadioActive {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.difficultyRadioActive:hover {
+  background: var(--color-primary-dk);
+  border-color: var(--color-primary-dk);
+  color: #ffffff;
+}
 
 /* ── Category Sections ────────────────────────────── */
 .gameSection {
@@ -697,8 +734,8 @@
   border-radius: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   /* left padding makes room for the overflowing icon */
-  padding: var(--space-5) var(--space-6) var(--space-5) 110px;
-  min-height: 110px;
+  padding: var(--space-5) var(--space-6) var(--space-5) 144px;
+  min-height: 120px;
   display: flex;
   align-items: center;
   transition: box-shadow var(--transition-fast), transform var(--transition-fast);
@@ -711,14 +748,16 @@
 /* Emoji overflows the card's top & bottom edges — mimics a product image */
 .gameIconBox {
   position: absolute;
-  left: 8px;
-  top: -16px;
-  bottom: -16px;
-  width: 96px;
+  left: 10px;
+  top: -24px;
+  bottom: -24px;
+  width: 120px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 4.5rem;
+  font-size: 5.5rem;
+  background: var(--color-primary-light);
+  border-radius: var(--radius-xl);
   pointer-events: none;
 }
 
@@ -818,11 +857,14 @@
   .homeScreen { padding: var(--space-6) var(--space-4) var(--space-10); gap: var(--space-6); }
   .homeTitle  { font-size: var(--text-lg); }
   .menuBtn     { padding: var(--space-5) var(--space-4) var(--space-5) 90px; min-height: 90px; }
-  .menuBtnIcon { font-size: 3.5rem; width: 76px; }
+  .menuBtnIcon { font-size: 4rem; width: 96px; }
+  .menuBtn  { padding: var(--space-5) var(--space-4) var(--space-5) 112px; min-height: 100px; }
 
   .lobby    { padding: var(--space-6) var(--space-4) var(--space-10); gap: var(--space-8); }
-  .gameCard { padding: var(--space-5) var(--space-4) var(--space-5) 90px; min-height: 90px; }
-  .gameIconBox { width: 76px; font-size: 3.5rem; }
+  .gameCard { padding: var(--space-5) var(--space-4) var(--space-5) 112px; min-height: 100px; }
+  .gameIconBox { width: 96px; font-size: 4rem; }
+
+  .difficultyRadio { padding: 0 var(--space-4); font-size: var(--text-xs); }
 
   .scoresView { padding: var(--space-6) var(--space-4) var(--space-10); gap: var(--space-6); }
   .scoreRow   { flex-wrap: wrap; gap: var(--space-2); }

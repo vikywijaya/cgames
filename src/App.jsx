@@ -488,18 +488,24 @@ export function App() {
         </header>
 
         <div className={styles.difficultyRow}>
-          <label className={styles.difficultyLabel} htmlFor="difficulty-select">Difficulty:</label>
-          <select
-            id="difficulty-select"
-            className={styles.difficultySelect}
-            value={selectedDifficulty}
-            onChange={(e) => setSelectedDifficulty(e.target.value)}
-            aria-label="Select difficulty"
-          >
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-          </select>
+          <span className={styles.difficultyLabel}>Difficulty</span>
+          <div className={styles.difficultyRadioGroup} role="radiogroup" aria-label="Select difficulty">
+            {['easy', 'medium', 'hard'].map(level => (
+              <label
+                key={level}
+                className={`${styles.difficultyRadio} ${selectedDifficulty === level ? styles.difficultyRadioActive : ''}`}
+              >
+                <input
+                  type="radio"
+                  name="difficulty"
+                  value={level}
+                  checked={selectedDifficulty === level}
+                  onChange={() => setSelectedDifficulty(level)}
+                />
+                {level.charAt(0).toUpperCase() + level.slice(1)}
+              </label>
+            ))}
+          </div>
         </div>
 
         {GAME_GROUPS.map(group => (
