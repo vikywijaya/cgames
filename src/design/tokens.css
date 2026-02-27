@@ -1,25 +1,27 @@
 :root {
   /* ── Typography ─────────────────────────────────────────────────
-     Brand: Helvetica Neue / Helvetica / Arial (system sans-serif)
-     H1 Headline:  Helvetica Bold 30pt  → 2.5rem  (40px) bold
-     Slide Title:  Helvetica Bold 20pt  → 1.667rem (26.7px) bold
-     H2 Subhead:   Helvetica Bold 14pt  → 1.167rem (18.7px) bold
-     Body Text:    Helvetica Light 14pt → 1.167rem (18.7px) 300
-     Smaller Text: Helvetica Light 10pt → 0.833rem (13.3px) 300
+     Font: Atkinson Hyperlegible — purpose-built for senior / low-vision
+     readability. Clear, open letterforms with strong b/d/p/q distinction.
+     Base: 18px root (html). All rem values below are relative to that.
+     H1 Headline:  Bold 2.75rem → 49.5px
+     Section Head: Bold 1.875rem → 33.75px
+     H2 Subhead:   Bold 1.375rem → 24.75px
+     Body Text:    Regular 1.375rem → 24.75px   (minimum ~18pt)
+     Small label:  Regular 1.125rem → 20.25px   (no text smaller than ~15pt)
   ──────────────────────────────────────────────────────────────── */
-  --font-base:    'Helvetica Neue', Helvetica, Arial, sans-serif;
-  --font-heading: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-base:    'Atkinson Hyperlegible', system-ui, Arial, sans-serif;
+  --font-heading: 'Atkinson Hyperlegible', system-ui, Arial, sans-serif;
 
-  --text-xs:      0.833rem;   /* 13.3px — Smaller Text (10pt) */
-  --text-sm:      1.167rem;   /* 18.7px — Body / H2 base (14pt) */
-  --text-md:      1.167rem;   /* 18.7px — Body Text (14pt) */
-  --text-lg:      1.667rem;   /* 26.7px — Slide Title (20pt) */
-  --text-xl:      2.5rem;     /* 40px   — H1 Headline (30pt) */
-  --text-game:    2.5rem;     /* 40px   — numbers/tiles in games */
+  --text-xs:      1.125rem;   /* 20.25px — Small label  (no text below ~15pt) */
+  --text-sm:      1.25rem;    /* 22.5px  — Secondary body */
+  --text-md:      1.375rem;   /* 24.75px — Primary body text */
+  --text-lg:      1.875rem;   /* 33.75px — Section heading */
+  --text-xl:      2.75rem;    /* 49.5px  — Page title */
+  --text-game:    3rem;       /* 54px    — numbers/tiles in games */
 
-  --font-weight-light:  300;
+  --font-weight-light:   400; /* map "light" to regular — 300 too thin for seniors */
   --font-weight-regular: 400;
-  --font-weight-bold:   700;
+  --font-weight-bold:    700;
 
   /* ── Brand Color Palette ────────────────────────────────────────
      #1155cc  Primary Blue
