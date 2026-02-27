@@ -442,28 +442,30 @@ export function App() {
                       <span className={styles.scoreRowName}>{game.title}</span>
                       <span className={styles.scoreRowDomain}>{game.domain}</span>
                     </div>
-                    {sc ? (
-                      <div className={styles.scoreRowStats}>
-                        <span className={styles.scoreBest}
-                          style={{ color: sc.best >= 75 ? 'var(--color-success)' : sc.best >= 50 ? 'var(--color-warning)' : 'var(--color-error)' }}>
-                          Best {sc.best}%
-                        </span>
-                        <span className={styles.scoreLast}>Last {sc.last}%</span>
-                        <span className={styles.scorePlays}>{sc.playCount}× · {timeAgo(sc.ts)}</span>
-                        {sc.lastTime != null && (
-                          <span className={styles.scoreTime}>{sc.lastTime}s</span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className={styles.scoreUnplayed}>Not played yet</span>
-                    )}
-                    <button
-                      className={styles.playBtnSm}
-                      onClick={() => { setView('games'); setSelectedGame(game.id); }}
-                      aria-label={`Play ${game.title}`}
-                    >
-                      ▶ Play
-                    </button>
+                    <div className={styles.scoreRowActions}>
+                      {sc ? (
+                        <div className={styles.scoreRowStats}>
+                          <span className={styles.scoreBest}
+                            style={{ color: sc.best >= 75 ? 'var(--color-success)' : sc.best >= 50 ? 'var(--color-warning)' : 'var(--color-error)' }}>
+                            Best {sc.best}%
+                          </span>
+                          <span className={styles.scoreLast}>Last {sc.last}%</span>
+                          <span className={styles.scorePlays}>{sc.playCount}× · {timeAgo(sc.ts)}</span>
+                          {sc.lastTime != null && (
+                            <span className={styles.scoreTime}>{sc.lastTime}s</span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className={styles.scoreUnplayed}>Not played yet</span>
+                      )}
+                      <button
+                        className={styles.playBtnSm}
+                        onClick={() => { setView('games'); setSelectedGame(game.id); }}
+                        aria-label={`Play ${game.title}`}
+                      >
+                        ▶ Play
+                      </button>
+                    </div>
                   </div>
                 );
               })}
