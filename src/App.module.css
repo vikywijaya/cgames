@@ -676,60 +676,61 @@
 }
 
 /* ── Game Cards ───────────────────────────────────── */
-.gameGrid { display: flex; flex-direction: column; gap: var(--space-3); }
+.gameGrid { display: flex; flex-direction: column; gap: var(--space-10); }
 
 .gameCard {
-  background-color: var(--color-surface-card);
+  position: relative;
+  overflow: visible;           /* allow icon to bleed out of card edges */
+  background-color: #ffffff;
   border: none;
-  border-radius: var(--radius-xl);
-  padding: var(--space-5) var(--space-6);
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  /* left padding makes room for the overflowing icon */
+  padding: var(--space-5) var(--space-6) var(--space-5) 110px;
+  min-height: 110px;
   display: flex;
   align-items: center;
-  gap: var(--space-5);
-  flex-wrap: wrap;
   transition: box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 .gameCard:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.13);
+  transform: translateY(-2px);
 }
 
+/* Emoji overflows the card's top & bottom edges — mimics a product image */
 .gameIconBox {
-  width: 64px;
-  height: 64px;
-  min-width: 64px;
-  background-color: var(--color-surface-raised);
-  border-radius: var(--radius-lg);
+  position: absolute;
+  left: 8px;
+  top: -16px;
+  bottom: -16px;
+  width: 96px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
-  flex-shrink: 0;
+  font-size: 4.5rem;
+  pointer-events: none;
 }
 
-.gameMeta { flex: 1; min-width: 0; }
-
-.gameDomain {
-  display: block;
-  font-size: var(--text-xs);
-  font-weight: var(--font-weight-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--color-primary);
-  margin-bottom: var(--space-1);
+.gameMeta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
 }
 
 .gameCardTitle {
   font-family: var(--font-heading);
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--text-md);
+  font-weight: 800;
   color: var(--color-text);
-  margin: 0 0 var(--space-1);
+  margin: 0;
+  line-height: 1.2;
 }
 
 .gameCardDesc {
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-light);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-regular);
   color: var(--color-text-muted);
   line-height: 1.5;
   display: -webkit-box;
@@ -738,25 +739,38 @@
   overflow: hidden;
 }
 
+/* Bottom row: domain tag on the left, Play button on the right */
+.gameCardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.gameDomain {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-regular);
+  color: var(--color-text-muted);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 .playButton {
-  min-height: var(--min-target);
-  min-width: 100px;
-  padding: var(--space-3) var(--space-6);
-  background-color: var(--color-primary);
+  min-height: 40px;
+  padding: 0 var(--space-5);
+  background-color: var(--color-text);   /* dark/black pill */
   color: #ffffff;
   border: none;
-  border-radius: var(--radius-xl);
-  font-size: var(--text-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
   font-weight: var(--font-weight-bold);
   font-family: var(--font-base);
   cursor: pointer;
-  transition: background-color var(--transition-fast), transform var(--transition-fast),
-    box-shadow var(--transition-fast);
   white-space: nowrap;
   flex-shrink: 0;
-  flex-grow: 1;
-  max-width: 160px;
   letter-spacing: 0.02em;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
 .playButton:hover {
   background-color: var(--color-primary-dk);

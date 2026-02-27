@@ -513,16 +513,18 @@ export function App() {
                   <div className={styles.gameIconBox} aria-hidden="true">{game.icon}</div>
                   <div className={styles.gameMeta}>
                     <h3 className={styles.gameCardTitle}>{game.title}</h3>
-                    <span className={styles.gameDomain}>{game.domain}</span>
                     <p className={styles.gameCardDesc}>{game.description}</p>
+                    <div className={styles.gameCardFooter}>
+                      <span className={styles.gameDomain}>{game.domain}</span>
+                      <button
+                        className={styles.playButton}
+                        onClick={() => setSelectedGame(game.id)}
+                        aria-label={`Play ${game.title}`}
+                      >
+                        Play
+                      </button>
+                    </div>
                   </div>
-                  <button
-                    className={styles.playButton}
-                    onClick={() => setSelectedGame(game.id)}
-                    aria-label={`Play ${game.title}`}
-                  >
-                    Play
-                  </button>
                 </div>
               ))}
             </div>
