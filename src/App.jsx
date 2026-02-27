@@ -27,6 +27,7 @@ import { SnakeLite }        from './games/SnakeLite/SnakeLite';
 import { TileFlip }         from './games/TileFlip/TileFlip';
 import { useMusic }         from './hooks/useMusic';
 import { saveScore, getAllScores } from './utils/scoreStore';
+import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import './design/globals.css';
 import styles from './App.module.css';
 
@@ -563,8 +564,12 @@ export function App() {
   return (
     <div className={styles.homeScreen}>
       <div className={styles.homeHeader}>
-        <div className={styles.homeIcon} aria-hidden="true">🧠</div>
-        <h1 className={styles.homeTitle}>CaritaHub Cognitive Games</h1>
+        <img
+          src={cognitiveGameTitle}
+          alt="CaritaHub Cognitive Games"
+          className={styles.homeTitle}
+        />
+        <div className={styles.homeAvatar} aria-hidden="true" />
         <p className={styles.homeGreeting}>Hello, {urlMemberId}! 👋</p>
         <p className={styles.homeProgressHint}>{getProgressHint(getAllScores(), ALL_GAMES.length)}</p>
         
