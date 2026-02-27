@@ -132,7 +132,7 @@ const ALL_GAMES = GAME_GROUPS.flatMap(g => g.games);
 // Read URL params for iframe / embedded mode
 const params        = new URLSearchParams(window.location.search);
 const urlGameId     = params.get('gameId');
-const urlMemberId   = params.get('memberId')    ?? 'anonymous';
+const urlMemberId   = params.get('memberId')    ?? 'Senior Member';
 const urlDifficulty = params.get('difficulty')  ?? 'easy';
 const urlCallbackUrl= params.get('callbackUrl') ?? undefined;
 
@@ -154,6 +154,23 @@ function timeAgo(ts) {
   const hrs = Math.floor(mins / 60);
   if (hrs < 24)  return `${hrs}h ago`;
   return `${Math.floor(hrs / 24)}d ago`;
+}
+
+function getProgressHint(scores, totalGames) {
+  const played     = Object.keys(scores).length;
+  const totalPlays = Object.values(scores).reduce((sum, s) => sum + s.playCount, 0);
+  const bests      = Object.values(scores).map(s => s.best);
+  const avgBest    = bests.length > 0
+    ? Math.round(bests.reduce((a, b) => a + b, 0) / bests.length)
+    : 0;
+
+  if (played === 0)    return "Ready to start your brain workout? Pick a game below! 🚀";
+  if (totalPlays === 1) return "Great first session! Explore more games to keep your mind active. 💪";
+  if (played === 1)     return `You've played ${totalPlays} sessions — try a different game today to mix it up! 🎯`;
+  if (avgBest >= 80)    return `Impressive! ${played} games played, average best score ${avgBest}% — you're on fire! 🔥`;
+  if (played >= Math.ceil(totalGames * 0.5))
+    return `You've explored ${played} of ${totalGames} games with an average best of ${avgBest}%. Keep discovering! ⭐`;
+  return `${totalPlays} sessions across ${played} games — ${totalGames - played} more games await you! 🌟`;
 }
 
 function buildDailyGames() {
@@ -548,6 +565,8 @@ export function App() {
       <div className={styles.homeHeader}>
         <div className={styles.homeIcon} aria-hidden="true">🧠</div>
         <h1 className={styles.homeTitle}>CaritaHub Cognitive Games</h1>
+        <p className={styles.homeGreeting}>Hello, {urlMemberId}! 👋</p>
+        <p className={styles.homeProgressHint}>{getProgressHint(getAllScores(), ALL_GAMES.length)}</p>
         <p className={styles.homeSubtitle}>Fun brain exercises to keep your mind sharp and healthy.</p>
         {musicBtn}
       </div>
