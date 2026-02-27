@@ -168,11 +168,11 @@ function buildDailyGames() {
    App
 ────────────────────────────────────────────────────────────── */
 export function App() {
-  // view: 'home' | 'games' | 'scores' | 'daily-playing' | 'daily-result'
+  // view: 'home' | 'games' | 'scores' | 'daily-playing' | 'daily-inter' | 'daily-result'
   const [view,               setView]               = useState('home');
   const [selectedGame,       setSelectedGame]       = useState(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
-  // dailyChallenge: { games: Array, index: number, scores: { gameId: pct } }
+  // dailyChallenge: { games: Array, index: number, scores: { gameId: pct }, lastPct: number|null }
   const [dailyChallenge,     setDailyChallenge]     = useState(null);
 
   const { muted, toggle: toggleMusic } = useMusic(MUSIC_SRC);
@@ -191,7 +191,7 @@ export function App() {
   /* ── Daily challenge handlers ── */
   function startDailyChallenge() {
     const games = buildDailyGames();
-    setDailyChallenge({ games, index: 0, scores: {} });
+    setDailyChallenge({ games, index: 0, scores: {}, lastPct: null });
     setView('daily-playing');
   }
 
@@ -202,16 +202,24 @@ export function App() {
     setDailyChallenge(prev => ({
       ...prev,
       scores: { ...prev.scores, [game.id]: pct },
+      lastPct: pct,
     }));
+    setView('daily-inter'); // show inter-game result before advancing
   }
 
-  function handleDailyBack() {
-    // Advance to next game (or show final result if all done)
+  function advanceDailyChallenge() {
     const newIndex = dailyChallenge.index + 1;
-    setDailyChallenge(prev => ({ ...prev, index: newIndex }));
+    setDailyChallenge(prev => ({ ...prev, index: newIndex, lastPct: null }));
     if (newIndex >= dailyChallenge.games.length) {
       setView('daily-result');
+    } else {
+      setView('daily-playing');
     }
+  }
+
+  function abortDailyChallenge() {
+    setView('home');
+    setDailyChallenge(null);
   }
 
   /* ── Embedded mode ── */
@@ -284,8 +292,63 @@ export function App() {
           musicMuted={muted}
           onToggleMusic={toggleMusic}
           onComplete={handleDailyComplete}
-          onBack={handleDailyBack}
+          onBack={abortDailyChallenge}
         />
+      </div>
+    );
+  }
+
+  /* ── Daily challenge: inter-game result ── */
+  if (view === 'daily-inter' && dailyChallenge) {
+    const { games, index, scores, lastPct } = dailyChallenge;
+    const game   = games[index];
+    const isLast = index + 1 >= games.length;
+
+    return (
+      <div className={styles.interResult}>
+        <div className={styles.interProgress}>
+          {games.map((g, i) => (
+            <div
+              key={`${g.id}-${i}`}
+              className={[
+                styles.dailyDot,
+                i <= index ? styles.dailyDotDone   : '',
+              ].join(' ')}
+              aria-hidden="true"
+            >
+              <span className={styles.dailyDotMark}>{i <= index ? '✓' : i + 1}</span>
+              <span className={styles.dailyDotLabel}>{g.title}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className={styles.interBody}>
+          <div className={styles.interIcon}>{game.icon}</div>
+          <h2 className={styles.interGameName}>{game.title}</h2>
+          <div
+            className={styles.interScore}
+            style={{
+              color: lastPct >= 75 ? 'var(--color-success)'
+                   : lastPct >= 50 ? 'var(--color-warning)'
+                   :                 'var(--color-error)',
+            }}
+          >
+            {lastPct ?? 0}
+            <small className={styles.interPct}>%</small>
+          </div>
+          <p className={styles.interSub}>
+            {lastPct >= 75 ? 'Excellent!' : lastPct >= 50 ? 'Well done!' : 'Keep going!'}
+          </p>
+
+          <div className={styles.interActions}>
+            <button className={styles.primaryBtn} onClick={advanceDailyChallenge}>
+              {isLast ? '🏁 See Results' : 'Next Game →'}
+            </button>
+            <button className={styles.outlineBtn} onClick={abortDailyChallenge}>
+              🏠 Back to Home
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

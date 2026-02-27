@@ -255,6 +255,79 @@
 .dailyDotActive .dailyDotLabel { color: var(--color-primary); }
 .dailyDotDone   .dailyDotLabel { color: var(--color-success);  }
 
+/* ── Daily Inter-game result ─────────────────────────── */
+.interResult {
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.interProgress {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--color-surface-2);
+  border-bottom: 1.5px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.interBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-10) var(--space-6);
+  text-align: center;
+}
+
+.interIcon { font-size: 3.5rem; line-height: 1; }
+
+.interGameName {
+  font-family: var(--font-heading);
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+}
+
+.interScore {
+  font-family: var(--font-heading);
+  font-size: 5rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+}
+
+.interPct {
+  font-size: 1.8rem;
+  font-weight: var(--font-weight-light);
+  color: var(--color-text-muted);
+  vertical-align: super;
+}
+
+.interSub {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-light);
+  color: var(--color-text-muted);
+}
+
+.interActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 320px;
+  margin-top: var(--space-4);
+}
+.interActions .primaryBtn,
+.interActions .outlineBtn {
+  width: 100%;
+  text-align: center;
+}
+
 /* ── Daily Result screen ─────────────────────────────── */
 .dailyResult {
   max-width: 520px;
