@@ -604,7 +604,7 @@ export function App() {
   return (
     <div className={styles.dailyWrapper}>
       <TopBar
-        title="CaritaHub Games"
+        title="Home"
         onBack={null}
         memberId={urlMemberId}
         muted={muted}
