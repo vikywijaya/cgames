@@ -104,7 +104,7 @@ function QuickMathsGame({ difficulty, onComplete, reportScore, secondsLeft, play
           if (feedback && opt === q.answer)        cls = `${styles.optBtn} ${styles.optCorrect}`;
           else if (feedback === 'wrong' && opt === picked) cls = `${styles.optBtn} ${styles.optWrong}`;
           return (
-            <button key={i} className={cls} onClick={() => handlePick(opt)} disabled={!!feedback} aria-label={String(opt)}>
+            <button key={i} className={cls} style={{ '--idx': i }} onClick={() => handlePick(opt)} disabled={!!feedback} aria-label={String(opt)}>
               {opt}
             </button>
           );

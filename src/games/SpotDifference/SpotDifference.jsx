@@ -118,7 +118,7 @@ function SpotDifferenceGame({ difficulty, onComplete, reportScore, secondsLeft, 
           <p className={styles.gridLabel}>Original</p>
           <div className={styles.grid} style={{ '--cols': config.gridSize }}>
             {puzzle.left.map((emoji, i) => (
-              <span key={i} className={styles.cell}>{emoji}</span>
+              <span key={i} className={styles.cell} style={{ '--idx': i }}>{emoji}</span>
             ))}
           </div>
         </div>
@@ -134,7 +134,7 @@ function SpotDifferenceGame({ difficulty, onComplete, reportScore, secondsLeft, 
               if (found.has(i))  cls = `${styles.cell} ${styles.cellFound}`;
               if (wrong === i)   cls = `${styles.cell} ${styles.cellWrong}`;
               return (
-                <button key={i} className={cls} onClick={() => handleRightTap(i)} aria-label={emoji}>
+                <button key={i} className={cls} style={{ '--idx': i }} onClick={() => handleRightTap(i)} aria-label={emoji}>
                   {emoji}
                   {found.has(i) && <span className={styles.tick} aria-hidden="true">✓</span>}
                 </button>

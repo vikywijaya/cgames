@@ -125,6 +125,7 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
           return (
             <button
               key={i}
+              style={{ '--idx': i }}
               className={`${styles.hole} ${type ? styles.holeActive : ''} ${isWhacked ? styles.holeWhacked : ''}`}
               onPointerDown={() => handleTap(i)}
               aria-label={type === 'mole' ? 'Whack the mole!' : type === 'bomb' ? 'Avoid the bomb!' : 'Empty hole'}

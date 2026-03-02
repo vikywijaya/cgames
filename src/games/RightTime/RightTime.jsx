@@ -183,6 +183,7 @@ function RightTimeGame({ difficulty, onComplete, reportScore, secondsLeft, playC
             <button
               key={i}
               className={cls}
+              style={{ '--idx': i }}
               onClick={() => handleChoice(opt)}
               disabled={!!feedback}
               aria-label={`Answer ${formatTime(opt)}`}

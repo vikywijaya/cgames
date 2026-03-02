@@ -88,8 +88,8 @@ function WordRecallGame({ difficulty, onComplete, reportScore, playClick, playSu
             Study these words — {studyLeft} second{studyLeft !== 1 ? 's' : ''} remaining
           </p>
           <ul className={styles.wordList} role="list" aria-label="Words to remember">
-            {wordList.map((word) => (
-              <li key={word} className={styles.wordChip} role="listitem">
+            {wordList.map((word, i) => (
+              <li key={word} className={styles.wordChip} style={{ '--idx': i }} role="listitem">
                 {word}
               </li>
             ))}

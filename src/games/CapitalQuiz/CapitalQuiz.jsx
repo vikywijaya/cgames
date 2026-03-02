@@ -141,7 +141,7 @@ function CapitalQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pla
       </div>
 
       <div className={styles.options}>
-        {question.options.map(opt => {
+        {question.options.map((opt, i) => {
           const isChosen  = chosen === opt.code;
           const isCorrect = opt.code === question.correct.code;
           let cls = styles.optBtn;
@@ -149,7 +149,7 @@ function CapitalQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pla
           else if (feedback && isChosen && feedback === 'wrong')  cls = `${styles.optBtn} ${styles.optWrong}`;
           else if (feedback && isCorrect) cls = `${styles.optBtn} ${styles.optCorrect}`;
           return (
-            <button key={opt.code} className={cls} onClick={() => { playClick(); handleChoice(opt); }} disabled={!!feedback}>
+            <button key={opt.code} className={cls} style={{ '--idx': i }} onClick={() => { playClick(); handleChoice(opt); }} disabled={!!feedback}>
               {opt.capital}
             </button>
           );

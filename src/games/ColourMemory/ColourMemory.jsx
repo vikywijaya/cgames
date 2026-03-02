@@ -142,11 +142,11 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, pl
       <div className={styles.progress}>{progressDots}</div>
 
       <div className={styles.grid}>
-        {COLOURS.map(c => (
+        {COLOURS.map((c, i) => (
           <button
             key={c.id}
             className={`${styles.tile} ${highlighted === c.id ? styles.tileFlash : ''}`}
-            style={{ '--tcolor': c.bg }}
+            style={{ '--tcolor': c.bg, '--idx': i }}
             onClick={() => handleTap(c.id)}
             disabled={phase !== 'recalling'}
             aria-label={c.label}

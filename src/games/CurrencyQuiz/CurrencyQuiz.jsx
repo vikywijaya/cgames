@@ -130,7 +130,7 @@ function CurrencyQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pl
           if (feedback && opt === q.currency)          cls = `${styles.optBtn} ${styles.optCorrect}`;
           else if (feedback === 'wrong' && opt === picked) cls = `${styles.optBtn} ${styles.optWrong}`;
           return (
-            <button key={i} className={cls} onClick={() => handlePick(opt)} disabled={!!feedback} aria-label={opt}>
+            <button key={i} className={cls} style={{ '--idx': i }} onClick={() => handlePick(opt)} disabled={!!feedback} aria-label={opt}>
               {opt}
             </button>
           );

@@ -127,6 +127,7 @@ function TileFlipGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
             <button
               key={i}
               className={cls}
+              style={{ '--idx': i }}
               onClick={() => handleTap(i)}
               disabled={phase !== 'recalling' || isTapped}
               aria-label={`Tile ${i + 1}`}

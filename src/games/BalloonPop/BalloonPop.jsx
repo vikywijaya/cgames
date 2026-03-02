@@ -164,11 +164,11 @@ function BalloonGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
         aria-label="Balloon pop game — tap balloons to pop them"
       >
         {/* Balloons */}
-        {balloonsRef.current.map(b => (
+        {balloonsRef.current.map((b, i) => (
           <button
             key={b.id}
             className={styles.balloon}
-            style={{ left: b.x, top: b.y, '--bcolor': b.color }}
+            style={{ left: b.x, top: b.y, '--bcolor': b.color, '--idx': i }}
             onPointerDown={(e) => handlePop(e, b)}
             aria-label="Pop this balloon"
           >

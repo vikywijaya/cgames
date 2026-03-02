@@ -115,7 +115,7 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, play
           let cls = styles.optBtn;
           if (feedback && name === data.target.name) cls = `${styles.optBtn} ${styles.optCorrect}`;
           else if (feedback && name === chosen) cls = `${styles.optBtn} ${styles.optWrong}`;
-          return <button key={i} className={cls} onClick={() => handleChoice(name)} disabled={!!feedback}>{name}</button>;
+          return <button key={i} className={cls} style={{ '--idx': i }} onClick={() => handleChoice(name)} disabled={!!feedback}>{name}</button>;
         })}
       </div>
       {feedback && (

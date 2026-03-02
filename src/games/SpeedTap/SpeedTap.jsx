@@ -96,6 +96,7 @@ function SpeedTapGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
         {items.map((emoji, i) => (
           <button
             key={i}
+            style={{ '--idx': i }}
             className={`${styles.cell} ${feedback === 'correct' && emoji === target ? styles.cellHit : ''} ${feedback === 'wrong' && emoji !== target ? '' : ''}`}
             onPointerDown={() => handleTap(emoji)}
             disabled={!!feedback}

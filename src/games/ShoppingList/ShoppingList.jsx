@@ -142,7 +142,7 @@ function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft, pl
           if (submitted && isTicked && !listNames.has(item.name)) cls = `${styles.choiceBtn} ${styles.choiceWrong}`;
           if (submitted && !isTicked && listNames.has(item.name)) cls = `${styles.choiceBtn} ${styles.choiceMissed}`;
           return (
-            <button key={i} className={cls} onClick={() => handleTick(item.name)} disabled={submitted}>
+            <button key={i} className={cls} style={{ '--idx': i }} onClick={() => handleTick(item.name)} disabled={submitted}>
               <span className={styles.choiceEmoji}>{item.emoji}</span>
               <span className={styles.choiceName}>{item.name}</span>
               {isTicked && <span className={styles.tick}>✓</span>}

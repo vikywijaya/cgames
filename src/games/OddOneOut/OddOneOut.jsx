@@ -99,6 +99,7 @@ function OddOneOutGame({ difficulty, onComplete, reportScore, secondsLeft, playC
             <button
               key={i}
               className={cls}
+              style={{ '--idx': i }}
               onClick={() => handleTap(i)}
               disabled={!!feedback}
               aria-label={`Item ${i + 1}: ${emoji}`}

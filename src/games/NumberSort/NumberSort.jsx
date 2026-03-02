@@ -106,6 +106,7 @@ function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft, play
             <button
               key={i}
               className={cls}
+              style={{ '--idx': i }}
               onClick={() => handleTap(i)}
               disabled={isTapped || !!feedback}
               aria-label={`Number ${num}`}

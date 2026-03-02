@@ -116,7 +116,7 @@ function StroopGame({ difficulty, onComplete, reportScore, secondsLeft, playClic
       </div>
 
       <div className={styles.options}>
-        {stimulus.options.map(opt => {
+        {stimulus.options.map((opt, i) => {
           let cls = styles.optBtn;
           if (feedback === 'correct' && opt.name === stimulus.inkName) cls = `${styles.optBtn} ${styles.optCorrect}`;
           if (feedback === 'wrong'   && opt.name === stimulus.inkName) cls = `${styles.optBtn} ${styles.optCorrect}`;
@@ -125,7 +125,7 @@ function StroopGame({ difficulty, onComplete, reportScore, secondsLeft, playClic
             <button
               key={opt.name}
               className={cls}
-              style={{ '--swatch': opt.hex }}
+              style={{ '--swatch': opt.hex, '--idx': i }}
               onClick={() => handlePick(opt.name)}
               disabled={!!feedback}
               aria-label={opt.name}
