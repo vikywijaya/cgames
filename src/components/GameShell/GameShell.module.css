@@ -149,6 +149,12 @@
   top: 0.4rem;
 }
 
+/* Play button inside the vintage frame */
+.playBtn {
+  display: block;
+  margin: var(--space-5) auto 0;
+}
+
 /* ── HUD ──────────────────────────────────────────── */
 .hud {
   display: flex;

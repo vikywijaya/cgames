@@ -117,10 +117,10 @@ export function GameShell({
               <h2 className={styles.instructionsTitle}>How to play</h2>
               {renderInstructions(instructions)}
             </div>
+            <Button size="large" onClick={handleStart} autoFocus className={styles.playBtn}>
+              Play
+            </Button>
           </div>
-          <Button size="large" onClick={handleStart} autoFocus>
-            Start Game
-          </Button>
         </div>
       )}
 
