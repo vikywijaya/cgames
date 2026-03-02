@@ -34,7 +34,14 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, pl
   const [highlighted, setHighlit] = useState(null); // colour id being shown
   const [input, setInput]         = useState([]);
   const [feedback, setFeedback]   = useState(null); // null | 'correct' | 'wrong'
+  const [ready, setReady]         = useState(false); // 1s delay after entry animation
   const doneRef = useRef(false);
+
+  // Wait 1s after mount before starting the first sequence
+  useEffect(() => {
+    const t = setTimeout(() => setReady(true), 1000);
+    return () => clearTimeout(t);
+  }, []);
 
   // Time-up
   useEffect(() => {
@@ -46,7 +53,7 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, pl
 
   // Play the sequence flash
   useEffect(() => {
-    if (phase !== 'showing') return;
+    if (phase !== 'showing' || !ready) return;
     let i = 0;
     let timeouts = [];
 
@@ -65,7 +72,7 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, pl
 
     const startDelay = setTimeout(() => flashNext(), 400);
     return () => { clearTimeout(startDelay); timeouts.forEach(clearTimeout); };
-  }, [phase, seq, config.showMs, config.gapMs]);
+  }, [phase, seq, config.showMs, config.gapMs, ready]);
 
   const handleTap = useCallback((colourId) => {
     if (phase !== 'recalling' || doneRef.current) return;
@@ -135,7 +142,7 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, pl
       <div className={styles.meta}>
         <span className={styles.roundLabel}>Round <strong>{round + 1}</strong> / {config.rounds}</span>
         <span className={styles.phaseLabel}>
-          {phase === 'showing' ? 'Watch the sequence…' : phase === 'recalling' ? 'Now repeat it!' : feedback === 'correct' ? '✓ Correct!' : '✗ Wrong!'}
+          {!ready ? 'Get ready…' : phase === 'showing' ? 'Watch the sequence…' : phase === 'recalling' ? 'Now repeat it!' : feedback === 'correct' ? '✓ Correct!' : '✗ Wrong!'}
         </span>
       </div>
 
@@ -174,7 +181,7 @@ export function ColourMemory({ memberId, difficulty = 'easy', onComplete, callba
   return (
     <GameShell
       gameId="colour-memory"
-      title="Colour Memory"
+      title="Color Memory"
       instructions="Watch the sequence of colours light up, then tap them back in the same order. The sequence gets longer each round!"
       difficulty={difficulty}
       timeLimitSeconds={null}
