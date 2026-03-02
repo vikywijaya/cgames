@@ -25,14 +25,6 @@ export function TopBar({ title, onBack, memberId, muted, onToggleMusic, noBleed 
       </div>
 
       <div className={styles.topBarRight}>
-        <button
-          className={styles.topBarSound}
-          onClick={onToggleMusic}
-          aria-label={muted ? 'Unmute background music' : 'Mute background music'}
-          title={muted ? 'Turn music on' : 'Turn music off'}
-        >
-          {muted ? '🔇' : '🎵'}
-        </button>
         <div className={styles.topBarProfile} aria-label={`Profile: ${memberId}`}>
           <span className={styles.topBarName}>{memberId}</span>
           <div className={styles.topBarAvatar} aria-hidden="true">

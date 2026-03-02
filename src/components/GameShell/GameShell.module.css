@@ -119,8 +119,8 @@
 
 .hudMusic {
   position: fixed;
-  top: var(--space-4);
-  right: var(--space-4);
+  bottom: var(--space-6);
+  right: var(--space-6);
   z-index: 200;
   min-width: 52px;
   min-height: 52px;

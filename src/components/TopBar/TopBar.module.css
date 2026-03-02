@@ -72,24 +72,6 @@
 .topBarBack:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
 .topBarBack:active { background-color: var(--color-primary-light); }
 
-/* ── Sound toggle ────────────────────────────────── */
-.topBarSound {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  background: transparent;
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-full);
-  font-size: 1.25rem;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: border-color var(--transition-fast);
-}
-.topBarSound:hover { border-color: var(--color-primary); }
-.topBarSound:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
-
 /* ── Profile ─────────────────────────────────────── */
 .topBarProfile {
   display: flex;
@@ -118,10 +100,7 @@
   font-size: var(--text-xs);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-muted);
-  max-width: 80px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* When parent container has no side padding (e.g. dailyWrapper), disable bleed margins */
@@ -143,18 +122,12 @@
 
   .topBarTitle  { font-size: 0.8rem; }
   .topBarBack   { font-size: 0.75rem; }
-  .topBarName   { font-size: 0.65rem; max-width: 60px; }
+  .topBarName   { font-size: 0.65rem; }
 
   .topBarAvatar {
     width: 30px;
     height: 30px;
     font-size: 0.65rem;
-  }
-
-  .topBarSound {
-    width: 34px;
-    height: 34px;
-    font-size: 1rem;
   }
 }
 
