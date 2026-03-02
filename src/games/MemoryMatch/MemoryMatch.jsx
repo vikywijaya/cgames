@@ -10,12 +10,13 @@ const INSTRUCTIONS =
   'Flip cards to find matching pairs. Click a card to reveal it, then find its match. ' +
   'Matched pairs stay face-up. Find all pairs to win!';
 
-function CardTile({ card, state, onFlip }) {
-  const { isFlipped, isMatched } = state;
+function CardTile({ card, state, onFlip, index }) {
+  const { isFlipped, isMatched, isMismatched } = state;
   const tileClass = [
     styles.cardTile,
     isFlipped || isMatched ? styles.flipped : '',
     isMatched ? styles.matched : '',
+    isMismatched ? styles.mismatched : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -25,6 +26,7 @@ function CardTile({ card, state, onFlip }) {
       className={tileClass}
       onClick={onFlip}
       disabled={isMatched}
+      style={{ '--deal-delay': `${index * 0.055}s` }}
       aria-label={
         isFlipped || isMatched
           ? `Card: ${card.symbol}${isMatched ? ', matched' : ''}`
@@ -44,8 +46,9 @@ function CardTile({ card, state, onFlip }) {
 
 CardTile.propTypes = {
   card: PropTypes.shape({ symbol: PropTypes.string.isRequired }).isRequired,
-  state: PropTypes.shape({ isFlipped: PropTypes.bool, isMatched: PropTypes.bool }).isRequired,
+  state: PropTypes.shape({ isFlipped: PropTypes.bool, isMatched: PropTypes.bool, isMismatched: PropTypes.bool }).isRequired,
   onFlip: PropTypes.func.isRequired,
+  index: PropTypes.number.isRequired,
 };
 
 function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess }) {
@@ -90,6 +93,7 @@ function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft, pla
             card={card}
             state={cardState[i]}
             onFlip={() => { playClick(); flipCard(i); }}
+            index={i}
           />
         ))}
       </div>
