@@ -811,6 +811,14 @@
   font-size: 4rem;             /* 72px at 18px base */
   background: #f5f5f5;
   pointer-events: none;
+  overflow: hidden;
+}
+
+.gameIconImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .gameMeta {

@@ -34,6 +34,11 @@ import styles from './App.module.css';
 
 const MUSIC_SRC = import.meta.env.BASE_URL + 'music.mp3';
 
+// Pre-generated card images (src/assets/games/<id>.png).
+// Falls back to the emoji icon when an image isn't present yet.
+const gameImages = import.meta.glob('./assets/games/*.png', { eager: true, query: '?url', import: 'default' });
+function getGameImage(id) { return gameImages[`./assets/games/${id}.png`] ?? null; }
+
 const GAME_MAP = {
   'memory-match':      MemoryMatch,
   'word-recall':       WordRecall,
@@ -583,7 +588,11 @@ export function App() {
                   onClick={() => setSelectedGame(game.id)}
                   aria-label={`Play ${game.title}`}
                 >
-                  <div className={styles.gameIconBox} aria-hidden="true">{game.icon}</div>
+                  <div className={styles.gameIconBox} aria-hidden="true">
+                    {getGameImage(game.id)
+                      ? <img src={getGameImage(game.id)} alt="" className={styles.gameIconImg} />
+                      : game.icon}
+                  </div>
                   <div className={styles.gameMeta}>
                     <h3 className={styles.gameCardTitle}>{game.title}</h3>
                     <p className={styles.gameCardDesc}>{game.description}</p>
