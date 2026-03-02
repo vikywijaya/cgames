@@ -574,23 +574,22 @@ export function App() {
             </h2>
             <div className={styles.gameGrid} role="list">
               {group.games.map(game => (
-                <div key={game.id} className={styles.gameCard} role="listitem">
+                <button
+                  key={game.id}
+                  className={styles.gameCard}
+                  onClick={() => setSelectedGame(game.id)}
+                  aria-label={`Play ${game.title}`}
+                >
                   <div className={styles.gameIconBox} aria-hidden="true">{game.icon}</div>
                   <div className={styles.gameMeta}>
                     <h3 className={styles.gameCardTitle}>{game.title}</h3>
                     <p className={styles.gameCardDesc}>{game.description}</p>
                     <div className={styles.gameCardFooter}>
                       <span className={styles.gameDomain}>{game.domain}</span>
-                      <button
-                        className={styles.playButton}
-                        onClick={() => setSelectedGame(game.id)}
-                        aria-label={`Play ${game.title}`}
-                      >
-                        Play
-                      </button>
+                      <span className={styles.playButton} aria-hidden="true">Play</span>
                     </div>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </section>

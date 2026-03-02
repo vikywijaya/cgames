@@ -788,6 +788,10 @@
   flex-direction: column;      /* vertical: icon on top, meta below */
   align-items: stretch;
   transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
 }
 .gameCard:hover {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.13);
