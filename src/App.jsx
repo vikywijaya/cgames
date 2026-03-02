@@ -540,8 +540,11 @@ export function App() {
         />
         <div className={styles.lobby}>
         <header className={styles.lobbyHeader}>
-          <div className={styles.lobbyIcon} aria-hidden="true">🎮</div>
-          <h1 className={styles.lobbyTitle}>Cognitive Games</h1>
+          <img
+            src={cognitiveGameTitle}
+            alt="Cognitive Games"
+            className={styles.lobbyTitleImg}
+          />
           <hr className={styles.lobbyDivider} />
           <p className={styles.lobbySubtitle}>Browse all {ALL_GAMES.length} games and choose one to play.</p>
         </header>

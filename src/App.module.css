@@ -656,13 +656,10 @@
   line-height: 1;
 }
 
-.lobbyTitle {
-  font-family: var(--font-heading);
-  font-size: var(--text-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text);
-  line-height: 1.15;
-  letter-spacing: -0.01em;
+.lobbyTitleImg {
+  max-width: 280px;
+  width: 100%;
+  height: auto;
 }
 
 .lobbyDivider {
