@@ -77,6 +77,24 @@ export function GameShell({
 
   const diffLabel = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
 
+  // Convert instruction strings to bullet list
+  function renderInstructions(inst) {
+    if (typeof inst === 'string') {
+      const bullets = inst
+        .split(/[.!?]+/)
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+      return (
+        <ul className={styles.instructionsList}>
+          {bullets.map((bullet, idx) => (
+            <li key={idx}>{bullet}</li>
+          ))}
+        </ul>
+      );
+    }
+    return inst;
+  }
+
   const isUrgent = secondsLeft !== null && secondsLeft <= 10;
 
   const pct = phase === 'finished' && result.maxScore > 0 ? result.score / result.maxScore : 0;
@@ -94,9 +112,11 @@ export function GameShell({
               Time limit: {timeLimitSeconds} seconds
             </p>
           )}
-          <div className={styles.instructions} role="region" aria-label="Game instructions">
-            <p className={styles.instructionsTitle}>How to play</p>
-            {typeof instructions === 'string' ? <p>{instructions}</p> : instructions}
+          <div className={styles.instructionsFrame} role="region" aria-label="Game instructions">
+            <div className={styles.instructions}>
+              <h2 className={styles.instructionsTitle}>How to play</h2>
+              {renderInstructions(instructions)}
+            </div>
           </div>
           <Button size="large" onClick={handleStart} autoFocus>
             Start Game
