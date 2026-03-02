@@ -134,7 +134,7 @@ const ALL_GAMES = GAME_GROUPS.flatMap(g => g.games);
 // Read URL params for iframe / embedded mode
 const params        = new URLSearchParams(window.location.search);
 const urlGameId     = params.get('gameId');
-const urlMemberId   = params.get('memberId')    ?? 'Senior Member';
+const urlMemberId   = params.get('memberId')    ?? 'Abdul Khadir';
 const urlDifficulty = params.get('difficulty')  ?? 'easy';
 const urlCallbackUrl= params.get('callbackUrl') ?? undefined;
 
@@ -261,7 +261,7 @@ export function App() {
           noBleed
         />
         <GameComponent
-          memberId="demo-user"
+          memberId="Abdul Khadir"
           difficulty={selectedDifficulty}
           callbackUrl={undefined}
           musicMuted={muted}
@@ -314,7 +314,7 @@ export function App() {
 
         <GameComponent
           key={`daily-${game.id}-${index}`}
-          memberId="demo-user"
+          memberId="Abdul Khadir"
           difficulty={selectedDifficulty}
           callbackUrl={undefined}
           musicMuted={muted}
