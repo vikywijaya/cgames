@@ -64,7 +64,7 @@
   transition: transform 80ms ease, border-color 80ms ease, filter 80ms ease;
   filter: brightness(0.75) saturate(0.8);
   animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  animation-delay: calc(var(--idx, 0) * 0.07s);
+  animation-delay: min(calc(var(--idx, 0) * 0.07s), 0.5s);
 }
 .tile:not(:disabled):hover {
   transform: scale(1.04);

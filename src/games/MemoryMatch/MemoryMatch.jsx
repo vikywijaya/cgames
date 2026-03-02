@@ -26,7 +26,7 @@ function CardTile({ card, state, onFlip, index }) {
       className={tileClass}
       onClick={onFlip}
       disabled={isMatched}
-      style={{ '--deal-delay': `${index * 0.055}s` }}
+      style={{ '--deal-delay': `${Math.min(index * 0.055, 0.5)}s` }}
       aria-label={
         isFlipped || isMatched
           ? `Card: ${card.symbol}${isMatched ? ', matched' : ''}`

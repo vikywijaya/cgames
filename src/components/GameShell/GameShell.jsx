@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useCountdown } from '../../hooks/useCountdown';
 import { useSoundFx } from '../../hooks/useSoundFx';
@@ -31,14 +31,19 @@ export function GameShell({
   onToggleMusic,
 }) {
   const [phase, setPhase] = useState('idle'); // 'idle' | 'playing' | 'finished'
+  const [animating, setAnimating] = useState(false); // true while entry animations play
   const [result, setResult] = useState(null);
   const [liveScore, setLiveScore] = useState(0);
   const startTimeRef = useRef(null);
+  const animTimerRef = useRef(null);
   const { playClick, playSuccess, playFail, playComplete } = useSoundFx();
+
+  // 0.5s max stagger delay + 0.4s animation duration + 50ms buffer
+  const ANIM_LOCK_MS = 950;
 
   const { secondsLeft } = useCountdown({
     seconds: timeLimitSeconds,
-    active: phase === 'playing',
+    active: phase === 'playing' && !animating,
     onExpire: () => {
       if (phase === 'playing') {
         handleComplete({ finalScore: liveScore, maxScore: 0, completed: false });
@@ -46,11 +51,16 @@ export function GameShell({
     },
   });
 
+  // Clear animation lock timer on unmount
+  useEffect(() => () => clearTimeout(animTimerRef.current), []);
+
   function handleStart() {
     startTimeRef.current = Date.now();
     setResult(null);
     setLiveScore(0);
+    setAnimating(true);
     setPhase('playing');
+    animTimerRef.current = setTimeout(() => setAnimating(false), ANIM_LOCK_MS);
   }
 
   function handleComplete({ finalScore, maxScore, completed = true }) {
@@ -178,7 +188,7 @@ export function GameShell({
               )}
             </div>
           </div>
-          <div className={styles.gameBody}>
+          <div className={`${styles.gameBody} ${animating ? styles.gameBodyLocked : ''}`}>
             {children({
               onComplete: handleComplete,
               reportScore: setLiveScore,
