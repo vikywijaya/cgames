@@ -472,13 +472,12 @@ export function App() {
         />
         <div className={styles.scoresView}>
         <div className={styles.scoresHeader}>
-          <div className={styles.scoresHero}>
-            <div className={styles.scoresHeroIcon}>🏆</div>
-            <div>
-              <h1 className={styles.scoresTitle}>Your Scores</h1>
-              <p className={styles.scoresMeta}>{totalPlayed} of {ALL_GAMES.length} games played</p>
-            </div>
-          </div>
+          <img
+            src={cognitiveGameTitle}
+            alt="Cognitive Games"
+            className={styles.scoresTitleImg}
+          />
+          <p className={styles.scoresMeta}>{totalPlayed} of {ALL_GAMES.length} games played</p>
         </div>
 
         {GAME_GROUPS.map(group => (
