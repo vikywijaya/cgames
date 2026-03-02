@@ -142,7 +142,7 @@ MissingNumberGame.propTypes = {
 
 export function MissingNumber({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'missing-number', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'missing-number', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="missing-number"

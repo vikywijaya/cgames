@@ -179,7 +179,7 @@ ColourMemoryGame.propTypes = {
 };
 
 export function ColourMemory({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
-  const fireCallback = useGameCallback({ memberId, gameId: 'colour-memory', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'colour-memory', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="colour-memory"

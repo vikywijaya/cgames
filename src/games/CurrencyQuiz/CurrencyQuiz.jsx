@@ -155,7 +155,7 @@ CurrencyQuizGame.propTypes = {
 
 export function CurrencyQuiz({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'currency-quiz', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'currency-quiz', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="currency-quiz"

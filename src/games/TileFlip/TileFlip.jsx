@@ -151,7 +151,7 @@ TileFlipGame.propTypes = {
 
 export function TileFlip({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'tile-flip', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'tile-flip', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="tile-flip"

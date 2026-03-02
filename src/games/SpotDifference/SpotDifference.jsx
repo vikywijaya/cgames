@@ -167,7 +167,7 @@ SpotDifferenceGame.propTypes = {
 
 export function SpotDifference({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'spot-difference', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'spot-difference', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="spot-difference"

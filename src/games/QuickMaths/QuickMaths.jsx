@@ -129,7 +129,7 @@ QuickMathsGame.propTypes = {
 
 export function QuickMaths({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'quick-maths', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'quick-maths', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="quick-maths"

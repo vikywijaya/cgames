@@ -153,7 +153,7 @@ LetterCountGame.propTypes = {
 
 export function LetterCount({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'letter-count', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'letter-count', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="letter-count"

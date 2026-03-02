@@ -166,7 +166,7 @@ ShoppingListGame.propTypes = { difficulty: PropTypes.string.isRequired, onComple
 
 export function ShoppingList({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'shopping-list', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'shopping-list', callbackUrl, onComplete });
   return (
     <GameShell gameId="shopping-list" title="Shopping List"
       instructions={`Study the shopping list for ${config.studySec} seconds. Then tick every item you remember from the choices shown.`}

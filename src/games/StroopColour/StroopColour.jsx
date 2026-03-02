@@ -155,7 +155,7 @@ StroopGame.propTypes = {
 
 export function StroopColour({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'stroop-colour', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'stroop-colour', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="stroop-colour"

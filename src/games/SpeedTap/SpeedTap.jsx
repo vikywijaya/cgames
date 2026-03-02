@@ -117,7 +117,7 @@ SpeedTapGame.propTypes = { difficulty: PropTypes.string.isRequired, onComplete: 
 
 export function SpeedTap({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'speed-tap', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'speed-tap', callbackUrl, onComplete });
   return (
     <GameShell gameId="speed-tap" title="Speed Tap"
       instructions="A target emoji appears among distractors — tap it as fast as you can! Each round lasts only a moment."

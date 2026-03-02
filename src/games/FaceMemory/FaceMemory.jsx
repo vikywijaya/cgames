@@ -131,7 +131,7 @@ FaceMemoryGame.propTypes = { difficulty: PropTypes.string.isRequired, onComplete
 
 export function FaceMemory({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'face-memory', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'face-memory', callbackUrl, onComplete });
   return (
     <GameShell gameId="face-memory" title="Face Memory"
       instructions={`Study the faces and their names for ${config.studySec} seconds. Then identify who's who!`}
