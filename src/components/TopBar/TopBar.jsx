@@ -9,7 +9,7 @@ function getInitials(name) {
     .slice(0, 2) || '?';
 }
 
-export function TopBar({ title, onBack, memberId, muted, onToggleMusic, noBleed = false }) {
+export function TopBar({ title, onBack, memberId, noBleed = false }) {
   return (
     <header className={`${styles.topBar} ${noBleed ? styles.topBarNoBleed : ''}`}>
       <div className={styles.topBarLeft}>

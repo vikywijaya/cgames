@@ -27,8 +27,6 @@ export function GameShell({
   children,
   onGameComplete,
   onBack,
-  musicMuted,
-  onToggleMusic,
 }) {
   const [phase, setPhase] = useState('idle'); // 'idle' | 'playing' | 'finished'
   const [animating, setAnimating] = useState(false); // true while entry animations play
@@ -36,7 +34,7 @@ export function GameShell({
   const [liveScore, setLiveScore] = useState(0);
   const startTimeRef = useRef(null);
   const animTimerRef = useRef(null);
-  const { playClick, playSuccess, playFail, playComplete } = useSoundFx();
+  const { playClick, playSuccess, playFail, playComplete, playPop, playReveal, playBoing, playTick } = useSoundFx();
 
   // 0.5s max stagger delay + 0.4s animation duration + 50ms buffer
   const ANIM_LOCK_MS = 950;
@@ -53,6 +51,14 @@ export function GameShell({
 
   // Clear animation lock timer on unmount
   useEffect(() => () => clearTimeout(animTimerRef.current), []);
+
+  // Countdown tick for the last 5 seconds
+  useEffect(() => {
+    if (phase === 'playing' && !animating && secondsLeft !== null && secondsLeft > 0 && secondsLeft <= 5) {
+      playTick();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [secondsLeft]);
 
   function handleStart() {
     startTimeRef.current = Date.now();
@@ -196,21 +202,14 @@ export function GameShell({
               playClick,
               playSuccess,
               playFail,
+              playPop,
+              playReveal,
+              playBoing,
             })}
           </div>
         </>
       )}
 
-      {onToggleMusic && (
-        <button
-          className={styles.hudMusic}
-          onClick={onToggleMusic}
-          aria-label={musicMuted ? 'Unmute background music' : 'Mute background music'}
-          title={musicMuted ? 'Turn music on' : 'Turn music off'}
-        >
-          {musicMuted ? '🔇' : '🎵'}
-        </button>
-      )}
     </div>
   );
 }
@@ -224,6 +223,4 @@ GameShell.propTypes = {
   children: PropTypes.func.isRequired,
   onGameComplete: PropTypes.func,
   onBack: PropTypes.func,
-  musicMuted: PropTypes.bool,
-  onToggleMusic: PropTypes.func,
 };

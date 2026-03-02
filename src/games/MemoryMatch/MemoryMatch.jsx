@@ -51,7 +51,7 @@ CardTile.propTypes = {
   index: PropTypes.number.isRequired,
 };
 
-function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess }) {
+function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft, playReveal, playSuccess }) {
   const { cards, cardState, flipCard, matchCount, maxMatches, cols, timeLimitSeconds, done } =
     useMemoryMatch(difficulty);
 
@@ -92,7 +92,7 @@ function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft, pla
             key={card.id}
             card={card}
             state={cardState[i]}
-            onFlip={() => { playClick(); flipCard(i); }}
+            onFlip={() => { playReveal(); flipCard(i); }}
             index={i}
           />
         ))}
@@ -106,7 +106,7 @@ MemoryMatchGame.propTypes = {
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func,
   secondsLeft: PropTypes.number,
-  playClick:   PropTypes.func.isRequired,
+  playReveal:  PropTypes.func.isRequired,
   playSuccess: PropTypes.func.isRequired,
   playFail:    PropTypes.func.isRequired,
 };
@@ -131,16 +131,14 @@ export function MemoryMatch({ memberId, difficulty = 'easy', onComplete, callbac
       timeLimitSeconds={timeLimitSeconds}
       onGameComplete={fireComplete}
       onBack={onBack}
-      musicMuted={musicMuted}
-      onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: shellComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+      {({ onComplete: shellComplete, reportScore, secondsLeft, playReveal, playSuccess, playFail }) => (
         <MemoryMatchGame
           difficulty={difficulty}
           onComplete={shellComplete}
           reportScore={reportScore}
           secondsLeft={secondsLeft}
-          playClick={playClick}
+          playReveal={playReveal}
           playSuccess={playSuccess}
           playFail={playFail}
         />

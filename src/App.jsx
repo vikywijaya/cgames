@@ -25,14 +25,11 @@ import { CurrencyQuiz }     from './games/CurrencyQuiz/CurrencyQuiz';
 import { LandmarkQuiz }     from './games/LandmarkQuiz/LandmarkQuiz';
 import { SnakeLite }        from './games/SnakeLite/SnakeLite';
 import { TileFlip }         from './games/TileFlip/TileFlip';
-import { useMusic }         from './hooks/useMusic';
 import { saveScore, getAllScores } from './utils/scoreStore';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import { TopBar } from './components/TopBar/TopBar.jsx';
 import './design/globals.css';
 import styles from './App.module.css';
-
-const MUSIC_SRC = import.meta.env.BASE_URL + 'music.mp3';
 
 // Pre-generated card images (src/assets/games/<id>.png).
 // Falls back to the emoji icon when an image isn't present yet.
@@ -199,9 +196,6 @@ export function App() {
   // dailyChallenge: { games: Array, index: number, scores: { gameId: pct }, lastPct: number|null }
   const [dailyChallenge,     setDailyChallenge]     = useState(null);
 
-  const { muted, toggle: toggleMusic } = useMusic(MUSIC_SRC);
-
-
   /* ── Daily challenge handlers ── */
   function startDailyChallenge() {
     const games = buildDailyGames();
@@ -244,8 +238,6 @@ export function App() {
         memberId={urlMemberId}
         difficulty={urlDifficulty}
         callbackUrl={urlCallbackUrl}
-        musicMuted={muted}
-        onToggleMusic={toggleMusic}
         onComplete={(result) => console.log('[CaritaHub Game Result]', result)}
       />
     );
@@ -261,16 +253,12 @@ export function App() {
           title={gameInfo?.title ?? 'Game'}
           onBack={() => setSelectedGame(null)}
           memberId={urlMemberId}
-          muted={muted}
-          onToggleMusic={toggleMusic}
           noBleed
         />
         <GameComponent
           memberId="Abdul Khadir"
           difficulty={selectedDifficulty}
           callbackUrl={undefined}
-          musicMuted={muted}
-          onToggleMusic={toggleMusic}
           onComplete={(result) => {
             const pct = computePct(result);
             saveScore(selectedGame, pct, result.durationSeconds ?? null);
@@ -294,8 +282,6 @@ export function App() {
           title="Daily Challenge"
           onBack={abortDailyChallenge}
           memberId={urlMemberId}
-          muted={muted}
-          onToggleMusic={toggleMusic}
           noBleed
         />
         {/* Progress strip */}
@@ -322,8 +308,6 @@ export function App() {
           memberId="Abdul Khadir"
           difficulty={selectedDifficulty}
           callbackUrl={undefined}
-          musicMuted={muted}
-          onToggleMusic={toggleMusic}
           onComplete={handleDailyComplete}
           onBack={abortDailyChallenge}
         />
@@ -343,8 +327,6 @@ export function App() {
           title="Daily Challenge"
           onBack={abortDailyChallenge}
           memberId={urlMemberId}
-          muted={muted}
-          onToggleMusic={toggleMusic}
           noBleed
         />
         <div className={styles.interResult}>
@@ -408,8 +390,6 @@ export function App() {
           title="Daily Challenge"
           onBack={() => { setView('home'); setDailyChallenge(null); }}
           memberId={urlMemberId}
-          muted={muted}
-          onToggleMusic={toggleMusic}
           noBleed
         />
         <div className={styles.dailyResult}>
@@ -466,8 +446,6 @@ export function App() {
           title="Your Scores"
           onBack={() => setView('home')}
           memberId={urlMemberId}
-          muted={muted}
-          onToggleMusic={toggleMusic}
           noBleed
         />
         <div className={styles.scoresView}>
@@ -538,8 +516,6 @@ export function App() {
           title="Cognitive Games"
           onBack={() => setView('home')}
           memberId={urlMemberId}
-          muted={muted}
-          onToggleMusic={toggleMusic}
           noBleed
         />
         <div className={styles.lobby}>
@@ -617,8 +593,6 @@ export function App() {
         title="Home"
         onBack={null}
         memberId={urlMemberId}
-        muted={muted}
-        onToggleMusic={toggleMusic}
         noBleed
       />
       <div className={styles.homeScreen}>

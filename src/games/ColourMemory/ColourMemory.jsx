@@ -24,7 +24,7 @@ function randomSeq(len) {
 }
 
 // phase: 'showing' | 'recalling' | 'feedback'
-function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail, playReveal }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   const [round, setRound]         = useState(0);
@@ -64,6 +64,7 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, pl
         return;
       }
       setHighlit(seq[i]);
+      playReveal();
       timeouts.push(setTimeout(() => {
         setHighlit(null);
         timeouts.push(setTimeout(() => { i++; flashNext(); }, config.gapMs));
@@ -174,6 +175,7 @@ ColourMemoryGame.propTypes = {
   playClick:   PropTypes.func.isRequired,
   playSuccess: PropTypes.func.isRequired,
   playFail:    PropTypes.func.isRequired,
+  playReveal:  PropTypes.func.isRequired,
 };
 
 export function ColourMemory({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -190,8 +192,8 @@ export function ColourMemory({ memberId, difficulty = 'easy', onComplete, callba
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
-        <ColourMemoryGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail, playReveal }) => (
+        <ColourMemoryGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} playReveal={playReveal} />
       )}
     </GameShell>
   );
