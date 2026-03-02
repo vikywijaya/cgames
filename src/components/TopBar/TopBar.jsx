@@ -34,6 +34,7 @@ export function TopBar({ title, onBack, memberId, muted, onToggleMusic, noBleed 
           {muted ? '🔇' : '🎵'}
         </button>
         <div className={styles.topBarProfile} aria-label={`Profile: ${memberId}`}>
+          <span className={styles.topBarName}>{memberId}</span>
           <div className={styles.topBarAvatar} aria-hidden="true">
             {getInitials(memberId)}
           </div>
