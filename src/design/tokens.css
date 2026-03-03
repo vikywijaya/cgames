@@ -97,10 +97,3 @@
   --transition-flip: 500ms ease;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  :root {
-    --transition-fast: 0ms;
-    --transition-base: 0ms;
-    --transition-flip: 0ms;
-  }
-}

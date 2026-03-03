@@ -9,9 +9,9 @@ function getInitials(name) {
     .slice(0, 2) || '?';
 }
 
-export function TopBar({ title, onBack, memberId, noBleed = false }) {
+export function TopBar({ title, onBack, memberId, noBleed = false, home = false }) {
   return (
-    <header className={`${styles.topBar} ${noBleed ? styles.topBarNoBleed : ''}`}>
+    <header className={`${styles.topBar} ${noBleed ? styles.topBarNoBleed : ''} ${home ? styles.topBarHome : ''}`}>
       <div className={styles.topBarLeft}>
         {onBack && (
           <button className={styles.topBarBack} onClick={onBack} aria-label="Go back">
@@ -26,7 +26,6 @@ export function TopBar({ title, onBack, memberId, noBleed = false }) {
 
       <div className={styles.topBarRight}>
         <div className={styles.topBarProfile} aria-label={`Profile: ${memberId}`}>
-          <span className={styles.topBarName}>{memberId}</span>
           <div className={styles.topBarAvatar} aria-hidden="true">
             {getInitials(memberId)}
           </div>

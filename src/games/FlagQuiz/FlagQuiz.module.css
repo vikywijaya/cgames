@@ -109,7 +109,3 @@
   min-height: 1.5em;
 }
 
-@media (max-width: 360px) {
-  .flagEmoji { font-size: 4rem; }
-  .optBtn { font-size: var(--text-sm); min-height: 52px; }
-}

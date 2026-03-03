@@ -93,5 +93,3 @@
   opacity: 0.7;
 }
 
-@media (max-height: 680px) { .gameArea { height: 320px; } }
-@media (max-width: 380px)  { .gameArea { height: 340px; } }

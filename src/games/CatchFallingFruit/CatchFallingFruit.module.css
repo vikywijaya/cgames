@@ -140,11 +140,3 @@
   opacity: 0.7;
 }
 
-/* ── Responsive ───────────────────────────────────── */
-@media (max-height: 680px) {
-  .gameArea { height: 320px; }
-}
-@media (max-width: 380px) {
-  .sideBtn { width: 44px; font-size: 1.5rem; }
-  .gameArea { height: 340px; }
-}

@@ -160,6 +160,35 @@ function timeAgo(ts) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
+const ACHIEVEMENT_LEVELS = [
+  { min: 0,  icon: '🌱', name: 'Newcomer',     desc: 'Play your first game to get started!' },
+  { min: 1,  icon: '🔭', name: 'Explorer',     desc: 'Discovering new brain challenges.' },
+  { min: 21, icon: '⚡', name: 'Challenger',   desc: 'Building consistency and skill.' },
+  { min: 41, icon: '🎯', name: 'Achiever',     desc: 'Strong performance across many games.' },
+  { min: 61, icon: '🏆', name: 'Champion',     desc: 'Outstanding cognitive performance!' },
+  { min: 81, icon: '🧠', name: 'Brain Master', desc: 'Your mind is truly exceptional!' },
+];
+
+function computeAchievement(allScores, totalGames) {
+  const played   = Object.keys(allScores).length;
+  const bests    = Object.values(allScores).map(s => s.best);
+  const avgBest  = bests.length > 0
+    ? Math.round(bests.reduce((a, b) => a + b, 0) / bests.length)
+    : 0;
+  const totalPlays = Object.values(allScores).reduce((sum, s) => sum + s.playCount, 0);
+  // achievement score: 50% breadth, 50% performance
+  const score = Math.round((played / totalGames) * 50 + (avgBest / 100) * 50);
+
+  const levelIdx  = ACHIEVEMENT_LEVELS.reduce((best, l, i) => score >= l.min ? i : best, 0);
+  const level     = ACHIEVEMENT_LEVELS[levelIdx];
+  const nextLevel = ACHIEVEMENT_LEVELS[levelIdx + 1] ?? null;
+  const progressPct = nextLevel
+    ? Math.round(((score - level.min) / (nextLevel.min - level.min)) * 100)
+    : 100;
+
+  return { score, level, nextLevel, progressPct, played, avgBest, totalPlays };
+}
+
 function getProgressHint(scores, totalGames) {
   const played     = Object.keys(scores).length;
   const totalPlays = Object.values(scores).reduce((sum, s) => sum + s.playCount, 0);
@@ -439,6 +468,7 @@ export function App() {
   if (view === 'scores') {
     const allScores   = getAllScores();
     const totalPlayed = ALL_GAMES.filter(g => allScores[g.id]).length;
+    const achievement = computeAchievement(allScores, ALL_GAMES.length);
 
     return (
       <div className={styles.dailyWrapper}>
@@ -456,6 +486,43 @@ export function App() {
             className={styles.scoresTitleImg}
           />
           <p className={styles.scoresMeta}>{totalPlayed} of {ALL_GAMES.length} games played</p>
+
+          {/* ── Achievement Card ── */}
+          <div className={styles.achievementCard}>
+            <div className={styles.achievementTop}>
+              <span className={styles.achievementIcon}>{achievement.level.icon}</span>
+              <div className={styles.achievementInfo}>
+                <span className={styles.achievementName}>{achievement.level.name}</span>
+                <span className={styles.achievementDesc}>{achievement.level.desc}</span>
+              </div>
+              <span className={styles.achievementScore}>{achievement.score}<small>/100</small></span>
+            </div>
+            <div className={styles.achievementStatsRow}>
+              <div className={styles.achievementStat}>
+                <span className={styles.achievementStatVal}>{achievement.played}</span>
+                <span className={styles.achievementStatLabel}>games played</span>
+              </div>
+              <div className={styles.achievementStat}>
+                <span className={styles.achievementStatVal}>{achievement.avgBest}%</span>
+                <span className={styles.achievementStatLabel}>avg best score</span>
+              </div>
+              <div className={styles.achievementStat}>
+                <span className={styles.achievementStatVal}>{achievement.totalPlays}</span>
+                <span className={styles.achievementStatLabel}>total sessions</span>
+              </div>
+            </div>
+            <div className={styles.achievementProgressWrap}>
+              <div
+                className={styles.achievementProgressBar}
+                style={{ width: `${achievement.progressPct}%` }}
+              />
+            </div>
+            {achievement.nextLevel && (
+              <p className={styles.achievementNextLabel}>
+                {achievement.progressPct}% to <strong>{achievement.nextLevel.name}</strong> {achievement.nextLevel.icon}
+              </p>
+            )}
+          </div>
         </div>
 
         {GAME_GROUPS.map(group => (
@@ -588,78 +655,79 @@ export function App() {
 
   /* ── Home screen (default) ── */
   return (
-    <div className={styles.dailyWrapper}>
+    <div className={styles.homeWrapper}>
       <TopBar
-        title="Home"
+        title=""
         onBack={null}
         memberId={urlMemberId}
         noBleed
+        home
       />
       <div className={styles.homeScreen}>
-      <div className={styles.homeHeader}>
-        <img
-          src={cognitiveGameTitle}
-          alt="CaritaHub Cognitive Games"
-          className={styles.homeTitle}
-        />
-        <p className={styles.homeGreeting}>Hello, {urlMemberId}! 👋</p>
-        <p className={styles.homeProgressHint}>{getProgressHint(getAllScores(), ALL_GAMES.length)}</p>
-      </div>
+        <div className={styles.homeHeader}>
+          <img
+            src={cognitiveGameTitle}
+            alt="CaritaHub Cognitive Games"
+            className={styles.homeTitle}
+          />
+          <p className={styles.homeGreeting}>Hello, {urlMemberId}! 👋</p>
+          <p className={styles.homeProgressHint}>{getProgressHint(getAllScores(), ALL_GAMES.length)}</p>
+        </div>
 
-      <nav className={styles.homeMenu} aria-label="Main menu">
+        <nav className={styles.homeMenu} aria-label="Main menu">
 
-        <button
-          className={`${styles.menuBtn} ${styles.menuBtnDaily}`}
-          onClick={startDailyChallenge}
-          aria-label="Start Daily Challenge"
-        >
-          <span className={styles.menuBtnIcon}>📅</span>
-          <span className={styles.menuBtnBody}>
-            <span className={styles.menuBtnTitle}>Daily Challenge</span>
-            <span className={styles.menuBtnDesc}>
-              Play {GAME_GROUPS.length} random games — one from each category. Track your daily progress!
+          <button
+            className={`${styles.menuBtn} ${styles.menuBtnDaily}`}
+            onClick={startDailyChallenge}
+            aria-label="Start Daily Challenge"
+          >
+            <span className={styles.menuBtnIcon}>🧩</span>
+            <span className={styles.menuBtnBody}>
+              <span className={styles.menuBtnTitle}>Daily Challenge</span>
+              <span className={styles.menuBtnDesc}>
+                Play {GAME_GROUPS.length} random games — one from each category. Track your daily progress!
+              </span>
+              <span className={styles.menuBtnFooter}>
+                <span className={styles.menuBtnCta}>Start →</span>
+              </span>
             </span>
-            <span className={styles.menuBtnFooter}>
-              <span className={styles.menuBtnCta}>Start →</span>
-            </span>
-          </span>
-        </button>
+          </button>
 
-        <button
-          className={`${styles.menuBtn} ${styles.menuBtnGames}`}
-          onClick={() => setView('games')}
-          aria-label="Browse all cognitive games"
-        >
-          <span className={styles.menuBtnIcon}>🎮</span>
-          <span className={styles.menuBtnBody}>
-            <span className={styles.menuBtnTitle}>Cognitive Games</span>
-            <span className={styles.menuBtnDesc}>
-              Browse all {ALL_GAMES.length} games across {GAME_GROUPS.length} categories and play any game you like.
+          <button
+            className={`${styles.menuBtn} ${styles.menuBtnGames}`}
+            onClick={() => setView('games')}
+            aria-label="Browse all cognitive games"
+          >
+            <span className={styles.menuBtnIcon}>🎮</span>
+            <span className={styles.menuBtnBody}>
+              <span className={styles.menuBtnTitle}>Browse Games</span>
+              <span className={styles.menuBtnDesc}>
+                Browse all {ALL_GAMES.length} games across {GAME_GROUPS.length} categories and play any game you like.
+              </span>
+              <span className={styles.menuBtnFooter}>
+                <span className={styles.menuBtnCta}>Browse →</span>
+              </span>
             </span>
-            <span className={styles.menuBtnFooter}>
-              <span className={styles.menuBtnCta}>Browse →</span>
-            </span>
-          </span>
-        </button>
+          </button>
 
-        <button
-          className={`${styles.menuBtn} ${styles.menuBtnScores}`}
-          onClick={() => setView('scores')}
-          aria-label="View your scores"
-        >
-          <span className={styles.menuBtnIcon}>🏆</span>
-          <span className={styles.menuBtnBody}>
-            <span className={styles.menuBtnTitle}>Score</span>
-            <span className={styles.menuBtnDesc}>
-              View your best scores, completion times, and performance for every game you've played.
+          <button
+            className={`${styles.menuBtn} ${styles.menuBtnScores}`}
+            onClick={() => setView('scores')}
+            aria-label="View your scores"
+          >
+            <span className={styles.menuBtnIcon}>🏆</span>
+            <span className={styles.menuBtnBody}>
+              <span className={styles.menuBtnTitle}>Score</span>
+              <span className={styles.menuBtnDesc}>
+                View your best scores, completion times, and performance.
+              </span>
+              <span className={styles.menuBtnFooter}>
+                <span className={styles.menuBtnCta}>View →</span>
+              </span>
             </span>
-            <span className={styles.menuBtnFooter}>
-              <span className={styles.menuBtnCta}>View →</span>
-            </span>
-          </span>
-        </button>
+          </button>
 
-      </nav>
+        </nav>
       </div>
     </div>
   );

@@ -98,7 +98,3 @@
   min-height: 1.5em;
 }
 
-@media (max-width: 360px) {
-  .optBtn { font-size: 1.2rem; height: 56px; }
-  .options { gap: var(--space-2); }
-}
