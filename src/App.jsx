@@ -654,6 +654,8 @@ export function App() {
   }
 
   /* ── Home screen (default) ── */
+  const achievement = computeAchievement(getAllScores(), ALL_GAMES.length);
+
   return (
     <div className={styles.homeWrapper}>
       <TopBar
@@ -671,7 +673,39 @@ export function App() {
             className={styles.homeTitle}
           />
           <p className={styles.homeGreeting}>Hello, {urlMemberId}! 👋</p>
-          <p className={styles.homeProgressHint}>{getProgressHint(getAllScores(), ALL_GAMES.length)}</p>
+
+          {/* Player Level Status */}
+          <div className={styles.levelCard}>
+            <div className={styles.levelCardTop}>
+              <div className={styles.levelCardLeft}>
+                <span className={styles.levelIcon}>{achievement.level.icon}</span>
+                <div className={styles.levelInfo}>
+                  <span className={styles.levelName}>{achievement.level.name}</span>
+                  <span className={styles.levelSubtitle}>{achievement.level.desc}</span>
+                </div>
+              </div>
+              <div className={styles.levelScore}>
+                <span className={styles.levelScoreNum}>{achievement.score}</span>
+                <span className={styles.levelScoreLabel}>score</span>
+              </div>
+            </div>
+            <div className={styles.levelBarTrack}>
+              <div
+                className={styles.levelBarFill}
+                style={{ width: `${achievement.progressPct}%` }}
+              />
+            </div>
+            <div className={styles.levelBarFooter}>
+              <span className={styles.levelBarNextLabel}>
+                {achievement.nextLevel
+                  ? `Next: ${achievement.nextLevel.name} ${achievement.nextLevel.icon}`
+                  : '🎉 Max level reached!'}
+              </span>
+              <span className={styles.levelBarPct}>
+                {achievement.nextLevel ? `${achievement.progressPct}%` : '100%'}
+              </span>
+            </div>
+          </div>
         </div>
 
         <nav className={styles.homeMenu} aria-label="Main menu">
