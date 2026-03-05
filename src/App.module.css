@@ -1004,6 +1004,12 @@
   gap: var(--space-6);
 }
 
+@media (max-width: 480px) {
+  .gameGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .gameCard {
   position: relative;
   overflow: hidden;
