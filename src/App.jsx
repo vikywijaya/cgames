@@ -659,6 +659,15 @@ export function App() {
   /* ── Home screen (default) ── */
   const achievement = computeAchievement(getAllScores(), ALL_GAMES.length);
 
+  const getDaytimeGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return { text: 'Good morning', emoji: '🌤️' };
+    if (hour < 17) return { text: 'Good afternoon', emoji: '☀️' };
+    if (hour < 21) return { text: 'Good evening', emoji: '🌆' };
+    return { text: 'Good night', emoji: '🌙' };
+  };
+  const greeting = getDaytimeGreeting();
+
   return (
     <div className={styles.homeWrapper}>
       <TopBar
@@ -675,7 +684,7 @@ export function App() {
             alt="CaritaHub Cognitive Games"
             className={styles.homeTitle}
           />
-          <p className={styles.homeGreeting}>Hello, {urlMemberId}! 👋</p>
+          <p className={styles.homeGreeting}>{greeting.text}, {urlMemberId}! {greeting.emoji}</p>
 
           {/* Player Level Status */}
           <div className={styles.levelCard}>
