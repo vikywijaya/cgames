@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MemoryMatch }      from './games/MemoryMatch/MemoryMatch';
 import { WordRecall }       from './games/WordRecall/WordRecall';
 import { PatternSequence }  from './games/PatternSequence/PatternSequence';
@@ -227,6 +227,14 @@ export function App() {
   const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
   // dailyChallenge: { games: Array, index: number, scores: { gameId: pct }, lastPct: number|null }
   const [dailyChallenge,     setDailyChallenge]     = useState(null);
+
+  // Preserve lobby scroll position when entering/returning from a game
+  const lobbyScrollRef = useRef(0);
+  useEffect(() => {
+    if (view === 'games' && !selectedGame) {
+      window.scrollTo(0, lobbyScrollRef.current);
+    }
+  }, [view, selectedGame]);
 
   /* ── Daily challenge handlers ── */
   function startDailyChallenge() {
@@ -630,7 +638,7 @@ export function App() {
                 <button
                   key={game.id}
                   className={styles.gameCard}
-                  onClick={() => setSelectedGame(game.id)}
+                  onClick={() => { lobbyScrollRef.current = window.scrollY; setSelectedGame(game.id); }}
                   aria-label={`Play ${game.title}`}
                 >
                   <div className={styles.gameIconBox} aria-hidden="true">
