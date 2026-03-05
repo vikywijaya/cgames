@@ -276,7 +276,7 @@ export function CatchFallingFruit({
   onToggleMusic,
 }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'catch-falling-fruit', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'catch-falling-fruit', callbackUrl, onComplete });
 
   const instructions = (
     <>

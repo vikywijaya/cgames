@@ -99,6 +99,7 @@ function OddOneOutGame({ difficulty, onComplete, reportScore, secondsLeft, playC
             <button
               key={i}
               className={cls}
+              style={{ '--idx': i }}
               onClick={() => handleTap(i)}
               disabled={!!feedback}
               aria-label={`Item ${i + 1}: ${emoji}`}
@@ -130,7 +131,7 @@ OddOneOutGame.propTypes = {
 
 export function OddOneOut({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'odd-one-out', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'odd-one-out', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="odd-one-out"

@@ -34,6 +34,7 @@ function PadGrid({ highlightedPad, onPress, disabled }) {
             ]
               .filter(Boolean)
               .join(' ')}
+            style={{ '--idx': pad.index }}
             onClick={() => onPress(pad.index)}
             disabled={disabled}
             aria-label={pad.label}

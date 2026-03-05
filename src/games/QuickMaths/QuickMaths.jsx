@@ -104,7 +104,7 @@ function QuickMathsGame({ difficulty, onComplete, reportScore, secondsLeft, play
           if (feedback && opt === q.answer)        cls = `${styles.optBtn} ${styles.optCorrect}`;
           else if (feedback === 'wrong' && opt === picked) cls = `${styles.optBtn} ${styles.optWrong}`;
           return (
-            <button key={i} className={cls} onClick={() => handlePick(opt)} disabled={!!feedback} aria-label={String(opt)}>
+            <button key={i} className={cls} style={{ '--idx': i }} onClick={() => handlePick(opt)} disabled={!!feedback} aria-label={String(opt)}>
               {opt}
             </button>
           );
@@ -129,7 +129,7 @@ QuickMathsGame.propTypes = {
 
 export function QuickMaths({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'quick-maths', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'quick-maths', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="quick-maths"

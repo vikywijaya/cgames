@@ -115,7 +115,7 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, play
           let cls = styles.optBtn;
           if (feedback && name === data.target.name) cls = `${styles.optBtn} ${styles.optCorrect}`;
           else if (feedback && name === chosen) cls = `${styles.optBtn} ${styles.optWrong}`;
-          return <button key={i} className={cls} onClick={() => handleChoice(name)} disabled={!!feedback}>{name}</button>;
+          return <button key={i} className={cls} style={{ '--idx': i }} onClick={() => handleChoice(name)} disabled={!!feedback}>{name}</button>;
         })}
       </div>
       {feedback && (
@@ -131,7 +131,7 @@ FaceMemoryGame.propTypes = { difficulty: PropTypes.string.isRequired, onComplete
 
 export function FaceMemory({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'face-memory', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'face-memory', callbackUrl, onComplete });
   return (
     <GameShell gameId="face-memory" title="Face Memory"
       instructions={`Study the faces and their names for ${config.studySec} seconds. Then identify who's who!`}

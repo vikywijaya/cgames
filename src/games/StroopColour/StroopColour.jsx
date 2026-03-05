@@ -116,7 +116,7 @@ function StroopGame({ difficulty, onComplete, reportScore, secondsLeft, playClic
       </div>
 
       <div className={styles.options}>
-        {stimulus.options.map(opt => {
+        {stimulus.options.map((opt, i) => {
           let cls = styles.optBtn;
           if (feedback === 'correct' && opt.name === stimulus.inkName) cls = `${styles.optBtn} ${styles.optCorrect}`;
           if (feedback === 'wrong'   && opt.name === stimulus.inkName) cls = `${styles.optBtn} ${styles.optCorrect}`;
@@ -125,7 +125,7 @@ function StroopGame({ difficulty, onComplete, reportScore, secondsLeft, playClic
             <button
               key={opt.name}
               className={cls}
-              style={{ '--swatch': opt.hex }}
+              style={{ '--swatch': opt.hex, '--idx': i }}
               onClick={() => handlePick(opt.name)}
               disabled={!!feedback}
               aria-label={opt.name}
@@ -155,7 +155,7 @@ StroopGame.propTypes = {
 
 export function StroopColour({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'stroop-colour', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'stroop-colour', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="stroop-colour"

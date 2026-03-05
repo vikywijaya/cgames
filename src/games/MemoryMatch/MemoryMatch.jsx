@@ -10,12 +10,13 @@ const INSTRUCTIONS =
   'Flip cards to find matching pairs. Click a card to reveal it, then find its match. ' +
   'Matched pairs stay face-up. Find all pairs to win!';
 
-function CardTile({ card, state, onFlip }) {
-  const { isFlipped, isMatched } = state;
+function CardTile({ card, state, onFlip, index }) {
+  const { isFlipped, isMatched, isMismatched } = state;
   const tileClass = [
     styles.cardTile,
     isFlipped || isMatched ? styles.flipped : '',
     isMatched ? styles.matched : '',
+    isMismatched ? styles.mismatched : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -25,6 +26,7 @@ function CardTile({ card, state, onFlip }) {
       className={tileClass}
       onClick={onFlip}
       disabled={isMatched}
+      style={{ '--deal-delay': `${Math.min(index * 0.055, 0.5)}s` }}
       aria-label={
         isFlipped || isMatched
           ? `Card: ${card.symbol}${isMatched ? ', matched' : ''}`
@@ -44,11 +46,12 @@ function CardTile({ card, state, onFlip }) {
 
 CardTile.propTypes = {
   card: PropTypes.shape({ symbol: PropTypes.string.isRequired }).isRequired,
-  state: PropTypes.shape({ isFlipped: PropTypes.bool, isMatched: PropTypes.bool }).isRequired,
+  state: PropTypes.shape({ isFlipped: PropTypes.bool, isMatched: PropTypes.bool, isMismatched: PropTypes.bool }).isRequired,
   onFlip: PropTypes.func.isRequired,
+  index: PropTypes.number.isRequired,
 };
 
-function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess }) {
+function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft, playReveal, playSuccess }) {
   const { cards, cardState, flipCard, matchCount, maxMatches, cols, timeLimitSeconds, done } =
     useMemoryMatch(difficulty);
 
@@ -89,7 +92,8 @@ function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft, pla
             key={card.id}
             card={card}
             state={cardState[i]}
-            onFlip={() => { playClick(); flipCard(i); }}
+            onFlip={() => { playReveal(); flipCard(i); }}
+            index={i}
           />
         ))}
       </div>
@@ -102,7 +106,7 @@ MemoryMatchGame.propTypes = {
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func,
   secondsLeft: PropTypes.number,
-  playClick:   PropTypes.func.isRequired,
+  playReveal:  PropTypes.func.isRequired,
   playSuccess: PropTypes.func.isRequired,
   playFail:    PropTypes.func.isRequired,
 };
@@ -127,16 +131,14 @@ export function MemoryMatch({ memberId, difficulty = 'easy', onComplete, callbac
       timeLimitSeconds={timeLimitSeconds}
       onGameComplete={fireComplete}
       onBack={onBack}
-      musicMuted={musicMuted}
-      onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: shellComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+      {({ onComplete: shellComplete, reportScore, secondsLeft, playReveal, playSuccess, playFail }) => (
         <MemoryMatchGame
           difficulty={difficulty}
           onComplete={shellComplete}
           reportScore={reportScore}
           secondsLeft={secondsLeft}
-          playClick={playClick}
+          playReveal={playReveal}
           playSuccess={playSuccess}
           playFail={playFail}
         />

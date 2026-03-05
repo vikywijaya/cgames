@@ -183,6 +183,7 @@ function RightTimeGame({ difficulty, onComplete, reportScore, secondsLeft, playC
             <button
               key={i}
               className={cls}
+              style={{ '--idx': i }}
               onClick={() => handleChoice(opt)}
               disabled={!!feedback}
               aria-label={`Answer ${formatTime(opt)}`}
@@ -215,7 +216,7 @@ RightTimeGame.propTypes = {
 // ── Outer wrapper ──────────────────────────────────────────────────
 export function RightTime({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'right-time', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'right-time', callbackUrl, onComplete });
 
   return (
     <GameShell

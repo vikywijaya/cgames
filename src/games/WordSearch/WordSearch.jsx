@@ -108,6 +108,7 @@ function WordSearchGame({ difficulty, onComplete, reportScore, playClick, playSu
               <button
                 key={key}
                 className={cellClass}
+                style={{ '--idx': r * 10 + c }}
                 onClick={() => { playClick(); clickCell(r, c); }}
                 aria-label={`Row ${r + 1} Col ${c + 1}: ${letter}${isFound ? ', found' : ''}`}
                 aria-pressed={isSelected || isFound}

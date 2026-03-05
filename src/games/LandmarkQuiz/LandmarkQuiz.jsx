@@ -129,7 +129,7 @@ function LandmarkQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pl
           if (feedback && opt === q.country)           cls = `${styles.optBtn} ${styles.optCorrect}`;
           else if (feedback === 'wrong' && opt === picked) cls = `${styles.optBtn} ${styles.optWrong}`;
           return (
-            <button key={i} className={cls} onClick={() => handlePick(opt)} disabled={!!feedback} aria-label={opt}>
+            <button key={i} className={cls} style={{ '--idx': i }} onClick={() => handlePick(opt)} disabled={!!feedback} aria-label={opt}>
               {opt}
             </button>
           );
@@ -154,7 +154,7 @@ LandmarkQuizGame.propTypes = {
 
 export function LandmarkQuiz({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'landmark-quiz', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'landmark-quiz', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="landmark-quiz"

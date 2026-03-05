@@ -117,7 +117,7 @@ function MissingNumberGame({ difficulty, onComplete, reportScore, secondsLeft, p
           if (feedback && opt === puzzle.answer) cls = `${styles.optBtn} ${styles.optCorrect}`;
           else if (feedback === 'wrong' && opt === picked) cls = `${styles.optBtn} ${styles.optWrong}`;
           return (
-            <button key={i} className={cls} onClick={() => handlePick(opt)} disabled={!!feedback} aria-label={String(opt)}>
+            <button key={i} className={cls} style={{ '--idx': i }} onClick={() => handlePick(opt)} disabled={!!feedback} aria-label={String(opt)}>
               {opt}
             </button>
           );
@@ -142,7 +142,7 @@ MissingNumberGame.propTypes = {
 
 export function MissingNumber({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'missing-number', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'missing-number', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="missing-number"

@@ -171,7 +171,7 @@ function FlagQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
 
       {/* Options */}
       <div className={styles.options}>
-        {question.options.map((opt) => {
+        {question.options.map((opt, i) => {
           const isChosen  = chosen === opt.code;
           const isCorrect = opt.code === question.correct.code;
           let cls = styles.optBtn;
@@ -183,6 +183,7 @@ function FlagQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
             <button
               key={opt.code}
               className={cls}
+              style={{ '--idx': i }}
               onClick={() => handleChoice(opt)}
               disabled={!!feedback}
             >
@@ -214,7 +215,7 @@ FlagQuizGame.propTypes = {
 // ── Outer wrapper ──────────────────────────────────────────────────
 export function FlagQuiz({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'flag-quiz', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'flag-quiz', callbackUrl, onComplete });
 
   return (
     <GameShell

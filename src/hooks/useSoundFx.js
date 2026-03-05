@@ -7,6 +7,10 @@
  *   playSuccess()  – rising 3-note chime (correct answer / match)
  *   playFail()     – descending buzz (wrong answer / miss)
  *   playComplete() – triumphant 4-note fanfare (game over)
+ *   playPop()      – bubbly pop (balloon / tile burst)
+ *   playReveal()   – soft ping (card flip / tile highlight)
+ *   playTick()     – sharp tick (countdown timer, last 5 s)
+ *   playBoing()    – springy boing (whack / mole hit)
  */
 
 let _ctx = null;
@@ -35,7 +39,7 @@ function playTone(notes, wave = 'sine') {
     const ctx = getCtx();
     if (!ctx) return;
     const now = ctx.currentTime;
-    notes.forEach(({ freq, t = 0, dur, vol = 0.22 }) => {
+    notes.forEach(({ freq, t = 0, dur, vol = 0.35 }) => {
       const osc  = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain);
@@ -53,33 +57,69 @@ function playTone(notes, wave = 'sine') {
 }
 
 export function useSoundFx() {
+  // Subtle UI tick — button taps, generic interactions
   function playClick() {
-    playTone([{ freq: 900, t: 0, dur: 0.04, vol: 0.10 }]);
+    playTone([{ freq: 900, t: 0, dur: 0.04, vol: 0.35 }]);
   }
 
+  // Rising 3-note chime — correct answer / match
   function playSuccess() {
     playTone([
-      { freq: 523.25, t: 0,    dur: 0.10, vol: 0.20 }, // C5
-      { freq: 659.25, t: 0.09, dur: 0.10, vol: 0.20 }, // E5
-      { freq: 783.99, t: 0.18, dur: 0.16, vol: 0.22 }, // G5
+      { freq: 523.25, t: 0,    dur: 0.10, vol: 0.45 }, // C5
+      { freq: 659.25, t: 0.09, dur: 0.10, vol: 0.45 }, // E5
+      { freq: 783.99, t: 0.18, dur: 0.18, vol: 0.50 }, // G5
     ]);
   }
 
+  // Descending buzz — wrong answer / miss
   function playFail() {
     playTone([
-      { freq: 311, t: 0,    dur: 0.09, vol: 0.20 },
-      { freq: 196, t: 0.09, dur: 0.20, vol: 0.20 },
+      { freq: 311, t: 0,    dur: 0.10, vol: 0.45 },
+      { freq: 196, t: 0.09, dur: 0.22, vol: 0.45 },
     ], 'sawtooth');
   }
 
+  // Triumphant 4-note fanfare — game over
   function playComplete() {
     playTone([
-      { freq: 523.25, t: 0,    dur: 0.09, vol: 0.25 }, // C5
-      { freq: 659.25, t: 0.08, dur: 0.09, vol: 0.25 }, // E5
-      { freq: 783.99, t: 0.16, dur: 0.09, vol: 0.25 }, // G5
-      { freq: 1046.5, t: 0.25, dur: 0.32, vol: 0.28 }, // C6
+      { freq: 523.25, t: 0,    dur: 0.09, vol: 0.50 }, // C5
+      { freq: 659.25, t: 0.08, dur: 0.09, vol: 0.50 }, // E5
+      { freq: 783.99, t: 0.16, dur: 0.09, vol: 0.50 }, // G5
+      { freq: 1046.5, t: 0.25, dur: 0.35, vol: 0.55 }, // C6
     ]);
   }
 
-  return { playClick, playSuccess, playFail, playComplete };
+  // Bubbly pop — balloon popped / tile burst
+  function playPop() {
+    playTone([
+      { freq: 1200, t: 0,    dur: 0.02, vol: 0.55 },
+      { freq:  600, t: 0.01, dur: 0.07, vol: 0.45 },
+      { freq:  280, t: 0.05, dur: 0.10, vol: 0.35 },
+    ], 'triangle');
+  }
+
+  // Soft reveal ping — card flip / tile highlight
+  function playReveal() {
+    playTone([
+      { freq: 660, t: 0,    dur: 0.06, vol: 0.40 },
+      { freq: 990, t: 0.05, dur: 0.12, vol: 0.35 },
+    ], 'triangle');
+  }
+
+  // Sharp tick — countdown timer (last 5 seconds)
+  function playTick() {
+    playTone([{ freq: 1400, t: 0, dur: 0.025, vol: 0.50 }], 'square');
+  }
+
+  // Springy boing — whack / mole hit
+  function playBoing() {
+    playTone([
+      { freq: 300, t: 0,    dur: 0.03, vol: 0.55 },
+      { freq: 600, t: 0.02, dur: 0.06, vol: 0.50 },
+      { freq: 900, t: 0.06, dur: 0.08, vol: 0.45 },
+      { freq: 550, t: 0.12, dur: 0.08, vol: 0.35 },
+    ], 'triangle');
+  }
+
+  return { playClick, playSuccess, playFail, playComplete, playPop, playReveal, playTick, playBoing };
 }

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useCountdown } from '../../hooks/useCountdown';
 import { useSoundFx } from '../../hooks/useSoundFx';
@@ -27,18 +27,21 @@ export function GameShell({
   children,
   onGameComplete,
   onBack,
-  musicMuted,
-  onToggleMusic,
 }) {
   const [phase, setPhase] = useState('idle'); // 'idle' | 'playing' | 'finished'
+  const [animating, setAnimating] = useState(false); // true while entry animations play
   const [result, setResult] = useState(null);
   const [liveScore, setLiveScore] = useState(0);
   const startTimeRef = useRef(null);
-  const { playClick, playSuccess, playFail, playComplete } = useSoundFx();
+  const animTimerRef = useRef(null);
+  const { playClick, playSuccess, playFail, playComplete, playPop, playReveal, playBoing, playTick } = useSoundFx();
+
+  // 0.5s max stagger delay + 0.4s animation duration + 50ms buffer
+  const ANIM_LOCK_MS = 950;
 
   const { secondsLeft } = useCountdown({
     seconds: timeLimitSeconds,
-    active: phase === 'playing',
+    active: phase === 'playing' && !animating,
     onExpire: () => {
       if (phase === 'playing') {
         handleComplete({ finalScore: liveScore, maxScore: 0, completed: false });
@@ -46,11 +49,24 @@ export function GameShell({
     },
   });
 
+  // Clear animation lock timer on unmount
+  useEffect(() => () => clearTimeout(animTimerRef.current), []);
+
+  // Countdown tick for the last 5 seconds
+  useEffect(() => {
+    if (phase === 'playing' && !animating && secondsLeft !== null && secondsLeft > 0 && secondsLeft <= 5) {
+      playTick();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [secondsLeft]);
+
   function handleStart() {
     startTimeRef.current = Date.now();
     setResult(null);
     setLiveScore(0);
+    setAnimating(true);
     setPhase('playing');
+    animTimerRef.current = setTimeout(() => setAnimating(false), ANIM_LOCK_MS);
   }
 
   function handleComplete({ finalScore, maxScore, completed = true }) {
@@ -77,14 +93,33 @@ export function GameShell({
 
   const diffLabel = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
 
-  if (phase === 'idle') {
-    return (
-      <div className={styles.shell}>
-        {onBack && (
-          <button className={styles.backBtn} onClick={onBack} aria-label="Back to game lobby">
-            ← Back to Games
-          </button>
-        )}
+  // Convert instruction strings to bullet list
+  function renderInstructions(inst) {
+    if (typeof inst === 'string') {
+      const bullets = inst
+        .split(/[.!?]+/)
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+      return (
+        <ul className={styles.instructionsList}>
+          {bullets.map((bullet, idx) => (
+            <li key={idx}>{bullet}</li>
+          ))}
+        </ul>
+      );
+    }
+    return inst;
+  }
+
+  const isUrgent = secondsLeft !== null && secondsLeft <= 10;
+
+  const pct = phase === 'finished' && result.maxScore > 0 ? result.score / result.maxScore : 0;
+  const headline =
+    pct >= 0.9 ? 'Excellent!' : pct >= 0.7 ? 'Well done!' : pct >= 0.5 ? 'Great effort!' : 'Keep practising!';
+
+  return (
+    <div className={styles.shell}>
+      {phase === 'idle' && (
         <div className={styles.startScreen}>
           <h1 className={styles.gameTitle}>{title}</h1>
           <span className={`${styles.difficultyBadge} ${diffBadgeClass}`}>{diffLabel}</span>
@@ -93,31 +128,19 @@ export function GameShell({
               Time limit: {timeLimitSeconds} seconds
             </p>
           )}
-          <div className={styles.instructions} role="region" aria-label="Game instructions">
-            <p className={styles.instructionsTitle}>How to play</p>
-            {typeof instructions === 'string' ? <p>{instructions}</p> : instructions}
+          <div className={styles.instructionsFrame} role="region" aria-label="Game instructions">
+            <div className={styles.instructions}>
+              <h2 className={styles.instructionsTitle}>How to play</h2>
+              {renderInstructions(instructions)}
+            </div>
+            <Button size="large" onClick={handleStart} autoFocus className={styles.playBtn}>
+              Play
+            </Button>
           </div>
-          <Button size="large" onClick={handleStart} autoFocus>
-            Start Game
-          </Button>
         </div>
-      </div>
-    );
-  }
+      )}
 
-  if (phase === 'finished') {
-    const pct = result.maxScore > 0 ? result.score / result.maxScore : 0;
-    const headline =
-      pct >= 0.9
-        ? 'Excellent!'
-        : pct >= 0.7
-        ? 'Well done!'
-        : pct >= 0.5
-        ? 'Great effort!'
-        : 'Keep practising!';
-
-    return (
-      <div className={styles.shell}>
+      {phase === 'finished' && (
         <div className={styles.endScreen}>
           <h1 className={styles.endHeadline}>{headline}</h1>
           {!result.completed && (
@@ -142,70 +165,51 @@ export function GameShell({
             <Button size="large" onClick={handlePlayAgain} autoFocus>
               Play Again
             </Button>
-            {onBack && (
-              <Button size="large" variant="secondary" onClick={onBack}>
-                All Games
-              </Button>
-            )}
           </div>
         </div>
-      </div>
-    );
-  }
+      )}
 
-  // phase === 'playing'
-  const isUrgent = secondsLeft !== null && secondsLeft <= 10;
+      {phase === 'playing' && (
+        <>
+          <div className={styles.hud} role="banner" aria-label="Game status">
+            <div className={styles.hudScore} aria-live="polite" aria-atomic="true">
+              <span className={styles.hudScoreLabel}>Score </span>
+              <span>{liveScore}</span>
+            </div>
+            <div className={styles.hudTimer}>
+              {secondsLeft !== null ? (
+                <>
+                  <span className={styles.hudTimerLabel}>Time</span>
+                  <span
+                    className={`${styles.hudTimerValue} ${isUrgent ? styles.hudTimerUrgent : styles.hudTimerNormal}`}
+                    role="timer"
+                    aria-live="off"
+                    aria-label={`${secondsLeft} seconds remaining`}
+                  >
+                    {secondsLeft}s
+                  </span>
+                </>
+              ) : (
+                <span className={styles.hudTimerLabel}>Untimed</span>
+              )}
+            </div>
+          </div>
+          <div className={`${styles.gameBody} ${animating ? styles.gameBodyLocked : ''}`}>
+            {children({
+              onComplete: handleComplete,
+              reportScore: setLiveScore,
+              secondsLeft,
+              playClick,
+              playSuccess,
+              playFail,
+              playPop,
+              playReveal,
+              playBoing,
+            })}
+          </div>
+        </>
+      )}
 
-  return (
-    <div className={styles.shell}>
-      <div className={styles.hud} role="banner" aria-label="Game status">
-        {onBack && (
-          <button className={styles.hudBack} onClick={onBack} aria-label="Back to game lobby">
-            ←
-          </button>
-        )}
-        <div className={styles.hudScore} aria-live="polite" aria-atomic="true">
-          <span className={styles.hudScoreLabel}>Score </span>
-          <span>{liveScore}</span>
-        </div>
-        <div className={styles.hudTimer}>
-          {secondsLeft !== null ? (
-            <>
-              <span className={styles.hudTimerLabel}>Time</span>
-              <span
-                className={`${styles.hudTimerValue} ${isUrgent ? styles.hudTimerUrgent : styles.hudTimerNormal}`}
-                role="timer"
-                aria-live="off"
-                aria-label={`${secondsLeft} seconds remaining`}
-              >
-                {secondsLeft}s
-              </span>
-            </>
-          ) : (
-            <span className={styles.hudTimerLabel}>Untimed</span>
-          )}
-        </div>
-        {onToggleMusic && (
-          <button
-            className={styles.hudMusic}
-            onClick={onToggleMusic}
-            aria-label={musicMuted ? 'Unmute background music' : 'Mute background music'}
-            title={musicMuted ? 'Turn music on' : 'Turn music off'}
-          >
-            {musicMuted ? '🔇' : '🎵'}
-          </button>
-        )}
-      </div>
-      <div className={styles.gameBody}>
-        {children({
-          onComplete: handleComplete,
-          reportScore: setLiveScore,
-          secondsLeft,
-          playClick,
-          playSuccess,
-          playFail,
-        })}
-      </div>
     </div>
   );
 }
@@ -219,6 +223,4 @@ GameShell.propTypes = {
   children: PropTypes.func.isRequired,
   onGameComplete: PropTypes.func,
   onBack: PropTypes.func,
-  musicMuted: PropTypes.bool,
-  onToggleMusic: PropTypes.func,
 };

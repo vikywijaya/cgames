@@ -106,6 +106,7 @@ function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft, play
             <button
               key={i}
               className={cls}
+              style={{ '--idx': i }}
               onClick={() => handleTap(i)}
               disabled={isTapped || !!feedback}
               aria-label={`Number ${num}`}
@@ -144,7 +145,7 @@ NumberSortGame.propTypes = {
 
 export function NumberSort({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'number-sort', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'number-sort', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="number-sort"

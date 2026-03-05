@@ -127,6 +127,7 @@ function TileFlipGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
             <button
               key={i}
               className={cls}
+              style={{ '--idx': i }}
               onClick={() => handleTap(i)}
               disabled={phase !== 'recalling' || isTapped}
               aria-label={`Tile ${i + 1}`}
@@ -150,7 +151,7 @@ TileFlipGame.propTypes = {
 
 export function TileFlip({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'tile-flip', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'tile-flip', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="tile-flip"

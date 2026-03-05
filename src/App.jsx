@@ -25,13 +25,16 @@ import { CurrencyQuiz }     from './games/CurrencyQuiz/CurrencyQuiz';
 import { LandmarkQuiz }     from './games/LandmarkQuiz/LandmarkQuiz';
 import { SnakeLite }        from './games/SnakeLite/SnakeLite';
 import { TileFlip }         from './games/TileFlip/TileFlip';
-import { useMusic }         from './hooks/useMusic';
 import { saveScore, getAllScores } from './utils/scoreStore';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
+import { TopBar } from './components/TopBar/TopBar.jsx';
 import './design/globals.css';
 import styles from './App.module.css';
 
-const MUSIC_SRC = import.meta.env.BASE_URL + 'music.mp3';
+// Pre-generated card images (src/assets/games/<id>.png).
+// Falls back to the emoji icon when an image isn't present yet.
+const gameImages = import.meta.glob('./assets/games/*.png', { eager: true, query: '?url', import: 'default' });
+function getGameImage(id) { return gameImages[`./assets/games/${id}.png`] ?? null; }
 
 const GAME_MAP = {
   'memory-match':      MemoryMatch,
@@ -70,7 +73,7 @@ const GAME_GROUPS = [
     games: [
       { id: 'memory-match',  title: 'Memory Match',   icon: '🃏', domain: 'Visual Memory',    description: 'Flip cards to find matching pairs.' },
       { id: 'word-recall',   title: 'Word Recall',    icon: '📝', domain: 'Verbal Memory',    description: 'Study a list, then recall as many words as you can.' },
-      { id: 'colour-memory', title: 'Colour Memory',  icon: '🎨', domain: 'Sequence Memory',  description: 'Watch a colour sequence light up, then repeat it back.' },
+      { id: 'colour-memory', title: 'Color Memory',   icon: '🎨', domain: 'Sequence Memory',  description: 'Watch a colour sequence light up, then repeat it back.' },
       { id: 'face-memory',   title: 'Face Memory',    icon: '🧑', domain: 'Visual Memory',    description: 'Study faces and names, then match them from memory.' },
       { id: 'shopping-list', title: 'Shopping List',  icon: '🛒', domain: 'Working Memory',   description: 'Memorise a shopping list, then pick the items from a larger grid.' },
     ],
@@ -133,7 +136,7 @@ const ALL_GAMES = GAME_GROUPS.flatMap(g => g.games);
 // Read URL params for iframe / embedded mode
 const params        = new URLSearchParams(window.location.search);
 const urlGameId     = params.get('gameId');
-const urlMemberId   = params.get('memberId')    ?? 'Senior Member';
+const urlMemberId   = params.get('memberId')    ?? 'Abdul Khadir';
 const urlDifficulty = params.get('difficulty')  ?? 'easy';
 const urlCallbackUrl= params.get('callbackUrl') ?? undefined;
 
@@ -155,6 +158,35 @@ function timeAgo(ts) {
   const hrs = Math.floor(mins / 60);
   if (hrs < 24)  return `${hrs}h ago`;
   return `${Math.floor(hrs / 24)}d ago`;
+}
+
+const ACHIEVEMENT_LEVELS = [
+  { min: 0,  icon: '🌱', name: 'Newcomer',     desc: 'Play your first game to get started!' },
+  { min: 1,  icon: '🔭', name: 'Explorer',     desc: 'Discovering new brain challenges.' },
+  { min: 21, icon: '⚡', name: 'Challenger',   desc: 'Building consistency and skill.' },
+  { min: 41, icon: '🎯', name: 'Achiever',     desc: 'Strong performance across many games.' },
+  { min: 61, icon: '🏆', name: 'Champion',     desc: 'Outstanding cognitive performance!' },
+  { min: 81, icon: '🧠', name: 'Brain Master', desc: 'Your mind is truly exceptional!' },
+];
+
+function computeAchievement(allScores, totalGames) {
+  const played   = Object.keys(allScores).length;
+  const bests    = Object.values(allScores).map(s => s.best);
+  const avgBest  = bests.length > 0
+    ? Math.round(bests.reduce((a, b) => a + b, 0) / bests.length)
+    : 0;
+  const totalPlays = Object.values(allScores).reduce((sum, s) => sum + s.playCount, 0);
+  // achievement score: 50% breadth, 50% performance
+  const score = Math.round((played / totalGames) * 50 + (avgBest / 100) * 50);
+
+  const levelIdx  = ACHIEVEMENT_LEVELS.reduce((best, l, i) => score >= l.min ? i : best, 0);
+  const level     = ACHIEVEMENT_LEVELS[levelIdx];
+  const nextLevel = ACHIEVEMENT_LEVELS[levelIdx + 1] ?? null;
+  const progressPct = nextLevel
+    ? Math.round(((score - level.min) / (nextLevel.min - level.min)) * 100)
+    : 100;
+
+  return { score, level, nextLevel, progressPct, played, avgBest, totalPlays };
 }
 
 function getProgressHint(scores, totalGames) {
@@ -192,19 +224,6 @@ export function App() {
   const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
   // dailyChallenge: { games: Array, index: number, scores: { gameId: pct }, lastPct: number|null }
   const [dailyChallenge,     setDailyChallenge]     = useState(null);
-
-  const { muted, toggle: toggleMusic } = useMusic(MUSIC_SRC);
-
-  const musicBtn = (
-    <button
-      className={styles.musicToggle}
-      onClick={toggleMusic}
-      aria-label={muted ? 'Unmute background music' : 'Mute background music'}
-      title={muted ? 'Turn music on' : 'Turn music off'}
-    >
-      {muted ? '🔇' : '🎵'}
-    </button>
-  );
 
   /* ── Daily challenge handlers ── */
   function startDailyChallenge() {
@@ -248,8 +267,6 @@ export function App() {
         memberId={urlMemberId}
         difficulty={urlDifficulty}
         callbackUrl={urlCallbackUrl}
-        musicMuted={muted}
-        onToggleMusic={toggleMusic}
         onComplete={(result) => console.log('[CaritaHub Game Result]', result)}
       />
     );
@@ -258,20 +275,27 @@ export function App() {
   /* ── Playing a game from the lobby ── */
   if (selectedGame) {
     const GameComponent = GAME_MAP[selectedGame];
+    const gameInfo = ALL_GAMES.find(g => g.id === selectedGame);
     return (
-      <GameComponent
-        memberId="demo-user"
-        difficulty={selectedDifficulty}
-        callbackUrl={undefined}
-        musicMuted={muted}
-        onToggleMusic={toggleMusic}
-        onComplete={(result) => {
-          const pct = computePct(result);
-          saveScore(selectedGame, pct, result.durationSeconds ?? null);
-          console.log('[CaritaHub Game Result]', result);
-        }}
-        onBack={() => setSelectedGame(null)}
-      />
+      <div className={styles.dailyWrapper}>
+        <TopBar
+          title={gameInfo?.title ?? 'Game'}
+          onBack={() => setSelectedGame(null)}
+          memberId={urlMemberId}
+          noBleed
+        />
+        <GameComponent
+          memberId="Abdul Khadir"
+          difficulty={selectedDifficulty}
+          callbackUrl={undefined}
+          onComplete={(result) => {
+            const pct = computePct(result);
+            saveScore(selectedGame, pct, result.durationSeconds ?? null);
+            console.log('[CaritaHub Game Result]', result);
+          }}
+          onBack={() => setSelectedGame(null)}
+        />
+      </div>
     );
   }
 
@@ -283,6 +307,12 @@ export function App() {
 
     return (
       <div className={styles.dailyWrapper}>
+        <TopBar
+          title="Daily Challenge"
+          onBack={abortDailyChallenge}
+          memberId={urlMemberId}
+          noBleed
+        />
         {/* Progress strip */}
         <div className={styles.dailyProgress} role="progressbar"
           aria-label={`Game ${index + 1} of ${games.length}`}>
@@ -304,11 +334,9 @@ export function App() {
 
         <GameComponent
           key={`daily-${game.id}-${index}`}
-          memberId="demo-user"
+          memberId="Abdul Khadir"
           difficulty={selectedDifficulty}
           callbackUrl={undefined}
-          musicMuted={muted}
-          onToggleMusic={toggleMusic}
           onComplete={handleDailyComplete}
           onBack={abortDailyChallenge}
         />
@@ -323,7 +351,14 @@ export function App() {
     const isLast = index + 1 >= games.length;
 
     return (
-      <div className={styles.interResult}>
+      <div className={styles.dailyWrapper}>
+        <TopBar
+          title="Daily Challenge"
+          onBack={abortDailyChallenge}
+          memberId={urlMemberId}
+          noBleed
+        />
+        <div className={styles.interResult}>
         <div className={styles.interProgress}>
           {games.map((g, i) => (
             <div
@@ -362,10 +397,8 @@ export function App() {
             <button className={styles.primaryBtn} onClick={advanceDailyChallenge}>
               {isLast ? '🏁 See Results' : 'Next Game →'}
             </button>
-            <button className={styles.outlineBtn} onClick={abortDailyChallenge}>
-              🏠 Back to Home
-            </button>
           </div>
+        </div>
         </div>
       </div>
     );
@@ -381,7 +414,14 @@ export function App() {
     const trophy = avg >= 75 ? '🏆' : avg >= 50 ? '🌟' : '💪';
 
     return (
-      <div className={styles.dailyResult}>
+      <div className={styles.dailyWrapper}>
+        <TopBar
+          title="Daily Challenge"
+          onBack={() => { setView('home'); setDailyChallenge(null); }}
+          memberId={urlMemberId}
+          noBleed
+        />
+        <div className={styles.dailyResult}>
         <div className={styles.resultTrophy}>{trophy}</div>
         <h2 className={styles.resultHeadline}>Challenge Complete!</h2>
         <div className={styles.resultAvgScore}>{avg}<small className={styles.resultPct}>%</small></div>
@@ -418,9 +458,7 @@ export function App() {
           <button className={styles.primaryBtn} onClick={startDailyChallenge}>
             🔄 New Challenge
           </button>
-          <button className={styles.outlineBtn} onClick={() => { setView('home'); setDailyChallenge(null); }}>
-            🏠 Home
-          </button>
+        </div>
         </div>
       </div>
     );
@@ -430,19 +468,61 @@ export function App() {
   if (view === 'scores') {
     const allScores   = getAllScores();
     const totalPlayed = ALL_GAMES.filter(g => allScores[g.id]).length;
+    const achievement = computeAchievement(allScores, ALL_GAMES.length);
 
     return (
-      <div className={styles.scoresView}>
+      <div className={styles.dailyWrapper}>
+        <TopBar
+          title="Your Scores"
+          onBack={() => setView('home')}
+          memberId={urlMemberId}
+          noBleed
+        />
+        <div className={styles.scoresView}>
         <div className={styles.scoresHeader}>
-          <button className={styles.backBtn} onClick={() => setView('home')}>← Back</button>
-          <div className={styles.scoresHero}>
-            <div className={styles.scoresHeroIcon}>🏆</div>
-            <div>
-              <h1 className={styles.scoresTitle}>Your Scores</h1>
-              <p className={styles.scoresMeta}>{totalPlayed} of {ALL_GAMES.length} games played</p>
+          <img
+            src={cognitiveGameTitle}
+            alt="Cognitive Games"
+            className={styles.scoresTitleImg}
+          />
+          <p className={styles.scoresMeta}>{totalPlayed} of {ALL_GAMES.length} games played</p>
+
+          {/* ── Achievement Card ── */}
+          <div className={styles.achievementCard}>
+            <div className={styles.achievementTop}>
+              <span className={styles.achievementIcon}>{achievement.level.icon}</span>
+              <div className={styles.achievementInfo}>
+                <span className={styles.achievementName}>{achievement.level.name}</span>
+                <span className={styles.achievementDesc}>{achievement.level.desc}</span>
+              </div>
+              <span className={styles.achievementScore}>{achievement.score}<small>/100</small></span>
             </div>
+            <div className={styles.achievementStatsRow}>
+              <div className={styles.achievementStat}>
+                <span className={styles.achievementStatVal}>{achievement.played}</span>
+                <span className={styles.achievementStatLabel}>games played</span>
+              </div>
+              <div className={styles.achievementStat}>
+                <span className={styles.achievementStatVal}>{achievement.avgBest}%</span>
+                <span className={styles.achievementStatLabel}>avg best score</span>
+              </div>
+              <div className={styles.achievementStat}>
+                <span className={styles.achievementStatVal}>{achievement.totalPlays}</span>
+                <span className={styles.achievementStatLabel}>total sessions</span>
+              </div>
+            </div>
+            <div className={styles.achievementProgressWrap}>
+              <div
+                className={styles.achievementProgressBar}
+                style={{ width: `${achievement.progressPct}%` }}
+              />
+            </div>
+            {achievement.nextLevel && (
+              <p className={styles.achievementNextLabel}>
+                {achievement.progressPct}% to <strong>{achievement.nextLevel.name}</strong> {achievement.nextLevel.icon}
+              </p>
+            )}
           </div>
-          {musicBtn}
         </div>
 
         {GAME_GROUPS.map(group => (
@@ -490,6 +570,7 @@ export function App() {
             </div>
           </section>
         ))}
+        </div>
       </div>
     );
   }
@@ -497,14 +578,22 @@ export function App() {
   /* ── Games lobby ── */
   if (view === 'games') {
     return (
-      <div className={styles.lobby}>
+      <div className={styles.dailyWrapper}>
+        <TopBar
+          title="Cognitive Games"
+          onBack={() => setView('home')}
+          memberId={urlMemberId}
+          noBleed
+        />
+        <div className={styles.lobby}>
         <header className={styles.lobbyHeader}>
-          <button className={styles.backBtn} onClick={() => setView('home')}>← Back</button>
-          <div className={styles.lobbyIcon} aria-hidden="true">🎮</div>
-          <h1 className={styles.lobbyTitle}>Cognitive Games</h1>
+          <img
+            src={cognitiveGameTitle}
+            alt="Cognitive Games"
+            className={styles.lobbyTitleImg}
+          />
           <hr className={styles.lobbyDivider} />
           <p className={styles.lobbySubtitle}>Browse all {ALL_GAMES.length} games and choose one to play.</p>
-          {musicBtn}
         </header>
 
         <div className={styles.difficultyRow}>
@@ -535,101 +624,145 @@ export function App() {
             </h2>
             <div className={styles.gameGrid} role="list">
               {group.games.map(game => (
-                <div key={game.id} className={styles.gameCard} role="listitem">
-                  <div className={styles.gameIconBox} aria-hidden="true">{game.icon}</div>
+                <button
+                  key={game.id}
+                  className={styles.gameCard}
+                  onClick={() => setSelectedGame(game.id)}
+                  aria-label={`Play ${game.title}`}
+                >
+                  <div className={styles.gameIconBox} aria-hidden="true">
+                    {getGameImage(game.id)
+                      ? <img src={getGameImage(game.id)} alt="" className={styles.gameIconImg} />
+                      : game.icon}
+                  </div>
                   <div className={styles.gameMeta}>
                     <h3 className={styles.gameCardTitle}>{game.title}</h3>
                     <p className={styles.gameCardDesc}>{game.description}</p>
                     <div className={styles.gameCardFooter}>
                       <span className={styles.gameDomain}>{game.domain}</span>
-                      <button
-                        className={styles.playButton}
-                        onClick={() => setSelectedGame(game.id)}
-                        aria-label={`Play ${game.title}`}
-                      >
-                        Play
-                      </button>
+                      <span className={styles.playButton} aria-hidden="true">Play</span>
                     </div>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </section>
         ))}
+        </div>
       </div>
     );
   }
 
   /* ── Home screen (default) ── */
+  const achievement = computeAchievement(getAllScores(), ALL_GAMES.length);
+
   return (
-    <div className={styles.homeScreen}>
-      <div className={styles.homeHeader}>
-        <img
-          src={cognitiveGameTitle}
-          alt="CaritaHub Cognitive Games"
-          className={styles.homeTitle}
-        />
-        <div className={styles.homeAvatar} aria-hidden="true" />
-        <p className={styles.homeGreeting}>Hello, {urlMemberId}! 👋</p>
-        <p className={styles.homeProgressHint}>{getProgressHint(getAllScores(), ALL_GAMES.length)}</p>
-        
-        {musicBtn}
+    <div className={styles.homeWrapper}>
+      <TopBar
+        title=""
+        onBack={null}
+        memberId={urlMemberId}
+        noBleed
+        home
+      />
+      <div className={styles.homeScreen}>
+        <div className={styles.homeHeader}>
+          <img
+            src={cognitiveGameTitle}
+            alt="CaritaHub Cognitive Games"
+            className={styles.homeTitle}
+          />
+          <p className={styles.homeGreeting}>Hello, {urlMemberId}! 👋</p>
+
+          {/* Player Level Status */}
+          <div className={styles.levelCard}>
+            <div className={styles.levelCardTop}>
+              <div className={styles.levelCardLeft}>
+                <span className={styles.levelIcon}>{achievement.level.icon}</span>
+                <div className={styles.levelInfo}>
+                  <span className={styles.levelName}>{achievement.level.name}</span>
+                  <span className={styles.levelSubtitle}>{achievement.level.desc}</span>
+                </div>
+              </div>
+              <div className={styles.levelScore}>
+                <span className={styles.levelScoreNum}>{achievement.score}</span>
+                <span className={styles.levelScoreLabel}>score</span>
+              </div>
+            </div>
+            <div className={styles.levelBarTrack}>
+              <div
+                className={styles.levelBarFill}
+                style={{ width: `${achievement.progressPct}%` }}
+              />
+            </div>
+            <div className={styles.levelBarFooter}>
+              <span className={styles.levelBarNextLabel}>
+                {achievement.nextLevel
+                  ? `Next: ${achievement.nextLevel.name} ${achievement.nextLevel.icon}`
+                  : '🎉 Max level reached!'}
+              </span>
+              <span className={styles.levelBarPct}>
+                {achievement.nextLevel ? `${achievement.progressPct}%` : '100%'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <nav className={styles.homeMenu} aria-label="Main menu">
+
+          <button
+            className={`${styles.menuBtn} ${styles.menuBtnDaily}`}
+            onClick={startDailyChallenge}
+            aria-label="Start Daily Challenge"
+          >
+            <span className={styles.menuBtnIcon}>🧩</span>
+            <span className={styles.menuBtnBody}>
+              <span className={styles.menuBtnTitle}>Daily Challenge</span>
+              <span className={styles.menuBtnDesc}>
+                Play {GAME_GROUPS.length} random games — one from each category. Track your daily progress!
+              </span>
+              <span className={styles.menuBtnFooter}>
+                <span className={styles.menuBtnCta}>Start →</span>
+              </span>
+            </span>
+          </button>
+
+          <button
+            className={`${styles.menuBtn} ${styles.menuBtnGames}`}
+            onClick={() => setView('games')}
+            aria-label="Browse all cognitive games"
+          >
+            <span className={styles.menuBtnIcon}>🎮</span>
+            <span className={styles.menuBtnBody}>
+              <span className={styles.menuBtnTitle}>Browse Games</span>
+              <span className={styles.menuBtnDesc}>
+                Browse all {ALL_GAMES.length} games across {GAME_GROUPS.length} categories and play any game you like.
+              </span>
+              <span className={styles.menuBtnFooter}>
+                <span className={styles.menuBtnCta}>Browse →</span>
+              </span>
+            </span>
+          </button>
+
+          <button
+            className={`${styles.menuBtn} ${styles.menuBtnScores}`}
+            onClick={() => setView('scores')}
+            aria-label="View your scores"
+          >
+            <span className={styles.menuBtnIcon}>🏆</span>
+            <span className={styles.menuBtnBody}>
+              <span className={styles.menuBtnTitle}>Score</span>
+              <span className={styles.menuBtnDesc}>
+                View your best scores, completion times, and performance.
+              </span>
+              <span className={styles.menuBtnFooter}>
+                <span className={styles.menuBtnCta}>View →</span>
+              </span>
+            </span>
+          </button>
+
+        </nav>
       </div>
-
-      <nav className={styles.homeMenu} aria-label="Main menu">
-
-        <button
-          className={`${styles.menuBtn} ${styles.menuBtnDaily}`}
-          onClick={startDailyChallenge}
-          aria-label="Start Daily Challenge"
-        >
-          <span className={styles.menuBtnIcon}>📅</span>
-          <span className={styles.menuBtnBody}>
-            <span className={styles.menuBtnTitle}>Daily Challenge</span>
-            <span className={styles.menuBtnDesc}>
-              Play {GAME_GROUPS.length} random games — one from each category. Track your daily progress!
-            </span>
-            <span className={styles.menuBtnFooter}>
-              <span className={styles.menuBtnCta}>Start →</span>
-            </span>
-          </span>
-        </button>
-
-        <button
-          className={`${styles.menuBtn} ${styles.menuBtnGames}`}
-          onClick={() => setView('games')}
-          aria-label="Browse all cognitive games"
-        >
-          <span className={styles.menuBtnIcon}>🎮</span>
-          <span className={styles.menuBtnBody}>
-            <span className={styles.menuBtnTitle}>Cognitive Games</span>
-            <span className={styles.menuBtnDesc}>
-              Browse all {ALL_GAMES.length} games across {GAME_GROUPS.length} categories and play any game you like.
-            </span>
-            <span className={styles.menuBtnFooter}>
-              <span className={styles.menuBtnCta}>Browse →</span>
-            </span>
-          </span>
-        </button>
-
-        <button
-          className={`${styles.menuBtn} ${styles.menuBtnScores}`}
-          onClick={() => setView('scores')}
-          aria-label="View your scores"
-        >
-          <span className={styles.menuBtnIcon}>🏆</span>
-          <span className={styles.menuBtnBody}>
-            <span className={styles.menuBtnTitle}>Score</span>
-            <span className={styles.menuBtnDesc}>
-              View your best scores, completion times, and performance for every game you've played.
-            </span>
-            <span className={styles.menuBtnFooter}>
-              <span className={styles.menuBtnCta}>View →</span>
-            </span>
-          </span>
-        </button>
-
-      </nav>
     </div>
   );
 }

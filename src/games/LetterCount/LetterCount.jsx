@@ -128,7 +128,7 @@ function LetterCountGame({ difficulty, onComplete, reportScore, secondsLeft, pla
           if (feedback && opt === puzzle.answer)       cls = `${styles.optBtn} ${styles.optCorrect}`;
           else if (feedback === 'wrong' && opt === picked) cls = `${styles.optBtn} ${styles.optWrong}`;
           return (
-            <button key={i} className={cls} onClick={() => handlePick(opt)} disabled={!!feedback} aria-label={String(opt)}>
+            <button key={i} className={cls} style={{ '--idx': i }} onClick={() => handlePick(opt)} disabled={!!feedback} aria-label={String(opt)}>
               {opt}
             </button>
           );
@@ -153,7 +153,7 @@ LetterCountGame.propTypes = {
 
 export function LetterCount({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const fireCallback = useGameCallback({ memberId, gameId: 'letter-count', callbackUrl, onComplete });
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'letter-count', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="letter-count"

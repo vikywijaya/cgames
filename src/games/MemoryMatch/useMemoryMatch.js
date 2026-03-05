@@ -64,11 +64,16 @@ export function useMemoryMatch(difficulty = 'easy') {
             setLockBoard(false);
           }, 600);
         } else {
-          // No match — flip back after delay
+          // No match — briefly flag as mismatched then flip back
+          setCardState((prev) =>
+            prev.map((c, i) =>
+              i === a || i === b ? { ...c, isMismatched: true } : c
+            )
+          );
           setTimeout(() => {
             setCardState((prev) =>
               prev.map((c, i) =>
-                i === a || i === b ? { ...c, isFlipped: false } : c
+                i === a || i === b ? { ...c, isFlipped: false, isMismatched: false } : c
               )
             );
             setFlippedIndices([]);
