@@ -124,13 +124,15 @@ function generatePuzzle(rows, cols, numColors) {
       const [sr, sc] = sfree[0];
 
       // Pick an end point that is at least half the grid away (Manhattan)
-      const minDist = Math.floor((rows + cols) / 2);
+      // Prefer far endpoints but fall back to any cell if none qualify
+      const minDist = Math.max(2, Math.floor((rows + cols) / 3));
       const farCells = sfree.slice(1).filter(
         ([r, c]) => Math.abs(r - sr) + Math.abs(c - sc) >= minDist
       );
-      if (!farCells.length) continue;
+      const candidates = farCells.length ? farCells : sfree.slice(1);
+      if (!candidates.length) continue;
 
-      const [er, ec] = farCells[Math.floor(Math.random() * farCells.length)];
+      const [er, ec] = candidates[Math.floor(Math.random() * candidates.length)];
 
       // Reserve endpoints, find path through remaining free cells
       occupied.add(`${sr},${sc}`);
@@ -300,7 +302,7 @@ function TileSVG({ cell, connectedColor }) {
   }
 
   return (
-    <svg viewBox={`0 0 ${VB} ${VB}`} width="100%" height="100%" style={{ display: 'block' }}>
+    <svg viewBox={`0 0 ${VB} ${VB}`} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }}>
       {/* Pipe */}
       <path
         d={pathD}
@@ -424,7 +426,12 @@ function PipeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick,
       {/* The grid */}
       <div
         className={`${styles.grid} ${won ? styles.gridWon : ''}`}
-        style={{ gridTemplateColumns: `repeat(${config.cols}, 1fr)` }}
+        style={{
+          gridTemplateColumns: `repeat(${config.cols}, 1fr)`,
+          gridTemplateRows:    `repeat(${config.rows}, 1fr)`,
+          // Explicit height so rows have a definite size for SVG height:100% to resolve
+          height: `min(360px, calc(100vw - 40px))`,
+        }}
         role="grid"
         aria-label="Pipe puzzle grid"
       >

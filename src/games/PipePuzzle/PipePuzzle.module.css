@@ -43,9 +43,8 @@
   padding: 8px;
   background: #c2cfe0;
   border-radius: 20px;
-  /* Constrain to fit the screen */
+  /* width set here; height + template rows set inline so rows have definite size */
   width: min(360px, calc(100vw - 40px));
-  aspect-ratio: 1; /* square grid overall */
   transition: box-shadow 0.3s;
 }
 
@@ -55,16 +54,14 @@
 
 /* ── Tile ─────────────────────────────────────────── */
 .tile {
-  position: relative;
+  position: relative;  /* SVG child uses position:absolute inset:0 */
   border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: 1;
+  overflow: hidden;
   cursor: pointer;
   transition: background 0.12s, transform 0.1s;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  /* Size comes entirely from grid template — no aspect-ratio needed */
 }
 
 .tilePipe {
