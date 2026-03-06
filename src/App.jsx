@@ -620,13 +620,13 @@ export function App() {
             className={styles.lobbyTitleImg}
           />
           <hr className={styles.lobbyDivider} />
-          <p className={styles.lobbySubtitle}>Browse all {ALL_GAMES.length} games and choose one to play.</p>
         </header>
 
         <div className={styles.categoryRow} role="radiogroup" aria-label="Filter by category">
           {['All', ...GAME_GROUPS.map(g => g.category)].map(cat => {
             const group = GAME_GROUPS.find(g => g.category === cat);
             const shortLabel = { 'Attention & Reflexes': 'Reflexes', 'Numbers & Logic': 'Numbers', 'Visual & Spatial': 'Visual', 'General Knowledge': 'Knowledge' }[cat] ?? cat;
+            const count = cat === 'All' ? ALL_GAMES.length : group?.games.length;
             return (
               <label
                 key={cat}
@@ -640,7 +640,7 @@ export function App() {
                   checked={selectedCategory === cat}
                   onChange={() => setSelectedCategory(cat)}
                 />
-                {group ? <span aria-hidden="true">{group.icon}</span> : null} {shortLabel}
+                {group ? <span aria-hidden="true">{group.icon}</span> : null} {shortLabel} <span className={styles.categoryCount}>{count}</span>
               </label>
             );
           })}
