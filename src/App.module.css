@@ -911,49 +911,39 @@
   line-height: 1.6;
 }
 
-/* ── Difficulty Selector ──────────────────────────── */
-.difficultyRow {
+/* ── Category Filter ─────────────────────────────── */
+.categoryRow {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-2);
   justify-content: center;
   flex-wrap: wrap;
 }
 
-.difficultyLabel {
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text);
-}
-
-/* Radio pill group */
-.difficultyRadioGroup {
-  display: flex;
-  gap: var(--space-2);
-}
-
-.difficultyRadio {
+.categoryPill {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: var(--space-1);
   min-height: 44px;
-  padding: 0 var(--space-5);
-  border: 2px solid var(--color-border);
+  padding: 0 var(--space-4);
+  border: none;
   border-radius: var(--radius-full);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   font-weight: var(--font-weight-bold);
   font-family: var(--font-base);
   color: var(--color-text-muted);
   background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   cursor: pointer;
-  transition: border-color var(--transition-fast), background var(--transition-fast),
-    color var(--transition-fast);
+  transition: box-shadow var(--transition-fast), background var(--transition-fast),
+    color var(--transition-fast), transform var(--transition-fast);
   user-select: none;
 }
 
 /* Hide the native radio input visually but keep it accessible */
-.difficultyRadio input[type="radio"] {
+.categoryPill input[type="radio"] {
   position: absolute;
   opacity: 0;
   width: 0;
@@ -961,20 +951,20 @@
   pointer-events: none;
 }
 
-.difficultyRadio:hover {
-  border-color: var(--color-primary);
+.categoryPill:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   color: var(--color-primary);
+  transform: translateY(-1px);
 }
 
-.difficultyRadioActive {
+.categoryPillActive {
   background: var(--color-primary);
-  border-color: var(--color-primary);
   color: #ffffff;
+  box-shadow: 0 4px 16px rgba(17, 85, 204, 0.3);
 }
 
-.difficultyRadioActive:hover {
+.categoryPillActive:hover {
   background: var(--color-primary-dk);
-  border-color: var(--color-primary-dk);
   color: #ffffff;
 }
 

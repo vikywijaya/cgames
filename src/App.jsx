@@ -240,6 +240,7 @@ export function App() {
   const [view,               setView]               = useState('home');
   const [selectedGame,       setSelectedGame]       = useState(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
+  const [selectedCategory,   setSelectedCategory]   = useState('All');
   // dailyChallenge: { games: Array, index: number, scores: { gameId: pct }, lastPct: number|null }
   const [dailyChallenge,     setDailyChallenge]     = useState(null);
 
@@ -622,28 +623,30 @@ export function App() {
           <p className={styles.lobbySubtitle}>Browse all {ALL_GAMES.length} games and choose one to play.</p>
         </header>
 
-        <div className={styles.difficultyRow}>
-          <span className={styles.difficultyLabel}>Difficulty</span>
-          <div className={styles.difficultyRadioGroup} role="radiogroup" aria-label="Select difficulty">
-            {['easy', 'medium', 'hard'].map(level => (
+        <div className={styles.categoryRow} role="radiogroup" aria-label="Filter by category">
+          {['All', ...GAME_GROUPS.map(g => g.category)].map(cat => {
+            const group = GAME_GROUPS.find(g => g.category === cat);
+            return (
               <label
-                key={level}
-                className={`${styles.difficultyRadio} ${selectedDifficulty === level ? styles.difficultyRadioActive : ''}`}
+                key={cat}
+                className={`${styles.categoryPill} ${selectedCategory === cat ? styles.categoryPillActive : ''}`}
               >
                 <input
                   type="radio"
-                  name="difficulty"
-                  value={level}
-                  checked={selectedDifficulty === level}
-                  onChange={() => setSelectedDifficulty(level)}
+                  name="category"
+                  value={cat}
+                  checked={selectedCategory === cat}
+                  onChange={() => setSelectedCategory(cat)}
                 />
-                {level.charAt(0).toUpperCase() + level.slice(1)}
+                {group ? <span aria-hidden="true">{group.icon}</span> : null} {cat}
               </label>
-            ))}
-          </div>
+            );
+          })}
         </div>
 
-        {GAME_GROUPS.map(group => (
+        {GAME_GROUPS
+          .filter(group => selectedCategory === 'All' || group.category === selectedCategory)
+          .map(group => (
           <section key={group.category} className={styles.gameSection} aria-label={group.category}>
             <h2 className={styles.sectionTitle}>
               <span aria-hidden="true">{group.icon}</span> {group.category}
