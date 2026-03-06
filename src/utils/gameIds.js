@@ -6,6 +6,7 @@ export const GAME_IDS = {
   WORD_SEARCH: 'word-search',
   SUMIX: 'sumix',
   BLOCK_PUZZLE: 'block-puzzle',
+  RING_SORT: 'ring-sort',
 };
 
 export const GAME_TITLES = {
@@ -16,4 +17,5 @@ export const GAME_TITLES = {
   [GAME_IDS.WORD_SEARCH]: 'Word Search',
   [GAME_IDS.SUMIX]: 'Sumix',
   [GAME_IDS.BLOCK_PUZZLE]: 'Blocks',
+  [GAME_IDS.RING_SORT]: 'Rings',
 };

@@ -29,6 +29,7 @@ import { Lumeno }           from './games/Lumeno/Lumeno';
 import { PipePuzzle }       from './games/PipePuzzle/PipePuzzle';
 import { Sumix }            from './games/Sumix/Sumix';
 import { BlockPuzzle }      from './games/BlockPuzzle/BlockPuzzle';
+import { RingSort }         from './games/RingSort/RingSort';
 import { saveScore, getAllScores } from './utils/scoreStore';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import { TopBar } from './components/TopBar/TopBar.jsx';
@@ -71,6 +72,7 @@ const GAME_MAP = {
   'pipe-puzzle':       PipePuzzle,
   'sumix':             Sumix,
   'block-puzzle':      BlockPuzzle,
+  'ring-sort':         RingSort,
 };
 
 // Games grouped by cognitive category
@@ -139,6 +141,7 @@ const GAME_GROUPS = [
       { id: 'lumeno',      title: 'Lumeno',       icon: '🔮', domain: 'Visual Pattern',  description: 'Drag through 3 or more same-colour orbs to clear them. Longer chains score more!' },
       { id: 'pipe-puzzle',   title: 'Pipe Puzzle',  icon: '🔧', domain: 'Spatial Reasoning', description: 'Rotate tiles to connect the same-coloured dots with an unbroken pipe.' },
       { id: 'block-puzzle',  title: 'Blocks',       icon: '🟧', domain: 'Spatial Reasoning', description: 'Place block pieces on the board to fill every empty cell.' },
+      { id: 'ring-sort',     title: 'Rings',        icon: '🔴', domain: 'Logic & Sorting',  description: 'Sort the coloured rings so each rod has only one colour.' },
     ],
   },
 ];
