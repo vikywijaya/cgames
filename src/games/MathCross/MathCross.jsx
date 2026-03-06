@@ -418,16 +418,33 @@ function MathCrossGame({ difficulty, onComplete, reportScore, secondsLeft, playC
     setSelectedTray(prev => prev === idx ? null : idx);
   }, [solved, usedTray, selectedSlot, playClick, placeNumber]);
 
+  // Contextual hint for seniors
+  const slotsLeft = puzzle.slotPositions.length - Object.keys(placed).length;
+  const hintText = solved
+    ? 'Solved!'
+    : selectedTray != null
+    ? 'Now tap an empty slot on the grid'
+    : selectedSlot != null
+    ? 'Now pick a number below'
+    : slotsLeft === puzzle.slotPositions.length
+    ? 'Tap a number below, then tap an empty slot'
+    : `${slotsLeft} slot${slotsLeft !== 1 ? 's' : ''} remaining`;
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.meta}>
         <span className={styles.roundLabel}>Puzzle <strong>{round + 1}</strong> / {rounds}</span>
       </div>
 
+      {/* Contextual hint */}
+      <div className={styles.hint} aria-live="polite">{hintText}</div>
+
       {/* Grid */}
       <div
         className={`${styles.grid} ${solved ? styles.gridSolved : ''}`}
-        style={{ gridTemplateColumns: `repeat(${puzzle.cols}, 44px)` }}
+        style={{ gridTemplateColumns: `repeat(${puzzle.cols}, 54px)` }}
+        role="grid"
+        aria-label="Math cross puzzle grid"
       >
         {Array.from({ length: puzzle.rows }, (_, r) =>
           Array.from({ length: puzzle.cols }, (_, c) => {
@@ -438,14 +455,14 @@ function MathCrossGame({ difficulty, onComplete, reportScore, secondsLeft, playC
             }
             if (cell.type === 'op') {
               return (
-                <div key={key} className={`${styles.cell} ${styles.cellOp}`}>
+                <div key={key} className={`${styles.cell} ${styles.cellOp}`} aria-label={cell.value === 'x' ? 'times' : cell.value === '=' ? 'equals' : cell.value === '+' ? 'plus' : 'minus'}>
                   {cell.value}
                 </div>
               );
             }
             if (cell.type === 'number') {
               return (
-                <div key={key} className={`${styles.cell} ${solved ? styles.cellCorrect : styles.cellGiven}`}>
+                <div key={key} className={`${styles.cell} ${solved ? styles.cellCorrect : styles.cellGiven}`} aria-label={`${cell.value}`}>
                   {cell.value}
                 </div>
               );
@@ -479,8 +496,11 @@ function MathCrossGame({ difficulty, onComplete, reportScore, secondsLeft, playC
         )}
       </div>
 
+      {/* Tray label */}
+      <div className={styles.trayLabel}>Available Numbers</div>
+
       {/* Number tray */}
-      <div className={styles.tray}>
+      <div className={styles.tray} role="group" aria-label="Available numbers to place">
         {puzzle.trayValues.map((val, idx) => {
           const used = usedTray.has(idx);
           const selected = selectedTray === idx;
