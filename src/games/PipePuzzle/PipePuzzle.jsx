@@ -134,18 +134,18 @@ function generatePuzzle(rows, cols, numColors) {
 
       const [er, ec] = candidates[Math.floor(Math.random() * candidates.length)];
 
-      // Reserve endpoints, find path through remaining free cells
+      // Block the start cell so the path can't loop back through it.
+      // Do NOT block the end cell yet — the DFS must be able to reach it.
       occupied.add(`${sr},${sc}`);
-      occupied.add(`${er},${ec}`);
 
       const path = randomPath(sr, sc, er, ec, rows, cols, occupied);
       if (!path) {
         occupied.delete(`${sr},${sc}`);
-        occupied.delete(`${er},${ec}`);
         continue;
       }
 
-      // Reserve mid-path cells
+      // Mark all path cells (including the end endpoint) as occupied
+      occupied.add(`${er},${ec}`);
       for (let i = 1; i < path.length - 1; i++) {
         occupied.add(`${path[i][0]},${path[i][1]}`);
       }
