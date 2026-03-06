@@ -626,10 +626,12 @@ export function App() {
         <div className={styles.categoryRow} role="radiogroup" aria-label="Filter by category">
           {['All', ...GAME_GROUPS.map(g => g.category)].map(cat => {
             const group = GAME_GROUPS.find(g => g.category === cat);
+            const shortLabel = { 'Attention & Reflexes': 'Reflexes', 'Numbers & Logic': 'Numbers', 'Visual & Spatial': 'Visual', 'General Knowledge': 'Knowledge' }[cat] ?? cat;
             return (
               <label
                 key={cat}
                 className={`${styles.categoryPill} ${selectedCategory === cat ? styles.categoryPillActive : ''}`}
+                title={cat}
               >
                 <input
                   type="radio"
@@ -638,7 +640,7 @@ export function App() {
                   checked={selectedCategory === cat}
                   onChange={() => setSelectedCategory(cat)}
                 />
-                {group ? <span aria-hidden="true">{group.icon}</span> : null} {cat}
+                {group ? <span aria-hidden="true">{group.icon}</span> : null} {shortLabel}
               </label>
             );
           })}
