@@ -27,6 +27,7 @@ import { SnakeLite }        from './games/SnakeLite/SnakeLite';
 import { TileFlip }         from './games/TileFlip/TileFlip';
 import { Lumeno }           from './games/Lumeno/Lumeno';
 import { PipePuzzle }       from './games/PipePuzzle/PipePuzzle';
+import { Sumix }            from './games/Sumix/Sumix';
 import { saveScore, getAllScores } from './utils/scoreStore';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import { TopBar } from './components/TopBar/TopBar.jsx';
@@ -67,6 +68,7 @@ const GAME_MAP = {
   'tile-flip':         TileFlip,
   'lumeno':            Lumeno,
   'pipe-puzzle':       PipePuzzle,
+  'sumix':             Sumix,
 };
 
 // Games grouped by cognitive category
@@ -101,6 +103,7 @@ const GAME_GROUPS = [
       { id: 'number-sort',      title: 'Number Sort',      icon: '🔢', domain: 'Numeric Ordering',    description: 'Tap numbers from smallest to largest.' },
       { id: 'missing-number',   title: 'Missing Number',   icon: '❓', domain: 'Pattern Recognition', description: 'Find the missing number in an arithmetic sequence.' },
       { id: 'quick-maths',      title: 'Quick Maths',      icon: '➕', domain: 'Mental Arithmetic',   description: 'Solve addition, subtraction and multiplication problems fast.' },
+      { id: 'sumix',             title: 'Sumix',            icon: '🧮', domain: 'Numeric Logic',      description: 'Activate numbers so each row and column sums to its target.' },
     ],
   },
   {
