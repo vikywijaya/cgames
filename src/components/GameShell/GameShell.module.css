@@ -161,10 +161,11 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
-  background-color: var(--color-surface-card);   /* #efefef */
-  border: none;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1.5px solid #e2e8f0;
   border-radius: var(--radius-xl);
   margin-bottom: var(--space-4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .hudBack {
@@ -205,13 +206,40 @@
 .hudMusic:hover { border-color: var(--color-primary); box-shadow: var(--shadow-md); }
 .hudMusic:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 
-/* Score — Primary Blue */
-.hudScore { flex: 1; font-size: var(--text-md); font-weight: var(--font-weight-bold); color: var(--color-primary); }
-.hudScoreLabel { font-size: var(--text-xs); color: var(--color-text-muted); font-weight: var(--font-weight-light); }
+/* Score pill — Primary Blue with icon */
+.hudScore {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  font-size: var(--text-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+.hudScoreLabel {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-regular);
+}
 
-.hudTimer { display: flex; align-items: center; gap: var(--space-2); flex-shrink: 0; }
+/* Timer pill */
+.hudTimer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+  background: #f1f5f9;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+}
 .hudTimerLabel { font-size: var(--text-xs); color: var(--color-text-muted); }
-.hudTimerValue { font-size: var(--text-md); font-weight: var(--font-weight-bold); font-variant-numeric: tabular-nums; min-width: 3ch; text-align: right; }
+.hudTimerValue {
+  font-size: var(--text-md);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  min-width: 3ch;
+  text-align: right;
+}
 .hudTimerUrgent { color: var(--color-error); }
 .hudTimerNormal { color: var(--color-text); }
 
