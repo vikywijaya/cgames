@@ -11,14 +11,13 @@ const RING_COLORS = [
   { bg: '#60a5fa', name: 'blue' },
   { bg: '#c084fc', name: 'purple' },
   { bg: '#f9a8d4', name: 'pink' },
-  { bg: '#a78bfa', name: 'violet' },
   { bg: '#2dd4bf', name: 'teal' },
   { bg: '#fb923c', name: 'orange' },
   { bg: '#d4a574', name: 'brown' },
 ];
 
-/* Ring widths for visual variety (wider at bottom, narrower at top) */
-const RING_WIDTHS = [60, 52, 44, 38];
+/* Ring widths: wider at the bottom (index 0), narrower at the top */
+const RING_WIDTHS = [62, 54, 46, 38, 32];
 
 const DIFFICULTY_CONFIG = {
   easy:   { numColors: 3, ringsPerColor: 3, extraRods: 1, rounds: 4, timeLimitSeconds: null },
@@ -35,34 +34,22 @@ function shuffle(arr) {
   return a;
 }
 
-/**
- * Generate a ring sort puzzle.
- * Creates rods with mixed rings plus some empty rods.
- */
 function generatePuzzle(numColors, ringsPerColor, extraRods) {
   const colors = shuffle(RING_COLORS).slice(0, numColors);
 
-  // Create all rings: each color appears ringsPerColor times
   const allRings = [];
   for (const color of colors) {
-    for (let i = 0; i < ringsPerColor; i++) {
-      allRings.push(color);
-    }
+    for (let i = 0; i < ringsPerColor; i++) allRings.push(color);
   }
 
   const shuffled = shuffle(allRings);
   const totalRods = numColors + extraRods;
-
-  // Distribute rings across color rods (not the extra ones)
   const rods = Array.from({ length: totalRods }, () => []);
   let idx = 0;
   for (let r = 0; r < numColors; r++) {
-    for (let i = 0; i < ringsPerColor; i++) {
-      rods[r].push(shuffled[idx++]);
-    }
+    for (let i = 0; i < ringsPerColor; i++) rods[r].push(shuffled[idx++]);
   }
 
-  // Ensure puzzle isn't already solved
   const alreadySolved = rods.every(rod =>
     rod.length === 0 || rod.every(ring => ring.name === rod[0].name)
   );
@@ -71,7 +58,7 @@ function generatePuzzle(numColors, ringsPerColor, extraRods) {
   return { rods, numColors, ringsPerColor, totalRods };
 }
 
-function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail, playPop, playBoing }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { numColors, ringsPerColor, extraRods, rounds } = config;
 
@@ -83,24 +70,21 @@ function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
   const [moves, setMoves] = useState(0);
   const [solved, setSolved] = useState(false);
   const [justMovedRod, setJustMovedRod] = useState(null);
+  const [shakingRod, setShakingRod] = useState(null);
 
   useEffect(() => {
     if (secondsLeft === 0) onComplete({ finalScore: score, maxScore: rounds, completed: false });
   }, [secondsLeft, score, rounds, onComplete]);
 
-  // Check if all rods are sorted
-  const isSolved = useMemo(() => {
-    return rods.every(rod =>
+  const isSolved = useMemo(() =>
+    rods.every(rod =>
       rod.length === 0 || (rod.length === ringsPerColor && rod.every(ring => ring.name === rod[0].name))
-    );
-  }, [rods, ringsPerColor]);
+    ),
+  [rods, ringsPerColor]);
 
-  // Check which rods are complete
-  const rodComplete = useMemo(() => {
-    return rods.map(rod =>
-      rod.length === ringsPerColor && rod.every(ring => ring.name === rod[0].name)
-    );
-  }, [rods, ringsPerColor]);
+  const rodComplete = useMemo(() =>
+    rods.map(rod => rod.length === ringsPerColor && rod.every(ring => ring.name === rod[0].name)),
+  [rods, ringsPerColor]);
 
   useEffect(() => {
     if (!isSolved || solved) return;
@@ -128,11 +112,15 @@ function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
     return () => clearTimeout(timer);
   }, [isSolved, solved, score, round, rounds, numColors, ringsPerColor, extraRods, onComplete, reportScore, playSuccess]);
 
+  const triggerShake = useCallback((rodIdx) => {
+    setShakingRod(rodIdx);
+    setTimeout(() => setShakingRod(null), 320);
+  }, []);
+
   const handleRodClick = useCallback((rodIdx) => {
     if (solved) return;
 
     if (selectedRod === null) {
-      // Select a rod (must have rings)
       if (rods[rodIdx].length === 0) return;
       playClick();
       setSelectedRod(rodIdx);
@@ -140,24 +128,22 @@ function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
     }
 
     if (selectedRod === rodIdx) {
-      // Deselect
       playClick();
       setSelectedRod(null);
       return;
     }
 
-    // Move top ring from selectedRod to rodIdx
-    const sourceRod = rods[selectedRod];
     const targetRod = rods[rodIdx];
 
-    // Can only place on empty rod or rod with same color on top
-    if (targetRod.length > 0 && targetRod.length >= ringsPerColor) {
-      playFail();
+    // Target rod is full
+    if (targetRod.length >= ringsPerColor) {
+      playBoing();
+      triggerShake(rodIdx);
       setSelectedRod(null);
       return;
     }
 
-    playClick();
+    playPop();
     const newRods = rods.map(r => [...r]);
     const ring = newRods[selectedRod].pop();
     newRods[rodIdx].push(ring);
@@ -165,8 +151,8 @@ function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
     setMoves(m => m + 1);
     setSelectedRod(null);
     setJustMovedRod(rodIdx);
-    setTimeout(() => setJustMovedRod(null), 250);
-  }, [solved, selectedRod, rods, ringsPerColor, playClick, playFail]);
+    setTimeout(() => setJustMovedRod(null), 280);
+  }, [solved, selectedRod, rods, ringsPerColor, playClick, playPop, playBoing, triggerShake]);
 
   return (
     <div className={styles.wrapper}>
@@ -179,10 +165,12 @@ function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
         {rods.map((rod, rodIdx) => {
           const isSelected = selectedRod === rodIdx;
           const isComplete = rodComplete[rodIdx];
+          const isShaking = shakingRod === rodIdx;
 
           let rodClass = styles.rod;
           if (isSelected) rodClass += ` ${styles.rodSelected}`;
           if (isComplete) rodClass += ` ${styles.rodSolved}`;
+          if (isShaking) rodClass += ` ${styles.rodShake}`;
 
           return (
             <button
@@ -192,28 +180,33 @@ function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
               disabled={solved}
               aria-label={`Rod ${rodIdx + 1}, ${rod.length} ring${rod.length !== 1 ? 's' : ''}${isComplete ? ', sorted' : ''}${isSelected ? ', selected' : ''}`}
             >
-              <div className={styles.peg} />
-              <div className={styles.ringStack}>
-                {rod.map((ring, ringIdx) => {
-                  const isTop = ringIdx === rod.length - 1;
-                  const width = RING_WIDTHS[Math.min(ringIdx, RING_WIDTHS.length - 1)];
-                  const lifted = isSelected && isTop;
-                  const justMoved = justMovedRod === rodIdx && isTop;
+              {/* Fixed-height body: peg runs full height, rings stack from bottom */}
+              <div className={styles.rodBody}>
+                <div className={styles.pegStick} />
+                <div className={styles.ringStack}>
+                  {rod.map((ring, ringIdx) => {
+                    const isTop = ringIdx === rod.length - 1;
+                    const width = RING_WIDTHS[Math.min(ringIdx, RING_WIDTHS.length - 1)];
+                    const lifted = isSelected && isTop;
+                    const justMoved = justMovedRod === rodIdx && isTop;
 
-                  let ringClass = styles.ring;
-                  if (lifted) ringClass += ` ${styles.ringLifted}`;
-                  if (justMoved) ringClass += ` ${styles.ringJustMoved}`;
+                    let ringClass = styles.ring;
+                    if (lifted) ringClass += ` ${styles.ringLifted}`;
+                    if (justMoved) ringClass += ` ${styles.ringJustMoved}`;
 
-                  return (
-                    <div
-                      key={ringIdx}
-                      className={ringClass}
-                      style={{ width, background: ring.bg }}
-                      aria-label={`${ring.name} ring`}
-                    />
-                  );
-                })}
+                    return (
+                      <div
+                        key={ringIdx}
+                        className={ringClass}
+                        style={{ width, background: ring.bg }}
+                        aria-label={`${ring.name} ring`}
+                      />
+                    );
+                  })}
+                </div>
               </div>
+
+              {/* Wooden base platform */}
               <div className={styles.base} />
             </button>
           );
@@ -231,6 +224,8 @@ RingSortGame.propTypes = {
   playClick:   PropTypes.func.isRequired,
   playSuccess: PropTypes.func.isRequired,
   playFail:    PropTypes.func.isRequired,
+  playPop:     PropTypes.func.isRequired,
+  playBoing:   PropTypes.func.isRequired,
 };
 
 export function RingSort({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -248,8 +243,18 @@ export function RingSort({ memberId, difficulty = 'easy', onComplete, callbackUr
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
-        <RingSortGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
+      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail, playPop, playBoing }) => (
+        <RingSortGame
+          difficulty={difficulty}
+          onComplete={sc}
+          reportScore={reportScore}
+          secondsLeft={secondsLeft}
+          playClick={playClick}
+          playSuccess={playSuccess}
+          playFail={playFail}
+          playPop={playPop}
+          playBoing={playBoing}
+        />
       )}
     </GameShell>
   );
