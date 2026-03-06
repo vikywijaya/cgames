@@ -175,10 +175,47 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
     return { cells, valid };
   }, [selectedPiece, hoverCell, puzzle, boardState]);
 
+  // Remove a placed piece from the board, returning it to the tray
+  const removePiece = useCallback((pieceIdx) => {
+    if (solved) return;
+    playClick();
+    const newBoard = boardState.map(row => [...row]);
+    for (let r = 0; r < puzzle.gridSize; r++) {
+      for (let c = 0; c < puzzle.gridSize; c++) {
+        if (newBoard[r][c] === pieceIdx) newBoard[r][c] = null;
+      }
+    }
+    setBoardState(newBoard);
+    setPiecesUsed(prev => {
+      const next = new Set(prev);
+      next.delete(pieceIdx);
+      return next;
+    });
+    setSelectedPiece(pieceIdx);
+  }, [solved, boardState, puzzle.gridSize, playClick]);
+
+  // Clear all placed pieces
+  const clearAll = useCallback(() => {
+    if (solved) return;
+    playClick();
+    setBoardState(initBoard(puzzle));
+    setPiecesUsed(new Set());
+    setSelectedPiece(null);
+    setHoverCell(null);
+  }, [solved, puzzle, playClick]);
+
   const handleCellClick = useCallback((r, c) => {
     if (solved) return;
+
+    const state = boardState[r][c];
+    // If tapping a filled cell, remove that piece
+    if (state !== null && state !== 'inactive') {
+      removePiece(state);
+      return;
+    }
+
     if (selectedPiece == null) return;
-    if (boardState[r][c] !== null) return;
+    if (state !== null) return;
 
     const piece = puzzle.pieces[selectedPiece];
     const minR = Math.min(...piece.shape.map(([dr]) => dr));
@@ -209,7 +246,7 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
 
     // Clear animation after delay
     setTimeout(() => setJustPlaced(new Set()), 300);
-  }, [solved, selectedPiece, puzzle, boardState, playClick, playFail]);
+  }, [solved, selectedPiece, puzzle, boardState, playClick, playFail, removePiece]);
 
   const handlePieceClick = useCallback((idx) => {
     if (solved || piecesUsed.has(idx)) return;
@@ -273,7 +310,7 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
                     ? { background: previewColor }
                     : undefined
                 }
-                onClick={() => !isInactive && !isFilled && handleCellClick(r, c)}
+                onClick={() => !isInactive && handleCellClick(r, c)}
                 onMouseEnter={() => !isInactive && !isFilled && setHoverCell([r, c])}
                 onMouseLeave={() => setHoverCell(null)}
                 disabled={isInactive || solved}
@@ -281,7 +318,7 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
                   isInactive
                     ? 'Inactive cell'
                     : isFilled
-                    ? 'Filled cell'
+                    ? `Placed piece, tap to remove`
                     : `Empty cell row ${r + 1} column ${c + 1}`
                 }
               />
@@ -289,6 +326,13 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
           })
         )}
       </div>
+
+      {/* Clear button */}
+      {piecesUsed.size > 0 && !solved && (
+        <button className={styles.clearBtn} onClick={clearAll} aria-label="Remove all placed pieces">
+          Clear All
+        </button>
+      )}
 
       {/* Pieces tray */}
       <div className={styles.pieceTray}>
@@ -350,7 +394,7 @@ export function BlockPuzzle({ memberId, difficulty = 'easy', onComplete, callbac
     <GameShell
       gameId="block-puzzle"
       title="Blocks"
-      instructions="Place the block pieces on the board until you complete the puzzle. Tap a piece to select it, then tap an empty cell on the board to place it. Fill all the empty cells to solve the puzzle!"
+      instructions="Place the block pieces on the board until you complete the puzzle. Tap a piece to select it, then tap an empty cell on the board to place it. Tap a placed piece on the board to remove it. Fill all the empty cells to solve the puzzle!"
       difficulty={difficulty}
       timeLimitSeconds={config.timeLimitSeconds}
       onGameComplete={fireCallback}

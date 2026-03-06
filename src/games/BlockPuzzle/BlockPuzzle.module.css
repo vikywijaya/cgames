@@ -64,8 +64,12 @@
 }
 
 .cellFilled {
-  cursor: default;
+  cursor: pointer;
   border: 2px solid rgba(0, 0, 0, 0.08);
+}
+.cellFilled:hover {
+  opacity: 0.75;
+  transform: scale(1.05);
 }
 
 .cellPreview {
@@ -76,6 +80,24 @@
 .cellPreviewInvalid {
   background: #fca5a5 !important;
   opacity: 0.5;
+}
+
+/* ── Clear button ── */
+.clearBtn {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.clearBtn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
 }
 
 /* ── Pieces tray ── */
