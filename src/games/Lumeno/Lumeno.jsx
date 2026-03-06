@@ -225,6 +225,8 @@ LumenoGame.propTypes = {
 };
 
 /* ── Public export ───────────────────────────────────── */
+const TIME_LIMITS = { easy: null, medium: null, hard: null };
+
 export function Lumeno({ memberId, difficulty = 'easy', callbackUrl, onComplete, onBack }) {
   const { fireComplete } = useGameCallback({ memberId, gameId: 'lumeno', callbackUrl, onComplete });
   const cfg = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
@@ -235,16 +237,16 @@ export function Lumeno({ memberId, difficulty = 'easy', callbackUrl, onComplete,
       title="Lumeno"
       instructions="Drag through 3 or more orbs of the same colour to clear them. You can connect in any direction, including diagonally. The longer the chain, the more points you score. You have a limited number of moves — use them wisely!"
       difficulty={difficulty}
-      timeLimitSeconds={null}
+      timeLimits={TIME_LIMITS}
       onGameComplete={fireComplete}
       onBack={onBack}
     >
-      {(props) => (
+      {({ difficulty: diff, onComplete: shellComplete, ...rest }) => (
         <LumenoGame
-          key={difficulty}
-          difficulty={difficulty}
-          {...props}
-          onComplete={(r) => props.onComplete({ ...r, maxScore: cfg.moves * 16 })}
+          key={diff}
+          difficulty={diff}
+          {...rest}
+          onComplete={(r) => shellComplete({ ...r, maxScore: cfg.moves * 16 })}
         />
       )}
     </GameShell>

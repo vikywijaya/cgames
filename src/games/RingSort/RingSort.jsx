@@ -25,6 +25,8 @@ const DIFFICULTY_CONFIG = {
   hard:   { numColors: 5, ringsPerColor: 4, extraRods: 2, rounds: 6, timeLimitSeconds: 120  },
 };
 
+const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
+
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -229,7 +231,6 @@ RingSortGame.propTypes = {
 };
 
 export function RingSort({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
-  const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'ring-sort', callbackUrl, onComplete });
   return (
     <GameShell
@@ -237,15 +238,15 @@ export function RingSort({ memberId, difficulty = 'easy', onComplete, callbackUr
       title="Rings"
       instructions="Place the rings of the same colour on each rod. Tap a rod to pick up the top ring, then tap another rod to place it. Sort all the rings by colour to complete the puzzle!"
       difficulty={difficulty}
-      timeLimitSeconds={config.timeLimitSeconds}
+      timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail, playPop, playBoing }) => (
+      {({ difficulty: diff, onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail, playPop, playBoing }) => (
         <RingSortGame
-          difficulty={difficulty}
+          difficulty={diff}
           onComplete={sc}
           reportScore={reportScore}
           secondsLeft={secondsLeft}

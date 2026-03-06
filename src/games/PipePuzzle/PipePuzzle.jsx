@@ -479,6 +479,8 @@ PipeGame.propTypes = {
 };
 
 // ── Outer wrapper ─────────────────────────────────────────────────
+const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
+
 export function PipePuzzle({
   memberId,
   difficulty = 'easy',
@@ -517,15 +519,15 @@ export function PipePuzzle({
       title="Pipe Puzzle"
       instructions={instructions}
       difficulty={difficulty}
-      timeLimitSeconds={config.timeLimitSeconds}
+      timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: shellComplete, reportScore, secondsLeft, playClick, playSuccess }) => (
+      {({ onComplete: shellComplete, reportScore, secondsLeft, difficulty: diff, playClick, playSuccess }) => (
         <PipeGame
-          difficulty={difficulty}
+          difficulty={diff}
           onComplete={shellComplete}
           reportScore={reportScore}
           secondsLeft={secondsLeft}

@@ -178,6 +178,8 @@ ColourMemoryGame.propTypes = {
   playReveal:  PropTypes.func.isRequired,
 };
 
+const TIME_LIMITS = { easy: null, medium: null, hard: null };
+
 export function ColourMemory({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'colour-memory', callbackUrl, onComplete });
   return (
@@ -186,14 +188,14 @@ export function ColourMemory({ memberId, difficulty = 'easy', onComplete, callba
       title="Color Memory"
       instructions="Watch the sequence of colours light up, then tap them back in the same order. The sequence gets longer each round!"
       difficulty={difficulty}
-      timeLimitSeconds={null}
+      timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail, playReveal }) => (
-        <ColourMemoryGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} playReveal={playReveal} />
+      {({ onComplete: sc, reportScore, secondsLeft, difficulty: diff, playClick, playSuccess, playFail, playReveal }) => (
+        <ColourMemoryGame difficulty={diff} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} playReveal={playReveal} />
       )}
     </GameShell>
   );

@@ -21,6 +21,8 @@ const DIFFICULTY_CONFIG = {
   hard:   { hCount: 3, vCount: 3, maxNum: 25,  rounds: 8, timeLimitSeconds: 120  },
 };
 
+const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
+
 function randInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -537,7 +539,6 @@ MathCrossGame.propTypes = {
 };
 
 export function MathCross({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
-  const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'math-cross', callbackUrl, onComplete });
   return (
     <GameShell
@@ -545,15 +546,15 @@ export function MathCross({ memberId, difficulty = 'easy', onComplete, callbackU
       title="Math Cross"
       instructions="Place the numbers in the tiles to make the operations correct. Tap a number from the tray, then tap an empty slot. Tap a placed number to remove it. Every row and column equation must be satisfied!"
       difficulty={difficulty}
-      timeLimitSeconds={config.timeLimitSeconds}
+      timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail, playPop }) => (
+      {({ difficulty: diff, onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail, playPop }) => (
         <MathCrossGame
-          difficulty={difficulty}
+          difficulty={diff}
           onComplete={sc}
           reportScore={reportScore}
           secondsLeft={secondsLeft}

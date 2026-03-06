@@ -10,6 +10,8 @@ const DIFFICULTY_CONFIG = {
   hard:   { rows: 4, cols: 4, rounds: 8, maxVal: 9,  timeLimitSeconds: 120  },
 };
 
+const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
+
 /**
  * Generate a Sumix puzzle.
  * 1. Create a grid of random numbers.
@@ -205,7 +207,6 @@ SumixGame.propTypes = {
 };
 
 export function Sumix({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
-  const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'sumix', callbackUrl, onComplete });
   return (
     <GameShell
@@ -213,14 +214,14 @@ export function Sumix({ memberId, difficulty = 'easy', onComplete, callbackUrl, 
       title="Sumix"
       instructions="Activate the correct numbers so that their sum equals the target number in each row and column. Tap a number to toggle it on or off. Exercises numeric reasoning and logic."
       difficulty={difficulty}
-      timeLimitSeconds={config.timeLimitSeconds}
+      timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
-        <SumixGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
+      {({ difficulty: diff, onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <SumixGame difficulty={diff} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

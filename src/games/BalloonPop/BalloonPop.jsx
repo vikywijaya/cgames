@@ -216,6 +216,8 @@ BalloonGame.propTypes = {
 };
 
 // ── Outer wrapper ──────────────────────────────────────────────────
+const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
+
 export function BalloonPop({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'balloon-pop', callbackUrl, onComplete });
@@ -226,14 +228,14 @@ export function BalloonPop({ memberId, difficulty = 'easy', onComplete, callback
       title="Balloon Pop"
       instructions={`Tap the balloons to pop them before they float away! You have ${config.lives} lives — each balloon that escapes costs one life. Exercises attention and reaction speed.`}
       difficulty={difficulty}
-      timeLimitSeconds={config.timeLimitSeconds}
+      timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft, playPop, playFail }) => (
-        <BalloonGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playPop={playPop} playFail={playFail} />
+      {({ onComplete: sc, reportScore, secondsLeft, difficulty: diff, playPop, playFail }) => (
+        <BalloonGame difficulty={diff} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playPop={playPop} playFail={playFail} />
       )}
     </GameShell>
   );

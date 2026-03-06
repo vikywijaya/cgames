@@ -52,7 +52,57 @@
   letter-spacing: -0.01em;
 }
 
-/* Difficulty badge — light-blue tint for easy, etc. */
+/* Difficulty picker — segmented toggle */
+.difficultyPicker {
+  display: flex;
+  gap: 0;
+  background: #f1f5f9;
+  border-radius: var(--radius-full);
+  padding: 3px;
+  border: 1.5px solid #e2e8f0;
+}
+.difficultyOption {
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-base);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast),
+    box-shadow var(--transition-fast);
+  min-width: 72px;
+  text-align: center;
+}
+.difficultyOption:hover {
+  color: var(--color-text);
+  background: rgba(0, 0, 0, 0.04);
+}
+.diffOptActiveEasy {
+  background: #e6f4ea;
+  color: #1e7e34;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.diffOptActiveMedium {
+  background: #fff3cd;
+  color: #856404;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+.diffOptActiveHard {
+  background: #fce8e6;
+  color: #b31412;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.timeLimitNote {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+/* Legacy badge classes (kept for end screen / HUD references) */
 .difficultyBadge {
   display: inline-block;
   padding: var(--space-1) var(--space-4);
@@ -62,7 +112,6 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-/* Brand-aligned badge colours — solid fills, no gradient */
 .badgeEasy   { background-color: #e6f4ea; color: #1e7e34; border: 1.5px solid #a8d5b5; }
 .badgeMedium { background-color: #fff3cd; color: #856404; border: 1.5px solid #ffc107; }
 .badgeHard   { background-color: #fce8e6; color: #b31412; border: 1.5px solid #f4a49c; }

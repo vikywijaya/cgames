@@ -44,6 +44,8 @@ const DIFFICULTY_CONFIG = {
   hard:   { gridSize: 8, rounds: 8, timeLimitSeconds: 120  },
 };
 
+const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
+
 /**
  * Generate a puzzle board. We start with an empty grid, place random pieces
  * to create a pattern, then give the player those pieces to place back.
@@ -388,7 +390,6 @@ BlockPuzzleGame.propTypes = {
 };
 
 export function BlockPuzzle({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
-  const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'block-puzzle', callbackUrl, onComplete });
   return (
     <GameShell
@@ -396,14 +397,14 @@ export function BlockPuzzle({ memberId, difficulty = 'easy', onComplete, callbac
       title="Blocks"
       instructions="Place the block pieces on the board until you complete the puzzle. Tap a piece to select it, then tap an empty cell on the board to place it. Tap a placed piece on the board to remove it. Fill all the empty cells to solve the puzzle!"
       difficulty={difficulty}
-      timeLimitSeconds={config.timeLimitSeconds}
+      timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
-        <BlockPuzzleGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
+      {({ difficulty: diff, onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+        <BlockPuzzleGame difficulty={diff} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

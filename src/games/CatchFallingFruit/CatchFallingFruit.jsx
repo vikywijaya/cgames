@@ -353,6 +353,8 @@ CatchGame.propTypes = {
 };
 
 // ── Outer wrapper ──────────────────────────────────────────────────
+const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
+
 export function CatchFallingFruit({
   memberId,
   difficulty = 'easy',
@@ -393,15 +395,15 @@ export function CatchFallingFruit({
       title="Catch the Falling Fruit"
       instructions={instructions}
       difficulty={difficulty}
-      timeLimitSeconds={config.timeLimitSeconds}
+      timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: shellComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+      {({ onComplete: shellComplete, reportScore, secondsLeft, difficulty: diff, playClick, playSuccess, playFail }) => (
         <CatchGame
-          difficulty={difficulty}
+          difficulty={diff}
           onComplete={shellComplete}
           reportScore={reportScore}
           secondsLeft={secondsLeft}

@@ -150,14 +150,14 @@ export function PatternSequence({ memberId, difficulty = 'easy', onComplete, cal
       title="Pattern Sequence"
       instructions={INSTRUCTIONS}
       difficulty={difficulty}
-      timeLimitSeconds={null}
+      timeLimits={{ easy: null, medium: null, hard: null }}
       onGameComplete={fireComplete}
       onBack={onBack}
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: shellComplete, reportScore, playClick, playSuccess, playFail }) => (
-        <PatternSequenceGame difficulty={difficulty} onComplete={shellComplete} reportScore={reportScore} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
+      {({ onComplete: shellComplete, reportScore, difficulty: diff, playClick, playSuccess, playFail }) => (
+        <PatternSequenceGame difficulty={diff} onComplete={shellComplete} reportScore={reportScore} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );
