@@ -286,12 +286,13 @@ function TileSVG({ cell, connectedColor }) {
   // Build pipe paths
   let pathD = '';
   if (cornerMatch) {
-    // Quadratic Bezier bending into the corner
-    // Control point is at the tile corner in that direction
-    if (hasN && hasE) pathD = `M${HALF},0 Q${VB},0 ${VB},${HALF}`;
-    else if (hasE && hasS) pathD = `M${VB},${HALF} Q${VB},${VB} ${HALF},${VB}`;
-    else if (hasS && hasW) pathD = `M${HALF},${VB} Q0,${VB} 0,${HALF}`;
-    else if (hasW && hasN) pathD = `M0,${HALF} Q0,0 ${HALF},0`;
+    // Quarter-circle arc: center at the tile corner, radius = HALF (30).
+    // sweep-flag=0 (counter-clockwise in SVG screen space) takes the short
+    // 90° arc whose midpoint passes through the tile interior.
+    if (hasN && hasE) pathD = `M${HALF},0 A${HALF},${HALF} 0 0,0 ${VB},${HALF}`;
+    else if (hasE && hasS) pathD = `M${VB},${HALF} A${HALF},${HALF} 0 0,0 ${HALF},${VB}`;
+    else if (hasS && hasW) pathD = `M${HALF},${VB} A${HALF},${HALF} 0 0,0 0,${HALF}`;
+    else if (hasW && hasN) pathD = `M0,${HALF} A${HALF},${HALF} 0 0,0 ${HALF},0`;
   } else {
     const segs = [];
     if (hasN) segs.push(`M${HALF},0 L${HALF},${HALF}`);
