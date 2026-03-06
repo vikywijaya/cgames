@@ -5,6 +5,7 @@ export const GAME_IDS = {
   DAILY_ARITHMETIC: 'daily-arithmetic',
   WORD_SEARCH: 'word-search',
   SUMIX: 'sumix',
+  BLOCK_PUZZLE: 'block-puzzle',
 };
 
 export const GAME_TITLES = {
@@ -14,4 +15,5 @@ export const GAME_TITLES = {
   [GAME_IDS.DAILY_ARITHMETIC]: 'Daily Arithmetic',
   [GAME_IDS.WORD_SEARCH]: 'Word Search',
   [GAME_IDS.SUMIX]: 'Sumix',
+  [GAME_IDS.BLOCK_PUZZLE]: 'Blocks',
 };

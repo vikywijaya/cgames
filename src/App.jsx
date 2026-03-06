@@ -28,6 +28,7 @@ import { TileFlip }         from './games/TileFlip/TileFlip';
 import { Lumeno }           from './games/Lumeno/Lumeno';
 import { PipePuzzle }       from './games/PipePuzzle/PipePuzzle';
 import { Sumix }            from './games/Sumix/Sumix';
+import { BlockPuzzle }      from './games/BlockPuzzle/BlockPuzzle';
 import { saveScore, getAllScores } from './utils/scoreStore';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import { TopBar } from './components/TopBar/TopBar.jsx';
@@ -69,6 +70,7 @@ const GAME_MAP = {
   'lumeno':            Lumeno,
   'pipe-puzzle':       PipePuzzle,
   'sumix':             Sumix,
+  'block-puzzle':      BlockPuzzle,
 };
 
 // Games grouped by cognitive category
@@ -135,7 +137,8 @@ const GAME_GROUPS = [
       { id: 'snake-lite',  title: 'Snake',        icon: '🐍', domain: 'Coordination',    description: 'Guide the snake to eat fruit. Don\'t hit the walls or yourself!' },
       { id: 'tile-flip',   title: 'Tile Flip',    icon: '🟨', domain: 'Spatial Memory',  description: 'Memorise which tiles light up, then tap them all from memory.' },
       { id: 'lumeno',      title: 'Lumeno',       icon: '🔮', domain: 'Visual Pattern',  description: 'Drag through 3 or more same-colour orbs to clear them. Longer chains score more!' },
-      { id: 'pipe-puzzle', title: 'Pipe Puzzle',  icon: '🔧', domain: 'Spatial Reasoning', description: 'Rotate tiles to connect the same-coloured dots with an unbroken pipe.' },
+      { id: 'pipe-puzzle',   title: 'Pipe Puzzle',  icon: '🔧', domain: 'Spatial Reasoning', description: 'Rotate tiles to connect the same-coloured dots with an unbroken pipe.' },
+      { id: 'block-puzzle',  title: 'Blocks',       icon: '🟧', domain: 'Spatial Reasoning', description: 'Place block pieces on the board to fill every empty cell.' },
     ],
   },
 ];
