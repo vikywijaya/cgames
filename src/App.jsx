@@ -30,6 +30,7 @@ import { PipePuzzle }       from './games/PipePuzzle/PipePuzzle';
 import { Sumix }            from './games/Sumix/Sumix';
 import { BlockPuzzle }      from './games/BlockPuzzle/BlockPuzzle';
 import { RingSort }         from './games/RingSort/RingSort';
+import { MathCross }       from './games/MathCross/MathCross';
 import { saveScore, getAllScores } from './utils/scoreStore';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import { TopBar } from './components/TopBar/TopBar.jsx';
@@ -73,6 +74,7 @@ const GAME_MAP = {
   'sumix':             Sumix,
   'block-puzzle':      BlockPuzzle,
   'ring-sort':         RingSort,
+  'math-cross':        MathCross,
 };
 
 // Games grouped by cognitive category
@@ -108,6 +110,7 @@ const GAME_GROUPS = [
       { id: 'missing-number',   title: 'Missing Number',   icon: '❓', domain: 'Pattern Recognition', description: 'Find the missing number in an arithmetic sequence.' },
       { id: 'quick-maths',      title: 'Quick Maths',      icon: '➕', domain: 'Mental Arithmetic',   description: 'Solve addition, subtraction and multiplication problems fast.' },
       { id: 'sumix',             title: 'Sumix',            icon: '🧮', domain: 'Numeric Logic',      description: 'Activate numbers so each row and column sums to its target.' },
+      { id: 'math-cross',       title: 'Math Cross',      icon: '✖️', domain: 'Mental Arithmetic',  description: 'Place numbers into a crossword of equations to make them all correct.' },
     ],
   },
   {

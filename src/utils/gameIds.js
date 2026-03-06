@@ -7,6 +7,7 @@ export const GAME_IDS = {
   SUMIX: 'sumix',
   BLOCK_PUZZLE: 'block-puzzle',
   RING_SORT: 'ring-sort',
+  MATH_CROSS: 'math-cross',
 };
 
 export const GAME_TITLES = {
@@ -18,4 +19,5 @@ export const GAME_TITLES = {
   [GAME_IDS.SUMIX]: 'Sumix',
   [GAME_IDS.BLOCK_PUZZLE]: 'Blocks',
   [GAME_IDS.RING_SORT]: 'Rings',
+  [GAME_IDS.MATH_CROSS]: 'Math Cross',
 };
