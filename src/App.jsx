@@ -150,7 +150,7 @@ const GAME_GROUPS = [
       { id: 'pipe-puzzle',   title: 'Pipe Puzzle',  icon: '🔧', domain: 'Spatial Reasoning', description: 'Rotate tiles to connect the same-coloured dots with an unbroken pipe.' },
       { id: 'block-puzzle',  title: 'Blocks',       icon: '🟧', domain: 'Spatial Reasoning', description: 'Place block pieces on the board to fill every empty cell.' },
       { id: 'ring-sort',     title: 'Rings',        icon: '🔴', domain: 'Logic & Sorting',  description: 'Sort the coloured rings so each rod has only one colour.' },
-      { id: 'slither-escape', title: 'Slither Escape', icon: '🐍', domain: 'Spatial Reasoning', description: 'Slide coloured snakes to their matching exits without getting tangled!' },
+      { id: 'slither-escape', title: 'Slither Escape', icon: '🐍', domain: 'Spatial Reasoning', description: 'Slide coloured snakes to their matching exits without getting tangled!', comingSoon: true },
     ],
   },
 ];
@@ -589,13 +589,17 @@ export function App() {
                       ) : (
                         <span className={styles.scoreUnplayed}>Not played yet</span>
                       )}
-                      <button
-                        className={styles.playBtnSm}
-                        onClick={() => { setView('games'); setSelectedGame(game.id); }}
-                        aria-label={`Play ${game.title}`}
-                      >
-                        ▶ Play
-                      </button>
+                      {game.comingSoon ? (
+                        <span className={styles.comingSoonBadge}>Coming Soon</span>
+                      ) : (
+                        <button
+                          className={styles.playBtnSm}
+                          onClick={() => { setView('games'); setSelectedGame(game.id); }}
+                          aria-label={`Play ${game.title}`}
+                        >
+                          ▶ Play
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -663,9 +667,10 @@ export function App() {
               {group.games.map(game => (
                 <button
                   key={game.id}
-                  className={styles.gameCard}
-                  onClick={() => { lobbyScrollRef.current = window.scrollY; setSelectedGame(game.id); }}
-                  aria-label={`Play ${game.title}`}
+                  className={`${styles.gameCard} ${game.comingSoon ? styles.gameCardDisabled : ''}`}
+                  onClick={game.comingSoon ? undefined : () => { lobbyScrollRef.current = window.scrollY; setSelectedGame(game.id); }}
+                  disabled={game.comingSoon}
+                  aria-label={game.comingSoon ? `${game.title} — Coming Soon` : `Play ${game.title}`}
                 >
                   <div className={styles.gameIconBox} aria-hidden="true">
                     {getGameImage(game.id)
@@ -677,7 +682,9 @@ export function App() {
                     <p className={styles.gameCardDesc}>{game.description}</p>
                     <div className={styles.gameCardFooter}>
                       <span className={styles.gameDomain}>{game.domain}</span>
-                      <span className={styles.playButton} aria-hidden="true">Play</span>
+                      {game.comingSoon
+                        ? <span className={styles.comingSoonBadge}>Coming Soon</span>
+                        : <span className={styles.playButton} aria-hidden="true">Play</span>}
                     </div>
                   </div>
                 </button>
