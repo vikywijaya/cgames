@@ -8,10 +8,11 @@ import styles from './SlitherEscape.module.css';
    Constants
    ══════════════════════════════════════════════════════════════ */
 const SNAKE_COLORS = [
-  { id: 'blue',   body: '#3366ee', head: '#2244cc', glow: 'rgba(51,102,238,0.6)', exit: '#3366ee' },
-  { id: 'green',  body: '#44bb55', head: '#2e9940', glow: 'rgba(68,187,85,0.6)',  exit: '#44bb55' },
+  { id: 'cyan',   body: '#33ccee', head: '#22aacc', glow: 'rgba(51,204,238,0.6)', exit: '#33ccee' },
+  { id: 'green',  body: '#44dd44', head: '#2ebc2e', glow: 'rgba(68,221,68,0.6)',  exit: '#44dd44' },
+  { id: 'yellow', body: '#ddee33', head: '#ccdd22', glow: 'rgba(221,238,51,0.6)', exit: '#ccdd22' },
   { id: 'orange', body: '#ee8833', head: '#cc6622', glow: 'rgba(238,136,51,0.6)', exit: '#ee8833' },
-  { id: 'purple', body: '#9955dd', head: '#7733bb', glow: 'rgba(153,85,221,0.6)', exit: '#9955dd' },
+  { id: 'purple', body: '#bb55ee', head: '#9933cc', glow: 'rgba(187,85,238,0.6)', exit: '#bb55ee' },
 ];
 
 const DIR = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] };
@@ -94,7 +95,7 @@ function encodeState(snakes) {
 
 /** Returns true if the puzzle can be solved from the given scrambled state. */
 function isSolvable(initSnakes, rows, cols) {
-  const MAX_STATES = 2000;
+  const MAX_STATES = 8000;
   const visited = new Set();
   const queue = [initSnakes.map(s => ({ ...s, cells: s.cells.map(c => [...c]) }))];
   visited.add(encodeState(initSnakes));
@@ -132,21 +133,19 @@ function isSolvable(initSnakes, rows, cols) {
    ══════════════════════════════════════════════════════════════ */
 
 /**
- * Build a level on a rectangular grid.
- *  1. All cells are walkable path (no internal walls).
- *  2. Each snake is a straight bar placed at its exit (solved state).
- *  3. Random slides scramble the board.
- *  4. If any snake is still at its exit after scrambling, retry.
+ * Build a level on a compact rectangular grid with LONG snakes.
+ *  1. All cells are walkable (no internal walls).
+ *  2. Each snake is a long straight bar placed at its exit (solved state).
+ *  3. Random slides scramble the board — snakes block each other.
+ *  4. BFS validates solvability from the scrambled state.
  */
 function generateLevel(numSnakes, roundNum) {
-  // Scale grid size with round
-  const baseRows = 4 + Math.min(4, Math.floor(roundNum / 3));
-  const baseCols = 5 + Math.min(3, Math.floor(roundNum / 4));
-  const rows = baseRows + (Math.random() < 0.4 ? 1 : 0);
-  const cols = baseCols + (Math.random() < 0.4 ? 1 : 0);
+  // Compact grid — snakes should fill most of the space
+  const rows = 5 + Math.min(3, Math.floor(roundNum / 5));
+  const cols = 6 + Math.min(3, Math.floor(roundNum / 4));
 
-  for (let attempt = 0; attempt < 80; attempt++) {
-    // Collect border cells with their outward direction
+  for (let attempt = 0; attempt < 120; attempt++) {
+    // Collect border cells grouped by edge (avoid corners for cleaner placement)
     const borders = [];
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
@@ -158,38 +157,44 @@ function generateLevel(numSnakes, roundNum) {
 
     const shuffledBorders = shuffle(borders);
     const snakes = [];
-    const usedExits = new Set();
+    const occupiedCells = new Set();
     let valid = true;
 
     for (let si = 0; si < numSnakes; si++) {
-      const snakeLen = 2 + Math.floor(Math.random() * 2); // 2-3 cells
       let placed = false;
 
       for (const border of shuffledBorders) {
-        if (usedExits.has(`${border.r},${border.c}`)) continue;
+        if (occupiedCells.has(`${border.r},${border.c}`)) continue;
 
-        // Build snake cells starting from exit, extending inward
-        const inward = DIR[{ up: 'down', down: 'up', left: 'right', right: 'left' }[border.dir]];
+        // Determine how far the snake extends inward
+        const inDir = { up: 'down', down: 'up', left: 'right', right: 'left' }[border.dir];
+        const inward = DIR[inDir];
+        const perpDim = (inDir === 'left' || inDir === 'right') ? cols : rows;
+
+        // Long snakes: fill 50-85% of the perpendicular dimension
+        const minLen = Math.max(3, Math.floor(perpDim * 0.5));
+        const maxLen = Math.max(minLen, perpDim - 1);
+        const snakeLen = minLen + Math.floor(Math.random() * (maxLen - minLen + 1));
+
         const cells = [];
         let canPlace = true;
         for (let seg = 0; seg < snakeLen; seg++) {
           const cr = border.r + inward[0] * seg;
           const cc = border.c + inward[1] * seg;
           if (cr < 0 || cr >= rows || cc < 0 || cc >= cols) { canPlace = false; break; }
-          // Check not overlapping another snake's cells or exit
           const key = `${cr},${cc}`;
-          if (usedExits.has(key)) { canPlace = false; break; }
-          if (snakes.some(s => s.cells.some(([sr, sc]) => sr === cr && sc === cc))) { canPlace = false; break; }
+          if (occupiedCells.has(key)) { canPlace = false; break; }
           cells.push([cr, cc]);
         }
 
         if (!canPlace || cells.length < snakeLen) continue;
 
-        usedExits.add(`${border.r},${border.c}`);
-        // Also reserve cells around exit to avoid adjacent exits
+        // Reserve cells occupied by this snake
+        cells.forEach(([r, c]) => occupiedCells.add(`${r},${c}`));
+        // Reserve exit and adjacent cells to avoid adjacent exits
         for (const d of DIR_NAMES) {
           const [dr, dc] = DIR[d];
-          usedExits.add(`${border.r + dr},${border.c + dc}`);
+          occupiedCells.add(`${border.r + dr},${border.c + dc}`);
         }
 
         snakes.push({
@@ -207,12 +212,12 @@ function generateLevel(numSnakes, roundNum) {
 
     if (!valid) continue;
 
-    // Scramble: make random moves to push snakes away from exits
+    // Scramble: many random moves to push snakes away and into each other's paths
     const scrambled = snakes.map(s => ({ ...s, cells: s.cells.map(c => [...c]) }));
-    const minScrambleMoves = numSnakes * 4 + roundNum;
+    const minScrambleMoves = numSnakes * 8 + roundNum * 3;
     let totalMoves = 0;
 
-    for (let m = 0; m < 400 && totalMoves < minScrambleMoves; m++) {
+    for (let m = 0; m < 1000 && totalMoves < minScrambleMoves; m++) {
       const si = Math.floor(Math.random() * numSnakes);
       const dir = DIR_NAMES[Math.floor(Math.random() * 4)];
       const walls = buildWallSet(scrambled, si);
@@ -225,7 +230,7 @@ function generateLevel(numSnakes, roundNum) {
 
     // Verify no snake is still at its exit
     if (scrambled.some(s => snakeAtExit(s))) continue;
-    if (totalMoves < numSnakes * 2) continue;
+    if (totalMoves < numSnakes * 4) continue;
 
     // Verify every snake can make at least one move (no fully locked board)
     const allMovable = scrambled.every((s, idx) => {
@@ -234,7 +239,7 @@ function generateLevel(numSnakes, roundNum) {
     });
     if (!allMovable) continue;
 
-    // BFS to verify puzzle is reachable from solved state (limit depth to avoid slow generation)
+    // BFS to verify puzzle is solvable
     if (!isSolvable(scrambled, rows, cols)) continue;
 
     return { rows, cols, snakes: scrambled };
@@ -357,7 +362,8 @@ function SlitherEscapeGame({ difficulty, onComplete, reportScore, secondsLeft, p
 
   // Generate level for current round
   const genLevel = useCallback((roundNum) => {
-    const numSnakes = Math.min(SNAKE_COLORS.length, 1 + Math.floor((roundNum + 1) / 2));
+    // Start with 2 snakes, add more as rounds progress (max 5)
+    const numSnakes = Math.min(SNAKE_COLORS.length, 2 + Math.floor(roundNum / 3));
     return generateLevel(numSnakes, roundNum);
   }, []);
 
@@ -574,7 +580,7 @@ function SlitherEscapeGame({ difficulty, onComplete, reportScore, secondsLeft, p
   const exitMap = new Map();
   snakes.forEach((s, si) => exitMap.set(`${s.exitCell[0]},${s.exitCell[1]}`, si));
 
-  const maxPx = Math.min(360, window.innerWidth - 40);
+  const maxPx = Math.min(420, window.innerWidth - 32);
   const cellSize = Math.floor(maxPx / Math.max(rows, cols));
 
   return (
@@ -631,19 +637,30 @@ function SlitherEscapeGame({ difficulty, onComplete, reportScore, secondsLeft, p
               const exitD = isExit ? snakes[exi].exitDir : null;
               const escaped = sc ? escapedSet.has(sc.si) : false;
 
+              // Position exit marks outside the grid border
+              const exitStyle = isExit ? (() => {
+                const sz = `${cellSize * 0.7}px`;
+                const base = { background: exitDef.exit, width: sz, height: sz };
+                switch (exitD) {
+                  case 'up':    return { ...base, left: '15%', right: '15%', width: 'auto', top: `${-cellSize * 0.75 - 7}px` };
+                  case 'down':  return { ...base, left: '15%', right: '15%', width: 'auto', bottom: `${-cellSize * 0.75 - 7}px` };
+                  case 'left':  return { ...base, top: '15%', bottom: '15%', height: 'auto', left: `${-cellSize * 0.75 - 7}px` };
+                  case 'right': return { ...base, top: '15%', bottom: '15%', height: 'auto', right: `${-cellSize * 0.75 - 7}px` };
+                  default: return base;
+                }
+              })() : null;
+
               return (
-                <div key={key} className={cls.join(' ')} role="gridcell">
-                  {/* Exit chevron (show when snake is NOT covering it, or always as background) */}
+                <div key={key} className={cls.join(' ')} style={isExit ? { overflow: 'visible', zIndex: 5 } : undefined} role="gridcell">
+                  {/* Exit chevron (positioned outside grid border) */}
                   {isExit && (
                     <div
                       className={`${styles.exitMark} ${sc ? styles.exitHidden : ''}`}
-                      style={{
-                        background: exitDef.exit,
-                        transform: `rotate(${EXIT_ROT[exitD]}deg)`,
-                      }}
+                      style={exitStyle}
                     >
-                      <svg viewBox="0 0 24 24" width="60%" height="60%">
-                        <path d="M6 15l6-6 6 6" stroke="white" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                      <svg viewBox="0 0 24 24" width="65%" height="65%" style={{ transform: `rotate(${EXIT_ROT[exitD]}deg)` }}>
+                        <path d="M6 14l6-5 6 5" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M6 19l6-5 6 5" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </div>
                   )}

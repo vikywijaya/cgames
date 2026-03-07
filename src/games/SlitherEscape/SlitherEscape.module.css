@@ -154,15 +154,15 @@
   background-color: #c4a882;
 }
 
-/* Stone borders on grid edges */
-.stT { border-top:    5px solid #6d5c4a; }
-.stB { border-bottom: 5px solid #6d5c4a; }
-.stL { border-left:   5px solid #6d5c4a; }
-.stR { border-right:  5px solid #6d5c4a; }
-.stT.stL { border-top-left-radius: 6px; }
-.stT.stR { border-top-right-radius: 6px; }
-.stB.stL { border-bottom-left-radius: 6px; }
-.stB.stR { border-bottom-right-radius: 6px; }
+/* Stone borders on grid edges — thick stone frame */
+.stT { border-top:    7px solid #6d5c4a; }
+.stB { border-bottom: 7px solid #6d5c4a; }
+.stL { border-left:   7px solid #6d5c4a; }
+.stR { border-right:  7px solid #6d5c4a; }
+.stT.stL { border-top-left-radius: 8px; }
+.stT.stR { border-top-right-radius: 8px; }
+.stB.stL { border-bottom-left-radius: 8px; }
+.stB.stR { border-bottom-right-radius: 8px; }
 
 /* Internal cell lines (subtle grid) */
 .cell::after {
@@ -173,20 +173,19 @@
   pointer-events: none;
 }
 
-/* ── Exit chevron marker ── */
+/* ── Exit chevron marker (positioned outside grid border) ── */
 .exitMark {
-  width: 68%;
-  height: 68%;
-  border-radius: 4px;
+  position: absolute;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25), inset 0 1px 2px rgba(255,255,255,0.3);
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 3px rgba(255,255,255,0.35);
   transition: opacity 200ms ease;
 }
 .exitHidden {
-  opacity: 0.25;
+  opacity: 0.3;
 }
 
 /* ── Snake segments ── */
