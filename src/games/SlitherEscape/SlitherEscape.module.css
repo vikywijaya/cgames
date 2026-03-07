@@ -1,49 +1,41 @@
 /* ══════════════════════════════════════════════════════════════
-   Slither Escape — Vibrant nature‑themed sliding puzzle
+   Slither Escape — drag-to-slide puzzle
    ══════════════════════════════════════════════════════════════ */
 
-/* ── Animations ── */
+/* ── Keyframes ── */
 @keyframes popIn {
-  0%   { opacity: 0; transform: scale(0.85) translateY(12px); }
-  60%  { opacity: 1; transform: scale(1.03) translateY(-2px); }
+  0%   { opacity: 0; transform: scale(0.85) translateY(10px); }
+  60%  { opacity: 1; transform: scale(1.02); }
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
-
 @keyframes fadeOut {
   to { opacity: 0; transform: scale(0.92) translateY(8px); }
 }
-
-@keyframes solvedPulse {
+@keyframes winPulse {
   0%   { transform: scale(1); filter: brightness(1); }
-  50%  { transform: scale(1.03); filter: brightness(1.12); }
+  50%  { transform: scale(1.03); filter: brightness(1.15); }
   100% { transform: scale(1); filter: brightness(1); }
 }
-
 @keyframes tongueWag {
-  0%, 100% { transform: rotate(-6deg); }
-  50%      { transform: rotate(6deg); }
+  0%, 100% { transform: rotate(-8deg); }
+  50%      { transform: rotate(8deg); }
 }
-
-@keyframes particleBurst {
-  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+@keyframes particlePop {
+  0%   { transform: translate(0,0) scale(1); opacity: 1; }
   100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
 }
-
-@keyframes segSquish {
-  0%   { transform: scale(1, 1); }
-  25%  { transform: scale(0.92, 1.08); }
-  75%  { transform: scale(1.04, 0.96); }
-  100% { transform: scale(1, 1); }
-}
-
 @keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 8px var(--glow, transparent); }
-  50%      { box-shadow: 0 0 18px var(--glow, transparent); }
+  0%, 100% { box-shadow: 0 0 6px var(--glow, transparent); }
+  50%      { box-shadow: 0 0 16px var(--glow, transparent); }
 }
-
 @keyframes floatClouds {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
+}
+@keyframes segPop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(0.9, 1.1); }
+  100% { transform: scale(1); }
 }
 
 /* ── Wrapper ── */
@@ -53,61 +45,45 @@
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  padding: var(--space-2) 0 var(--space-4);
+  padding: var(--space-2) 0 var(--space-3);
   position: relative;
   overflow: hidden;
-  min-height: 460px;
+  min-height: 420px;
 }
 
-/* ── Parallax background scene ── */
+/* ── Parallax background ── */
 .bgScene {
   position: absolute;
   inset: 0;
   z-index: 0;
-  overflow: hidden;
   pointer-events: none;
+  overflow: hidden;
 }
-
+.bgSky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #68bde8 0%, #a0d8f4 50%, #c0e8fa 100%);
+}
 .bgClouds {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 200%;
-  height: 45%;
+  top: 0; left: 0;
+  width: 200%; height: 50%;
   background:
-    radial-gradient(ellipse 120px 60px at 10% 50%, rgba(255,255,255,0.8) 0%, transparent 70%),
-    radial-gradient(ellipse 90px 50px at 30% 35%, rgba(255,255,255,0.7) 0%, transparent 70%),
-    radial-gradient(ellipse 150px 70px at 55% 55%, rgba(255,255,255,0.75) 0%, transparent 70%),
-    radial-gradient(ellipse 100px 55px at 80% 40%, rgba(255,255,255,0.65) 0%, transparent 70%),
-    radial-gradient(ellipse 130px 65px at 95% 60%, rgba(255,255,255,0.7) 0%, transparent 70%),
-    linear-gradient(180deg, #78c8f0 0%, #a8ddf8 100%);
-  animation: floatClouds 60s linear infinite;
+    radial-gradient(ellipse 110px 55px at 8%  45%, rgba(255,255,255,0.8)  0%, transparent 70%),
+    radial-gradient(ellipse 80px  45px at 25% 30%, rgba(255,255,255,0.7)  0%, transparent 70%),
+    radial-gradient(ellipse 140px 65px at 50% 55%, rgba(255,255,255,0.75) 0%, transparent 70%),
+    radial-gradient(ellipse 95px  50px at 75% 35%, rgba(255,255,255,0.65) 0%, transparent 70%);
+  animation: floatClouds 80s linear infinite;
 }
-
 .bgHills {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 45%;
+  bottom: 0; left: 0; right: 0;
+  height: 40%;
   background:
-    radial-gradient(ellipse 60% 45% at 20% 100%, #5eaa40 0%, transparent 70%),
-    radial-gradient(ellipse 55% 40% at 60% 100%, #4e9a30 0%, transparent 70%),
-    radial-gradient(ellipse 70% 50% at 85% 100%, #68b448 0%, transparent 70%),
-    linear-gradient(180deg, transparent 0%, #7ec850 30%, #60b838 100%);
-}
-
-.bgTrees {
-  position: absolute;
-  bottom: 5%;
-  left: 0;
-  right: 0;
-  height: 30%;
-  background:
-    radial-gradient(ellipse 30px 50px at 8% 80%, #3a7a28 0%, transparent 70%),
-    radial-gradient(ellipse 25px 45px at 12% 75%, #4a8a30 0%, transparent 70%),
-    radial-gradient(ellipse 35px 55px at 88% 82%, #3a7a28 0%, transparent 70%),
-    radial-gradient(ellipse 28px 48px at 92% 76%, #4a8a30 0%, transparent 70%);
+    radial-gradient(ellipse 55% 40% at 15% 100%, #5eaa40 0%, transparent 70%),
+    radial-gradient(ellipse 50% 35% at 55% 100%, #4e9a30 0%, transparent 70%),
+    radial-gradient(ellipse 60% 45% at 85% 100%, #68b448 0%, transparent 70%),
+    linear-gradient(180deg, transparent 0%, #7ec850 35%, #60b838 100%);
 }
 
 /* ── Glassmorphism HUD ── */
@@ -117,118 +93,41 @@
   z-index: 2;
   position: relative;
 }
-
-.hudPill {
+.pill {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: var(--space-1) var(--space-4);
-  background: rgba(255, 255, 255, 0.45);
+  padding: 4px 18px;
+  background: rgba(255,255,255,0.4);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255,255,255,0.55);
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
 }
-
-.hudLabel {
-  font-size: 0.65rem;
-  font-weight: 600;
+.pillLabel {
+  font-size: 0.62rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: rgba(0, 0, 0, 0.45);
+  letter-spacing: 0.06em;
+  color: rgba(0,0,0,0.4);
 }
-
-.hudVal {
-  font-size: 1.1rem;
+.pillVal {
+  font-size: 1.05rem;
   font-weight: 800;
   color: #2a3a4a;
-  line-height: 1.1;
+  line-height: 1.15;
 }
-
-.hudVal small {
-  font-size: 0.7rem;
-  font-weight: 500;
-  opacity: 0.6;
-}
-
-/* ── Snake legend / selector ── */
-.legend {
-  display: flex;
-  gap: var(--space-2);
-  z-index: 2;
-  position: relative;
-}
-
-.legendBtn {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  border: 2.5px solid rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.35);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  transition: transform 120ms ease, border-color 150ms ease, box-shadow 150ms ease;
-}
-
-.legendBtn:hover:not(:disabled) {
-  transform: scale(1.1);
-  border-color: var(--sc);
-}
-
-.legendActive {
-  border-color: var(--sc);
-  box-shadow: 0 0 0 3px var(--sg), 0 4px 12px rgba(0, 0, 0, 0.12);
-  transform: scale(1.1);
-}
-
-.legendDone {
-  opacity: 0.5;
-}
-
-.legendDot {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  box-shadow: inset 0 -2px 4px rgba(0,0,0,0.2), 0 1px 3px rgba(0,0,0,0.15);
-}
-
-.legendCheck {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 16px;
-  height: 16px;
-  background: #22c55e;
-  color: white;
-  font-size: 10px;
-  font-weight: 800;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-}
+.pillVal small { font-size: 0.65rem; font-weight: 500; opacity: 0.55; }
 
 /* ── Board wrapper ── */
-.boardWrapper {
+.boardWrap {
   z-index: 2;
   position: relative;
   animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
-
-.boardExit {
-  animation: fadeOut 0.3s ease forwards;
-}
-
-.boardSolved {
-  animation: solvedPulse 0.6s ease;
-}
+.boardOut { animation: fadeOut 0.3s ease forwards; }
+.boardWin { animation: winPulse 0.6s ease; }
 
 /* ── Board grid ── */
 .board {
@@ -236,100 +135,100 @@
   gap: 0;
   position: relative;
   touch-action: none;
-  border-radius: 6px;
-  overflow: visible;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
 }
 
-/* ── Wall (non-path) cells ── */
-.wallCell {
-  background: transparent;
-}
-
-/* ── Path cells with stone border ── */
-.pathCell {
+/* ── Cells ── */
+.cell {
   background: #c4a882;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: default;
   /* Subtle earthy texture */
   background-image:
-    radial-gradient(circle 2px at 30% 40%, rgba(0,0,0,0.06) 0%, transparent 60%),
-    radial-gradient(circle 3px at 70% 60%, rgba(0,0,0,0.04) 0%, transparent 60%),
-    radial-gradient(circle 2px at 50% 80%, rgba(0,0,0,0.05) 0%, transparent 60%);
+    radial-gradient(circle 2px at 30% 40%, rgba(0,0,0,0.05) 0%, transparent 60%),
+    radial-gradient(circle 3px at 70% 65%, rgba(0,0,0,0.04) 0%, transparent 60%);
   background-color: #c4a882;
 }
 
-/* Stone borders — thick, textured look */
-.stoneT {
-  border-top: 5px solid #6d5c4a;
-  box-shadow: inset 0 3px 4px rgba(0, 0, 0, 0.12);
+/* Stone borders on grid edges */
+.stT { border-top:    5px solid #6d5c4a; }
+.stB { border-bottom: 5px solid #6d5c4a; }
+.stL { border-left:   5px solid #6d5c4a; }
+.stR { border-right:  5px solid #6d5c4a; }
+.stT.stL { border-top-left-radius: 6px; }
+.stT.stR { border-top-right-radius: 6px; }
+.stB.stL { border-bottom-left-radius: 6px; }
+.stB.stR { border-bottom-right-radius: 6px; }
+
+/* Internal cell lines (subtle grid) */
+.cell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 0.5px solid rgba(0,0,0,0.06);
+  pointer-events: none;
 }
-.stoneB { border-bottom: 5px solid #6d5c4a; }
-.stoneL { border-left: 5px solid #6d5c4a; }
-.stoneR { border-right: 5px solid #6d5c4a; }
 
-/* Composite corners get extra depth */
-.stoneT.stoneL { border-top-left-radius: 5px; }
-.stoneT.stoneR { border-top-right-radius: 5px; }
-.stoneB.stoneL { border-bottom-left-radius: 5px; }
-.stoneB.stoneR { border-bottom-right-radius: 5px; }
-
-/* ── Exit marker (colored chevron arrow) ── */
-.exitMarker {
-  width: 72%;
-  height: 72%;
+/* ── Exit chevron marker ── */
+.exitMark {
+  width: 68%;
+  height: 68%;
   border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 2;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), inset 0 1px 2px rgba(255,255,255,0.3);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25), inset 0 1px 2px rgba(255,255,255,0.3);
+  transition: opacity 200ms ease;
+}
+.exitHidden {
+  opacity: 0.25;
 }
 
 /* ── Snake segments ── */
 .seg {
   position: absolute;
-  inset: 3px;
+  inset: 2px;
   z-index: 3;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 150ms ease;
-  box-shadow:
-    inset 0 3px 8px rgba(255, 255, 255, 0.3),
-    inset 0 -4px 8px rgba(0, 0, 0, 0.15),
-    0 3px 6px rgba(0, 0, 0, 0.2);
-  cursor: pointer;
+  cursor: grab;
   overflow: hidden;
+  transition: transform 120ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow:
+    inset 0 3px 8px rgba(255,255,255,0.3),
+    inset 0 -4px 8px rgba(0,0,0,0.15),
+    0 3px 6px rgba(0,0,0,0.2);
+}
+.seg:hover {
+  transform: scale(1.04);
+}
+.seg:active {
+  cursor: grabbing;
+  transform: scale(0.97);
 }
 
-.segShine {
+.segH { z-index: 4; }
+
+.segDone {
+  animation: segPop 0.3s ease, glowPulse 1s ease infinite;
+}
+
+/* Body shine highlight */
+.shine {
   position: absolute;
   top: 2px;
   left: 15%;
   right: 15%;
-  height: 35%;
+  height: 32%;
   border-radius: 0 0 50% 50%;
   background: linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%);
   pointer-events: none;
-}
-
-.seg:hover {
-  transform: scale(1.04);
-}
-
-.segHead {
-  z-index: 4;
-}
-
-.segSelected {
-  animation: glowPulse 1.2s ease infinite;
-}
-
-.segEscaped {
-  animation: segSquish 0.3s ease;
 }
 
 /* ── Snake face ── */
@@ -341,86 +240,35 @@
   pointer-events: none;
   z-index: 5;
 }
-
-/* Tongue waggle */
 .tongue {
   transform-origin: center;
-  animation: tongueWag 0.6s ease-in-out infinite;
+  animation: tongueWag 0.5s ease-in-out infinite;
 }
 
-/* ── Particle effects ── */
-.particleContainer {
+/* ── Particles ── */
+.particleWrap {
   position: absolute;
   z-index: 10;
   pointer-events: none;
 }
-
 .particle {
   position: absolute;
-  width: var(--size);
-  height: var(--size);
+  width: var(--sz);
+  height: var(--sz);
   border-radius: 50%;
-  animation: particleBurst 0.7s ease-out var(--delay) forwards;
+  animation: particlePop 0.7s ease-out var(--del) forwards;
   box-shadow: 0 0 6px currentColor;
 }
 
-/* ── D-pad ── */
-.dpad {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  z-index: 2;
-  position: relative;
-}
-
-.dRow {
-  display: flex;
-  gap: 4px;
-}
-
-.dBtn {
-  width: 50px;
-  height: 50px;
-  border-radius: 14px;
-  border: 1.5px solid rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  color: #3a4a5a;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 120ms, transform 80ms ease, box-shadow 120ms;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-}
-
-.dBtn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.65);
-  transform: scale(1.08);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
-}
-
-.dBtn:active:not(:disabled) {
-  transform: scale(0.93);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-.dBtn:disabled {
-  opacity: 0.25;
-  cursor: default;
-}
-
-/* ── Hint text ── */
+/* ── Hint ── */
 .hint {
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255,255,255,0.85);
   text-align: center;
   margin: 0;
   z-index: 2;
   position: relative;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.25);
 }
 
 /* ── Loading ── */
