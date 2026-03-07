@@ -32,6 +32,7 @@ import { BlockPuzzle }      from './games/BlockPuzzle/BlockPuzzle';
 import { RingSort }         from './games/RingSort/RingSort';
 import { MathCross }       from './games/MathCross/MathCross';
 import { Tangram }         from './games/Tangram/Tangram';
+import { SlitherEscape }  from './games/SlitherEscape/SlitherEscape';
 import { saveScore, getAllScores } from './utils/scoreStore';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import { TopBar } from './components/TopBar/TopBar.jsx';
@@ -77,6 +78,7 @@ const GAME_MAP = {
   'ring-sort':         RingSort,
   'math-cross':        MathCross,
   'tangram':           Tangram,
+  'slither-escape':    SlitherEscape,
 };
 
 // Games grouped by cognitive category
@@ -148,6 +150,7 @@ const GAME_GROUPS = [
       { id: 'pipe-puzzle',   title: 'Pipe Puzzle',  icon: '🔧', domain: 'Spatial Reasoning', description: 'Rotate tiles to connect the same-coloured dots with an unbroken pipe.' },
       { id: 'block-puzzle',  title: 'Blocks',       icon: '🟧', domain: 'Spatial Reasoning', description: 'Place block pieces on the board to fill every empty cell.' },
       { id: 'ring-sort',     title: 'Rings',        icon: '🔴', domain: 'Logic & Sorting',  description: 'Sort the coloured rings so each rod has only one colour.' },
+      { id: 'slither-escape', title: 'Slither Escape', icon: '🐍', domain: 'Spatial Reasoning', description: 'Slide coloured snakes to their matching exits without getting tangled!' },
     ],
   },
 ];

@@ -1,0 +1,207 @@
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.5) translateY(12px); }
+  60%  { opacity: 1; transform: scale(1.08) translateY(-2px); }
+  80%  { transform: scale(0.96) translateY(1px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-3) 0;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 420px;
+  font-size: var(--text-sm);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1.5px solid #e2e8f0;
+  border-radius: var(--radius-xl);
+  padding: var(--space-2) var(--space-4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.label { color: var(--color-text-muted); }
+.label strong { color: var(--color-primary); }
+
+/* ── Snake selector ── */
+.snakeSelector {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.snakeBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 2.5px solid #e2e8f0;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  cursor: pointer;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: capitalize;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform 80ms ease;
+}
+.snakeBtn:hover:not(:disabled) {
+  transform: scale(1.05);
+  border-color: var(--snake-color);
+}
+
+.snakeBtnActive {
+  border-color: var(--snake-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--snake-color) 25%, transparent);
+  transform: scale(1.05);
+}
+
+.snakeBtnDone {
+  opacity: 0.5;
+}
+
+.snakeDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.snakeLabel {
+  color: var(--color-text);
+}
+
+/* ── Grid ── */
+.grid {
+  display: inline-grid;
+  gap: 3px;
+  padding: var(--space-3);
+  background: #f1f5f9;
+  border-radius: var(--radius-xl);
+  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  touch-action: none;
+  width: min(360px, calc(100vw - 40px));
+  aspect-ratio: 1;
+}
+
+.cell {
+  border-radius: var(--radius-md);
+  background: #e8edf4;
+  border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background 150ms ease, transform 150ms ease, border-color 150ms ease;
+  cursor: default;
+  aspect-ratio: 1;
+}
+
+/* Snake body cell */
+.cellSnake {
+  border-radius: var(--radius-md);
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+.cellSnake:hover {
+  transform: scale(1.05);
+}
+
+/* Snake head */
+.cellHead {
+  border-width: 3px;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.headDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+/* Selected snake highlight */
+.cellSelected {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5), inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Exit cell */
+.cellExit {
+  border: 2.5px dashed;
+  border-radius: var(--radius-md);
+}
+
+.exitMarker {
+  font-size: clamp(0.8rem, 3vw, 1.2rem);
+  opacity: 0.6;
+  line-height: 1;
+}
+
+/* ── Solved ── */
+@keyframes solvedPulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+.gridSolved {
+  animation: solvedPulse 0.5s ease;
+}
+
+/* ── D-pad ── */
+.dpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.dpadRow {
+  display: flex;
+  gap: 4px;
+}
+
+.dpadBtn {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-lg);
+  border: 2px solid #e2e8f0;
+  background: var(--color-surface);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  color: var(--color-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition-fast), transform 80ms ease, border-color var(--transition-fast);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+.dpadBtn:hover:not(:disabled) {
+  background: #f0f4ff;
+  border-color: var(--color-primary);
+  transform: scale(1.08);
+}
+.dpadBtn:active:not(:disabled) {
+  transform: scale(0.95);
+  background: #dbeafe;
+}
+.dpadBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* ── Hint ── */
+.hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+  margin: 0;
+}
