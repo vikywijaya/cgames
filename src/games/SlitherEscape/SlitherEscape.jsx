@@ -84,6 +84,50 @@ function snakeAtExit(snake) {
 }
 
 /* ══════════════════════════════════════════════════════════════
+   Solvability check — lightweight BFS (capped at 2000 states)
+   ══════════════════════════════════════════════════════════════ */
+
+/** Encode snake positions as a compact string key for BFS visited set. */
+function encodeState(snakes) {
+  return snakes.map(s => s.cells.map(([r, c]) => `${r},${c}`).join('|')).join(';');
+}
+
+/** Returns true if the puzzle can be solved from the given scrambled state. */
+function isSolvable(initSnakes, rows, cols) {
+  const MAX_STATES = 2000;
+  const visited = new Set();
+  const queue = [initSnakes.map(s => ({ ...s, cells: s.cells.map(c => [...c]) }))];
+  visited.add(encodeState(initSnakes));
+
+  while (queue.length > 0 && visited.size < MAX_STATES) {
+    const state = queue.shift();
+
+    // Check if solved: every snake at its exit
+    if (state.every(s => snakeAtExit(s))) return true;
+
+    // Try all moves
+    for (let si = 0; si < state.length; si++) {
+      const walls = buildWallSet(state, si);
+      for (const dir of DIR_NAMES) {
+        const result = slideSnake(state[si].cells, dir, rows, cols, walls);
+        if (!result) continue;
+        const nextState = state.map((s, i) =>
+          i === si ? { ...s, cells: result } : { ...s, cells: s.cells.map(c => [...c]) }
+        );
+        const key = encodeState(nextState);
+        if (!visited.has(key)) {
+          visited.add(key);
+          queue.push(nextState);
+        }
+      }
+    }
+  }
+
+  // If BFS exhausted under limit → proven unsolvable; if limit hit → assume solvable (scramble guarantees it)
+  return visited.size >= MAX_STATES;
+}
+
+/* ══════════════════════════════════════════════════════════════
    Level generation — guaranteed solvable via scramble-from-solved
    ══════════════════════════════════════════════════════════════ */
 
@@ -182,6 +226,16 @@ function generateLevel(numSnakes, roundNum) {
     // Verify no snake is still at its exit
     if (scrambled.some(s => snakeAtExit(s))) continue;
     if (totalMoves < numSnakes * 2) continue;
+
+    // Verify every snake can make at least one move (no fully locked board)
+    const allMovable = scrambled.every((s, idx) => {
+      const walls = buildWallSet(scrambled, idx);
+      return DIR_NAMES.some(d => slideSnake(s.cells, d, rows, cols, walls) !== null);
+    });
+    if (!allMovable) continue;
+
+    // BFS to verify puzzle is reachable from solved state (limit depth to avoid slow generation)
+    if (!isSolvable(scrambled, rows, cols)) continue;
 
     return { rows, cols, snakes: scrambled };
   }
