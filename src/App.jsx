@@ -31,6 +31,7 @@ import { Sumix }            from './games/Sumix/Sumix';
 import { BlockPuzzle }      from './games/BlockPuzzle/BlockPuzzle';
 import { RingSort }         from './games/RingSort/RingSort';
 import { MathCross }       from './games/MathCross/MathCross';
+import { Tangram }         from './games/Tangram/Tangram';
 import { saveScore, getAllScores } from './utils/scoreStore';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import { TopBar } from './components/TopBar/TopBar.jsx';
@@ -75,6 +76,7 @@ const GAME_MAP = {
   'block-puzzle':      BlockPuzzle,
   'ring-sort':         RingSort,
   'math-cross':        MathCross,
+  'tangram':           Tangram,
 };
 
 // Games grouped by cognitive category
@@ -123,6 +125,7 @@ const GAME_GROUPS = [
       { id: 'odd-one-out',         title: 'Odd One Out',         icon: '🔎', domain: 'Visual Reasoning', description: 'Spot the one emoji that doesn\'t belong.' },
       { id: 'spot-difference',     title: 'Spot the Difference', icon: '🔍', domain: 'Visual Scanning',  description: 'Find the tiles that differ between two emoji grids.' },
       { id: 'letter-count',        title: 'Letter Count',        icon: '🔠', domain: 'Visual Attention', description: 'Count how many times a letter appears in a word.' },
+      { id: 'tangram',              title: 'Tangram',             icon: '🔺', domain: 'Spatial Reasoning', description: 'Drag seven geometric pieces to fill the silhouette.' },
     ],
   },
   {
