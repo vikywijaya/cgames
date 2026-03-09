@@ -3,9 +3,13 @@
    ══════════════════════════════════════════════════════════════ */
 
 /* ── Keyframes ── */
-@keyframes flap {
-  from { transform: translateY(-50%) rotate(15deg); }
-  to   { transform: translateY(-50%) rotate(-25deg); }
+@keyframes flapLeft {
+  from { transform: translateY(-50%) scaleY(1) rotate(20deg); }
+  to   { transform: translateY(-50%) scaleY(0.6) rotate(-15deg); }
+}
+@keyframes flapRight {
+  from { transform: translateY(-50%) scaleY(1) rotate(-20deg); }
+  to   { transform: translateY(-50%) scaleY(0.6) rotate(15deg); }
 }
 
 /* ── Wrapper — matches other game layouts ── */
@@ -56,13 +60,27 @@
   z-index: 10;
 }
 
-.wing {
+.wingLeft {
   position: absolute;
-  left: -18px;
+  left: -14px;
   top: 50%;
   transform: translateY(-50%);
-  animation: flap 0.22s ease-in-out infinite alternate;
+  transform-origin: right center;
+  animation: flapLeft 0.18s ease-in-out infinite alternate;
   z-index: -1;
+  filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.15));
+}
+
+.wingRight {
+  position: absolute;
+  right: -14px;
+  top: 50%;
+  transform: translateY(-50%);
+  transform-origin: left center;
+  animation: flapRight 0.18s ease-in-out infinite alternate;
+  animation-delay: 0.04s;
+  z-index: -1;
+  filter: drop-shadow(-1px 1px 1px rgba(0,0,0,0.15));
 }
 
 .bTile {

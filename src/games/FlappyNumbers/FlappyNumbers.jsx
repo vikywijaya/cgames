@@ -370,11 +370,33 @@ function FlappyNumbersGame({
             transform: `rotate(${g.pr}deg)`,
           }}
         >
-          <svg className={styles.wing} viewBox="0 0 30 24" width="24" height="18">
-            <path
-              d="M28 9Q20 1,13 7Q9 3,3 5Q7 11,13 11Q19 15,28 9Z"
-              fill="#c8c8c8" stroke="#aaa" strokeWidth=".5"
-            />
+          {/* Left wing */}
+          <svg className={styles.wingLeft} viewBox="0 0 22 28" width="18" height="24">
+            <defs>
+              <linearGradient id="wgL" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#e0dcd4" />
+                <stop offset="100%" stopColor="#c4bfb3" />
+              </linearGradient>
+            </defs>
+            {/* Main wing shape */}
+            <path d="M20 14Q14 2,6 4Q1 6,0 12Q1 18,6 20Q14 22,20 14Z" fill="url(#wgL)" stroke="#b0a898" strokeWidth="0.8" />
+            {/* Feather details */}
+            <path d="M16 10Q12 6,8 7" fill="none" stroke="#b0a898" strokeWidth="0.6" opacity="0.6" />
+            <path d="M17 13Q12 10,7 12" fill="none" stroke="#b0a898" strokeWidth="0.6" opacity="0.5" />
+            <path d="M16 16Q12 18,8 17" fill="none" stroke="#b0a898" strokeWidth="0.6" opacity="0.4" />
+          </svg>
+          {/* Right wing */}
+          <svg className={styles.wingRight} viewBox="0 0 22 28" width="18" height="24">
+            <defs>
+              <linearGradient id="wgR" x1="1" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#e0dcd4" />
+                <stop offset="100%" stopColor="#c4bfb3" />
+              </linearGradient>
+            </defs>
+            <path d="M2 14Q8 2,16 4Q21 6,22 12Q21 18,16 20Q8 22,2 14Z" fill="url(#wgR)" stroke="#b0a898" strokeWidth="0.8" />
+            <path d="M6 10Q10 6,14 7" fill="none" stroke="#b0a898" strokeWidth="0.6" opacity="0.6" />
+            <path d="M5 13Q10 10,15 12" fill="none" stroke="#b0a898" strokeWidth="0.6" opacity="0.5" />
+            <path d="M6 16Q10 18,14 17" fill="none" stroke="#b0a898" strokeWidth="0.6" opacity="0.4" />
           </svg>
           <div
             className={styles.bTile}
