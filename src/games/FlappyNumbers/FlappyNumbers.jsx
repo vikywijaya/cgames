@@ -85,6 +85,7 @@ function FlappyNumbersGame({
       walls: [],
       sc: 0,
       floatT: 0,
+      tunnel: null,  // { wall, targetY } — active tunnel pass-through
     };
   }
 
@@ -159,21 +160,7 @@ function FlappyNumbersGame({
     }
 
     if (g.ph === 'playing') {
-      // Physics
-      g.pv += GRAV * dt;
-      g.py += g.pv * dt;
-      g.pr = Math.min(40, Math.max(-30, g.pv * 3.5));
-
-      // Ceiling
-      if (g.py < 0) { g.py = 0; g.pv = 0; }
-      // Floor
-      if (g.py > GH - PSZ) {
-        die();
-        rafRef.current = requestAnimationFrame(loop);
-        return;
-      }
-
-      // Move walls leftward
+      // Move walls leftward (always, even during tunnel)
       const spd = cfg.spd * dt;
       for (const w of g.walls) w.x -= spd;
       g.walls = g.walls.filter(w => w.x > -WW - 20);
@@ -184,38 +171,92 @@ function FlappyNumbersGame({
         g.walls.push({ x: GW + 10, passed: false, ...mkWall(g.pn) });
       }
 
-      // ── Forgiving collision: safe zone = matching tile ± half tile ──
-      // Player center must be within this generous zone
-      const pCenter = g.py + PSZ / 2;
       const pL = PX + 4;
       const pR = PX + PSZ - 4;
 
-      for (const w of g.walls) {
-        // Horizontal overlap with wall?
-        if (pR > w.x && pL < w.x + WW) {
-          const safeTop = w.mi * TH - TH * 0.4;       // half-tile above
-          const safeBot = (w.mi + 1) * TH + TH * 0.4;  // half-tile below
-          if (pCenter < safeTop || pCenter > safeBot) {
-            die();
-            rafRef.current = requestAnimationFrame(loop);
-            return;
+      // ── Tunnel mode: bird is passing through the wall ──
+      if (g.tunnel) {
+        // Smoothly guide bird to target Y (matching tile center)
+        const dy = g.tunnel.targetY - g.py;
+        g.py += dy * 0.25;
+        g.pv = 0;
+        g.pr = 0; // level while tunneling
+
+        // Check if bird has exited the wall
+        const tw = g.tunnel.wall;
+        if (pL >= tw.x + WW) {
+          // Exited tunnel — score and resume normal flight
+          g.tunnel = null;
+          if (!tw.passed) {
+            tw.passed = true;
+            pass();
+            if (g.ph !== 'playing') {
+              rafRef.current = requestAnimationFrame(loop);
+              return;
+            }
           }
         }
-        // Passed wall?
-        if (!w.passed && w.x + WW < PX) {
-          w.passed = true;
-          pass();
-          if (g.ph !== 'playing') {
-            rafRef.current = requestAnimationFrame(loop);
-            return;
+        re();
+      } else {
+        // ── Normal flight: gravity + collision ──
+        g.pv += GRAV * dt;
+        g.py += g.pv * dt;
+        g.pr = Math.min(40, Math.max(-30, g.pv * 3.5));
+
+        // Ceiling
+        if (g.py < 0) { g.py = 0; g.pv = 0; }
+        // Floor
+        if (g.py > GH - PSZ) {
+          die();
+          rafRef.current = requestAnimationFrame(loop);
+          return;
+        }
+
+        // ── Check walls for tunnel entry or collision ──
+        const pCenter = g.py + PSZ / 2;
+
+        for (let wi = 0; wi < g.walls.length; wi++) {
+          const w = g.walls[wi];
+          if (w.passed) continue;
+
+          // Bird is approaching or overlapping the wall?
+          if (pR > w.x - 20 && pL < w.x + WW) {
+            const matchCenterY = w.mi * TH + TH / 2;
+            const dist = Math.abs(pCenter - matchCenterY);
+
+            // Generous capture zone: if within 1.5 tiles of the match, enter tunnel
+            if (dist < TH * 1.5) {
+              g.tunnel = {
+                wall: w,
+                targetY: matchCenterY - PSZ / 2,
+              };
+              g.pv = 0;
+              playClick();
+              break;
+            } else if (pR > w.x && pL < w.x + WW) {
+              // Actually overlapping but too far from match — die
+              die();
+              rafRef.current = requestAnimationFrame(loop);
+              return;
+            }
+          }
+
+          // Passed wall without entering? (shouldn't happen with generous zone)
+          if (!w.passed && w.x + WW < PX) {
+            w.passed = true;
+            pass();
+            if (g.ph !== 'playing') {
+              rafRef.current = requestAnimationFrame(loop);
+              return;
+            }
           }
         }
+        re();
       }
-      re();
     }
 
     rafRef.current = requestAnimationFrame(loop);
-  }, [cfg.spd, die, pass, re]);
+  }, [cfg.spd, die, pass, playClick, re]);
 
   useEffect(() => {
     rafRef.current = requestAnimationFrame(loop);
@@ -254,7 +295,7 @@ function FlappyNumbersGame({
       >
         {/* Player bird-tile */}
         <div
-          className={styles.bird}
+          className={`${styles.bird}${g.tunnel ? ` ${styles.birdTunnel}` : ''}`}
           style={{
             left: PX, top: g.py,
             width: PSZ, height: PSZ,
@@ -273,27 +314,31 @@ function FlappyNumbersGame({
         </div>
 
         {/* Wall columns */}
-        {g.walls.map((w, i) => (
-          <div key={i} className={styles.wCol} style={{ left: w.x, width: WW }}>
-            {w.tiles.map((n, ti) => {
-              const isMatch = ti === w.mi;
-              return (
-                <div
-                  key={ti}
-                  className={`${styles.wTile}${isMatch ? ` ${styles.wMatch}` : ''}`}
-                  style={{
-                    height: TH,
-                    background: isMatch ? '#f5f5f0' : (TILE_BG[n] || '#cdc1b4'),
-                    color: isMatch ? '#776e65' : (DARK_TEXT.has(n) ? '#776e65' : '#f9f6f2'),
-                    fontSize: n >= 1024 ? '0.85rem' : n >= 100 ? '1.05rem' : '1.3rem',
-                  }}
-                >
-                  {n}
-                </div>
-              );
-            })}
-          </div>
-        ))}
+        {g.walls.map((w, i) => {
+          const isTunneling = g.tunnel && g.tunnel.wall === w;
+          return (
+            <div key={i} className={styles.wCol} style={{ left: w.x, width: WW }}>
+              {w.tiles.map((n, ti) => {
+                const isMatch = ti === w.mi;
+                const isOpen = isMatch && isTunneling;
+                return (
+                  <div
+                    key={ti}
+                    className={`${styles.wTile}${isMatch ? ` ${styles.wMatch}` : ''}${isOpen ? ` ${styles.wOpen}` : ''}`}
+                    style={{
+                      height: TH,
+                      background: isOpen ? 'transparent' : isMatch ? '#f5f5f0' : (TILE_BG[n] || '#cdc1b4'),
+                      color: isMatch ? '#776e65' : (DARK_TEXT.has(n) ? '#776e65' : '#f9f6f2'),
+                      fontSize: n >= 1024 ? '0.85rem' : n >= 100 ? '1.05rem' : '1.3rem',
+                    }}
+                  >
+                    {isOpen ? '' : n}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
 
         {/* Tap to start */}
         {g.ph === 'waiting' && (
