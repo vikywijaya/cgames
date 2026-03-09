@@ -22,18 +22,17 @@ const PSZ = 48;       // player tile size
 const TH = 70;        // tile height (GH / 8)
 const WW = 78;        // wall column width
 const PX = 65;        // player fixed X position
-const GRAV = 0.48;    // gravity per frame
-const FLAP_V = -7.5;  // upward velocity on flap
+const GRAV = 0.35;    // gravity — gentler for seniors
+const FLAP_V = -6.5;  // flap — gentler upward push
 const TILES_N = 8;    // tiles per wall column
-const COL_PAD = 10;   // collision box padding (forgiveness)
-const WALL_GAP = 300;  // pixels between wall columns
+const WALL_GAP = 340;  // pixels between walls — more breathing room
 
 const DIFF_CFG = {
-  easy:   { spd: 2.0, goal: 8 },
-  medium: { spd: 2.8, goal: 12 },
-  hard:   { spd: 3.5, goal: 16 },
+  easy:   { spd: 1.6, goal: 8 },
+  medium: { spd: 2.2, goal: 12 },
+  hard:   { spd: 3.0, goal: 16 },
 };
-const TIME_LIMITS = { easy: null, medium: 120, hard: 90 };
+const TIME_LIMITS = { easy: null, medium: 150, hard: 100 };
 
 /* ══════════════════════════════════════════════════════════════
    Helpers
@@ -55,7 +54,7 @@ function mkWall(num) {
 
 /** Pick the next player number (different from current). */
 function nextNum(cur, score) {
-  const pool = score < 3 ? POWERS.slice(0, 5) : POWERS;
+  const pool = score < 4 ? POWERS.slice(0, 5) : POWERS;
   let n;
   do { n = pick(pool); } while (n === cur);
   return n;
@@ -75,13 +74,13 @@ function FlappyNumbersGame({
   const doneRef = useRef(false);
   const [, bump] = useState(0);
 
-  // Initialize game state once
+  // Initialize game state — starts playing immediately (GameShell shows instructions)
   if (!gRef.current) {
     gRef.current = {
-      ph: 'ready',   // ready | playing | dead
+      ph: 'playing',
       py: GH / 2 - PSZ / 2,
       pv: 0,
-      pr: 0,         // rotation degrees
+      pr: 0,
       pn: pick(POWERS.slice(0, 4)),
       walls: [],
       sc: 0,
@@ -130,8 +129,7 @@ function FlappyNumbersGame({
 
   const flap = useCallback(() => {
     const g = gRef.current;
-    if (g.ph === 'dead') return;
-    if (g.ph === 'ready') g.ph = 'playing';
+    if (g.ph !== 'playing') return;
     g.pv = FLAP_V;
     playClick();
     re();
@@ -170,19 +168,18 @@ function FlappyNumbersGame({
         g.walls.push({ x: GW + 10, passed: false, ...mkWall(g.pn) });
       }
 
-      // Collision & pass detection
-      const pL = PX + COL_PAD;
-      const pR = PX + PSZ - COL_PAD;
-      const pT = g.py + COL_PAD;
-      const pB = g.py + PSZ - COL_PAD;
+      // ── Forgiving collision: safe zone = matching tile ± half tile ──
+      // Player center must be within this generous zone
+      const pCenter = g.py + PSZ / 2;
+      const pL = PX + 4;
+      const pR = PX + PSZ - 4;
 
       for (const w of g.walls) {
         // Horizontal overlap with wall?
         if (pR > w.x && pL < w.x + WW) {
-          // Player must be entirely within the matching tile's vertical bounds
-          const mT = w.mi * TH;
-          const mB = (w.mi + 1) * TH;
-          if (pT < mT || pB > mB) {
+          const safeTop = w.mi * TH - TH * 0.4;       // half-tile above
+          const safeBot = (w.mi + 1) * TH + TH * 0.4;  // half-tile below
+          if (pCenter < safeTop || pCenter > safeBot) {
             die();
             rafRef.current = requestAnimationFrame(loop);
             return;
@@ -227,8 +224,11 @@ function FlappyNumbersGame({
   const g = gRef.current;
 
   return (
-    <div className={styles.wrap}>
-      <div className={styles.scoreBar}>{g.sc} / {cfg.goal}</div>
+    <div className={styles.wrapper}>
+      <div className={styles.meta}>
+        <span className={styles.tip}>Tap or Space to flap</span>
+        <span className={styles.scoreLabel}>🔢 <strong>{g.sc}</strong> / {cfg.goal}</span>
+      </div>
 
       <div
         className={styles.area}
@@ -279,22 +279,7 @@ function FlappyNumbersGame({
           </div>
         ))}
 
-        {/* Ready overlay */}
-        {g.ph === 'ready' && (
-          <div className={styles.ov}>
-            <div className={styles.ovBox}>
-              <div className={styles.ovIco}>🔢</div>
-              <h2 className={styles.ovT}>Flappy Numbers</h2>
-              <p className={styles.ovD}>
-                Fly through the tile that matches your number!
-                Avoid all other tiles.
-              </p>
-              <p className={styles.ovH}>Tap or press Space to start</p>
-            </div>
-          </div>
-        )}
-
-        {/* Dead overlay */}
+        {/* Game over overlay */}
         {g.ph === 'dead' && (
           <div className={styles.ov}>
             <div className={styles.ovBox}>
@@ -306,8 +291,6 @@ function FlappyNumbersGame({
           </div>
         )}
       </div>
-
-      <p className={styles.hint}>Tap or press Space to flap</p>
     </div>
   );
 }
@@ -336,7 +319,7 @@ export function FlappyNumbers({
     <GameShell
       gameId="flappy-numbers"
       title="Flappy Numbers"
-      instructions="Tap to flap and fly through the tile that matches your number! Avoid all other numbered tiles."
+      instructions="Tap or press Space to flap upward. Fly through the tile that matches your number — it's the light-coloured one! Avoid all other tiles."
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireComplete}
