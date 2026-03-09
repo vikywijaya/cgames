@@ -33,6 +33,7 @@ import { RingSort }         from './games/RingSort/RingSort';
 import { MathCross }       from './games/MathCross/MathCross';
 import { Tangram }         from './games/Tangram/Tangram';
 import { SlitherEscape }  from './games/SlitherEscape/SlitherEscape';
+import { FlappyNumbers }  from './games/FlappyNumbers/FlappyNumbers';
 import { saveScore, getAllScores } from './utils/scoreStore';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import { TopBar } from './components/TopBar/TopBar.jsx';
@@ -79,6 +80,7 @@ const GAME_MAP = {
   'math-cross':        MathCross,
   'tangram':           Tangram,
   'slither-escape':    SlitherEscape,
+  'flappy-numbers':    FlappyNumbers,
 };
 
 // Games grouped by cognitive category
@@ -151,6 +153,7 @@ const GAME_GROUPS = [
       { id: 'block-puzzle',  title: 'Blocks',       icon: '🟧', domain: 'Spatial Reasoning', description: 'Place block pieces on the board to fill every empty cell.' },
       { id: 'ring-sort',     title: 'Rings',        icon: '🔴', domain: 'Logic & Sorting',  description: 'Sort the coloured rings so each rod has only one colour.' },
       { id: 'slither-escape', title: 'Slither Escape', icon: '🐍', domain: 'Spatial Reasoning', description: 'Slide coloured snakes to their matching exits without getting tangled!', comingSoon: true },
+      { id: 'flappy-numbers', title: 'Flappy Numbers', icon: '🔢', domain: 'Number Recognition', description: 'Flap through the tile that matches your number — avoid the rest!' },
     ],
   },
 ];

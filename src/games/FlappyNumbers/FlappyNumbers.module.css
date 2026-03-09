@@ -1,0 +1,164 @@
+/* ══════════════════════════════════════════════════════════════
+   Flappy Numbers — tap-to-flap number matching
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Keyframes ── */
+@keyframes flap {
+  from { transform: translateY(-50%) rotate(15deg); }
+  to   { transform: translateY(-50%) rotate(-25deg); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 1; }
+}
+
+/* ── Wrapper ── */
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 0 8px;
+}
+
+.scoreBar {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #776e65;
+  letter-spacing: 0.04em;
+}
+
+/* ── Game area ── */
+.area {
+  position: relative;
+  background: #faf8ef;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  max-width: 100%;
+}
+
+/* ── Player bird ── */
+.bird {
+  position: absolute;
+  z-index: 10;
+}
+
+.wing {
+  position: absolute;
+  left: -18px;
+  top: 50%;
+  transform: translateY(-50%);
+  animation: flap 0.2s ease-in-out infinite alternate;
+  z-index: -1;
+}
+
+.bTile {
+  width: 100%;
+  height: 100%;
+  background: #d6d0c4;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    2px 2px 0 #b0a898,
+    inset 0 1px 3px rgba(255, 255, 255, 0.4);
+  border: 2px solid #b0a898;
+}
+
+.bNum {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #776e65;
+  line-height: 1;
+}
+
+/* ── Wall columns ── */
+.wCol {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 5;
+  box-shadow: -3px 0 8px rgba(0, 0, 0, 0.1);
+}
+
+.wTile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
+}
+
+.wMatch {
+  border-color: #d8d4cc;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.04);
+}
+
+/* ── Overlays ── */
+.ov {
+  position: absolute;
+  inset: 0;
+  background: rgba(250, 248, 239, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.ovBox {
+  text-align: center;
+  padding: 24px;
+}
+
+.ovIco {
+  font-size: 3rem;
+  margin-bottom: 8px;
+}
+
+.ovT {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #776e65;
+  margin: 0 0 8px;
+}
+
+.ovD {
+  font-size: 0.85rem;
+  color: #a09888;
+  margin: 0 0 16px;
+  max-width: 240px;
+  line-height: 1.5;
+}
+
+.ovH {
+  font-size: 0.75rem;
+  color: #bbb;
+  margin: 0;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.ovSc {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #edcf72;
+  margin: 8px 0 0;
+}
+
+/* ── Hint ── */
+.hint {
+  font-size: 0.72rem;
+  color: var(--color-text-muted, #999);
+  text-align: center;
+  margin: 0;
+}
