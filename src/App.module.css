@@ -1165,16 +1165,11 @@
   justify-content: center;
 }
 
-/* ── Game card wrapper (for fav button overlay) ── */
-.gameCardWrap {
-  position: relative;
-}
-
-/* ── Favorite heart button ── */
+/* ── Favorite heart button (inside .gameCard) ── */
 .favBtn {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 10px;
+  right: 10px;
   z-index: 2;
   width: 36px;
   height: 36px;
@@ -1190,6 +1185,7 @@
   transition: color 0.2s, transform 0.2s, background 0.2s;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   padding: 0;
+  pointer-events: auto;
 }
 .favBtn:hover {
   color: #e74c5e;
