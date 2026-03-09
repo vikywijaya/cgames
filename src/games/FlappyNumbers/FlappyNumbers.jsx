@@ -45,6 +45,7 @@ const TIME_LIMITS = { easy: null, medium: 150, hard: 100 };
    Helpers
    ══════════════════════════════════════════════════════════════ */
 const pick = (a) => a[Math.floor(Math.random() * a.length)];
+const TILE_BG_VALUES = Object.values(TILE_BG);
 
 /** Build a wall column — one tile matches `num`, rest are random other powers. */
 function mkWall(num) {
@@ -56,8 +57,10 @@ function mkWall(num) {
     do { n = pick(POWERS); } while (n === num);
     return n;
   });
+  // Each non-matching tile gets a random color from the TILE_BG palette
+  const tileColors = tiles.map((_, i) => i === mi ? null : pick(TILE_BG_VALUES));
   const matchColor = pick(MATCH_COLORS);
-  return { tiles, mi, matchColor };
+  return { tiles, mi, matchColor, tileColors };
 }
 
 /** Pick the next player number (different from current). */
@@ -343,7 +346,7 @@ function FlappyNumbersGame({
                     className={`${styles.wTile}${isMatch ? ` ${styles.wMatch}` : ''}${isOpen ? ` ${styles.wOpen}` : ''}`}
                     style={{
                       height: TH,
-                      background: isOpen ? 'transparent' : isMatch ? (w.matchColor || '#f5f5f0') : (TILE_BG[n] || '#cdc1b4'),
+                      background: isOpen ? 'transparent' : isMatch ? (w.matchColor || '#f5f5f0') : (w.tileColors?.[ti] || TILE_BG[n] || '#cdc1b4'),
                       color: isMatch ? '#333' : (DARK_TEXT.has(n) ? '#776e65' : '#f9f6f2'),
                       fontSize: n >= 1024 ? '0.85rem' : n >= 100 ? '1.05rem' : '1.3rem',
                     }}
