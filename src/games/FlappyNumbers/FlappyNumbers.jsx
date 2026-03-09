@@ -344,11 +344,11 @@ function FlappyNumbersGame({
                 return (
                   <div
                     key={ti}
-                    className={`${styles.wTile}${isMatch ? ` ${styles.wMatch}` : ''}${isOpen ? ` ${styles.wOpen}` : ''}`}
+                    className={`${styles.wTile}${isOpen ? ` ${styles.wOpen}` : ''}`}
                     style={{
                       height: TH,
                       background: isOpen ? 'transparent' : isMatch ? (w.matchColor || '#f5f5f0') : (w.tileColors?.[ti] || TILE_BG[n] || '#cdc1b4'),
-                      color: isMatch ? '#333' : (DARK_TEXT.has(n) ? '#776e65' : '#f9f6f2'),
+                      color: DARK_TEXT.has(n) ? '#776e65' : '#f9f6f2',
                       fontSize: n >= 1024 ? '0.85rem' : n >= 100 ? '1.05rem' : '1.3rem',
                     }}
                   >
