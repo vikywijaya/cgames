@@ -16,6 +16,13 @@ const TILE_BG = {
 };
 const DARK_TEXT = new Set([2, 4]);
 
+// Random colors for the matching tile on each wall
+const MATCH_COLORS = [
+  '#a8d8ea', '#f9c0c0', '#b5eaaa', '#d4a5f5',
+  '#ffd59e', '#f5a8c8', '#a5d6f7', '#c8e6c9',
+  '#ffe082', '#b3e5fc', '#f8bbd0', '#c5cae9',
+];
+
 const GW = 360;       // game area width
 const GH = 560;       // game area height
 const PSZ = 48;       // player tile size
@@ -49,7 +56,8 @@ function mkWall(num) {
     do { n = pick(POWERS); } while (n === num);
     return n;
   });
-  return { tiles, mi };
+  const matchColor = pick(MATCH_COLORS);
+  return { tiles, mi, matchColor };
 }
 
 /** Pick the next player number (different from current). */
@@ -335,8 +343,8 @@ function FlappyNumbersGame({
                     className={`${styles.wTile}${isMatch ? ` ${styles.wMatch}` : ''}${isOpen ? ` ${styles.wOpen}` : ''}`}
                     style={{
                       height: TH,
-                      background: isOpen ? 'transparent' : isMatch ? '#f5f5f0' : (TILE_BG[n] || '#cdc1b4'),
-                      color: isMatch ? '#776e65' : (DARK_TEXT.has(n) ? '#776e65' : '#f9f6f2'),
+                      background: isOpen ? 'transparent' : isMatch ? (w.matchColor || '#f5f5f0') : (TILE_BG[n] || '#cdc1b4'),
+                      color: isMatch ? '#333' : (DARK_TEXT.has(n) ? '#776e65' : '#f9f6f2'),
                       fontSize: n >= 1024 ? '0.85rem' : n >= 100 ? '1.05rem' : '1.3rem',
                     }}
                   >
