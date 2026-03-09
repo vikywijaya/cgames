@@ -34,7 +34,7 @@ import { MathCross }       from './games/MathCross/MathCross';
 import { Tangram }         from './games/Tangram/Tangram';
 import { SlitherEscape }  from './games/SlitherEscape/SlitherEscape';
 import { FlappyNumbers }  from './games/FlappyNumbers/FlappyNumbers';
-import { saveScore, getAllScores } from './utils/scoreStore';
+import { saveScore, getAllScores, getFavorites, toggleFavorite } from './utils/scoreStore';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import { TopBar } from './components/TopBar/TopBar.jsx';
 import './design/globals.css';
@@ -252,6 +252,8 @@ export function App() {
   const [selectedCategory,   setSelectedCategory]   = useState('All');
   // dailyChallenge: { games: Array, index: number, scores: { gameId: pct }, lastPct: number|null }
   const [dailyChallenge,     setDailyChallenge]     = useState(null);
+
+  const [favorites, setFavorites] = useState(() => getFavorites());
 
   // Preserve lobby scroll position when entering/returning from a game
   const lobbyScrollRef = useRef(0);
@@ -636,10 +638,11 @@ export function App() {
         </header>
 
         <div className={styles.categoryRow} role="radiogroup" aria-label="Filter by category">
-          {['All', ...GAME_GROUPS.map(g => g.category)].map(cat => {
+          {['All', 'Favorites', ...GAME_GROUPS.map(g => g.category)].map(cat => {
+            const isFav = cat === 'Favorites';
             const group = GAME_GROUPS.find(g => g.category === cat);
-            const shortLabel = { 'Attention & Reflexes': 'Reflexes', 'Numbers & Logic': 'Numbers', 'Visual & Spatial': 'Visual', 'General Knowledge': 'Knowledge' }[cat] ?? cat;
-            const count = cat === 'All' ? ALL_GAMES.length : group?.games.length;
+            const shortLabel = isFav ? 'Favorites' : ({ 'Attention & Reflexes': 'Reflexes', 'Numbers & Logic': 'Numbers', 'Visual & Spatial': 'Visual', 'General Knowledge': 'Knowledge' }[cat] ?? cat);
+            const count = cat === 'All' ? ALL_GAMES.length : isFav ? favorites.size : group?.games.length;
             return (
               <label
                 key={cat}
@@ -653,13 +656,58 @@ export function App() {
                   checked={selectedCategory === cat}
                   onChange={() => setSelectedCategory(cat)}
                 />
-                {group ? <span aria-hidden="true">{group.icon}</span> : null} {shortLabel} <span className={styles.categoryCount}>{count}</span>
+                {isFav ? <span aria-hidden="true">❤️</span> : group ? <span aria-hidden="true">{group.icon}</span> : null} {shortLabel} <span className={styles.categoryCount}>{count}</span>
               </label>
             );
           })}
         </div>
 
-        {GAME_GROUPS
+        {selectedCategory === 'Favorites' ? (
+          <section className={styles.gameSection} aria-label="Favorites">
+            <h2 className={styles.sectionTitle}>
+              <span aria-hidden="true">❤️</span> Favorites
+            </h2>
+            {favorites.size === 0 ? (
+              <p className={styles.favoritesEmpty}>Tap the heart icon on any game card to add it to your favorites.</p>
+            ) : (
+            <div className={styles.gameGrid} role="list">
+              {ALL_GAMES.filter(g => favorites.has(g.id)).map(game => (
+                <div key={game.id} className={styles.gameCardWrap}>
+                  <button
+                    className={`${styles.favBtn} ${styles.favBtnActive}`}
+                    onClick={(e) => { e.stopPropagation(); setFavorites(toggleFavorite(game.id)); }}
+                    aria-label={`Remove ${game.title} from favorites`}
+                  >
+                    <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/></svg>
+                  </button>
+                  <button
+                    className={`${styles.gameCard} ${game.comingSoon ? styles.gameCardDisabled : ''}`}
+                    onClick={game.comingSoon ? undefined : () => { lobbyScrollRef.current = window.scrollY; setSelectedGame(game.id); }}
+                    disabled={game.comingSoon}
+                    aria-label={game.comingSoon ? `${game.title} — Coming Soon` : `Play ${game.title}`}
+                  >
+                    <div className={styles.gameIconBox} aria-hidden="true">
+                      {getGameImage(game.id)
+                        ? <img src={getGameImage(game.id)} alt="" className={styles.gameIconImg} />
+                        : game.icon}
+                    </div>
+                    <div className={styles.gameMeta}>
+                      <h3 className={styles.gameCardTitle}>{game.title}</h3>
+                      <p className={styles.gameCardDesc}>{game.description}</p>
+                      <div className={styles.gameCardFooter}>
+                        <span className={styles.gameDomain}>{game.domain}</span>
+                        {game.comingSoon
+                          ? <span className={styles.comingSoonBadge}>Coming Soon</span>
+                          : <span className={styles.playButton} aria-hidden="true">Play</span>}
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              ))}
+            </div>
+            )}
+          </section>
+        ) : GAME_GROUPS
           .filter(group => selectedCategory === 'All' || group.category === selectedCategory)
           .map(group => (
           <section key={group.category} className={styles.gameSection} aria-label={group.category}>
@@ -668,29 +716,41 @@ export function App() {
             </h2>
             <div className={styles.gameGrid} role="list">
               {group.games.map(game => (
-                <button
-                  key={game.id}
-                  className={`${styles.gameCard} ${game.comingSoon ? styles.gameCardDisabled : ''}`}
-                  onClick={game.comingSoon ? undefined : () => { lobbyScrollRef.current = window.scrollY; setSelectedGame(game.id); }}
-                  disabled={game.comingSoon}
-                  aria-label={game.comingSoon ? `${game.title} — Coming Soon` : `Play ${game.title}`}
-                >
-                  <div className={styles.gameIconBox} aria-hidden="true">
-                    {getGameImage(game.id)
-                      ? <img src={getGameImage(game.id)} alt="" className={styles.gameIconImg} />
-                      : game.icon}
-                  </div>
-                  <div className={styles.gameMeta}>
-                    <h3 className={styles.gameCardTitle}>{game.title}</h3>
-                    <p className={styles.gameCardDesc}>{game.description}</p>
-                    <div className={styles.gameCardFooter}>
-                      <span className={styles.gameDomain}>{game.domain}</span>
-                      {game.comingSoon
-                        ? <span className={styles.comingSoonBadge}>Coming Soon</span>
-                        : <span className={styles.playButton} aria-hidden="true">Play</span>}
+                <div key={game.id} className={styles.gameCardWrap}>
+                  <button
+                    className={`${styles.favBtn} ${favorites.has(game.id) ? styles.favBtnActive : ''}`}
+                    onClick={(e) => { e.stopPropagation(); setFavorites(toggleFavorite(game.id)); }}
+                    aria-label={favorites.has(game.id) ? `Remove ${game.title} from favorites` : `Add ${game.title} to favorites`}
+                  >
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                      {favorites.has(game.id)
+                        ? <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/>
+                        : <path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z" fill="currentColor"/>}
+                    </svg>
+                  </button>
+                  <button
+                    className={`${styles.gameCard} ${game.comingSoon ? styles.gameCardDisabled : ''}`}
+                    onClick={game.comingSoon ? undefined : () => { lobbyScrollRef.current = window.scrollY; setSelectedGame(game.id); }}
+                    disabled={game.comingSoon}
+                    aria-label={game.comingSoon ? `${game.title} — Coming Soon` : `Play ${game.title}`}
+                  >
+                    <div className={styles.gameIconBox} aria-hidden="true">
+                      {getGameImage(game.id)
+                        ? <img src={getGameImage(game.id)} alt="" className={styles.gameIconImg} />
+                        : game.icon}
                     </div>
-                  </div>
-                </button>
+                    <div className={styles.gameMeta}>
+                      <h3 className={styles.gameCardTitle}>{game.title}</h3>
+                      <p className={styles.gameCardDesc}>{game.description}</p>
+                      <div className={styles.gameCardFooter}>
+                        <span className={styles.gameDomain}>{game.domain}</span>
+                        {game.comingSoon
+                          ? <span className={styles.comingSoonBadge}>Coming Soon</span>
+                          : <span className={styles.playButton} aria-hidden="true">Play</span>}
+                      </div>
+                    </div>
+                  </button>
+                </div>
               ))}
             </div>
           </section>

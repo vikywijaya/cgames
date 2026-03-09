@@ -1165,5 +1165,52 @@
   justify-content: center;
 }
 
+/* ── Game card wrapper (for fav button overlay) ── */
+.gameCardWrap {
+  position: relative;
+}
+
+/* ── Favorite heart button ── */
+.favBtn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #ccc;
+  transition: color 0.2s, transform 0.2s, background 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  padding: 0;
+}
+.favBtn:hover {
+  color: #e74c5e;
+  background: rgba(255, 255, 255, 0.95);
+  transform: scale(1.15);
+}
+.favBtnActive {
+  color: #e74c5e;
+}
+.favBtnActive:hover {
+  color: #c0392b;
+}
+
+/* ── Favorites empty state ── */
+.favoritesEmpty {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  padding: var(--space-8) var(--space-4);
+  line-height: 1.6;
+}
+
 /* .musicToggle removed — sound control is now in the TopBar component */
 
