@@ -37,9 +37,9 @@ const FLAP_V = -6.5;  // flap upward push
 const TILES_N = 8;    // tiles per wall column
 
 const DIFF_CFG = {
-  easy:   { baseSpd: 1.6, colorMatch: false },
-  medium: { baseSpd: 2.0, colorMatch: true },
-  hard:   { baseSpd: 2.6, colorMatch: true },
+  easy:   { baseSpd: 1.3, colorMatch: false },
+  medium: { baseSpd: 1.6, colorMatch: true },
+  hard:   { baseSpd: 2.2, colorMatch: true },
 };
 const TIME_LIMITS = { easy: null, medium: null, hard: null };
 
@@ -57,11 +57,11 @@ const TILE_BG_VALUES = Object.values(TILE_BG);
 /** Get progressive difficulty scaling based on score. */
 function getScaling(score, difficulty) {
   const cfg = DIFF_CFG[difficulty] || DIFF_CFG.easy;
-  // Speed increases every 3 walls passed, capped at ~2x base speed
-  const spdMult = 1 + Math.min(score * 0.06, 1.0);
+  // Speed increases gently, capped at ~1.6x base speed
+  const spdMult = 1 + Math.min(score * 0.03, 0.6);
   const spd = cfg.baseSpd * spdMult;
-  // Wall gap shrinks gradually (more walls on screen = harder to plan)
-  const gap = Math.max(220, 340 - score * 8);
+  // Wall gap starts wide and shrinks slowly — stays comfortable
+  const gap = Math.max(300, 440 - score * 6);
   // Number pool grows with score — more numbers to scan
   const poolSize = Math.min(POWERS.length, 3 + Math.floor(score / 2));
   return { spd, gap, poolSize };
