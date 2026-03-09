@@ -74,16 +74,17 @@ function FlappyNumbersGame({
   const doneRef = useRef(false);
   const [, bump] = useState(0);
 
-  // Initialize game state — starts playing immediately (GameShell shows instructions)
+  // Initialize game state — 'waiting' phase: bird hovers, no gravity until first tap
   if (!gRef.current) {
     gRef.current = {
-      ph: 'playing',
+      ph: 'waiting',
       py: GH / 2 - PSZ / 2,
       pv: 0,
       pr: 0,
       pn: pick(POWERS.slice(0, 4)),
       walls: [],
       sc: 0,
+      floatT: 0,
     };
   }
 
@@ -129,7 +130,12 @@ function FlappyNumbersGame({
 
   const flap = useCallback(() => {
     const g = gRef.current;
-    if (g.ph !== 'playing') return;
+    if (g.ph === 'dead') return;
+    if (g.ph === 'waiting') {
+      g.ph = 'playing';
+      // First wall spawns far right — plenty of time to react
+      g.walls = [{ x: GW + 80, passed: false, ...mkWall(g.pn) }];
+    }
     g.pv = FLAP_V;
     playClick();
     re();
@@ -142,6 +148,16 @@ function FlappyNumbersGame({
     tRef.current = ts;
 
     const g = gRef.current;
+
+    // Waiting phase: bird gently bobs in place, no walls
+    if (g.ph === 'waiting') {
+      g.floatT = (g.floatT || 0) + dt * 0.08;
+      g.py = GH / 2 - PSZ / 2 + Math.sin(g.floatT) * 8;
+      re();
+      rafRef.current = requestAnimationFrame(loop);
+      return;
+    }
+
     if (g.ph === 'playing') {
       // Physics
       g.pv += GRAV * dt;
@@ -278,6 +294,11 @@ function FlappyNumbersGame({
             })}
           </div>
         ))}
+
+        {/* Tap to start */}
+        {g.ph === 'waiting' && (
+          <div className={styles.tapPrompt}>Tap to start!</div>
+        )}
 
         {/* Game over overlay */}
         {g.ph === 'dead' && (

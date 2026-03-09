@@ -112,6 +112,25 @@
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.04);
 }
 
+/* ── Tap to start prompt ── */
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 1; }
+}
+.tapPrompt {
+  position: absolute;
+  bottom: 28%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #776e65;
+  z-index: 15;
+  animation: pulse 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
 /* ── Game-over overlay ── */
 .ov {
   position: absolute;
