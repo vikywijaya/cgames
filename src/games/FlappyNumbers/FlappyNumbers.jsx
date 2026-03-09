@@ -119,6 +119,14 @@ function FlappyNumbersGame({
     reportScore(g.sc);
     playSuccess();
     g.pn = nextNum(g.pn, g.sc);
+    // Update any already-spawned unpassed walls to match the new player number
+    for (const w of g.walls) {
+      if (!w.passed) {
+        const updated = mkWall(g.pn);
+        w.tiles = updated.tiles;
+        w.mi = updated.mi;
+      }
+    }
     if (g.sc >= cfg.goal) {
       g.ph = 'dead';
       if (!doneRef.current) {
