@@ -59,7 +59,8 @@ function mkWall(num) {
   });
   // Each non-matching tile gets a random color from the TILE_BG palette
   const tileColors = tiles.map((_, i) => i === mi ? null : pick(TILE_BG_VALUES));
-  const matchColor = pick(MATCH_COLORS);
+  // Match tile also uses a color from the same palette so it blends in
+  const matchColor = pick(TILE_BG_VALUES);
   return { tiles, mi, matchColor, tileColors };
 }
 
