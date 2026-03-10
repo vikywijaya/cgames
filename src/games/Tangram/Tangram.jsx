@@ -149,7 +149,7 @@ function TangramGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { rounds, showOutlines } = config;
   const boardSize = 240; // SVG viewBox size for the board area
-  const trayHeight = 100;
+  const trayHeight = 160;
   const totalHeight = boardSize + trayHeight + 20;
 
   const [round, setRound] = useState(0);
@@ -160,6 +160,14 @@ function TangramGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
   const [pieces, setPieces] = useState(() => initPieces());
   const [dragging, setDragging] = useState(null); // { id, offsetX, offsetY }
   const svgRef = useRef(null);
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
+  const scoreRef = useRef(0);
+  const roundRef = useRef(0);
+  const roundsRef = useRef(rounds);
+  useEffect(() => { scoreRef.current = score; }, [score]);
+  useEffect(() => { roundRef.current = round; }, [round]);
+  useEffect(() => { roundsRef.current = rounds; }, [rounds]);
 
   function initPieces() {
     // Place pieces randomly in the tray area
@@ -198,30 +206,6 @@ function TangramGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
     if (secondsLeft === 0) onComplete({ finalScore: score, maxScore: rounds, completed: false });
   }, [secondsLeft, score, rounds, onComplete]);
 
-  // Check if all pieces are placed correctly
-  useEffect(() => {
-    if (solved) return;
-    const allPlaced = pieces.every(p => p.placed);
-    if (!allPlaced) return;
-
-    setSolved(true);
-    playSuccess();
-    const newScore = score + 1;
-    setScore(newScore);
-    reportScore(newScore);
-
-    const timer = setTimeout(() => {
-      const nextRound = round + 1;
-      if (nextRound >= rounds) {
-        onComplete({ finalScore: newScore, maxScore: rounds, completed: true });
-        return;
-      }
-      setRound(nextRound);
-      setPieces(initPieces());
-      setSolved(false);
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, [pieces, solved, score, round, rounds, onComplete, reportScore, playSuccess]);
 
   // Convert mouse/touch event to SVG coordinates
   const toSVG = useCallback((e) => {
@@ -286,19 +270,35 @@ function TangramGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
         // Snap to target
         const snapX = target.x - cx * pieceScale;
         const snapY = target.y - cy * pieceScale;
-        setPieces(prev => prev.map(p =>
-          p.id === dragging.id
-            ? { ...p, x: snapX, y: snapY, placed: true }
-            : p
-        ));
+        const updatedPieces = pieces.map(p =>
+          p.id === dragging.id ? { ...p, x: snapX, y: snapY, placed: true } : p
+        );
+        setPieces(updatedPieces);
         playSuccess();
+
+        if (!solved && updatedPieces.every(p => p.placed)) {
+          setSolved(true);
+          const newScore = scoreRef.current + 1;
+          setScore(newScore);
+          reportScore(newScore);
+          setTimeout(() => {
+            const nextRound = roundRef.current + 1;
+            if (nextRound >= roundsRef.current) {
+              onCompleteRef.current({ finalScore: newScore, maxScore: roundsRef.current, completed: true });
+              return;
+            }
+            setSolved(false);
+            setRound(nextRound);
+            setPieces(initPieces());
+          }, 1200);
+        }
       } else {
         playFail();
       }
     }
 
     setDragging(null);
-  }, [dragging, pieces, targets, pieceScale, playSuccess, playFail]);
+  }, [dragging, pieces, targets, pieceScale, solved, score, reportScore, playSuccess, playFail]);
 
   // Reset all pieces to tray
   const resetPieces = useCallback(() => {

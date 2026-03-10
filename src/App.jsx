@@ -129,7 +129,7 @@ const GAME_GROUPS = [
       { id: 'odd-one-out',         title: 'Odd One Out',         icon: '🔎', domain: 'Visual Reasoning', description: 'Spot the one emoji that doesn\'t belong.' },
       { id: 'spot-difference',     title: 'Spot the Difference', icon: '🔍', domain: 'Visual Scanning',  description: 'Find the tiles that differ between two emoji grids.' },
       { id: 'letter-count',        title: 'Letter Count',        icon: '🔠', domain: 'Visual Attention', description: 'Count how many times a letter appears in a word.' },
-      { id: 'tangram',              title: 'Tangram',             icon: '🔺', domain: 'Spatial Reasoning', description: 'Drag seven geometric pieces to fill the silhouette.' },
+      { id: 'tangram',              title: 'Tangram',             icon: '🔺', domain: 'Spatial Reasoning', description: 'Drag seven geometric pieces to fill the silhouette.', beta: true },
     ],
   },
   {
@@ -699,6 +699,7 @@ export function App() {
                     <p className={styles.gameCardDesc}>{game.description}</p>
                     <div className={styles.gameCardFooter}>
                       <span className={styles.gameDomain}>{game.domain}</span>
+                      {game.beta && <span className={styles.betaBadge}>Beta</span>}
                       {game.comingSoon
                         ? <span className={styles.comingSoonBadge}>Coming Soon</span>
                         : <span className={styles.playButton} aria-hidden="true">Play</span>}
@@ -749,6 +750,7 @@ export function App() {
                     <p className={styles.gameCardDesc}>{game.description}</p>
                     <div className={styles.gameCardFooter}>
                       <span className={styles.gameDomain}>{game.domain}</span>
+                      {game.beta && <span className={styles.betaBadge}>Beta</span>}
                       {game.comingSoon
                         ? <span className={styles.comingSoonBadge}>Coming Soon</span>
                         : <span className={styles.playButton} aria-hidden="true">Play</span>}
