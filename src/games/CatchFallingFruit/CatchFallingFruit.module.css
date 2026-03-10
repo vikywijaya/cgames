@@ -105,7 +105,32 @@
   pointer-events: none;
 }
 
-/* ── Fruit ────────────────────────────────────────── */
+/* ── Flash overlay (hit / bonus) ──────────────────── */
+.flashOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+  border-radius: inherit;
+  animation: flashFade 0.45s ease-out forwards;
+}
+
+.flashHit {
+  background: rgba(239, 68, 68, 0.35);
+  box-shadow: inset 0 0 60px rgba(239, 68, 68, 0.4);
+}
+
+.flashBonus {
+  background: rgba(250, 204, 21, 0.28);
+  box-shadow: inset 0 0 60px rgba(250, 204, 21, 0.35);
+}
+
+@keyframes flashFade {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ── Fruit (normal falling item) ──────────────────── */
 .fruit {
   position: absolute;
   width: 40px;
@@ -116,6 +141,44 @@
   pointer-events: none;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
   will-change: top;
+}
+
+/* ── Obstacle (bomb / poison) ─────────────────────── */
+.obstacle {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  font-size: 1.8rem;
+  line-height: 40px;
+  text-align: center;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 10px rgba(239, 68, 68, 0.7));
+  will-change: top;
+  animation: obstacleWobble 0.45s ease-in-out infinite alternate;
+}
+
+@keyframes obstacleWobble {
+  from { transform: rotate(-10deg) scale(1);    }
+  to   { transform: rotate(10deg)  scale(1.12); }
+}
+
+/* ── Power-up (star / heart) ──────────────────────── */
+.powerup {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  font-size: 1.8rem;
+  line-height: 40px;
+  text-align: center;
+  pointer-events: none;
+  filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.9));
+  will-change: top;
+  animation: powerupPulse 0.55s ease-in-out infinite alternate;
+}
+
+@keyframes powerupPulse {
+  from { transform: scale(1);    filter: drop-shadow(0 0 6px  rgba(250, 204, 21, 0.7)); }
+  to   { transform: scale(1.18); filter: drop-shadow(0 0 14px rgba(250, 204, 21, 1.0)); }
 }
 
 /* ── Basket ───────────────────────────────────────── */
@@ -139,4 +202,3 @@
   text-align: center;
   opacity: 0.7;
 }
-

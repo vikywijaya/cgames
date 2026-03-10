@@ -143,14 +143,14 @@ export function DailyArithmetic({
       title="Daily Arithmetic"
       instructions={INSTRUCTIONS}
       difficulty={difficulty}
-      timeLimitSeconds={null}
+      timeLimits={{ easy: null, medium: null, hard: null }}
       onGameComplete={fireComplete}
       onBack={onBack}
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: shellComplete, reportScore, playClick, playSuccess, playFail }) => (
-        <ArithmeticGame difficulty={difficulty} onComplete={shellComplete} reportScore={reportScore} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
+      {({ onComplete: shellComplete, reportScore, difficulty: diff, playClick, playSuccess, playFail }) => (
+        <ArithmeticGame difficulty={diff} onComplete={shellComplete} reportScore={reportScore} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

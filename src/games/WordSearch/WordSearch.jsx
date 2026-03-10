@@ -173,14 +173,14 @@ export function WordSearch({ memberId, difficulty = 'easy', onComplete, callback
       title="Word Search"
       instructions={INSTRUCTIONS}
       difficulty={difficulty}
-      timeLimitSeconds={null}
+      timeLimits={{ easy: null, medium: null, hard: null }}
       onGameComplete={fireComplete}
       onBack={onBack}
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: shellComplete, reportScore, playClick, playSuccess, playFail }) => (
-        <WordSearchGame difficulty={difficulty} onComplete={shellComplete} reportScore={reportScore} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
+      {({ onComplete: shellComplete, reportScore, difficulty: diff, playClick, playSuccess, playFail }) => (
+        <WordSearchGame difficulty={diff} onComplete={shellComplete} reportScore={reportScore} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );

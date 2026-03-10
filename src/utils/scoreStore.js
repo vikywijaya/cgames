@@ -32,3 +32,21 @@ export function getAllScores() {
   try { return JSON.parse(localStorage.getItem(KEY) || '{}'); }
   catch { return {}; }
 }
+
+/* ── Favorites ── */
+const FAV_KEY = 'caritahub_favorites';
+
+/** Get the Set of favorited game IDs. */
+export function getFavorites() {
+  try { return new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); }
+  catch { return new Set(); }
+}
+
+/** Toggle a game's favorite status. Returns the new Set. */
+export function toggleFavorite(gameId) {
+  const favs = getFavorites();
+  if (favs.has(gameId)) favs.delete(gameId);
+  else favs.add(gameId);
+  try { localStorage.setItem(FAV_KEY, JSON.stringify([...favs])); } catch {}
+  return favs;
+}

@@ -159,6 +159,8 @@ WhackGame.propTypes = {
   playFail:    PropTypes.func.isRequired,
 };
 
+const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
+
 export function WhackAMole({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'whack-a-mole', callbackUrl, onComplete });
@@ -172,14 +174,14 @@ export function WhackAMole({ memberId, difficulty = 'easy', onComplete, callback
         ? `Tap the 🐹 moles quickly — but avoid the 💣 bombs! You have 3 lives. Score as many as you can in ${config.timeLimitSeconds} seconds.`
         : `Tap the 🐹 moles as fast as you can! Score as many as you can in ${config.timeLimitSeconds} seconds.`}
       difficulty={difficulty}
-      timeLimitSeconds={config.timeLimitSeconds}
+      timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft, playBoing, playFail }) => (
-        <WhackGame difficulty={difficulty} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playBoing={playBoing} playFail={playFail} />
+      {({ onComplete: sc, reportScore, secondsLeft, difficulty: diff, playBoing, playFail }) => (
+        <WhackGame difficulty={diff} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playBoing={playBoing} playFail={playFail} />
       )}
     </GameShell>
   );

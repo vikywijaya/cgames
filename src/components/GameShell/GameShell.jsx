@@ -24,10 +24,12 @@ export function GameShell({
   instructions,
   difficulty = 'easy',
   timeLimitSeconds = null,
+  timeLimits = null,
   children,
   onGameComplete,
   onBack,
 }) {
+  const [localDifficulty, setLocalDifficulty] = useState(difficulty);
   const [phase, setPhase] = useState('idle'); // 'idle' | 'playing' | 'finished'
   const [animating, setAnimating] = useState(false); // true while entry animations play
   const [result, setResult] = useState(null);
@@ -36,11 +38,14 @@ export function GameShell({
   const animTimerRef = useRef(null);
   const { playClick, playSuccess, playFail, playComplete, playPop, playReveal, playBoing, playTick } = useSoundFx();
 
+  // Compute effective time limit from timeLimits map or legacy prop
+  const effectiveTimeLimit = timeLimits ? (timeLimits[localDifficulty] ?? null) : timeLimitSeconds;
+
   // 0.5s max stagger delay + 0.4s animation duration + 50ms buffer
   const ANIM_LOCK_MS = 950;
 
   const { secondsLeft } = useCountdown({
-    seconds: timeLimitSeconds,
+    seconds: effectiveTimeLimit,
     active: phase === 'playing' && !animating,
     onExpire: () => {
       if (phase === 'playing') {
@@ -85,13 +90,13 @@ export function GameShell({
   }
 
   const diffBadgeClass =
-    difficulty === 'hard'
+    localDifficulty === 'hard'
       ? styles.badgeHard
-      : difficulty === 'medium'
+      : localDifficulty === 'medium'
       ? styles.badgeMedium
       : styles.badgeEasy;
 
-  const diffLabel = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+  const diffLabel = localDifficulty.charAt(0).toUpperCase() + localDifficulty.slice(1);
 
   // Convert instruction strings to bullet list
   function renderInstructions(inst) {
@@ -122,11 +127,31 @@ export function GameShell({
       {phase === 'idle' && (
         <div className={styles.startScreen}>
           <h1 className={styles.gameTitle}>{title}</h1>
-          <span className={`${styles.difficultyBadge} ${diffBadgeClass}`}>{diffLabel}</span>
-          {timeLimitSeconds && (
-            <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
-              Time limit: {timeLimitSeconds} seconds
+          <div className={styles.difficultyPicker} role="radiogroup" aria-label="Select difficulty">
+            {['easy', 'medium', 'hard'].map(level => (
+              <button
+                key={level}
+                className={`${styles.difficultyOption} ${
+                  localDifficulty === level
+                    ? level === 'hard' ? styles.diffOptActiveHard
+                    : level === 'medium' ? styles.diffOptActiveMedium
+                    : styles.diffOptActiveEasy
+                    : ''
+                }`}
+                onClick={() => { playClick(); setLocalDifficulty(level); }}
+                role="radio"
+                aria-checked={localDifficulty === level}
+              >
+                {level.charAt(0).toUpperCase() + level.slice(1)}
+              </button>
+            ))}
+          </div>
+          {effectiveTimeLimit ? (
+            <p className={styles.timeLimitNote}>
+              Time limit: {effectiveTimeLimit}s
             </p>
+          ) : (
+            <p className={styles.timeLimitNote}>Untimed</p>
           )}
           <div className={styles.instructionsFrame} role="region" aria-label="Game instructions">
             <div className={styles.instructions}>
@@ -196,6 +221,7 @@ export function GameShell({
           </div>
           <div className={`${styles.gameBody} ${animating ? styles.gameBodyLocked : ''}`}>
             {children({
+              difficulty: localDifficulty,
               onComplete: handleComplete,
               reportScore: setLiveScore,
               secondsLeft,
@@ -220,6 +246,7 @@ GameShell.propTypes = {
   instructions: PropTypes.oneOfType([PropTypes.string, PropTypes.node]).isRequired,
   difficulty: PropTypes.oneOf(['easy', 'medium', 'hard']),
   timeLimitSeconds: PropTypes.number,
+  timeLimits: PropTypes.object,
   children: PropTypes.func.isRequired,
   onGameComplete: PropTypes.func,
   onBack: PropTypes.func,

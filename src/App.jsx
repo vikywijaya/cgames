@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MemoryMatch }      from './games/MemoryMatch/MemoryMatch';
 import { WordRecall }       from './games/WordRecall/WordRecall';
 import { PatternSequence }  from './games/PatternSequence/PatternSequence';
@@ -25,7 +25,16 @@ import { CurrencyQuiz }     from './games/CurrencyQuiz/CurrencyQuiz';
 import { LandmarkQuiz }     from './games/LandmarkQuiz/LandmarkQuiz';
 import { SnakeLite }        from './games/SnakeLite/SnakeLite';
 import { TileFlip }         from './games/TileFlip/TileFlip';
-import { saveScore, getAllScores } from './utils/scoreStore';
+import { Lumeno }           from './games/Lumeno/Lumeno';
+import { PipePuzzle }       from './games/PipePuzzle/PipePuzzle';
+import { Sumix }            from './games/Sumix/Sumix';
+import { BlockPuzzle }      from './games/BlockPuzzle/BlockPuzzle';
+import { RingSort }         from './games/RingSort/RingSort';
+import { MathCross }       from './games/MathCross/MathCross';
+import { Tangram }         from './games/Tangram/Tangram';
+import { SlitherEscape }  from './games/SlitherEscape/SlitherEscape';
+import { FlappyNumbers }  from './games/FlappyNumbers/FlappyNumbers';
+import { saveScore, getAllScores, getFavorites, toggleFavorite } from './utils/scoreStore';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import { TopBar } from './components/TopBar/TopBar.jsx';
 import './design/globals.css';
@@ -63,6 +72,15 @@ const GAME_MAP = {
   'landmark-quiz':     LandmarkQuiz,
   'snake-lite':        SnakeLite,
   'tile-flip':         TileFlip,
+  'lumeno':            Lumeno,
+  'pipe-puzzle':       PipePuzzle,
+  'sumix':             Sumix,
+  'block-puzzle':      BlockPuzzle,
+  'ring-sort':         RingSort,
+  'math-cross':        MathCross,
+  'tangram':           Tangram,
+  'slither-escape':    SlitherEscape,
+  'flappy-numbers':    FlappyNumbers,
 };
 
 // Games grouped by cognitive category
@@ -97,6 +115,8 @@ const GAME_GROUPS = [
       { id: 'number-sort',      title: 'Number Sort',      icon: '🔢', domain: 'Numeric Ordering',    description: 'Tap numbers from smallest to largest.' },
       { id: 'missing-number',   title: 'Missing Number',   icon: '❓', domain: 'Pattern Recognition', description: 'Find the missing number in an arithmetic sequence.' },
       { id: 'quick-maths',      title: 'Quick Maths',      icon: '➕', domain: 'Mental Arithmetic',   description: 'Solve addition, subtraction and multiplication problems fast.' },
+      { id: 'sumix',             title: 'Sumix',            icon: '🧮', domain: 'Numeric Logic',      description: 'Activate numbers so each row and column sums to its target.' },
+      { id: 'math-cross',       title: 'Math Cross',      icon: '✖️', domain: 'Mental Arithmetic',  description: 'Place numbers into a crossword of equations to make them all correct.' },
     ],
   },
   {
@@ -109,6 +129,7 @@ const GAME_GROUPS = [
       { id: 'odd-one-out',         title: 'Odd One Out',         icon: '🔎', domain: 'Visual Reasoning', description: 'Spot the one emoji that doesn\'t belong.' },
       { id: 'spot-difference',     title: 'Spot the Difference', icon: '🔍', domain: 'Visual Scanning',  description: 'Find the tiles that differ between two emoji grids.' },
       { id: 'letter-count',        title: 'Letter Count',        icon: '🔠', domain: 'Visual Attention', description: 'Count how many times a letter appears in a word.' },
+      { id: 'tangram',              title: 'Tangram',             icon: '🔺', domain: 'Spatial Reasoning', description: 'Drag seven geometric pieces to fill the silhouette.' },
     ],
   },
   {
@@ -125,8 +146,14 @@ const GAME_GROUPS = [
     category: 'Arcade',
     icon: '🕹️',
     games: [
-      { id: 'snake-lite', title: 'Snake',     icon: '🐍', domain: 'Coordination',   description: 'Guide the snake to eat fruit. Don\'t hit the walls or yourself!' },
-      { id: 'tile-flip',  title: 'Tile Flip', icon: '🟨', domain: 'Spatial Memory', description: 'Memorise which tiles light up, then tap them all from memory.' },
+      { id: 'snake-lite',  title: 'Snake',        icon: '🐍', domain: 'Coordination',    description: 'Guide the snake to eat fruit. Don\'t hit the walls or yourself!' },
+      { id: 'tile-flip',   title: 'Tile Flip',    icon: '🟨', domain: 'Spatial Memory',  description: 'Memorise which tiles light up, then tap them all from memory.' },
+      { id: 'lumeno',      title: 'Lumeno',       icon: '🔮', domain: 'Visual Pattern',  description: 'Drag through 3 or more same-colour orbs to clear them. Longer chains score more!' },
+      { id: 'pipe-puzzle',   title: 'Pipe Puzzle',  icon: '🔧', domain: 'Spatial Reasoning', description: 'Rotate tiles to connect the same-coloured dots with an unbroken pipe.' },
+      { id: 'block-puzzle',  title: 'Blocks',       icon: '🟧', domain: 'Spatial Reasoning', description: 'Place block pieces on the board to fill every empty cell.' },
+      { id: 'ring-sort',     title: 'Rings',        icon: '🔴', domain: 'Logic & Sorting',  description: 'Sort the coloured rings so each rod has only one colour.' },
+      { id: 'slither-escape', title: 'Slither Escape', icon: '🐍', domain: 'Spatial Reasoning', description: 'Slide coloured snakes to their matching exits without getting tangled!', comingSoon: true },
+      { id: 'flappy-numbers', title: 'Flappy Numbers', icon: '🔢', domain: 'Number Recognition', description: 'Flap through the tile that matches your number — avoid the rest!' },
     ],
   },
 ];
@@ -222,8 +249,19 @@ export function App() {
   const [view,               setView]               = useState('home');
   const [selectedGame,       setSelectedGame]       = useState(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
+  const [selectedCategory,   setSelectedCategory]   = useState('All');
   // dailyChallenge: { games: Array, index: number, scores: { gameId: pct }, lastPct: number|null }
   const [dailyChallenge,     setDailyChallenge]     = useState(null);
+
+  const [favorites, setFavorites] = useState(() => getFavorites());
+
+  // Preserve lobby scroll position when entering/returning from a game
+  const lobbyScrollRef = useRef(0);
+  useEffect(() => {
+    if (view === 'games' && !selectedGame) {
+      window.scrollTo(0, lobbyScrollRef.current);
+    }
+  }, [view, selectedGame]);
 
   /* ── Daily challenge handlers ── */
   function startDailyChallenge() {
@@ -556,13 +594,17 @@ export function App() {
                       ) : (
                         <span className={styles.scoreUnplayed}>Not played yet</span>
                       )}
-                      <button
-                        className={styles.playBtnSm}
-                        onClick={() => { setView('games'); setSelectedGame(game.id); }}
-                        aria-label={`Play ${game.title}`}
-                      >
-                        ▶ Play
-                      </button>
+                      {game.comingSoon ? (
+                        <span className={styles.comingSoonBadge}>Coming Soon</span>
+                      ) : (
+                        <button
+                          className={styles.playBtnSm}
+                          onClick={() => { setView('games'); setSelectedGame(game.id); }}
+                          aria-label={`Play ${game.title}`}
+                        >
+                          ▶ Play
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -593,43 +635,60 @@ export function App() {
             className={styles.lobbyTitleImg}
           />
           <hr className={styles.lobbyDivider} />
-          <p className={styles.lobbySubtitle}>Browse all {ALL_GAMES.length} games and choose one to play.</p>
         </header>
 
-        <div className={styles.difficultyRow}>
-          <span className={styles.difficultyLabel}>Difficulty</span>
-          <div className={styles.difficultyRadioGroup} role="radiogroup" aria-label="Select difficulty">
-            {['easy', 'medium', 'hard'].map(level => (
+        <div className={styles.categoryRow} role="radiogroup" aria-label="Filter by category">
+          {['All', 'Favorites', ...GAME_GROUPS.map(g => g.category)].map(cat => {
+            const isFav = cat === 'Favorites';
+            const group = GAME_GROUPS.find(g => g.category === cat);
+            const shortLabel = isFav ? 'Favorites' : ({ 'Attention & Reflexes': 'Reflexes', 'Numbers & Logic': 'Numbers', 'Visual & Spatial': 'Visual', 'General Knowledge': 'Knowledge' }[cat] ?? cat);
+            const count = cat === 'All' ? ALL_GAMES.length : isFav ? favorites.size : group?.games.length;
+            return (
               <label
-                key={level}
-                className={`${styles.difficultyRadio} ${selectedDifficulty === level ? styles.difficultyRadioActive : ''}`}
+                key={cat}
+                className={`${styles.categoryPill} ${selectedCategory === cat ? styles.categoryPillActive : ''}`}
+                title={cat}
               >
                 <input
                   type="radio"
-                  name="difficulty"
-                  value={level}
-                  checked={selectedDifficulty === level}
-                  onChange={() => setSelectedDifficulty(level)}
+                  name="category"
+                  value={cat}
+                  checked={selectedCategory === cat}
+                  onChange={() => setSelectedCategory(cat)}
                 />
-                {level.charAt(0).toUpperCase() + level.slice(1)}
+                {isFav ? <span aria-hidden="true">❤️</span> : group ? <span aria-hidden="true">{group.icon}</span> : null} {shortLabel} <span className={styles.categoryCount}>{count}</span>
               </label>
-            ))}
-          </div>
+            );
+          })}
         </div>
 
-        {GAME_GROUPS.map(group => (
-          <section key={group.category} className={styles.gameSection} aria-label={group.category}>
+        {selectedCategory === 'Favorites' ? (
+          <section className={styles.gameSection} aria-label="Favorites">
             <h2 className={styles.sectionTitle}>
-              <span aria-hidden="true">{group.icon}</span> {group.category}
+              <span aria-hidden="true">❤️</span> Favorites
             </h2>
+            {favorites.size === 0 ? (
+              <p className={styles.favoritesEmpty}>Tap the heart icon on any game card to add it to your favorites.</p>
+            ) : (
             <div className={styles.gameGrid} role="list">
-              {group.games.map(game => (
+              {ALL_GAMES.filter(g => favorites.has(g.id)).map(game => (
                 <button
                   key={game.id}
-                  className={styles.gameCard}
-                  onClick={() => setSelectedGame(game.id)}
-                  aria-label={`Play ${game.title}`}
+                  className={`${styles.gameCard} ${game.comingSoon ? styles.gameCardDisabled : ''}`}
+                  onClick={game.comingSoon ? undefined : () => { lobbyScrollRef.current = window.scrollY; setSelectedGame(game.id); }}
+                  disabled={game.comingSoon}
+                  aria-label={game.comingSoon ? `${game.title} — Coming Soon` : `Play ${game.title}`}
                 >
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    className={`${styles.favBtn} ${styles.favBtnActive}`}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setFavorites(toggleFavorite(game.id)); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setFavorites(toggleFavorite(game.id)); } }}
+                    aria-label={`Remove ${game.title} from favorites`}
+                  >
+                    <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/></svg>
+                  </span>
                   <div className={styles.gameIconBox} aria-hidden="true">
                     {getGameImage(game.id)
                       ? <img src={getGameImage(game.id)} alt="" className={styles.gameIconImg} />
@@ -640,7 +699,59 @@ export function App() {
                     <p className={styles.gameCardDesc}>{game.description}</p>
                     <div className={styles.gameCardFooter}>
                       <span className={styles.gameDomain}>{game.domain}</span>
-                      <span className={styles.playButton} aria-hidden="true">Play</span>
+                      {game.comingSoon
+                        ? <span className={styles.comingSoonBadge}>Coming Soon</span>
+                        : <span className={styles.playButton} aria-hidden="true">Play</span>}
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+            )}
+          </section>
+        ) : GAME_GROUPS
+          .filter(group => selectedCategory === 'All' || group.category === selectedCategory)
+          .map(group => (
+          <section key={group.category} className={styles.gameSection} aria-label={group.category}>
+            <h2 className={styles.sectionTitle}>
+              <span aria-hidden="true">{group.icon}</span> {group.category}
+            </h2>
+            <div className={styles.gameGrid} role="list">
+              {group.games.map(game => (
+                <button
+                  key={game.id}
+                  className={`${styles.gameCard} ${game.comingSoon ? styles.gameCardDisabled : ''}`}
+                  onClick={game.comingSoon ? undefined : () => { lobbyScrollRef.current = window.scrollY; setSelectedGame(game.id); }}
+                  disabled={game.comingSoon}
+                  aria-label={game.comingSoon ? `${game.title} — Coming Soon` : `Play ${game.title}`}
+                >
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    className={`${styles.favBtn} ${favorites.has(game.id) ? styles.favBtnActive : ''}`}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setFavorites(toggleFavorite(game.id)); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setFavorites(toggleFavorite(game.id)); } }}
+                    aria-label={favorites.has(game.id) ? `Remove ${game.title} from favorites` : `Add ${game.title} to favorites`}
+                  >
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                      {favorites.has(game.id)
+                        ? <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/>
+                        : <path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z" fill="currentColor"/>}
+                    </svg>
+                  </span>
+                  <div className={styles.gameIconBox} aria-hidden="true">
+                    {getGameImage(game.id)
+                      ? <img src={getGameImage(game.id)} alt="" className={styles.gameIconImg} />
+                      : game.icon}
+                  </div>
+                  <div className={styles.gameMeta}>
+                    <h3 className={styles.gameCardTitle}>{game.title}</h3>
+                    <p className={styles.gameCardDesc}>{game.description}</p>
+                    <div className={styles.gameCardFooter}>
+                      <span className={styles.gameDomain}>{game.domain}</span>
+                      {game.comingSoon
+                        ? <span className={styles.comingSoonBadge}>Coming Soon</span>
+                        : <span className={styles.playButton} aria-hidden="true">Play</span>}
                     </div>
                   </div>
                 </button>
@@ -655,6 +766,15 @@ export function App() {
 
   /* ── Home screen (default) ── */
   const achievement = computeAchievement(getAllScores(), ALL_GAMES.length);
+
+  const getDaytimeGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return { text: 'Good morning', emoji: '🌤️' };
+    if (hour < 17) return { text: 'Good afternoon', emoji: '☀️' };
+    if (hour < 21) return { text: 'Good evening', emoji: '🌆' };
+    return { text: 'Good night', emoji: '🌙' };
+  };
+  const greeting = getDaytimeGreeting();
 
   return (
     <div className={styles.homeWrapper}>
@@ -672,7 +792,7 @@ export function App() {
             alt="CaritaHub Cognitive Games"
             className={styles.homeTitle}
           />
-          <p className={styles.homeGreeting}>Hello, {urlMemberId}! 👋</p>
+          <p className={styles.homeGreeting}>{greeting.text}, {urlMemberId}! {greeting.emoji}</p>
 
           {/* Player Level Status */}
           <div className={styles.levelCard}>

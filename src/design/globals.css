@@ -21,7 +21,7 @@ body {
   font-size: var(--text-md);           /* 1.375rem → 24.75px */
   font-weight: var(--font-weight-regular); /* 400 regular — 300 light is too thin */
   color: var(--color-text);
-  background-color: var(--color-bg);
+  background-color: #efefef;
   line-height: 1.8;                    /* extra leading for easier line-tracking */
   letter-spacing: 0.015em;            /* slight open tracking aids readability */
   min-height: 100%;

@@ -14,7 +14,38 @@ const DIFFICULTY_CONFIG = {
 const FRUITS = ['🍎', '🍊', '🍋', '🍇', '🍓', '🍑', '🍒', '🥝'];
 const FRUIT_SIZE = 40; // px
 const BASKET_H   = 44; // px
-const TAP_STEP   = 0.18; // how far a side-button tap moves the basket (normalised)
+const TAP_STEP   = 0.18;
+
+// ── Item types and emojis ──────────────────────────────────────────
+// fruit  → catch for +1 point, miss = lose 1 life
+// bomb   → catch = lose 1 life, miss = safe
+// poison → catch = lose 2 lives, miss = safe
+// star   → catch = +3 bonus points, miss = safe
+// heart  → catch = +1 life (capped at max), miss = safe
+const ITEM_EMOJI = {
+  bomb:   '💣',
+  poison: '☠️',
+  star:   '⭐',
+  heart:  '💖',
+};
+
+// Spawn probability weights per difficulty: [fruit, bomb, poison, star, heart]
+// Must sum to 1.0
+const SPAWN_WEIGHTS = {
+  easy:   [0.82, 0.10, 0.00, 0.08, 0.00],
+  medium: [0.65, 0.18, 0.05, 0.08, 0.04],
+  hard:   [0.55, 0.22, 0.10, 0.07, 0.06],
+};
+
+function pickItemType(difficulty) {
+  const [wFruit, wBomb, wPoison, wStar] = SPAWN_WEIGHTS[difficulty] ?? SPAWN_WEIGHTS.easy;
+  const r = Math.random();
+  if (r < wFruit)                          return 'fruit';
+  if (r < wFruit + wBomb)                  return 'bomb';
+  if (r < wFruit + wBomb + wPoison)        return 'poison';
+  if (r < wFruit + wBomb + wPoison + wStar) return 'star';
+  return 'heart';
+}
 
 let nextId = 0;
 
@@ -24,17 +55,24 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
 
   const areaRef       = useRef(null);
   const rafRef        = useRef(null);
-  const fruitsRef     = useRef([]);
-  const basketXRef    = useRef(0.5);   // 0–1 normalised centre of basket
+  const itemsRef      = useRef([]);       // all falling items (fruits + obstacles + powerups)
+  const basketXRef    = useRef(0.5);      // 0–1 normalised centre of basket
   const scoreRef      = useRef(0);
   const livesRef      = useRef(config.lives);
   const spawnRef      = useRef(null);
   const doneRef       = useRef(false);
-  const totalRef      = useRef(0);
+  const totalRef      = useRef(0);        // fruits spawned (for max score)
 
   const [displayScore, setDisplayScore] = useState(0);
   const [displayLives, setDisplayLives] = useState(config.lives);
+  const [flashState, setFlashState] = useState({ type: null, count: 0 }); // 'hit' | 'bonus' | null
   const [, forceUpdate] = useState(0);
+
+  // Stable ref to trigger flash from inside rAF without adding to deps
+  const triggerFlashRef = useRef(null);
+  triggerFlashRef.current = (type) => {
+    setFlashState(s => ({ type, count: s.count + 1 }));
+  };
 
   // ── Finish ──────────────────────────────────────────────────────
   const finish = useCallback((completed) => {
@@ -54,16 +92,21 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
   useEffect(() => {
     spawnRef.current = setInterval(() => {
       if (doneRef.current) return;
-      fruitsRef.current.push({
+      const type  = pickItemType(difficulty);
+      const emoji = type === 'fruit'
+        ? FRUITS[Math.floor(Math.random() * FRUITS.length)]
+        : ITEM_EMOJI[type];
+      itemsRef.current.push({
         id:    nextId++,
-        emoji: FRUITS[Math.floor(Math.random() * FRUITS.length)],
+        type,
+        emoji,
         x:     Math.random() * 0.8 + 0.1,
         y:     -FRUIT_SIZE,
       });
-      totalRef.current += 1;
+      if (type === 'fruit') totalRef.current += 1; // only count fruits for max-score
     }, config.spawnMs);
     return () => clearInterval(spawnRef.current);
-  }, [config.spawnMs]);
+  }, [config.spawnMs, difficulty]);
 
   // ── rAF loop ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -86,30 +129,60 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
       let livesChanged = false;
       const survived = [];
 
-      for (const fruit of fruitsRef.current) {
-        fruit.y += config.fallSpeed * dt;
+      for (const item of itemsRef.current) {
+        item.y += config.fallSpeed * dt;
 
         // Catch zone check
-        if (fruit.y >= catchTop && fruit.y <= catchBottom + config.fallSpeed * dt + 4) {
-          if (Math.abs(fruit.x * areaW - bx) <= halfBasket) {
-            playSuccess();
-            scoreRef.current += 1;
-            scoreChanged = true;
-            continue;
+        if (item.y >= catchTop && item.y <= catchBottom + config.fallSpeed * dt + 4) {
+          if (Math.abs(item.x * areaW - bx) <= halfBasket) {
+            // Player caught this item — apply effect based on type
+            if (item.type === 'fruit') {
+              playSuccess();
+              scoreRef.current += 1;
+              scoreChanged = true;
+
+            } else if (item.type === 'star') {
+              playSuccess();
+              scoreRef.current += 3;
+              scoreChanged = true;
+              triggerFlashRef.current('bonus');
+
+            } else if (item.type === 'heart') {
+              playSuccess();
+              livesRef.current = Math.min(config.lives, livesRef.current + 1);
+              livesChanged = true;
+              triggerFlashRef.current('bonus');
+
+            } else if (item.type === 'bomb') {
+              playFail();
+              livesRef.current -= 1;
+              livesChanged = true;
+              triggerFlashRef.current('hit');
+
+            } else if (item.type === 'poison') {
+              playFail();
+              livesRef.current -= 2;
+              livesChanged = true;
+              triggerFlashRef.current('hit');
+            }
+            continue; // item consumed
           }
         }
 
-        // Missed — past bottom
-        if (fruit.y > areaH) {
-          playFail();
-          livesRef.current -= 1;
-          livesChanged = true;
+        // Past bottom — only fruits cost a life when missed
+        if (item.y > areaH) {
+          if (item.type === 'fruit') {
+            playFail();
+            livesRef.current -= 1;
+            livesChanged = true;
+          }
+          // obstacles/powerups silently disappear if missed
           continue;
         }
 
-        survived.push(fruit);
+        survived.push(item);
       }
-      fruitsRef.current = survived;
+      itemsRef.current = survived;
 
       if (scoreChanged) {
         setDisplayScore(scoreRef.current);
@@ -125,11 +198,9 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
     }
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [config.fallSpeed, config.basketWidth, finish, reportScore, playSuccess, playFail]);
+  }, [config.fallSpeed, config.basketWidth, config.lives, finish, reportScore, playSuccess, playFail]);
 
   // ── Touch input: attach with { passive: false } so preventDefault works ──
-  // This is the critical fix — React's onTouchMove uses passive listeners
-  // which silently ignore preventDefault(), letting the page scroll instead.
   useEffect(() => {
     const area = areaRef.current;
     if (!area) return;
@@ -175,7 +246,7 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // ── Side-button tap handler (pointer, not touch, avoids duplicate events) ──
+  // ── Side-button tap handler ────────────────────────────────────────
   const tapLeft  = useCallback(() => {
     playClick();
     basketXRef.current = Math.max(0.05, basketXRef.current - TAP_STEP);
@@ -184,6 +255,13 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
     playClick();
     basketXRef.current = Math.min(0.95, basketXRef.current + TAP_STEP);
   }, [playClick]);
+
+  // ── Item CSS class helper ─────────────────────────────────────────
+  function itemClass(type) {
+    if (type === 'bomb' || type === 'poison') return styles.obstacle;
+    if (type === 'star' || type === 'heart')  return styles.powerup;
+    return styles.fruit;
+  }
 
   return (
     <div className={styles.wrapper}>
@@ -217,15 +295,24 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
           role="application"
           aria-label="Catch the fruit game area"
         >
-          {/* Falling fruit */}
-          {fruitsRef.current.map(fruit => (
+          {/* Flash overlay for hits / bonuses */}
+          {flashState.type && (
+            <div
+              key={flashState.count}
+              className={`${styles.flashOverlay} ${flashState.type === 'hit' ? styles.flashHit : styles.flashBonus}`}
+              onAnimationEnd={() => setFlashState(s => ({ ...s, type: null }))}
+            />
+          )}
+
+          {/* Falling items */}
+          {itemsRef.current.map(item => (
             <span
-              key={fruit.id}
-              className={styles.fruit}
-              style={{ left: `calc(${fruit.x * 100}% - ${FRUIT_SIZE / 2}px)`, top: fruit.y }}
+              key={item.id}
+              className={itemClass(item.type)}
+              style={{ left: `calc(${item.x * 100}% - ${FRUIT_SIZE / 2}px)`, top: item.y }}
               aria-hidden="true"
             >
-              {fruit.emoji}
+              {item.emoji}
             </span>
           ))}
 
@@ -266,6 +353,8 @@ CatchGame.propTypes = {
 };
 
 // ── Outer wrapper ──────────────────────────────────────────────────
+const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
+
 export function CatchFallingFruit({
   memberId,
   difficulty = 'easy',
@@ -280,7 +369,7 @@ export function CatchFallingFruit({
 
   const instructions = (
     <>
-      <p>Fruit will fall from the sky — catch them in the basket!</p>
+      <p>Fruit will fall from the sky — catch them in your basket!</p>
       <ul style={{ marginTop: 8, paddingLeft: 20, lineHeight: 1.8 }}>
         <li><strong>Touch:</strong> slide your finger across the game area</li>
         <li><strong>Buttons:</strong> tap ‹ › on either side to jump the basket</li>
@@ -289,6 +378,13 @@ export function CatchFallingFruit({
       <p style={{ marginTop: 8 }}>
         You have {config.lives === 5 ? '❤️❤️❤️❤️❤️' : '❤️❤️❤️'} lives.
         Miss a fruit and lose one!
+      </p>
+      <p style={{ marginTop: 8, fontSize: '0.9em' }}>
+        <strong>Watch out for obstacles:</strong><br />
+        💣 <strong>Bomb</strong> — catch it and lose a life!<br />
+        {difficulty !== 'easy' && <>☠️ <strong>Poison</strong> — catch it and lose 2 lives!<br /></>}
+        ⭐ <strong>Star</strong> — catch for <strong>+3 bonus points</strong>!<br />
+        {difficulty !== 'easy' && <>💖 <strong>Heart</strong> — catch to <strong>gain a life</strong>!</>}
       </p>
     </>
   );
@@ -299,15 +395,15 @@ export function CatchFallingFruit({
       title="Catch the Falling Fruit"
       instructions={instructions}
       difficulty={difficulty}
-      timeLimitSeconds={config.timeLimitSeconds}
+      timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: shellComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+      {({ onComplete: shellComplete, reportScore, secondsLeft, difficulty: diff, playClick, playSuccess, playFail }) => (
         <CatchGame
-          difficulty={difficulty}
+          difficulty={diff}
           onComplete={shellComplete}
           reportScore={reportScore}
           secondsLeft={secondsLeft}

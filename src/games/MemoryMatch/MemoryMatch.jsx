@@ -111,6 +111,8 @@ MemoryMatchGame.propTypes = {
   playFail:    PropTypes.func.isRequired,
 };
 
+const TIME_LIMITS = { easy: null, medium: 120, hard: 90 };
+
 export function MemoryMatch({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const { fireComplete } = useGameCallback({
     memberId,
@@ -119,22 +121,19 @@ export function MemoryMatch({ memberId, difficulty = 'easy', onComplete, callbac
     onComplete,
   });
 
-  const config = { easy: null, medium: 120, hard: 90 };
-  const timeLimitSeconds = config[difficulty] ?? null;
-
   return (
     <GameShell
       gameId={GAME_IDS.MEMORY_MATCH}
       title="Memory Match"
       instructions={INSTRUCTIONS}
       difficulty={difficulty}
-      timeLimitSeconds={timeLimitSeconds}
+      timeLimits={TIME_LIMITS}
       onGameComplete={fireComplete}
       onBack={onBack}
     >
-      {({ onComplete: shellComplete, reportScore, secondsLeft, playReveal, playSuccess, playFail }) => (
+      {({ onComplete: shellComplete, reportScore, secondsLeft, difficulty: diff, playReveal, playSuccess, playFail }) => (
         <MemoryMatchGame
-          difficulty={difficulty}
+          difficulty={diff}
           onComplete={shellComplete}
           reportScore={reportScore}
           secondsLeft={secondsLeft}

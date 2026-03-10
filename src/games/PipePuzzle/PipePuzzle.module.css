@@ -1,0 +1,124 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  padding: 0 var(--space-2);
+}
+
+/* ── Loading ──────────────────────────────────────── */
+.loading {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  padding: var(--space-8);
+}
+
+/* ── Color legend (dot row above grid) ────────────── */
+.legend {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.legendDot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  opacity: 0.4;
+  transition: opacity 0.25s, transform 0.25s;
+}
+
+.legendDone {
+  opacity: 1;
+  transform: scale(1.25);
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* ── Grid ─────────────────────────────────────────── */
+.grid {
+  display: grid;
+  gap: 4px;
+  padding: 8px;
+  background: #c2cfe0;
+  border-radius: 20px;
+  /* width set here; height + template rows set inline so rows have definite size */
+  width: min(360px, calc(100vw - 40px));
+  transition: box-shadow 0.3s;
+}
+
+.gridWon {
+  box-shadow: 0 0 0 3px #5BAD6F, 0 0 20px rgba(91, 173, 111, 0.4);
+}
+
+/* ── Tile ─────────────────────────────────────────── */
+.tile {
+  position: relative;  /* SVG child uses position:absolute inset:0 */
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  /* Size comes entirely from grid template — no aspect-ratio needed */
+}
+
+.tilePipe {
+  background: #dce6f5;
+}
+
+.tilePipe:hover {
+  background: #cdd8ed;
+}
+
+.tilePipe:active {
+  transform: scale(0.9);
+  background: #beccdf;
+}
+
+.tileEmpty {
+  background: #d4dff0;
+  cursor: default;
+}
+
+/* Endpoints are not tappable */
+.tileEndpoint {
+  cursor: default;
+  background: #dce6f5;
+}
+
+.tileEndpoint:hover {
+  background: #dce6f5;
+  transform: none;
+}
+
+/* Tap rotation flash */
+.tileRotate {
+  animation: tileFlash 0.16s ease-out;
+}
+
+@keyframes tileFlash {
+  0%   { transform: scale(1);    background: #bdd3ee; }
+  50%  { transform: scale(0.88); background: #a8c4e4; }
+  100% { transform: scale(1);    background: #dce6f5; }
+}
+
+/* Win glow on connected tiles */
+.tileWon {
+  animation: tileWinPulse 0.6s ease-out forwards;
+}
+
+@keyframes tileWinPulse {
+  0%   { background: #dce6f5; }
+  40%  { background: #c5edcf; }
+  100% { background: #dce6f5; }
+}
+
+/* ── Hint ─────────────────────────────────────────── */
+.hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-align: center;
+  opacity: 0.7;
+}
