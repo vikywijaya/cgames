@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
@@ -20,9 +20,9 @@ const RING_COLORS = [
 const RING_WIDTHS = [62, 54, 46, 38, 32];
 
 const DIFFICULTY_CONFIG = {
-  easy:   { numColors: 3, ringsPerColor: 3, extraRods: 1, rounds: 4, timeLimitSeconds: null },
-  medium: { numColors: 4, ringsPerColor: 4, extraRods: 2, rounds: 5, timeLimitSeconds: 180  },
-  hard:   { numColors: 5, ringsPerColor: 4, extraRods: 2, rounds: 6, timeLimitSeconds: 120  },
+  easy:   { numColors: 2, ringsPerColor: 3, rodCapacity: 4, extraRods: 1, rounds: 3, timeLimitSeconds: null },
+  medium: { numColors: 3, ringsPerColor: 3, rodCapacity: 4, extraRods: 1, rounds: 4, timeLimitSeconds: null },
+  hard:   { numColors: 4, ringsPerColor: 4, rodCapacity: 4, extraRods: 1, rounds: 5, timeLimitSeconds: null },
 };
 
 const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
@@ -39,9 +39,10 @@ function shuffle(arr) {
 function generatePuzzle(numColors, ringsPerColor, extraRods) {
   const colors = shuffle(RING_COLORS).slice(0, numColors);
 
+  // Each ring gets a fixed size: 0 = largest (bottom), ringsPerColor-1 = smallest (top)
   const allRings = [];
   for (const color of colors) {
-    for (let i = 0; i < ringsPerColor; i++) allRings.push(color);
+    for (let size = 0; size < ringsPerColor; size++) allRings.push({ ...color, size });
   }
 
   const shuffled = shuffle(allRings);
@@ -62,7 +63,7 @@ function generatePuzzle(numColors, ringsPerColor, extraRods) {
 
 function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail, playPop, playBoing }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const { numColors, ringsPerColor, extraRods, rounds } = config;
+  const { numColors, ringsPerColor, rodCapacity, extraRods, rounds } = config;
 
   const [round, setRound] = useState(0);
   const [score, setScore] = useState(0);
@@ -73,46 +74,72 @@ function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
   const [solved, setSolved] = useState(false);
   const [justMovedRod, setJustMovedRod] = useState(null);
   const [shakingRod, setShakingRod] = useState(null);
+  const advanceRef = useRef(null);
 
   useEffect(() => {
     if (secondsLeft === 0) onComplete({ finalScore: score, maxScore: rounds, completed: false });
   }, [secondsLeft, score, rounds, onComplete]);
 
-  const isSolved = useMemo(() =>
-    rods.every(rod =>
-      rod.length === 0 || (rod.length === ringsPerColor && rod.every(ring => ring.name === rod[0].name))
-    ),
-  [rods, ringsPerColor]);
+  // Check if rings are same color and in correct size order (size 0=largest at bottom, increasing upward)
+  const isCorrectOrder = useCallback((rod) => {
+    if (rod.length === 0) return false;
+    if (!rod.every(ring => ring.name === rod[0].name)) return false;
+    for (let i = 1; i < rod.length; i++) {
+      if (rod[i].size <= rod[i - 1].size) return false;
+    }
+    return true;
+  }, []);
 
+  // A rod is fully complete when it has all rings of one color in correct size order
+  const isRodFullyComplete = useCallback((rod) => {
+    return rod.length === ringsPerColor && isCorrectOrder(rod);
+  }, [ringsPerColor, isCorrectOrder]);
+
+  const isSolved = useMemo(() => {
+    const fullyComplete = rods.filter(isRodFullyComplete);
+    return fullyComplete.length === numColors;
+  }, [rods, numColors, isRodFullyComplete]);
+
+  // Visual indicator: show green for fully complete, subtle highlight for on-track
   const rodComplete = useMemo(() =>
-    rods.map(rod => rod.length === ringsPerColor && rod.every(ring => ring.name === rod[0].name)),
-  [rods, ringsPerColor]);
+    rods.map(isRodFullyComplete),
+  [rods, isRodFullyComplete]);
+
+  const rodOnTrack = useMemo(() =>
+    rods.map(rod => !isRodFullyComplete(rod) && isCorrectOrder(rod)),
+  [rods, isRodFullyComplete, isCorrectOrder]);
 
   useEffect(() => {
     if (!isSolved || solved) return;
     setSolved(true);
     playSuccess();
-    const newScore = score + 1;
-    setScore(newScore);
-    reportScore(newScore);
 
-    const timer = setTimeout(() => {
-      const nextRound = round + 1;
-      if (nextRound >= rounds) {
-        onComplete({ finalScore: newScore, maxScore: rounds, completed: true });
-        return;
-      }
-      setRound(nextRound);
-      const newPuzzle = generatePuzzle(numColors, ringsPerColor, extraRods);
-      setPuzzle(newPuzzle);
-      setRods(newPuzzle.rods.map(r => [...r]));
-      setSelectedRod(null);
-      setMoves(0);
-      setSolved(false);
-      setJustMovedRod(null);
-    }, 900);
-    return () => clearTimeout(timer);
-  }, [isSolved, solved, score, round, rounds, numColors, ringsPerColor, extraRods, onComplete, reportScore, playSuccess]);
+    setScore(prev => {
+      const newScore = prev + 1;
+      reportScore(newScore);
+
+      clearTimeout(advanceRef.current);
+      advanceRef.current = setTimeout(() => {
+        setRound(r => {
+          const nextRound = r + 1;
+          if (nextRound >= rounds) {
+            onComplete({ finalScore: newScore, maxScore: rounds, completed: true });
+            return r;
+          }
+          const newPuzzle = generatePuzzle(numColors, ringsPerColor, extraRods);
+          setPuzzle(newPuzzle);
+          setRods(newPuzzle.rods.map(rod => [...rod]));
+          setSelectedRod(null);
+          setMoves(0);
+          setSolved(false);
+          setJustMovedRod(null);
+          return nextRound;
+        });
+      }, 900);
+
+      return newScore;
+    });
+  }, [isSolved, solved, rounds, numColors, ringsPerColor, extraRods, onComplete, reportScore, playSuccess]);
 
   const triggerShake = useCallback((rodIdx) => {
     setShakingRod(rodIdx);
@@ -138,7 +165,7 @@ function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
     const targetRod = rods[rodIdx];
 
     // Target rod is full
-    if (targetRod.length >= ringsPerColor) {
+    if (targetRod.length >= rodCapacity) {
       playBoing();
       triggerShake(rodIdx);
       setSelectedRod(null);
@@ -154,7 +181,7 @@ function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
     setSelectedRod(null);
     setJustMovedRod(rodIdx);
     setTimeout(() => setJustMovedRod(null), 280);
-  }, [solved, selectedRod, rods, ringsPerColor, playClick, playPop, playBoing, triggerShake]);
+  }, [solved, selectedRod, rods, rodCapacity, playClick, playPop, playBoing, triggerShake]);
 
   return (
     <div className={styles.wrapper}>
@@ -167,11 +194,13 @@ function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
         {rods.map((rod, rodIdx) => {
           const isSelected = selectedRod === rodIdx;
           const isComplete = rodComplete[rodIdx];
+          const isOnTrack = rodOnTrack[rodIdx];
           const isShaking = shakingRod === rodIdx;
 
           let rodClass = styles.rod;
           if (isSelected) rodClass += ` ${styles.rodSelected}`;
           if (isComplete) rodClass += ` ${styles.rodSolved}`;
+          if (isOnTrack) rodClass += ` ${styles.rodOnTrack}`;
           if (isShaking) rodClass += ` ${styles.rodShake}`;
 
           return (
@@ -188,7 +217,7 @@ function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
                 <div className={styles.ringStack}>
                   {rod.map((ring, ringIdx) => {
                     const isTop = ringIdx === rod.length - 1;
-                    const width = RING_WIDTHS[Math.min(ringIdx, RING_WIDTHS.length - 1)];
+                    const width = RING_WIDTHS[Math.min(ring.size, RING_WIDTHS.length - 1)];
                     const lifted = isSelected && isTop;
                     const justMoved = justMovedRod === rodIdx && isTop;
 
