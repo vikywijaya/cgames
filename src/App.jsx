@@ -34,6 +34,7 @@ import { MathCross }       from './games/MathCross/MathCross';
 import { Tangram }         from './games/Tangram/Tangram';
 import { SlitherEscape }  from './games/SlitherEscape/SlitherEscape';
 import { FlappyNumbers }  from './games/FlappyNumbers/FlappyNumbers';
+import { DotEd }          from './games/DotEd/DotEd';
 import { saveScore, getAllScores, getFavorites, toggleFavorite } from './utils/scoreStore';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import { TopBar } from './components/TopBar/TopBar.jsx';
@@ -81,6 +82,7 @@ const GAME_MAP = {
   'tangram':           Tangram,
   'slither-escape':    SlitherEscape,
   'flappy-numbers':    FlappyNumbers,
+  'dot-ed':            DotEd,
 };
 
 // Games grouped by cognitive category
@@ -117,6 +119,7 @@ const GAME_GROUPS = [
       { id: 'quick-maths',      title: 'Quick Maths',      icon: '➕', domain: 'Mental Arithmetic',   description: 'Solve addition, subtraction and multiplication problems fast.' },
       { id: 'sumix',             title: 'Sumix',            icon: '🧮', domain: 'Numeric Logic',      description: 'Activate numbers so each row and column sums to its target.' },
       { id: 'math-cross',       title: 'Math Cross',      icon: '✖️', domain: 'Mental Arithmetic',  description: 'Place numbers into a crossword of equations to make them all correct.' },
+      { id: 'dot-ed',             title: 'Dot.ed',          icon: '🔴', domain: 'Logic Puzzles',      description: 'Connect red dots to blue targets — match every capacity and need.' },
     ],
   },
   {
