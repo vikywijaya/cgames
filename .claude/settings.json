@@ -4,8 +4,9 @@
       "Bash(node -e \":*)",
       "Bash(cp /tmp/Tangram.jsx.orig src/games/Tangram/Tangram.jsx)",
       "Bash(cp /tmp/Tangram.module.css.orig src/games/Tangram/Tangram.module.css)",
-      "mcp__plugin_playwright_playwright__browser_click",
-      "Bash(npx vite build)"
+      "Bash(npx vite build)",
+      "Bash(npx vite build --logLevel error)",
+      "Bash(curl -s http://localhost:5173)"
     ]
   }
 }
