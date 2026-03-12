@@ -6,7 +6,9 @@
       "Bash(cp /tmp/Tangram.module.css.orig src/games/Tangram/Tangram.module.css)",
       "Bash(npx vite build)",
       "Bash(npx vite build --logLevel error)",
-      "Bash(curl -s http://localhost:5173)"
+      "Bash(curl -s http://localhost:5173)",
+      "WebSearch",
+      "Bash(npm run:*)"
     ]
   }
 }

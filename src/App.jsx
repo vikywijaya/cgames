@@ -35,6 +35,7 @@ import { Tangram }         from './games/Tangram/Tangram';
 import { SlitherEscape }  from './games/SlitherEscape/SlitherEscape';
 import { FlappyNumbers }  from './games/FlappyNumbers/FlappyNumbers';
 import { DotEd }          from './games/DotEd/DotEd';
+import { Zip }            from './games/Zip/Zip';
 import { saveScore, getAllScores, getFavorites, toggleFavorite } from './utils/scoreStore';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import { TopBar } from './components/TopBar/TopBar.jsx';
@@ -83,6 +84,7 @@ const GAME_MAP = {
   'slither-escape':    SlitherEscape,
   'flappy-numbers':    FlappyNumbers,
   'dot-ed':            DotEd,
+  'zip':               Zip,
 };
 
 // Games grouped by cognitive category
@@ -158,6 +160,7 @@ const GAME_GROUPS = [
       { id: 'slither-escape', title: 'Slither Escape', icon: '🐍', domain: 'Spatial Reasoning', description: 'Slide coloured snakes to their matching exits without getting tangled!', comingSoon: true },
       { id: 'flappy-numbers', title: 'Flappy Numbers', icon: '🔢', domain: 'Number Recognition', description: 'Flap through the tile that matches your number — avoid the rest!' },
       { id: 'sokoban', title: 'Sokoban', icon: '📦', domain: 'Spatial Reasoning', description: 'Push all the boxes onto the targets in this classic warehouse puzzle!' },
+      { id: 'zip', title: 'Zip', icon: '🔗', domain: 'Logic Puzzles', description: 'Draw a single path through every cell, hitting numbered waypoints in order.' },
     ],
   },
 ];
