@@ -1,0 +1,236 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a4e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d2b6b;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Floor tile gradient -->
+    <linearGradient id="floorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e2a5a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16204a;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Wall gradient -->
+    <linearGradient id="wallGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3a3a7a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#252560;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Box gradient -->
+    <linearGradient id="boxGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#d4843a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b4a1a;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Box top face -->
+    <linearGradient id="boxTopGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e8993a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c06818;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Worker body -->
+    <linearGradient id="workerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#5bc8e8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2888b8;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Glow filter -->
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <!-- Target glow -->
+    <filter id="targetGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <!-- Title glow -->
+    <filter id="titleGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <!-- Drop shadow -->
+    <filter id="shadow">
+      <feDropShadow dx="3" dy="4" stdDeviation="5" flood-color="#000" flood-opacity="0.6"/>
+    </filter>
+
+    <!-- Box shadow -->
+    <filter id="boxShadow">
+      <feDropShadow dx="4" dy="6" stdDeviation="8" flood-color="#000" flood-opacity="0.7"/>
+    </filter>
+  </defs>
+
+  <!-- Background with rounded corners -->
+  <rect width="512" height="512" rx="90" ry="90" fill="url(#bgGrad)"/>
+
+  <!-- Subtle inner border -->
+  <rect x="8" y="8" width="496" height="496" rx="84" ry="84" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+
+  <!-- ===== ROOM / FLOOR AREA ===== -->
+  <!-- Room floor panel (top-down view) -->
+  <rect x="72" y="132" width="368" height="312" rx="12" ry="12" fill="url(#floorGrad)"/>
+  <rect x="72" y="132" width="368" height="312" rx="12" ry="12" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1.5"/>
+
+  <!-- Floor tile grid (subtle) — 6 cols x 5 rows -->
+  <!-- Vertical dividers -->
+  <line x1="133" y1="132" x2="133" y2="444" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <line x1="194" y1="132" x2="194" y2="444" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <line x1="256" y1="132" x2="256" y2="444" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <line x1="317" y1="132" x2="317" y2="444" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <line x1="379" y1="132" x2="379" y2="444" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <!-- Horizontal dividers -->
+  <line x1="72" y1="194" x2="440" y2="194" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <line x1="72" y1="256" x2="440" y2="256" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <line x1="72" y1="318" x2="440" y2="318" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+  <line x1="72" y1="380" x2="440" y2="380" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+
+  <!-- ===== WALLS ===== -->
+  <!-- Top-left corner wall block -->
+  <rect x="72" y="132" width="62" height="62" rx="6" ry="6" fill="url(#wallGrad)"/>
+  <rect x="74" y="134" width="58" height="28" rx="4" ry="4" fill="rgba(255,255,255,0.08)"/>
+  <!-- Wall detail bricks -->
+  <line x1="104" y1="134" x2="104" y2="192" stroke="rgba(0,0,0,0.3)" stroke-width="1.5"/>
+  <line x1="74" y1="163" x2="130" y2="163" stroke="rgba(0,0,0,0.3)" stroke-width="1.5"/>
+
+  <!-- Top-right corner wall block -->
+  <rect x="378" y="132" width="62" height="62" rx="6" ry="6" fill="url(#wallGrad)"/>
+  <rect x="380" y="134" width="58" height="28" rx="4" ry="4" fill="rgba(255,255,255,0.08)"/>
+  <line x1="410" y1="134" x2="410" y2="192" stroke="rgba(0,0,0,0.3)" stroke-width="1.5"/>
+  <line x1="380" y1="163" x2="438" y2="163" stroke="rgba(0,0,0,0.3)" stroke-width="1.5"/>
+
+  <!-- Bottom-left corner wall block -->
+  <rect x="72" y="382" width="62" height="62" rx="6" ry="6" fill="url(#wallGrad)"/>
+  <rect x="74" y="384" width="58" height="28" rx="4" ry="4" fill="rgba(255,255,255,0.08)"/>
+  <line x1="104" y1="384" x2="104" y2="442" stroke="rgba(0,0,0,0.3)" stroke-width="1.5"/>
+  <line x1="74" y1="413" x2="130" y2="413" stroke="rgba(0,0,0,0.3)" stroke-width="1.5"/>
+
+  <!-- Bottom-right corner wall block -->
+  <rect x="378" y="382" width="62" height="62" rx="6" ry="6" fill="url(#wallGrad)"/>
+  <rect x="380" y="384" width="58" height="28" rx="4" ry="4" fill="rgba(255,255,255,0.08)"/>
+  <line x1="410" y1="384" x2="410" y2="442" stroke="rgba(0,0,0,0.3)" stroke-width="1.5"/>
+  <line x1="380" y1="413" x2="438" y2="413" stroke="rgba(0,0,0,0.3)" stroke-width="1.5"/>
+
+  <!-- Mid-top wall block -->
+  <rect x="195" y="132" width="62" height="62" rx="6" ry="6" fill="url(#wallGrad)"/>
+  <rect x="197" y="134" width="58" height="28" rx="4" ry="4" fill="rgba(255,255,255,0.08)"/>
+  <line x1="227" y1="134" x2="227" y2="192" stroke="rgba(0,0,0,0.3)" stroke-width="1.5"/>
+  <line x1="197" y1="163" x2="255" y2="163" stroke="rgba(0,0,0,0.3)" stroke-width="1.5"/>
+
+  <!-- ===== TARGET MARKER (X on floor) ===== -->
+  <!-- Target glow background -->
+  <circle cx="348" cy="350" r="36" fill="rgba(255,220,80,0.12)" filter="url(#targetGlow)"/>
+  <!-- Target circle ring -->
+  <circle cx="348" cy="350" r="30" fill="none" stroke="rgba(255,220,80,0.5)" stroke-width="2" stroke-dasharray="6,4"/>
+  <!-- X mark -->
+  <line x1="326" y1="328" x2="370" y2="372" stroke="#ffdd50" stroke-width="5" stroke-linecap="round" filter="url(#glow)"/>
+  <line x1="370" y1="328" x2="326" y2="372" stroke="#ffdd50" stroke-width="5" stroke-linecap="round" filter="url(#glow)"/>
+  <!-- X cap dots -->
+  <circle cx="348" cy="350" r="4" fill="#ffdd50" opacity="0.7"/>
+
+  <!-- ===== BOX (isometric-ish top-down box) ===== -->
+  <!-- Box shadow -->
+  <rect x="158" y="262" width="78" height="78" rx="8" ry="8" fill="rgba(0,0,0,0.5)"/>
+  <!-- Box main face -->
+  <rect x="154" y="256" width="78" height="78" rx="8" ry="8" fill="url(#boxGrad)" filter="url(#boxShadow)"/>
+  <!-- Box top highlight -->
+  <rect x="156" y="258" width="74" height="32" rx="7" ry="7" fill="url(#boxTopGrad)"/>
+  <!-- Wood grain lines -->
+  <line x1="160" y1="270" x2="226" y2="270" stroke="rgba(139,74,26,0.5)" stroke-width="1.5"/>
+  <line x1="160" y1="278" x2="226" y2="278" stroke="rgba(139,74,26,0.5)" stroke-width="1.5"/>
+  <line x1="160" y1="286" x2="226" y2="286" stroke="rgba(139,74,26,0.5)" stroke-width="1.5"/>
+  <line x1="160" y1="294" x2="226" y2="294" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <line x1="160" y1="310" x2="226" y2="310" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <line x1="160" y1="326" x2="226" y2="326" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <!-- Box border -->
+  <rect x="154" y="256" width="78" height="78" rx="8" ry="8" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+  <!-- Box cross lines (crate style) -->
+  <line x1="156" y1="292" x2="230" y2="292" stroke="rgba(80,40,0,0.4)" stroke-width="2"/>
+  <line x1="193" y1="258" x2="193" y2="332" stroke="rgba(80,40,0,0.4)" stroke-width="2"/>
+
+  <!-- Arrow showing push direction -->
+  <g opacity="0.8">
+    <line x1="244" y1="295" x2="300" y2="295" stroke="#ffdd50" stroke-width="3" stroke-dasharray="5,4" stroke-linecap="round"/>
+    <polygon points="307,295 295,288 295,302" fill="#ffdd50"/>
+  </g>
+
+  <!-- ===== WAREHOUSE WORKER CHARACTER (top-down view) ===== -->
+  <!-- Worker shadow -->
+  <ellipse cx="158" cy="222" rx="22" ry="10" fill="rgba(0,0,0,0.4)"/>
+
+  <!-- Worker body (top-down — we see from above) -->
+  <!-- Body torso -->
+  <ellipse cx="158" cy="210" rx="20" ry="24" fill="url(#workerGrad)" filter="url(#shadow)"/>
+  <!-- Body highlight -->
+  <ellipse cx="154" cy="202" rx="10" ry="8" fill="rgba(255,255,255,0.2)"/>
+
+  <!-- Head (circle, facing right) -->
+  <circle cx="158" cy="188" r="16" fill="#f4c28a" filter="url(#shadow)"/>
+  <!-- Head highlight -->
+  <circle cx="154" cy="184" r="6" fill="rgba(255,255,255,0.2)"/>
+  <!-- Eyes (two dots) -->
+  <circle cx="162" cy="186" r="3" fill="#2a1800"/>
+  <circle cx="154" cy="186" r="3" fill="#2a1800"/>
+  <!-- Eye shine -->
+  <circle cx="163" cy="185" r="1" fill="rgba(255,255,255,0.7)"/>
+  <circle cx="155" cy="185" r="1" fill="rgba(255,255,255,0.7)"/>
+  <!-- Smile -->
+  <path d="M 152 191 Q 158 196 164 191" fill="none" stroke="#2a1800" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Hard hat -->
+  <ellipse cx="158" cy="178" rx="18" ry="8" fill="#ffcc00"/>
+  <rect x="140" y="175" width="36" height="6" rx="3" ry="3" fill="#ffdd44"/>
+  <rect x="148" y="170" width="20" height="8" rx="4" ry="4" fill="#ffcc00"/>
+  <!-- Hat brim highlight -->
+  <ellipse cx="158" cy="175" rx="15" ry="3" fill="rgba(255,255,255,0.25)"/>
+
+  <!-- Arms pushing the box -->
+  <!-- Left arm -->
+  <path d="M 140 212 Q 132 220 138 232" fill="none" stroke="#5bc8e8" stroke-width="8" stroke-linecap="round"/>
+  <!-- Right arm -->
+  <path d="M 176 212 Q 184 220 178 232" fill="none" stroke="#5bc8e8" stroke-width="8" stroke-linecap="round"/>
+  <!-- Hands -->
+  <circle cx="140" cy="232" r="6" fill="#f4c28a"/>
+  <circle cx="178" cy="232" r="6" fill="#f4c28a"/>
+
+  <!-- Legs -->
+  <rect x="148" y="226" width="10" height="18" rx="5" ry="5" fill="#1a3a80"/>
+  <rect x="160" y="226" width="10" height="18" rx="5" ry="5" fill="#1a3a80"/>
+
+  <!-- ===== TITLE ===== -->
+  <!-- Title background pill -->
+  <rect x="56" y="42" width="400" height="74" rx="20" ry="20" fill="rgba(0,0,0,0.45)"/>
+  <rect x="56" y="42" width="400" height="74" rx="20" ry="20" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+
+  <!-- "SOKOBAN" text -->
+  <text x="256" y="90"
+        font-family="Arial Black, Arial, sans-serif"
+        font-size="52"
+        font-weight="900"
+        text-anchor="middle"
+        fill="white"
+        filter="url(#titleGlow)"
+        letter-spacing="4">SOKOBAN</text>
+
+  <!-- Subtitle tag -->
+  <rect x="164" y="108" width="184" height="26" rx="8" ry="8" fill="rgba(255,220,80,0.18)"/>
+  <text x="256" y="126"
+        font-family="Arial, sans-serif"
+        font-size="13"
+        font-weight="700"
+        text-anchor="middle"
+        fill="#ffdd88"
+        letter-spacing="4">PUZZLE</text>
+
+  <!-- Sparkle accents -->
+  <g opacity="0.5">
+    <circle cx="96" cy="476" r="2.5" fill="rgba(255,255,255,0.6)"/>
+    <circle cx="108" cy="470" r="1.5" fill="rgba(255,255,255,0.4)"/>
+    <circle cx="416" cy="474" r="2.5" fill="rgba(255,255,255,0.6)"/>
+    <circle cx="404" cy="480" r="1.5" fill="rgba(255,255,255,0.4)"/>
+  </g>
+</svg>

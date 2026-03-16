@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a4e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d2b6b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="glowTile" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fde68a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="blueTile" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="dimTile" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a5f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#162c4a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="pinkTile" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f472b6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#db2777;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glowFilter">
+      <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="strongGlow">
+      <feGaussianBlur stdDeviation="10" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="subtleGlow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="90" ry="90" fill="url(#bgGrad)"/>
+
+  <!-- Ambient light blobs behind grid -->
+  <circle cx="200" cy="260" r="100" fill="#f59e0b" opacity="0.07"/>
+  <circle cx="320" cy="310" r="80" fill="#2563eb" opacity="0.07"/>
+
+  <!-- 4x4 grid of tiles, centered: start x=76, y=140, tile=78px, gap=8px -->
+  <!-- Row 1 -->
+  <!-- Tile (1,1) - GLOWING yellow -->
+  <rect x="80" y="144" width="78" height="78" rx="14" fill="url(#glowTile)" filter="url(#glowFilter)"/>
+  <rect x="85" y="149" width="68" height="22" rx="7" fill="white" opacity="0.25"/>
+  <circle cx="119" cy="183" r="14" fill="white" opacity="0.12"/>
+
+  <!-- Tile (1,2) - dim -->
+  <rect x="170" y="144" width="78" height="78" rx="14" fill="url(#dimTile)"/>
+  <rect x="175" y="149" width="68" height="22" rx="7" fill="white" opacity="0.07"/>
+
+  <!-- Tile (1,3) - GLOWING blue -->
+  <rect x="260" y="144" width="78" height="78" rx="14" fill="url(#blueTile)" filter="url(#glowFilter)"/>
+  <rect x="265" y="149" width="68" height="22" rx="7" fill="white" opacity="0.25"/>
+  <circle cx="299" cy="183" r="14" fill="white" opacity="0.12"/>
+
+  <!-- Tile (1,4) - dim -->
+  <rect x="350" y="144" width="78" height="78" rx="14" fill="url(#dimTile)"/>
+  <rect x="355" y="149" width="68" height="22" rx="7" fill="white" opacity="0.07"/>
+
+  <!-- Row 2 -->
+  <!-- Tile (2,1) - dim -->
+  <rect x="80" y="234" width="78" height="78" rx="14" fill="url(#dimTile)"/>
+  <rect x="85" y="239" width="68" height="22" rx="7" fill="white" opacity="0.07"/>
+
+  <!-- Tile (2,2) - GLOWING pink -->
+  <rect x="170" y="234" width="78" height="78" rx="14" fill="url(#pinkTile)" filter="url(#glowFilter)"/>
+  <rect x="175" y="239" width="68" height="22" rx="7" fill="white" opacity="0.25"/>
+  <circle cx="209" cy="273" r="14" fill="white" opacity="0.12"/>
+
+  <!-- Tile (2,3) - dim -->
+  <rect x="260" y="234" width="78" height="78" rx="14" fill="url(#dimTile)"/>
+  <rect x="265" y="239" width="68" height="22" rx="7" fill="white" opacity="0.07"/>
+
+  <!-- Tile (2,4) - GLOWING yellow -->
+  <rect x="350" y="234" width="78" height="78" rx="14" fill="url(#glowTile)" filter="url(#glowFilter)"/>
+  <rect x="355" y="239" width="68" height="22" rx="7" fill="white" opacity="0.25"/>
+  <circle cx="389" cy="273" r="14" fill="white" opacity="0.12"/>
+
+  <!-- Row 3 -->
+  <!-- Tile (3,1) - GLOWING blue -->
+  <rect x="80" y="324" width="78" height="78" rx="14" fill="url(#blueTile)" filter="url(#glowFilter)"/>
+  <rect x="85" y="329" width="68" height="22" rx="7" fill="white" opacity="0.25"/>
+  <circle cx="119" cy="363" r="14" fill="white" opacity="0.12"/>
+
+  <!-- Tile (3,2) - dim -->
+  <rect x="170" y="324" width="78" height="78" rx="14" fill="url(#dimTile)"/>
+  <rect x="175" y="329" width="68" height="22" rx="7" fill="white" opacity="0.07"/>
+
+  <!-- Tile (3,3) - dim -->
+  <rect x="260" y="324" width="78" height="78" rx="14" fill="url(#dimTile)"/>
+  <rect x="265" y="329" width="68" height="22" rx="7" fill="white" opacity="0.07"/>
+
+  <!-- Tile (3,4) - GLOWING pink -->
+  <rect x="350" y="324" width="78" height="78" rx="14" fill="url(#pinkTile)" filter="url(#glowFilter)"/>
+  <rect x="355" y="329" width="68" height="22" rx="7" fill="white" opacity="0.25"/>
+  <circle cx="389" cy="363" r="14" fill="white" opacity="0.12"/>
+
+  <!-- Row 4 -->
+  <!-- Tile (4,1) - dim -->
+  <rect x="80" y="414" width="78" height="78" rx="14" fill="url(#dimTile)"/>
+  <rect x="85" y="419" width="68" height="22" rx="7" fill="white" opacity="0.07"/>
+
+  <!-- Tile (4,2) - dim -->
+  <rect x="170" y="414" width="78" height="78" rx="14" fill="url(#dimTile)"/>
+  <rect x="175" y="419" width="68" height="22" rx="7" fill="white" opacity="0.07"/>
+
+  <!-- Tile (4,3) - GLOWING yellow -->
+  <rect x="260" y="414" width="78" height="78" rx="14" fill="url(#glowTile)" filter="url(#glowFilter)"/>
+  <rect x="265" y="419" width="68" height="22" rx="7" fill="white" opacity="0.25"/>
+  <circle cx="299" cy="453" r="14" fill="white" opacity="0.12"/>
+
+  <!-- Tile (4,4) - dim -->
+  <rect x="350" y="414" width="78" height="78" rx="14" fill="url(#dimTile)"/>
+  <rect x="355" y="419" width="68" height="22" rx="7" fill="white" opacity="0.07"/>
+
+  <!-- Question mark on a dim tile suggesting memory -->
+  <text x="209" y="290" font-family="Arial Black, Arial" font-weight="900" font-size="32" fill="white" text-anchor="middle" opacity="0.12">?</text>
+  <text x="299" y="380" font-family="Arial Black, Arial" font-weight="900" font-size="32" fill="white" text-anchor="middle" opacity="0.12">?</text>
+
+  <!-- Title background pill -->
+  <rect x="80" y="50" width="352" height="72" rx="20" fill="#0a1628" opacity="0.6"/>
+
+  <!-- Title -->
+  <text x="256" y="102" font-family="Arial Black, Arial" font-weight="900" font-size="46" fill="white" text-anchor="middle" letter-spacing="3">TILE FLIP</text>
+  <text x="256" y="102" font-family="Arial Black, Arial" font-weight="900" font-size="46" fill="#fde68a" text-anchor="middle" letter-spacing="3" opacity="0.3" filter="url(#subtleGlow)">TILE FLIP</text>
+
+  <!-- Border -->
+  <rect width="512" height="512" rx="90" ry="90" fill="none" stroke="#fde68a" stroke-width="2" opacity="0.15"/>
+</svg>

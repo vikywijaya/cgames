@@ -1,0 +1,229 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a4e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d2b6b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="tileBlue" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2e4a9e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#182060;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="tilePurple" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#5e2a9e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#301060;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="tileOrange" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff7722;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#cc4400;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="panelGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0e1a50;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#081030;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#6bd4ff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff9d6b;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="diffGlow">
+      <feGaussianBlur stdDeviation="9" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="panelShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000033" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="90" ry="90" fill="url(#bgGrad)"/>
+
+  <!-- Radial glow -->
+  <radialGradient id="cGlow" cx="50%" cy="54%" r="50%">
+    <stop offset="0%" style="stop-color:#1e2a8e;stop-opacity:0.5" />
+    <stop offset="100%" style="stop-color:#1a1a4e;stop-opacity:0" />
+  </radialGradient>
+  <rect width="512" height="512" rx="90" ry="90" fill="url(#cGlow)"/>
+
+  <!-- Title "SPOT DIFF" -->
+  <rect x="76" y="44" width="360" height="62" rx="14" ry="14"
+        fill="#ffffff" opacity="0.07"/>
+  <text x="256" y="90" font-family="Arial Black, Arial" font-size="38" font-weight="900"
+        fill="url(#titleGrad)" text-anchor="middle" letter-spacing="4"
+        filter="url(#glow)">SPOT DIFF</text>
+
+  <!--
+    Two 3x3 grids side by side.
+    Each tile: 68x68, gap: 8
+    Grid width: 3*68 + 2*8 = 220
+    Left grid starts at x=28, y=148
+    Right grid starts at x=264, y=148
+    Both grids height: 3*68 + 2*8 = 220, end y=368
+
+    Emoji representation via text symbols.
+    Icons: star=★, heart=♥, diamond=◆
+    Pattern:
+      [★][♥][★]
+      [◆][★][♥]
+      [★][◆][★]
+
+    Right grid - same EXCEPT [1,0] (middle-left) changes from ◆ to ♥
+    and it gets a glow ring.
+  -->
+
+  <!-- === LEFT PANEL === -->
+  <rect x="20" y="138" width="236" height="236" rx="18" ry="18"
+        fill="url(#panelGrad)" filter="url(#panelShadow)"/>
+  <rect x="20" y="138" width="236" height="236" rx="18" ry="18"
+        fill="none" stroke="#3a4aae" stroke-width="2"/>
+
+  <!-- Left panel label -->
+  <text x="138" y="134" font-family="Arial, sans-serif" font-size="13" font-weight="700"
+        fill="#8899cc" text-anchor="middle" opacity="0.8">GRID A</text>
+
+  <!-- L[0,0] ★ -->
+  <rect x="32" y="150" width="68" height="68" rx="10" ry="10" fill="url(#tileBlue)"/>
+  <text x="66" y="197" font-family="Arial" font-size="32" fill="#ffe566"
+        text-anchor="middle" opacity="0.9">★</text>
+
+  <!-- L[0,1] ♥ -->
+  <rect x="108" y="150" width="68" height="68" rx="10" ry="10" fill="url(#tilePurple)"/>
+  <text x="142" y="197" font-family="Arial" font-size="32" fill="#ff6b9d"
+        text-anchor="middle" opacity="0.9">♥</text>
+
+  <!-- L[0,2] ★ -->
+  <rect x="184" y="150" width="68" height="68" rx="10" ry="10" fill="url(#tileBlue)"/>
+  <text x="218" y="197" font-family="Arial" font-size="32" fill="#ffe566"
+        text-anchor="middle" opacity="0.9">★</text>
+
+  <!-- L[1,0] ◆ -->
+  <rect x="32" y="226" width="68" height="68" rx="10" ry="10" fill="url(#tileBlue)"/>
+  <text x="66" y="271" font-family="Arial" font-size="30" fill="#6bd4ff"
+        text-anchor="middle" opacity="0.9">◆</text>
+
+  <!-- L[1,1] ★ -->
+  <rect x="108" y="226" width="68" height="68" rx="10" ry="10" fill="url(#tilePurple)"/>
+  <text x="142" y="271" font-family="Arial" font-size="32" fill="#ffe566"
+        text-anchor="middle" opacity="0.9">★</text>
+
+  <!-- L[1,2] ♥ -->
+  <rect x="184" y="226" width="68" height="68" rx="10" ry="10" fill="url(#tileBlue)"/>
+  <text x="218" y="271" font-family="Arial" font-size="32" fill="#ff6b9d"
+        text-anchor="middle" opacity="0.9">♥</text>
+
+  <!-- L[2,0] ★ -->
+  <rect x="32" y="302" width="68" height="68" rx="10" ry="10" fill="url(#tilePurple)"/>
+  <text x="66" y="347" font-family="Arial" font-size="32" fill="#ffe566"
+        text-anchor="middle" opacity="0.9">★</text>
+
+  <!-- L[2,1] ◆ -->
+  <rect x="108" y="302" width="68" height="68" rx="10" ry="10" fill="url(#tileBlue)"/>
+  <text x="142" y="347" font-family="Arial" font-size="30" fill="#6bd4ff"
+        text-anchor="middle" opacity="0.9">◆</text>
+
+  <!-- L[2,2] ★ -->
+  <rect x="184" y="302" width="68" height="68" rx="10" ry="10" fill="url(#tilePurple)"/>
+  <text x="218" y="347" font-family="Arial" font-size="32" fill="#ffe566"
+        text-anchor="middle" opacity="0.9">★</text>
+
+  <!-- VS divider -->
+  <rect x="238" y="240" width="36" height="36" rx="8" ry="8"
+        fill="#ffffff" opacity="0.10"/>
+  <text x="256" y="265" font-family="Arial Black, Arial" font-size="16" font-weight="900"
+        fill="#aad4ff" text-anchor="middle" opacity="0.9">VS</text>
+
+  <!-- === RIGHT PANEL === -->
+  <rect x="256" y="138" width="236" height="236" rx="18" ry="18"
+        fill="url(#panelGrad)" filter="url(#panelShadow)"/>
+  <rect x="256" y="138" width="236" height="236" rx="18" ry="18"
+        fill="none" stroke="#3a4aae" stroke-width="2"/>
+
+  <!-- Right panel label -->
+  <text x="374" y="134" font-family="Arial, sans-serif" font-size="13" font-weight="700"
+        fill="#8899cc" text-anchor="middle" opacity="0.8">GRID B</text>
+
+  <!-- R[0,0] ★ -->
+  <rect x="268" y="150" width="68" height="68" rx="10" ry="10" fill="url(#tileBlue)"/>
+  <text x="302" y="197" font-family="Arial" font-size="32" fill="#ffe566"
+        text-anchor="middle" opacity="0.9">★</text>
+
+  <!-- R[0,1] ♥ -->
+  <rect x="344" y="150" width="68" height="68" rx="10" ry="10" fill="url(#tilePurple)"/>
+  <text x="378" y="197" font-family="Arial" font-size="32" fill="#ff6b9d"
+        text-anchor="middle" opacity="0.9">♥</text>
+
+  <!-- R[0,2] ★ -->
+  <rect x="420" y="150" width="68" height="68" rx="10" ry="10" fill="url(#tileBlue)"/>
+  <text x="454" y="197" font-family="Arial" font-size="32" fill="#ffe566"
+        text-anchor="middle" opacity="0.9">★</text>
+
+  <!-- R[1,0] DIFFERENT - ♥ instead of ◆ + glow highlight -->
+  <!-- Glow ring behind the tile -->
+  <circle cx="302" cy="260" r="46" fill="none" stroke="#ffdd33"
+          stroke-width="4" filter="url(#diffGlow)" opacity="0.9"/>
+  <circle cx="302" cy="260" r="50" fill="none" stroke="#ffee88"
+          stroke-width="2" stroke-dasharray="8,5" opacity="0.7"/>
+  <rect x="268" y="226" width="68" height="68" rx="10" ry="10" fill="url(#tileOrange)"/>
+  <rect x="268" y="226" width="68" height="68" rx="10" ry="10"
+        fill="none" stroke="#ffdd33" stroke-width="3" opacity="0.9"/>
+  <!-- Different icon: ★ replaced by ♣ (club/different shape) -->
+  <text x="302" y="271" font-family="Arial" font-size="30" fill="#ffffff"
+        text-anchor="middle" opacity="0.95">♣</text>
+
+  <!-- R[1,1] ★ -->
+  <rect x="344" y="226" width="68" height="68" rx="10" ry="10" fill="url(#tilePurple)"/>
+  <text x="378" y="271" font-family="Arial" font-size="32" fill="#ffe566"
+        text-anchor="middle" opacity="0.9">★</text>
+
+  <!-- R[1,2] ♥ -->
+  <rect x="420" y="226" width="68" height="68" rx="10" ry="10" fill="url(#tileBlue)"/>
+  <text x="454" y="271" font-family="Arial" font-size="32" fill="#ff6b9d"
+        text-anchor="middle" opacity="0.9">♥</text>
+
+  <!-- R[2,0] ★ -->
+  <rect x="268" y="302" width="68" height="68" rx="10" ry="10" fill="url(#tilePurple)"/>
+  <text x="302" y="347" font-family="Arial" font-size="32" fill="#ffe566"
+        text-anchor="middle" opacity="0.9">★</text>
+
+  <!-- R[2,1] ◆ -->
+  <rect x="344" y="302" width="68" height="68" rx="10" ry="10" fill="url(#tileBlue)"/>
+  <text x="378" y="347" font-family="Arial" font-size="30" fill="#6bd4ff"
+        text-anchor="middle" opacity="0.9">◆</text>
+
+  <!-- R[2,2] ★ -->
+  <rect x="420" y="302" width="68" height="68" rx="10" ry="10" fill="url(#tilePurple)"/>
+  <text x="454" y="347" font-family="Arial" font-size="32" fill="#ffe566"
+        text-anchor="middle" opacity="0.9">★</text>
+
+  <!-- Bottom label / tagline -->
+  <rect x="100" y="392" width="312" height="38" rx="10" ry="10"
+        fill="#ffffff" opacity="0.07"/>
+  <text x="256" y="417" font-family="Arial Black, Arial" font-size="16" font-weight="700"
+        fill="#ffdd33" text-anchor="middle" letter-spacing="2"
+        filter="url(#glow)">FIND THE DIFFERENCE!</text>
+
+  <!-- Arrows pointing to different tile -->
+  <line x1="302" y1="388" x2="302" y2="378"
+        stroke="#ffdd33" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+  <polygon points="302,372 296,382 308,382" fill="#ffdd33" opacity="0.9"/>
+
+  <!-- Bottom glow bar -->
+  <rect x="130" y="458" width="252" height="4" rx="2"
+        fill="url(#titleGrad)" opacity="0.5"/>
+
+  <!-- Page indicator dots -->
+  <circle cx="226" cy="475" r="5" fill="#ffe566" opacity="0.6"/>
+  <circle cx="242" cy="475" r="5" fill="#6bd4ff" opacity="0.85"/>
+  <circle cx="258" cy="475" r="5" fill="#ffe566" opacity="0.6"/>
+  <circle cx="274" cy="475" r="5" fill="#ffe566" opacity="0.6"/>
+  <circle cx="290" cy="475" r="5" fill="#ffe566" opacity="0.6"/>
+</svg>

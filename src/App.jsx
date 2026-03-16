@@ -36,6 +36,7 @@ import { SlitherEscape }  from './games/SlitherEscape/SlitherEscape';
 import { FlappyNumbers }  from './games/FlappyNumbers/FlappyNumbers';
 import { DotEd }          from './games/DotEd/DotEd';
 import { Zip }            from './games/Zip/Zip';
+import { Sokoban }        from './games/Sokoban/Sokoban';
 import { saveScore, getAllScores, getFavorites, toggleFavorite } from './utils/scoreStore';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import { TopBar } from './components/TopBar/TopBar.jsx';
@@ -44,8 +45,10 @@ import styles from './App.module.css';
 
 // Pre-generated card images (src/assets/games/<id>.png).
 // Falls back to the emoji icon when an image isn't present yet.
-const gameImages = import.meta.glob('./assets/games/*.png', { eager: true, query: '?url', import: 'default' });
-function getGameImage(id) { return gameImages[`./assets/games/${id}.png`] ?? null; }
+const gameImages = import.meta.glob('./assets/games/*.{png,svg}', { eager: true, query: '?url', import: 'default' });
+function getGameImage(id) {
+  return gameImages[`./assets/games/${id}.png`] ?? gameImages[`./assets/games/${id}.svg`] ?? null;
+}
 
 const GAME_MAP = {
   'memory-match':      MemoryMatch,
@@ -85,6 +88,7 @@ const GAME_MAP = {
   'flappy-numbers':    FlappyNumbers,
   'dot-ed':            DotEd,
   'zip':               Zip,
+  'sokoban':           Sokoban,
 };
 
 // Games grouped by cognitive category

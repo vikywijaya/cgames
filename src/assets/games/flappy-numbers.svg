@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a4e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d2b6b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f2244;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a3a6b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="wallGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e4080;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#152e5c;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="greenTile" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#86efac;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16a34a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="dimTile" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a6e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#162c55;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="birdGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fde68a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#f59e0b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="birdBody" cx="40%" cy="35%" r="60%">
+      <stop offset="0%" style="stop-color:#fef3c7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </radialGradient>
+    <filter id="glowGreen">
+      <feGaussianBlur stdDeviation="10" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="tileGlow">
+      <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="birdGlow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="titleGlow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="90" ry="90" fill="url(#bgGrad)"/>
+
+  <!-- Stars background -->
+  <circle cx="80" cy="160" r="2" fill="white" opacity="0.5"/>
+  <circle cx="150" cy="200" r="1.5" fill="white" opacity="0.4"/>
+  <circle cx="420" cy="180" r="2" fill="white" opacity="0.5"/>
+  <circle cx="460" cy="250" r="1.5" fill="white" opacity="0.35"/>
+  <circle cx="380" cy="420" r="2" fill="white" opacity="0.4"/>
+  <circle cx="100" cy="380" r="1.5" fill="white" opacity="0.45"/>
+  <circle cx="60" cy="300" r="2" fill="white" opacity="0.3"/>
+  <circle cx="200" cy="450" r="1.5" fill="white" opacity="0.35"/>
+
+  <!-- LEFT WALL (pipe-like structure) -->
+  <!-- Top section of left wall (from top to gap) -->
+  <rect x="55" y="130" width="110" height="145" rx="10" fill="url(#wallGrad)" stroke="#2a4a8e" stroke-width="2"/>
+  <rect x="60" y="135" width="100" height="20" rx="6" fill="white" opacity="0.1"/>
+  <!-- Tile on left wall (top) - dimmed "4" -->
+  <rect x="72" y="215" width="76" height="50" rx="10" fill="url(#dimTile)"/>
+  <text x="110" y="249" font-family="Arial Black, Arial" font-weight="900" font-size="32" fill="white" text-anchor="middle" opacity="0.3">4</text>
+
+  <!-- Bottom section of left wall (gap to bottom) -->
+  <rect x="55" y="345" width="110" height="170" rx="10" fill="url(#wallGrad)" stroke="#2a4a8e" stroke-width="2"/>
+  <rect x="60" y="350" width="100" height="20" rx="6" fill="white" opacity="0.1"/>
+  <!-- Tile on left wall (bottom) - dimmed "9" -->
+  <rect x="72" y="360" width="76" height="50" rx="10" fill="url(#dimTile)"/>
+  <text x="110" y="394" font-family="Arial Black, Arial" font-weight="900" font-size="32" fill="white" text-anchor="middle" opacity="0.3">9</text>
+
+  <!-- GAP LEFT WALL indicator -->
+  <line x1="45" y1="275" x2="45" y2="345" stroke="#60a5fa" stroke-width="2" stroke-dasharray="4,3" opacity="0.4"/>
+  <text x="35" y="314" font-family="Arial, sans-serif" font-size="11" fill="#60a5fa" text-anchor="middle" opacity="0.5">GAP</text>
+
+  <!-- RIGHT WALL -->
+  <!-- Top section of right wall (from top to gap - different gap height) -->
+  <rect x="347" y="130" width="110" height="110" rx="10" fill="url(#wallGrad)" stroke="#2a4a8e" stroke-width="2"/>
+  <rect x="352" y="135" width="100" height="20" rx="6" fill="white" opacity="0.1"/>
+  <!-- Tile on right wall (top) - GLOWING "7" (correct answer) -->
+  <rect x="364" y="180" width="76" height="56" rx="12" fill="url(#greenTile)" filter="url(#glowGreen)"/>
+  <rect x="369" y="185" width="66" height="20" rx="7" fill="white" opacity="0.3"/>
+  <text x="402" y="220" font-family="Arial Black, Arial" font-weight="900" font-size="38" fill="white" text-anchor="middle">7</text>
+  <!-- Check mark or star on correct tile -->
+  <circle cx="432" cy="186" r="10" fill="#22c55e"/>
+  <text x="432" y="191" font-family="Arial, sans-serif" font-size="12" fill="white" text-anchor="middle" font-weight="bold">✓</text>
+
+  <!-- Bottom section of right wall -->
+  <rect x="347" y="310" width="110" height="205" rx="10" fill="url(#wallGrad)" stroke="#2a4a8e" stroke-width="2"/>
+  <rect x="352" y="315" width="100" height="20" rx="6" fill="white" opacity="0.1"/>
+  <!-- Tile on right wall (bottom) - dimmed "3" -->
+  <rect x="364" y="325" width="76" height="56" rx="12" fill="url(#dimTile)"/>
+  <text x="402" y="363" font-family="Arial Black, Arial" font-weight="900" font-size="38" fill="white" text-anchor="middle" opacity="0.3">3</text>
+
+  <!-- GAP RIGHT WALL indicator -->
+  <line x1="470" y1="240" x2="470" y2="310" stroke="#4ade80" stroke-width="2" stroke-dasharray="4,3" opacity="0.5" filter="url(#tileGlow)"/>
+
+  <!-- BIRD - center-left of screen, heading right toward the gap -->
+  <!-- Body -->
+  <ellipse cx="224" cy="290" rx="42" ry="35" fill="url(#birdBody)" filter="url(#birdGlow)"/>
+  <!-- Wing (upswing) -->
+  <ellipse cx="210" cy="265" rx="28" ry="14" fill="#fbbf24" transform="rotate(-25 210 265)"/>
+  <ellipse cx="212" cy="263" rx="22" ry="10" fill="#fde68a" transform="rotate(-25 212 263)" opacity="0.7"/>
+  <!-- Belly -->
+  <ellipse cx="234" cy="298" rx="24" ry="20" fill="#fef3c7" opacity="0.6"/>
+  <!-- Eye -->
+  <circle cx="246" cy="282" r="9" fill="white"/>
+  <circle cx="249" cy="282" r="5" fill="#1a1a4e"/>
+  <circle cx="251" cy="280" r="2" fill="white"/>
+  <!-- Beak -->
+  <polygon points="262,287 280,283 262,293" fill="#f97316"/>
+  <line x1="262" y1="288" x2="279" y2="284" stroke="#ea580c" stroke-width="1.5" opacity="0.5"/>
+  <!-- Tail feathers -->
+  <polygon points="184,285 162,272 175,295" fill="#f59e0b"/>
+  <polygon points="184,292 158,295 176,305" fill="#d97706"/>
+  <!-- Body highlight -->
+  <ellipse cx="215" cy="276" rx="18" ry="12" fill="white" opacity="0.25" transform="rotate(-10 215 276)"/>
+
+  <!-- Motion lines from bird -->
+  <line x1="175" y1="282" x2="148" y2="278" stroke="white" stroke-width="2" stroke-linecap="round" opacity="0.3"/>
+  <line x1="172" y1="292" x2="142" y2="293" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.2"/>
+  <line x1="176" y1="300" x2="148" y2="305" stroke="white" stroke-width="1" stroke-linecap="round" opacity="0.15"/>
+
+  <!-- Current number indicator on bird - small badge -->
+  <circle cx="224" cy="290" r="18" fill="#1a1a4e" opacity="0.7"/>
+  <text x="224" y="296" font-family="Arial Black, Arial" font-weight="900" font-size="18" fill="white" text-anchor="middle">7</text>
+
+  <!-- Title -->
+  <text x="256" y="96" font-family="Arial Black, Arial" font-weight="900" font-size="52" fill="white" text-anchor="middle" letter-spacing="2">FLAPPY</text>
+  <text x="256" y="96" font-family="Arial Black, Arial" font-weight="900" font-size="52" fill="#4ade80" text-anchor="middle" letter-spacing="2" opacity="0.35" filter="url(#titleGlow)">FLAPPY</text>
+
+  <!-- Subtitle -->
+  <text x="256" y="470" font-family="Arial, sans-serif" font-size="18" fill="#93c5fd" text-anchor="middle" letter-spacing="2" opacity="0.8">NUMBERS</text>
+
+  <!-- Border -->
+  <rect width="512" height="512" rx="90" ry="90" fill="none" stroke="#4ade80" stroke-width="2" opacity="0.2"/>
+</svg>

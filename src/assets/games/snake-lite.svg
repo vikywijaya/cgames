@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a4e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d2b6b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="snakeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4ade80;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#16a34a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="headGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#86efac;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#22c55e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="appleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f87171;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background with rounded corners -->
+  <rect width="512" height="512" rx="90" ry="90" fill="url(#bgGrad)"/>
+
+  <!-- Grid lines (subtle) -->
+  <g stroke="#1e3a6e" stroke-width="1" opacity="0.5">
+    <!-- Vertical lines -->
+    <line x1="76" y1="130" x2="76" y2="430"/>
+    <line x1="116" y1="130" x2="116" y2="430"/>
+    <line x1="156" y1="130" x2="156" y2="430"/>
+    <line x1="196" y1="130" x2="196" y2="430"/>
+    <line x1="236" y1="130" x2="236" y2="430"/>
+    <line x1="276" y1="130" x2="276" y2="430"/>
+    <line x1="316" y1="130" x2="316" y2="430"/>
+    <line x1="356" y1="130" x2="356" y2="430"/>
+    <line x1="396" y1="130" x2="396" y2="430"/>
+    <line x1="436" y1="130" x2="436" y2="430"/>
+    <!-- Horizontal lines -->
+    <line x1="76" y1="130" x2="436" y2="130"/>
+    <line x1="76" y1="170" x2="436" y2="170"/>
+    <line x1="76" y1="210" x2="436" y2="210"/>
+    <line x1="76" y1="250" x2="436" y2="250"/>
+    <line x1="76" y1="290" x2="436" y2="290"/>
+    <line x1="76" y1="330" x2="436" y2="330"/>
+    <line x1="76" y1="370" x2="436" y2="370"/>
+    <line x1="76" y1="410" x2="436" y2="410"/>
+    <line x1="76" y1="430" x2="436" y2="430"/>
+  </g>
+
+  <!-- Snake body segments - S-shape path -->
+  <!-- Top row going right (row at y=175) -->
+  <rect x="160" y="158" width="34" height="34" rx="8" fill="url(#snakeGrad)" filter="url(#glow)"/>
+  <rect x="200" y="158" width="34" height="34" rx="8" fill="url(#snakeGrad)" filter="url(#glow)"/>
+  <rect x="240" y="158" width="34" height="34" rx="8" fill="url(#snakeGrad)" filter="url(#glow)"/>
+  <rect x="280" y="158" width="34" height="34" rx="8" fill="url(#snakeGrad)" filter="url(#glow)"/>
+  <rect x="320" y="158" width="34" height="34" rx="8" fill="url(#snakeGrad)" filter="url(#glow)"/>
+
+  <!-- Turning down right side -->
+  <rect x="320" y="198" width="34" height="34" rx="8" fill="url(#snakeGrad)" filter="url(#glow)"/>
+  <rect x="320" y="238" width="34" height="34" rx="8" fill="url(#snakeGrad)" filter="url(#glow)"/>
+
+  <!-- Middle row going left -->
+  <rect x="280" y="238" width="34" height="34" rx="8" fill="url(#snakeGrad)" filter="url(#glow)"/>
+  <rect x="240" y="238" width="34" height="34" rx="8" fill="url(#snakeGrad)" filter="url(#glow)"/>
+  <rect x="200" y="238" width="34" height="34" rx="8" fill="url(#snakeGrad)" filter="url(#glow)"/>
+  <rect x="160" y="238" width="34" height="34" rx="8" fill="url(#snakeGrad)" filter="url(#glow)"/>
+
+  <!-- Turning down left side -->
+  <rect x="160" y="278" width="34" height="34" rx="8" fill="url(#snakeGrad)" filter="url(#glow)"/>
+  <rect x="160" y="318" width="34" height="34" rx="8" fill="url(#snakeGrad)" filter="url(#glow)"/>
+
+  <!-- Bottom row going right -->
+  <rect x="200" y="318" width="34" height="34" rx="8" fill="url(#snakeGrad)" filter="url(#glow)"/>
+  <rect x="240" y="318" width="34" height="34" rx="8" fill="url(#snakeGrad)" filter="url(#glow)"/>
+  <rect x="280" y="318" width="34" height="34" rx="8" fill="url(#snakeGrad)" filter="url(#glow)"/>
+
+  <!-- Snake head (brighter) -->
+  <rect x="320" y="318" width="34" height="34" rx="8" fill="url(#headGrad)" filter="url(#softGlow)"/>
+  <!-- Eyes on head -->
+  <circle cx="332" cy="330" r="3.5" fill="#1a1a4e"/>
+  <circle cx="344" cy="330" r="3.5" fill="#1a1a4e"/>
+  <circle cx="333" cy="329" r="1.5" fill="white"/>
+  <circle cx="345" cy="329" r="1.5" fill="white"/>
+  <!-- Tongue -->
+  <line x1="337" y1="344" x2="334" y2="350" stroke="#f87171" stroke-width="2" stroke-linecap="round"/>
+  <line x1="337" y1="344" x2="340" y2="350" stroke="#f87171" stroke-width="2" stroke-linecap="round"/>
+  <line x1="337" y1="341" x2="337" y2="344" stroke="#f87171" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Segment highlights -->
+  <rect x="163" y="161" width="28" height="12" rx="5" fill="white" opacity="0.2"/>
+  <rect x="203" y="161" width="28" height="12" rx="5" fill="white" opacity="0.2"/>
+  <rect x="243" y="161" width="28" height="12" rx="5" fill="white" opacity="0.2"/>
+
+  <!-- Apple/Fruit -->
+  <circle cx="390" cy="175" r="22" fill="url(#appleGrad)" filter="url(#softGlow)"/>
+  <circle cx="383" cy="163" r="8" fill="url(#appleGrad)"/>
+  <!-- Apple highlight -->
+  <ellipse cx="383" cy="168" rx="5" ry="7" fill="#fca5a5" opacity="0.6"/>
+  <!-- Apple stem -->
+  <line x1="390" y1="153" x2="393" y2="147" stroke="#16a34a" stroke-width="3" stroke-linecap="round"/>
+  <!-- Apple leaf -->
+  <ellipse cx="397" cy="148" rx="6" ry="4" fill="#22c55e" transform="rotate(-30 397 148)"/>
+  <!-- Apple shine -->
+  <ellipse cx="383" cy="168" rx="5" ry="7" fill="white" opacity="0.25"/>
+
+  <!-- Score dot trail -->
+  <circle cx="390" cy="215" r="4" fill="#4ade80" opacity="0.5"/>
+  <circle cx="390" cy="232" r="3" fill="#4ade80" opacity="0.35"/>
+  <circle cx="390" cy="247" r="2" fill="#4ade80" opacity="0.2"/>
+
+  <!-- Title -->
+  <text x="256" y="95" font-family="Arial Black, Arial" font-weight="900" font-size="52" fill="white" text-anchor="middle" letter-spacing="4">SNAKE</text>
+  <!-- Title shadow/glow -->
+  <text x="256" y="95" font-family="Arial Black, Arial" font-weight="900" font-size="52" fill="#4ade80" text-anchor="middle" letter-spacing="4" opacity="0.35" filter="url(#glow)">SNAKE</text>
+
+  <!-- Subtitle -->
+  <text x="256" y="470" font-family="Arial, sans-serif" font-size="18" fill="#93c5fd" text-anchor="middle" letter-spacing="2" opacity="0.8">EAT · GROW · SURVIVE</text>
+
+  <!-- Border glow -->
+  <rect width="512" height="512" rx="90" ry="90" fill="none" stroke="#4ade80" stroke-width="2" opacity="0.2"/>
+</svg>

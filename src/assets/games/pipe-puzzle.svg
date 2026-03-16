@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a4e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d2b6b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="tileGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a6e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#162c55;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="redPipe" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f87171;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ef4444;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="bluePipe" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+    <filter id="pipeGlow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="dotGlow">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="titleGlow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="90" ry="90" fill="url(#bgGrad)"/>
+
+  <!-- Subtle ambient glow -->
+  <circle cx="256" cy="300" r="180" fill="#3b82f6" opacity="0.05"/>
+
+  <!-- 3x3 grid of tiles, each 130x130, gap=10, start x=61, y=150 -->
+  <!-- Tile positions: col1=61, col2=201, col3=341 | row1=150, row2=290, row3=430... wait, need to fit 512 -->
+  <!-- Let me use: tile=122, gap=8, start=61, rows at 148, 278, 408 -->
+
+  <!-- TILE BACKGROUNDS -->
+  <!-- Row 1 -->
+  <rect x="65" y="148" width="122" height="122" rx="16" fill="url(#tileGrad)" stroke="#2a4a8e" stroke-width="1.5"/>
+  <rect x="197" y="148" width="122" height="122" rx="16" fill="url(#tileGrad)" stroke="#2a4a8e" stroke-width="1.5"/>
+  <rect x="329" y="148" width="122" height="122" rx="16" fill="url(#tileGrad)" stroke="#2a4a8e" stroke-width="1.5"/>
+  <!-- Row 2 -->
+  <rect x="65" y="280" width="122" height="122" rx="16" fill="url(#tileGrad)" stroke="#2a4a8e" stroke-width="1.5"/>
+  <rect x="197" y="280" width="122" height="122" rx="16" fill="url(#tileGrad)" stroke="#2a4a8e" stroke-width="1.5"/>
+  <rect x="329" y="280" width="122" height="122" rx="16" fill="url(#tileGrad)" stroke="#2a4a8e" stroke-width="1.5"/>
+  <!-- Row 3 -->
+  <rect x="65" y="412" width="122" height="78" rx="16" fill="url(#tileGrad)" stroke="#2a4a8e" stroke-width="1.5"/>
+  <rect x="197" y="412" width="122" height="78" rx="16" fill="url(#tileGrad)" stroke="#2a4a8e" stroke-width="1.5"/>
+  <rect x="329" y="412" width="122" height="78" rx="16" fill="url(#tileGrad)" stroke="#2a4a8e" stroke-width="1.5"/>
+
+  <!-- Tile highlights -->
+  <rect x="70" y="153" width="112" height="24" rx="8" fill="white" opacity="0.08"/>
+  <rect x="202" y="153" width="112" height="24" rx="8" fill="white" opacity="0.08"/>
+  <rect x="334" y="153" width="112" height="24" rx="8" fill="white" opacity="0.08"/>
+  <rect x="70" y="285" width="112" height="24" rx="8" fill="white" opacity="0.08"/>
+  <rect x="202" y="285" width="112" height="24" rx="8" fill="white" opacity="0.08"/>
+  <rect x="334" y="285" width="112" height="24" rx="8" fill="white" opacity="0.08"/>
+
+  <!-- PIPES - RED PATH: top-left dot to mid-right dot -->
+  <!-- Red dot at tile(1,1) = cx=126, cy=209 -->
+  <!-- Red dot at tile(2,3) = cx=390, cy=341 -->
+
+  <!-- Pipe segment: tile(1,1) - L-shape going right and down -->
+  <!-- Horizontal from center to right edge -->
+  <rect x="126" y="203" width="75" height="12" rx="6" fill="url(#redPipe)" filter="url(#pipeGlow)"/>
+  <!-- Vertical from center to bottom edge -->
+  <rect x="120" y="209" width="12" height="71" rx="6" fill="url(#redPipe)" filter="url(#pipeGlow)"/>
+
+  <!-- Pipe segment: tile(1,2) - straight horizontal -->
+  <rect x="197" y="203" width="122" height="12" rx="6" fill="url(#redPipe)" filter="url(#pipeGlow)"/>
+
+  <!-- Pipe segment: tile(1,3) - L-shape going left and down -->
+  <rect x="258" y="203" width="71" height="12" rx="6" fill="url(#redPipe)" filter="url(#pipeGlow)"/>
+  <rect x="316" y="209" width="12" height="71" rx="6" fill="url(#redPipe)" filter="url(#pipeGlow)"/>
+
+  <!-- Pipe: tile(2,1) - straight vertical (connecting top to bottom) -->
+  <rect x="120" y="280" width="12" height="122" rx="6" fill="url(#redPipe)" filter="url(#pipeGlow)"/>
+
+  <!-- Pipe: tile(2,2) - T or cross, let's do L going down-right -->
+  <rect x="316" y="280" width="12" height="122" rx="6" fill="url(#redPipe)" filter="url(#pipeGlow)"/>
+
+  <!-- Pipe: tile(3,1) - L-shape bottom-left going right -->
+  <rect x="120" y="400" width="12" height="12" rx="6" fill="url(#redPipe)" filter="url(#pipeGlow)"/>
+  <rect x="120" y="400" width="210" height="12" rx="6" fill="url(#redPipe)" filter="url(#pipeGlow)"/>
+
+  <!-- Pipe: tile(3,3) - going up to meet red -->
+  <rect x="316" y="400" width="12" height="12" rx="6" fill="url(#redPipe)" filter="url(#pipeGlow)"/>
+
+  <!-- RED DOTS (endpoints) -->
+  <circle cx="126" cy="209" r="18" fill="#ef4444" filter="url(#dotGlow)"/>
+  <circle cx="126" cy="209" r="12" fill="#fca5a5"/>
+  <circle cx="120" cy="204" r="5" fill="white" opacity="0.6"/>
+
+  <circle cx="390" cy="341" r="18" fill="#ef4444" filter="url(#dotGlow)"/>
+  <circle cx="390" cy="341" r="12" fill="#fca5a5"/>
+  <circle cx="384" cy="336" r="5" fill="white" opacity="0.6"/>
+
+  <!-- BLUE PIPES: tile(1,3) dot to tile(3,2) dot -->
+  <!-- Blue dot at tile(1,3) = cx=390, cy=209 -->
+  <!-- Blue dot at tile(3,2) = cx=258, cy=451 -->
+
+  <!-- Pipe tile(1,3) vertical going down -->
+  <rect x="383" y="209" width="12" height="71" rx="6" fill="url(#bluePipe)" filter="url(#pipeGlow)"/>
+
+  <!-- Pipe tile(2,3) going left -->
+  <rect x="263" y="335" width="132" height="12" rx="6" fill="url(#bluePipe)" filter="url(#pipeGlow)"/>
+  <rect x="383" y="280" width="12" height="67" rx="6" fill="url(#bluePipe)" filter="url(#pipeGlow)"/>
+
+  <!-- Pipe tile(2,2) vertical going down -->
+  <rect x="257" y="335" width="12" height="77" rx="6" fill="url(#bluePipe)" filter="url(#pipeGlow)"/>
+
+  <!-- BLUE DOTS -->
+  <circle cx="390" cy="209" r="18" fill="#3b82f6" filter="url(#dotGlow)"/>
+  <circle cx="390" cy="209" r="12" fill="#93c5fd"/>
+  <circle cx="384" cy="204" r="5" fill="white" opacity="0.6"/>
+
+  <circle cx="258" cy="451" r="18" fill="#3b82f6" filter="url(#dotGlow)"/>
+  <circle cx="258" cy="451" r="12" fill="#93c5fd"/>
+  <circle cx="252" cy="446" r="5" fill="white" opacity="0.6"/>
+
+  <!-- Rotation indicator arrow on one tile -->
+  <g transform="translate(258, 341)" opacity="0.35">
+    <path d="M-20,0 A20,20 0 0,1 0,-20" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"/>
+    <polygon points="0,-20 6,-30 -6,-30" fill="white"/>
+  </g>
+
+  <!-- Title -->
+  <text x="256" y="96" font-family="Arial Black, Arial" font-weight="900" font-size="40" fill="white" text-anchor="middle" letter-spacing="3">PIPE PUZZLE</text>
+  <text x="256" y="96" font-family="Arial Black, Arial" font-weight="900" font-size="40" fill="#60a5fa" text-anchor="middle" letter-spacing="3" opacity="0.35" filter="url(#titleGlow)">PIPE PUZZLE</text>
+
+  <!-- Border -->
+  <rect width="512" height="512" rx="90" ry="90" fill="none" stroke="#60a5fa" stroke-width="2" opacity="0.2"/>
+</svg>
