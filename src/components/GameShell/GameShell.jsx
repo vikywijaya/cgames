@@ -4,6 +4,7 @@ import { useCountdown } from '../../hooks/useCountdown';
 import { useSoundFx } from '../../hooks/useSoundFx';
 import { Button } from '../Button/Button';
 import { ProgressBar } from '../ProgressBar/ProgressBar';
+import { useGameContext } from '../../context/GameContext';
 import styles from './GameShell.module.css';
 
 /**
@@ -25,10 +26,13 @@ export function GameShell({
   difficulty = 'easy',
   timeLimitSeconds = null,
   timeLimits = null,
+  hideDifficulty = false,
   children,
   onGameComplete,
   onBack,
 }) {
+  const { hideDifficulty: ctxHideDifficulty } = useGameContext();
+  const shouldHideDifficulty = hideDifficulty || ctxHideDifficulty;
   const [localDifficulty, setLocalDifficulty] = useState(difficulty);
   const [phase, setPhase] = useState('idle'); // 'idle' | 'playing' | 'finished'
   const [animating, setAnimating] = useState(false); // true while entry animations play
@@ -127,19 +131,21 @@ export function GameShell({
       {phase === 'idle' && (
         <div className={styles.startScreen}>
           <h1 className={styles.gameTitle}>{title}</h1>
-          <div className={styles.difficultyPicker} role="radiogroup" aria-label="Select difficulty">
-            {['easy', 'medium', 'hard'].map(level => (
-              <button
-                key={level}
-                className={`${styles.difficultyOption} ${styles[`difficultyOption_${level}`]} ${localDifficulty === level ? styles.difficultyOptionActive : ''}`}
-                onClick={() => { playClick(); setLocalDifficulty(level); }}
-                role="radio"
-                aria-checked={localDifficulty === level}
-              >
-                {level === 'easy' ? '🟢' : level === 'medium' ? '🟡' : '🔴'} {level.charAt(0).toUpperCase() + level.slice(1)}
-              </button>
-            ))}
-          </div>
+          {!shouldHideDifficulty && (
+            <div className={styles.difficultyPicker} role="radiogroup" aria-label="Select difficulty">
+              {['easy', 'medium', 'hard'].map(level => (
+                <button
+                  key={level}
+                  className={`${styles.difficultyOption} ${styles[`difficultyOption_${level}`]} ${localDifficulty === level ? styles.difficultyOptionActive : ''}`}
+                  onClick={() => { playClick(); setLocalDifficulty(level); }}
+                  role="radio"
+                  aria-checked={localDifficulty === level}
+                >
+                  {level === 'easy' ? '🟢' : level === 'medium' ? '🟡' : '🔴'} {level.charAt(0).toUpperCase() + level.slice(1)}
+                </button>
+              ))}
+            </div>
+          )}
           {effectiveTimeLimit ? (
             <p className={styles.timeLimitNote}>
               Time limit: {effectiveTimeLimit}s
@@ -242,6 +248,7 @@ GameShell.propTypes = {
   timeLimitSeconds: PropTypes.number,
   timeLimits: PropTypes.object,
   children: PropTypes.func.isRequired,
+  hideDifficulty: PropTypes.bool,
   onGameComplete: PropTypes.func,
   onBack: PropTypes.func,
 };

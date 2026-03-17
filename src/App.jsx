@@ -38,6 +38,7 @@ import { DotEd }          from './games/DotEd/DotEd';
 import { Zip }            from './games/Zip/Zip';
 import { Sokoban }        from './games/Sokoban/Sokoban';
 import { saveScore, getAllScores, getFavorites, toggleFavorite, saveTotalScore, getTotalScore } from './utils/scoreStore';
+import { GameContext } from './context/GameContext';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import './design/globals.css';
 import styles from './App.module.css';
@@ -447,13 +448,15 @@ export function App() {
           ))}
         </div>
 
-        <GameComponent
-          key={`daily-${game.id}-${index}`}
-          memberId={urlMemberId}
-          difficulty={selectedDifficulty}
-          onComplete={handleDailyComplete}
-          onBack={abortDailyChallenge}
-        />
+        <GameContext.Provider value={{ hideDifficulty: true }}>
+          <GameComponent
+            key={`daily-${game.id}-${index}`}
+            memberId={urlMemberId}
+            difficulty={selectedDifficulty}
+            onComplete={handleDailyComplete}
+            onBack={abortDailyChallenge}
+          />
+        </GameContext.Provider>
       </div>
     );
   }
