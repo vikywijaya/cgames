@@ -623,7 +623,6 @@ export function App() {
             alt="Cognitive Games"
             className={styles.lobbyTitleImg}
           />
-          <hr className={styles.lobbyDivider} />
         </header>
 
         <div className={styles.categoryRow} role="radiogroup" aria-label="Filter by category">
