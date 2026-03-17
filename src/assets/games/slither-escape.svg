@@ -1,0 +1,193 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a4e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d2b6b;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Grid cell subtle gradient -->
+    <linearGradient id="cellGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e2d6e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#162060;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Red snake gradient -->
+    <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff4444;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#cc2222;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Blue snake gradient -->
+    <linearGradient id="blueGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4488ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2255cc;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Green snake gradient -->
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#44dd66;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#22aa44;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Title glow filter -->
+    <filter id="titleGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <!-- Snake glow filter -->
+    <filter id="snakeGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+
+    <!-- Icon shadow -->
+    <filter id="iconShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+
+    <!-- Exit door glow -->
+    <filter id="exitGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Background with rounded corners -->
+  <rect width="512" height="512" rx="90" ry="90" fill="url(#bgGrad)"/>
+
+  <!-- Subtle inner border -->
+  <rect x="8" y="8" width="496" height="496" rx="84" ry="84" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2"/>
+
+  <!-- ===== GRID ===== -->
+  <!-- Grid background panel -->
+  <rect x="76" y="130" width="360" height="310" rx="16" ry="16" fill="#0f1a50" opacity="0.9"/>
+  <rect x="76" y="130" width="360" height="310" rx="16" ry="16" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+
+  <!-- Grid lines — 5x4 cells, each 72px wide / 77px tall -->
+  <!-- Vertical lines -->
+  <line x1="148" y1="130" x2="148" y2="440" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <line x1="220" y1="130" x2="220" y2="440" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <line x1="292" y1="130" x2="292" y2="440" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <line x1="364" y1="130" x2="364" y2="440" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+
+  <!-- Horizontal lines -->
+  <line x1="76" y1="207" x2="436" y2="207" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <line x1="76" y1="284" x2="436" y2="284" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+  <line x1="76" y1="361" x2="436" y2="361" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+
+  <!-- ===== EXIT DOORS on right edge ===== -->
+  <!-- Red exit door — row 1, right side -->
+  <rect x="418" y="145" width="18" height="47" rx="4" ry="4" fill="#ff4444" opacity="0.25" filter="url(#exitGlow)"/>
+  <rect x="420" y="147" width="14" height="43" rx="3" ry="3" fill="#ff4444" opacity="0.7"/>
+  <rect x="420" y="147" width="14" height="43" rx="3" ry="3" fill="none" stroke="#ff6666" stroke-width="1.5"/>
+  <!-- Door symbol -->
+  <circle cx="427" cy="173" r="2.5" fill="#ffaaaa"/>
+
+  <!-- Blue exit door — row 2, right side -->
+  <rect x="418" y="222" width="18" height="47" rx="4" ry="4" fill="#4488ff" opacity="0.25" filter="url(#exitGlow)"/>
+  <rect x="420" y="224" width="14" height="43" rx="3" ry="3" fill="#4488ff" opacity="0.7"/>
+  <rect x="420" y="224" width="14" height="43" rx="3" ry="3" fill="none" stroke="#66aaff" stroke-width="1.5"/>
+  <circle cx="427" cy="250" r="2.5" fill="#aaccff"/>
+
+  <!-- Green exit door — bottom edge, col 3 -->
+  <rect x="223" y="422" width="66" height="18" rx="4" ry="4" fill="#44dd66" opacity="0.25" filter="url(#exitGlow)"/>
+  <rect x="225" y="424" width="62" height="14" rx="3" ry="3" fill="#44dd66" opacity="0.7"/>
+  <rect x="225" y="424" width="62" height="14" rx="3" ry="3" fill="none" stroke="#66ee88" stroke-width="1.5"/>
+  <circle cx="256" cy="431" r="2.5" fill="#aaffcc"/>
+
+  <!-- ===== RED SNAKE — row 1, cols 1-3, sliding right ===== -->
+  <!-- Tail segment -->
+  <rect x="84" y="152" width="58" height="40" rx="12" ry="12" fill="url(#redGrad)" filter="url(#snakeGlow)"/>
+  <!-- Body segment -->
+  <rect x="150" y="152" width="62" height="40" rx="6" ry="6" fill="#dd3333"/>
+  <!-- Head segment -->
+  <rect x="220" y="152" width="62" height="40" rx="12" ry="12" fill="#ff5555"/>
+  <!-- Snake eye -->
+  <circle cx="268" cy="166" r="5" fill="#fff"/>
+  <circle cx="269" cy="167" r="3" fill="#1a0000"/>
+  <!-- Tongue -->
+  <line x1="280" y1="172" x2="288" y2="170" stroke="#ff2222" stroke-width="2" stroke-linecap="round"/>
+  <line x1="288" y1="170" x2="292" y2="167" stroke="#ff2222" stroke-width="2" stroke-linecap="round"/>
+  <line x1="288" y1="170" x2="292" y2="173" stroke="#ff2222" stroke-width="2" stroke-linecap="round"/>
+  <!-- Scale texture on red snake -->
+  <ellipse cx="113" cy="172" rx="10" ry="6" fill="rgba(255,255,255,0.1)"/>
+  <ellipse cx="181" cy="172" rx="10" ry="6" fill="rgba(0,0,0,0.1)"/>
+
+  <!-- Red arrow pointing right -->
+  <g opacity="0.9">
+    <line x1="298" y1="172" x2="370" y2="172" stroke="#ff4444" stroke-width="3" stroke-dasharray="6,4" stroke-linecap="round"/>
+    <polygon points="374,172 362,165 362,179" fill="#ff4444"/>
+  </g>
+
+  <!-- ===== BLUE SNAKE — row 2, cols 1-3, sliding right ===== -->
+  <rect x="84" y="229" width="58" height="40" rx="12" ry="12" fill="url(#blueGrad)" filter="url(#snakeGlow)"/>
+  <rect x="150" y="229" width="62" height="40" rx="6" ry="6" fill="#3377ee"/>
+  <rect x="220" y="229" width="62" height="40" rx="12" ry="12" fill="#5599ff"/>
+  <!-- Snake eye -->
+  <circle cx="268" cy="243" r="5" fill="#fff"/>
+  <circle cx="269" cy="244" r="3" fill="#000033"/>
+  <!-- Tongue -->
+  <line x1="280" y1="249" x2="288" y2="247" stroke="#2244dd" stroke-width="2" stroke-linecap="round"/>
+  <line x1="288" y1="247" x2="292" y2="244" stroke="#2244dd" stroke-width="2" stroke-linecap="round"/>
+  <line x1="288" y1="247" x2="292" y2="250" stroke="#2244dd" stroke-width="2" stroke-linecap="round"/>
+  <ellipse cx="113" cy="249" rx="10" ry="6" fill="rgba(255,255,255,0.1)"/>
+  <ellipse cx="181" cy="249" rx="10" ry="6" fill="rgba(0,0,0,0.1)"/>
+
+  <!-- Blue arrow pointing right -->
+  <g opacity="0.9">
+    <line x1="298" y1="249" x2="370" y2="249" stroke="#4488ff" stroke-width="3" stroke-dasharray="6,4" stroke-linecap="round"/>
+    <polygon points="374,249 362,242 362,256" fill="#4488ff"/>
+  </g>
+
+  <!-- ===== GREEN SNAKE — row 3, cols 2-4, sliding down ===== -->
+  <!-- Top cap -->
+  <rect x="228" y="291" width="56" height="50" rx="12" ry="12" fill="#44dd66" filter="url(#snakeGlow)"/>
+  <!-- Mid segment -->
+  <rect x="228" y="335" width="56" height="34" rx="6" ry="6" fill="#33bb55"/>
+  <!-- Head at top -->
+  <rect x="228" y="291" width="56" height="36" rx="12" ry="12" fill="#55ee77"/>
+  <!-- Snake eye -->
+  <circle cx="253" cy="307" r="5" fill="#fff"/>
+  <circle cx="254" cy="308" r="3" fill="#001a00"/>
+  <ellipse cx="256" cy="340" rx="12" ry="6" fill="rgba(255,255,255,0.1)"/>
+
+  <!-- Green arrow pointing down -->
+  <g opacity="0.9">
+    <line x1="256" y1="380" x2="256" y2="415" stroke="#44dd66" stroke-width="3" stroke-dasharray="6,4" stroke-linecap="round"/>
+    <polygon points="256,419 249,407 263,407" fill="#44dd66"/>
+  </g>
+
+  <!-- ===== TITLE ===== -->
+  <!-- Title background pill -->
+  <rect x="60" y="44" width="392" height="72" rx="20" ry="20" fill="rgba(0,0,0,0.45)"/>
+  <rect x="60" y="44" width="392" height="72" rx="20" ry="20" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+
+  <!-- "SLITHER" -->
+  <text x="256" y="88"
+        font-family="Arial Black, Arial, sans-serif"
+        font-size="46"
+        font-weight="900"
+        text-anchor="middle"
+        fill="white"
+        filter="url(#titleGlow)"
+        letter-spacing="4">SLITHER</text>
+
+  <!-- Subtitle -->
+  <text x="256" y="120"
+        font-family="Arial, sans-serif"
+        font-size="15"
+        font-weight="600"
+        text-anchor="middle"
+        fill="rgba(180,220,255,0.85)"
+        letter-spacing="8">ESCAPE</text>
+
+  <!-- Small star/sparkle accents in corners -->
+  <g fill="rgba(255,255,255,0.3)" opacity="0.6">
+    <circle cx="108" cy="480" r="2"/>
+    <circle cx="120" cy="474" r="1.2"/>
+    <circle cx="400" cy="478" r="2"/>
+    <circle cx="412" cy="484" r="1.2"/>
+  </g>
+</svg>

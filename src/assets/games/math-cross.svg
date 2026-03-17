@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a4e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d2b6b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cellGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2e2e8e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1e1e6e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="numGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e0f0ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#a0c8ff;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="opGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff9d6b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff5500;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="eqGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffe566;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffa500;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff9d6b;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffe566;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="cellGlow">
+      <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="90" ry="90" fill="url(#bgGrad)"/>
+
+  <!-- Radial center glow -->
+  <radialGradient id="cGlow" cx="50%" cy="55%" r="50%">
+    <stop offset="0%" style="stop-color:#2a2a9e;stop-opacity:0.45" />
+    <stop offset="100%" style="stop-color:#1a1a4e;stop-opacity:0" />
+  </radialGradient>
+  <rect width="512" height="512" rx="90" ry="90" fill="url(#cGlow)"/>
+
+  <!-- Title -->
+  <rect x="68" y="44" width="376" height="62" rx="14" ry="14"
+        fill="#ffffff" opacity="0.07"/>
+  <text x="256" y="89" font-family="Arial Black, Arial" font-size="36" font-weight="900"
+        fill="url(#titleGrad)" text-anchor="middle" letter-spacing="4"
+        filter="url(#glow)">MATH CROSS</text>
+
+  <!--
+    Crossword-style equation grid.
+    Layout (5x5 cells, 68px each, gap 8px):
+    Start x=88, y=138
+    Cell size 68, stride 76
+
+    Equations encoded:
+    Horizontal row 0: [3] [+] [5] [=] [8]   y=138
+    Horizontal row 2: [4] [×] [2] [=] [8]   y=290
+    Horizontal row 4: [6] [-] [3] [=] [3]   y=442  (partial, below)
+
+    Vertical col 0:   [3] [+] [4] [=] [7]   x=88
+    Vertical col 2:   [5] [×] [2] [=] [10]  x=240 (skipped last for space)
+    Vertical col 4:   [8] [+] [8] ...       x=392
+  -->
+
+  <!-- Helper macro - we'll draw all cells manually -->
+  <!-- 5 cols x 5 rows, stride 76, start (88,138), size 68 -->
+
+  <!-- ===== ROW 0 (y=138) ===== -->
+  <!-- [0,0] number 3 -->
+  <rect x="88" y="138" width="68" height="68" rx="10" ry="10" fill="url(#numGrad)"
+        filter="url(#cellGlow)"/>
+  <rect x="88" y="138" width="68" height="68" rx="10" ry="10"
+        fill="none" stroke="#aad4ff" stroke-width="2" opacity="0.5"/>
+  <text x="122" y="186" font-family="Arial Black, Arial" font-size="30" font-weight="900"
+        fill="#1a1a4e" text-anchor="middle">3</text>
+
+  <!-- [0,1] operator + (orange) -->
+  <rect x="164" y="138" width="68" height="68" rx="10" ry="10" fill="url(#opGrad)"
+        filter="url(#cellGlow)"/>
+  <text x="198" y="186" font-family="Arial Black, Arial" font-size="30" font-weight="900"
+        fill="#ffffff" text-anchor="middle">+</text>
+
+  <!-- [0,2] number 5 -->
+  <rect x="240" y="138" width="68" height="68" rx="10" ry="10" fill="url(#numGrad)"
+        filter="url(#cellGlow)"/>
+  <rect x="240" y="138" width="68" height="68" rx="10" ry="10"
+        fill="none" stroke="#aad4ff" stroke-width="2" opacity="0.5"/>
+  <text x="274" y="186" font-family="Arial Black, Arial" font-size="30" font-weight="900"
+        fill="#1a1a4e" text-anchor="middle">5</text>
+
+  <!-- [0,3] = (gold) -->
+  <rect x="316" y="138" width="68" height="68" rx="10" ry="10" fill="url(#eqGrad)"
+        filter="url(#cellGlow)"/>
+  <text x="350" y="183" font-family="Arial Black, Arial" font-size="26" font-weight="900"
+        fill="#3a1a00" text-anchor="middle">=</text>
+
+  <!-- [0,4] number 8 -->
+  <rect x="392" y="138" width="68" height="68" rx="10" ry="10" fill="url(#numGrad)"
+        filter="url(#cellGlow)"/>
+  <rect x="392" y="138" width="68" height="68" rx="10" ry="10"
+        fill="none" stroke="#aad4ff" stroke-width="2" opacity="0.5"/>
+  <text x="426" y="186" font-family="Arial Black, Arial" font-size="30" font-weight="900"
+        fill="#1a1a4e" text-anchor="middle">8</text>
+
+  <!-- ===== ROW 1 (y=214) - vertical operators row ===== -->
+  <!-- [1,0] vertical + -->
+  <rect x="88" y="214" width="68" height="68" rx="10" ry="10" fill="url(#opGrad)"
+        opacity="0.9" filter="url(#cellGlow)"/>
+  <text x="122" y="260" font-family="Arial Black, Arial" font-size="30" font-weight="900"
+        fill="#ffffff" text-anchor="middle">+</text>
+
+  <!-- [1,2] vertical × -->
+  <rect x="240" y="214" width="68" height="68" rx="10" ry="10" fill="url(#opGrad)"
+        opacity="0.9" filter="url(#cellGlow)"/>
+  <text x="274" y="260" font-family="Arial Black, Arial" font-size="30" font-weight="900"
+        fill="#ffffff" text-anchor="middle">×</text>
+
+  <!-- [1,4] vertical - -->
+  <rect x="392" y="214" width="68" height="68" rx="10" ry="10" fill="url(#opGrad)"
+        opacity="0.9" filter="url(#cellGlow)"/>
+  <text x="426" y="260" font-family="Arial Black, Arial" font-size="30" font-weight="900"
+        fill="#ffffff" text-anchor="middle">-</text>
+
+  <!-- ===== ROW 2 (y=290) ===== -->
+  <!-- [2,0] number 4 -->
+  <rect x="88" y="290" width="68" height="68" rx="10" ry="10" fill="url(#numGrad)"
+        filter="url(#cellGlow)"/>
+  <rect x="88" y="290" width="68" height="68" rx="10" ry="10"
+        fill="none" stroke="#aad4ff" stroke-width="2" opacity="0.5"/>
+  <text x="122" y="338" font-family="Arial Black, Arial" font-size="30" font-weight="900"
+        fill="#1a1a4e" text-anchor="middle">4</text>
+
+  <!-- [2,1] operator × -->
+  <rect x="164" y="290" width="68" height="68" rx="10" ry="10" fill="url(#opGrad)"
+        filter="url(#cellGlow)"/>
+  <text x="198" y="338" font-family="Arial Black, Arial" font-size="30" font-weight="900"
+        fill="#ffffff" text-anchor="middle">×</text>
+
+  <!-- [2,2] number 2 -->
+  <rect x="240" y="290" width="68" height="68" rx="10" ry="10" fill="url(#numGrad)"
+        filter="url(#cellGlow)"/>
+  <rect x="240" y="290" width="68" height="68" rx="10" ry="10"
+        fill="none" stroke="#aad4ff" stroke-width="2" opacity="0.5"/>
+  <text x="274" y="338" font-family="Arial Black, Arial" font-size="30" font-weight="900"
+        fill="#1a1a4e" text-anchor="middle">2</text>
+
+  <!-- [2,3] = -->
+  <rect x="316" y="290" width="68" height="68" rx="10" ry="10" fill="url(#eqGrad)"
+        filter="url(#cellGlow)"/>
+  <text x="350" y="335" font-family="Arial Black, Arial" font-size="26" font-weight="900"
+        fill="#3a1a00" text-anchor="middle">=</text>
+
+  <!-- [2,4] number 8 (result: 8-0) -->
+  <rect x="392" y="290" width="68" height="68" rx="10" ry="10" fill="url(#numGrad)"
+        filter="url(#cellGlow)"/>
+  <rect x="392" y="290" width="68" height="68" rx="10" ry="10"
+        fill="none" stroke="#aad4ff" stroke-width="2" opacity="0.5"/>
+  <text x="426" y="338" font-family="Arial Black, Arial" font-size="30" font-weight="900"
+        fill="#1a1a4e" text-anchor="middle">8</text>
+
+  <!-- ===== ROW 3 (y=366) - vertical = row ===== -->
+  <!-- [3,0] vertical = -->
+  <rect x="88" y="366" width="68" height="68" rx="10" ry="10" fill="url(#eqGrad)"
+        opacity="0.9" filter="url(#cellGlow)"/>
+  <text x="122" y="411" font-family="Arial Black, Arial" font-size="26" font-weight="900"
+        fill="#3a1a00" text-anchor="middle">=</text>
+
+  <!-- [3,2] vertical = -->
+  <rect x="240" y="366" width="68" height="68" rx="10" ry="10" fill="url(#eqGrad)"
+        opacity="0.9" filter="url(#cellGlow)"/>
+  <text x="274" y="411" font-family="Arial Black, Arial" font-size="26" font-weight="900"
+        fill="#3a1a00" text-anchor="middle">=</text>
+
+  <!-- ===== ROW 4 (y=442) - result row (partial, clipped by card) ===== -->
+  <!-- [4,0] number 7 -->
+  <rect x="88" y="442" width="68" height="44" rx="10" ry="10" fill="url(#numGrad)"
+        opacity="0.85"/>
+  <text x="122" y="474" font-family="Arial Black, Arial" font-size="26" font-weight="900"
+        fill="#1a1a4e" text-anchor="middle">7</text>
+
+  <!-- [4,2] number 10 -->
+  <rect x="240" y="442" width="68" height="44" rx="10" ry="10" fill="url(#numGrad)"
+        opacity="0.85"/>
+  <text x="274" y="474" font-family="Arial Black, Arial" font-size="24" font-weight="900"
+        fill="#1a1a4e" text-anchor="middle">10</text>
+
+  <!-- Bottom bar -->
+  <rect x="110" y="490" width="292" height="4" rx="2" fill="url(#titleGrad)" opacity="0.5"/>
+</svg>
