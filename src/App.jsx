@@ -38,7 +38,6 @@ import { DotEd }          from './games/DotEd/DotEd';
 import { Zip }            from './games/Zip/Zip';
 import { saveScore, getAllScores, getFavorites, toggleFavorite } from './utils/scoreStore';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
-import { TopBar } from './components/TopBar/TopBar.jsx';
 import './design/globals.css';
 import styles from './App.module.css';
 
@@ -320,15 +319,9 @@ export function App() {
   /* ── Playing a game from the lobby ── */
   if (selectedGame) {
     const GameComponent = GAME_MAP[selectedGame];
-    const gameInfo = ALL_GAMES.find(g => g.id === selectedGame);
     return (
       <div className={styles.dailyWrapper}>
-        <TopBar
-          title={gameInfo?.title ?? 'Game'}
-          onBack={() => setSelectedGame(null)}
-          memberId={urlMemberId}
-          noBleed
-        />
+        <button className={styles.floatingBack} onClick={() => setSelectedGame(null)} aria-label="Back">‹ Back</button>
         <GameComponent
           memberId="Abdul Khadir"
           difficulty={selectedDifficulty}
@@ -352,12 +345,7 @@ export function App() {
 
     return (
       <div className={styles.dailyWrapper}>
-        <TopBar
-          title="Daily Challenge"
-          onBack={abortDailyChallenge}
-          memberId={urlMemberId}
-          noBleed
-        />
+        <button className={styles.floatingBack} onClick={abortDailyChallenge} aria-label="Back">‹ Back</button>
         {/* Progress strip */}
         <div className={styles.dailyProgress} role="progressbar"
           aria-label={`Game ${index + 1} of ${games.length}`}>
@@ -397,12 +385,7 @@ export function App() {
 
     return (
       <div className={styles.dailyWrapper}>
-        <TopBar
-          title="Daily Challenge"
-          onBack={abortDailyChallenge}
-          memberId={urlMemberId}
-          noBleed
-        />
+        <button className={styles.floatingBack} onClick={abortDailyChallenge} aria-label="Back">‹ Back</button>
         <div className={styles.interResult}>
         <div className={styles.interProgress}>
           {games.map((g, i) => (
@@ -460,12 +443,7 @@ export function App() {
 
     return (
       <div className={styles.dailyWrapper}>
-        <TopBar
-          title="Daily Challenge"
-          onBack={() => { setView('home'); setDailyChallenge(null); }}
-          memberId={urlMemberId}
-          noBleed
-        />
+        <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Back">‹ Back</button>
         <div className={styles.dailyResult}>
         <div className={styles.resultTrophy}>{trophy}</div>
         <h2 className={styles.resultHeadline}>Challenge Complete!</h2>
@@ -517,12 +495,7 @@ export function App() {
 
     return (
       <div className={styles.dailyWrapper}>
-        <TopBar
-          title="Your Scores"
-          onBack={() => setView('home')}
-          memberId={urlMemberId}
-          noBleed
-        />
+        <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Back">‹ Back</button>
         <div className={styles.scoresView}>
         <div className={styles.scoresHeader}>
           <img
@@ -609,7 +582,17 @@ export function App() {
                           onClick={() => { setView('games'); setSelectedGame(game.id); }}
                           aria-label={`Play ${game.title}`}
                         >
-                          ▶ Play
+                          <svg width="52" height="52" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g clipPath="url(#clip0_25937_24189)">
+                              <path d="M57 28.5C57 44.2403 44.2403 57 28.5 57C12.7597 57 0 44.2403 0 28.5C0 12.7597 12.7597 0 28.5 0C44.2403 0 57 12.7597 57 28.5Z" fill="#3777FF"/>
+                              <path d="M40.1751 27.0179L24.1439 16.3304C23.5972 15.9665 22.8949 15.9325 22.3156 16.2422C21.7368 16.5522 21.375 17.1558 21.375 17.8125V39.1875C21.375 39.8442 21.7368 40.4478 22.3156 40.7578C22.8949 41.0675 23.5972 41.0335 24.1439 40.6696L40.1751 29.9821C40.6709 29.6515 40.9683 29.0953 40.9683 28.5C40.9683 27.9047 40.6709 27.3484 40.1751 27.0179Z" fill="white"/>
+                            </g>
+                            <defs>
+                              <clipPath id="clip0_25937_24189">
+                                <rect width="57" height="57" fill="white"/>
+                              </clipPath>
+                            </defs>
+                          </svg>
                         </button>
                       )}
                     </div>
@@ -628,12 +611,7 @@ export function App() {
   if (view === 'games') {
     return (
       <div className={styles.dailyWrapper}>
-        <TopBar
-          title="Cognitive Games"
-          onBack={() => setView('home')}
-          memberId={urlMemberId}
-          noBleed
-        />
+        <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Back">‹ Back</button>
         <div className={styles.lobby}>
         <header className={styles.lobbyHeader}>
           <img
@@ -709,7 +687,7 @@ export function App() {
                       {game.beta && <span className={styles.betaBadge}>Beta</span>}
                       {game.comingSoon
                         ? <span className={styles.comingSoonBadge}>Coming Soon</span>
-                        : <span className={styles.playButton} aria-hidden="true">Play</span>}
+                        : <span className={styles.playButton} aria-hidden="true"><svg width="52" height="52" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg"><g clipPath="url(#pb)"><path d="M57 28.5C57 44.2403 44.2403 57 28.5 57C12.7597 57 0 44.2403 0 28.5C0 12.7597 12.7597 0 28.5 0C44.2403 0 57 12.7597 57 28.5Z" fill="#3777FF"/><path d="M40.1751 27.0179L24.1439 16.3304C23.5972 15.9665 22.8949 15.9325 22.3156 16.2422C21.7368 16.5522 21.375 17.1558 21.375 17.8125V39.1875C21.375 39.8442 21.7368 40.4478 22.3156 40.7578C22.8949 41.0675 23.5972 41.0335 24.1439 40.6696L40.1751 29.9821C40.6709 29.6515 40.9683 29.0953 40.9683 28.5C40.9683 27.9047 40.6709 27.3484 40.1751 27.0179Z" fill="white"/></g><defs><clipPath id="pb"><rect width="57" height="57" fill="white"/></clipPath></defs></svg></span>}
                     </div>
                   </div>
                 </button>
@@ -760,7 +738,7 @@ export function App() {
                       {game.beta && <span className={styles.betaBadge}>Beta</span>}
                       {game.comingSoon
                         ? <span className={styles.comingSoonBadge}>Coming Soon</span>
-                        : <span className={styles.playButton} aria-hidden="true">Play</span>}
+                        : <span className={styles.playButton} aria-hidden="true"><svg width="52" height="52" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg"><g clipPath="url(#pb)"><path d="M57 28.5C57 44.2403 44.2403 57 28.5 57C12.7597 57 0 44.2403 0 28.5C0 12.7597 12.7597 0 28.5 0C44.2403 0 57 12.7597 57 28.5Z" fill="#3777FF"/><path d="M40.1751 27.0179L24.1439 16.3304C23.5972 15.9665 22.8949 15.9325 22.3156 16.2422C21.7368 16.5522 21.375 17.1558 21.375 17.8125V39.1875C21.375 39.8442 21.7368 40.4478 22.3156 40.7578C22.8949 41.0675 23.5972 41.0335 24.1439 40.6696L40.1751 29.9821C40.6709 29.6515 40.9683 29.0953 40.9683 28.5C40.9683 27.9047 40.6709 27.3484 40.1751 27.0179Z" fill="white"/></g><defs><clipPath id="pb"><rect width="57" height="57" fill="white"/></clipPath></defs></svg></span>}
                     </div>
                   </div>
                 </button>
@@ -787,13 +765,6 @@ export function App() {
 
   return (
     <div className={styles.homeWrapper}>
-      <TopBar
-        title=""
-        onBack={null}
-        memberId={urlMemberId}
-        noBleed
-        home
-      />
       <div className={styles.homeScreen}>
         <div className={styles.homeHeader}>
           <img
@@ -801,8 +772,6 @@ export function App() {
             alt="CaritaHub Cognitive Games"
             className={styles.homeTitle}
           />
-          <p className={styles.homeGreeting}>{greeting.text}, {urlMemberId}! {greeting.emoji}</p>
-
           {/* Player Level Status */}
           <div className={styles.levelCard}>
             <div className={styles.levelCardTop}>
