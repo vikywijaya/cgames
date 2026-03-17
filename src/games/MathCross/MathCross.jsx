@@ -434,17 +434,16 @@ function MathCrossGame({ difficulty, onComplete, reportScore, secondsLeft, playC
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.meta}>
-        <span className={styles.roundLabel}>Puzzle <strong>{round + 1}</strong> / {rounds}</span>
+      {/* Contextual hint with round counter */}
+      <div className={styles.hint} aria-live="polite">
+        <span className={styles.roundLabel}>Puzzle <strong>{round + 1}</strong>/{rounds} &nbsp;·&nbsp; </span>
+        {hintText}
       </div>
-
-      {/* Contextual hint */}
-      <div className={styles.hint} aria-live="polite">{hintText}</div>
 
       {/* Grid */}
       <div
         className={`${styles.grid} ${solved ? styles.gridSolved : ''}`}
-        style={{ gridTemplateColumns: `repeat(${puzzle.cols}, 54px)` }}
+        style={{ gridTemplateColumns: `repeat(${puzzle.cols}, clamp(40px, 10vw, 54px))` }}
         role="grid"
         aria-label="Math cross puzzle grid"
       >

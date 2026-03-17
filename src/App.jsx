@@ -219,15 +219,6 @@ function computePct(result) {
   return Math.min(100, Math.max(0, Math.round((score / maxScore) * 100)));
 }
 
-function timeAgo(ts) {
-  if (!ts) return '—';
-  const mins = Math.floor((Date.now() - ts) / 60000);
-  if (mins < 1)  return 'Just now';
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24)  return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
 
 const ACHIEVEMENT_LEVELS = [
   { min: 0,  icon: '🌱', name: 'Newcomer',     desc: 'Play your first game to get started!' },
@@ -278,18 +269,21 @@ function getProgressHint(scores, totalGames) {
 }
 
 function buildDailyGames() {
-  // Pick one random game from each category
-  return GAME_GROUPS.map(group => {
-    const idx = Math.floor(Math.random() * group.games.length);
-    return { ...group.games[idx], categoryIcon: group.icon, categoryName: group.category };
-  });
+  // Pick 2 random games from all available, non-coming-soon games
+  const pool = GAME_GROUPS.flatMap(group =>
+    group.games
+      .filter(g => !g.comingSoon)
+      .map(g => ({ ...g, categoryIcon: group.icon, categoryName: group.category }))
+  );
+  const shuffled = pool.slice().sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, 2);
 }
 
 /* ──────────────────────────────────────────────────────────────
    App
 ────────────────────────────────────────────────────────────── */
 export function App() {
-  // view: 'home' | 'games' | 'scores' | 'daily-playing' | 'daily-inter' | 'daily-result'
+  // view: 'home' | 'games' | 'scores' | 'daily' | 'daily-playing' | 'daily-inter' | 'daily-result'
   const [view,               setView]               = useState('home');
   const [selectedGame,       setSelectedGame]       = useState(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
@@ -311,13 +305,17 @@ export function App() {
   function startDailyChallenge() {
     const games = buildDailyGames();
     setDailyChallenge({ games, index: 0, scores: {}, lastPct: null });
+    setView('daily');
+  }
+
+  function confirmDailyChallenge() {
     setView('daily-playing');
   }
 
   function handleDailyComplete(result) {
     const game = dailyChallenge.games[dailyChallenge.index];
     const pct  = computePct(result);
-    saveScore(game.id, pct, result.durationSeconds ?? null, urlMemberId);
+    saveScore(game.id, pct, result.durationSeconds ?? null, urlMemberId, result.difficulty ?? null);
     sendCallback(game.id, result);
     setDailyChallenge(prev => ({
       ...prev,
@@ -352,7 +350,7 @@ export function App() {
         callbackUrl={urlCallbackUrl}
         onComplete={(result) => {
             const pct = computePct(result);
-            saveScore(urlGameId, pct, result.durationSeconds ?? null, urlMemberId);
+            saveScore(urlGameId, pct, result.durationSeconds ?? null, urlMemberId, result.difficulty ?? null);
             sendCallback(urlGameId, result);
           }}
       />
@@ -370,11 +368,53 @@ export function App() {
           difficulty={selectedDifficulty}
           onComplete={(result) => {
             const pct = computePct(result);
-            saveScore(selectedGame, pct, result.durationSeconds ?? null, urlMemberId);
+            saveScore(selectedGame, pct, result.durationSeconds ?? null, urlMemberId, result.difficulty ?? null);
             sendCallback(selectedGame, result);
           }}
           onBack={() => setSelectedGame(null)}
         />
+      </div>
+    );
+  }
+
+  /* ── Daily challenge: preview screen ── */
+  if (view === 'daily' && dailyChallenge) {
+    const { games } = dailyChallenge;
+    const previewScores = getAllScores(urlMemberId);
+    return (
+      <div className={styles.dailyWrapper}>
+        <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Back">‹ Back</button>
+        <div className={styles.dailyPreview}>
+          <h2 className={styles.dailyPreviewTitle}>Today's Challenge</h2>
+          <p className={styles.dailyPreviewSub}>Play these 2 games and see how you score!</p>
+          <div className={styles.dailyPreviewGrid}>
+            {games.map((game, i) => (
+              <div key={`${game.id}-${i}`} className={styles.gameCard} style={{ cursor: 'default' }}>
+                <div className={styles.gameIconBox} aria-hidden="true">
+                  {getGameImage(game.id)
+                    ? <img src={getGameImage(game.id)} alt="" className={styles.gameIconImg} />
+                    : game.icon}
+                </div>
+                <div className={styles.gameMeta}>
+                  <h3 className={styles.gameCardTitle}>
+                    {game.title}
+                    {previewScores[game.id] != null && (
+                      <svg className={styles.playedCheck} width="18" height="18" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Played"><g clipPath="url(#pc3)"><path d="M15 0C6.76113 0 0 6.76113 0 15C0 23.2389 6.76113 30 15 30C23.2389 30 30 23.2389 30 15C30 6.76113 23.2389 0 15 0ZM13.1847 21.8227L6.61605 15.2541L9.10172 12.7684L13.2997 16.9664L21.7274 9.30516L24.0929 11.9058L13.1847 21.8227Z" fill="#1CB37C"/></g><defs><clipPath id="pc3"><rect width="30" height="30" fill="white"/></clipPath></defs></svg>
+                    )}
+                  </h3>
+                  <p className={styles.gameCardDesc}>{game.description}</p>
+                  <div className={styles.gameCardFooter}>
+                    <span className={styles.gameDomain}>{game.domain}</span>
+                    <span className={styles.dailyGameNum}>Game {i + 1}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <button className={styles.primaryBtn} onClick={confirmDailyChallenge}>
+            Start Challenge →
+          </button>
+        </div>
       </div>
     );
   }
@@ -597,26 +637,34 @@ export function App() {
                 const sc = allScores[game.id] || null;
                 return (
                   <div key={game.id} className={styles.scoreRow}>
+                    <div className={styles.scoreRowIcon} aria-hidden="true">
+                      {getGameImage(game.id)
+                        ? <img src={getGameImage(game.id)} alt="" className={styles.scoreRowIconImg} />
+                        : game.icon}
+                    </div>
                     <div className={styles.scoreRowInfo}>
                       <span className={styles.scoreRowName}>{game.title}</span>
                       <span className={styles.scoreRowDomain}>{game.domain}</span>
-                    </div>
-                    <div className={styles.scoreRowActions}>
                       {sc ? (
                         <div className={styles.scoreRowStats}>
                           <span className={styles.scoreBest}
                             style={{ color: sc.best >= 75 ? 'var(--color-success)' : sc.best >= 50 ? 'var(--color-warning)' : 'var(--color-error)' }}>
-                            Best {sc.best}%
+                            Best Score: {sc.best}
                           </span>
-                          <span className={styles.scoreLast}>Last {sc.last}%</span>
-                          <span className={styles.scorePlays}>{sc.playCount}× · {timeAgo(sc.ts)}</span>
-                          {sc.lastTime != null && (
-                            <span className={styles.scoreTime}>{sc.lastTime}s</span>
+                          {(sc.bestTime != null || sc.lastTime != null) && (
+                            <span className={styles.scoreTime}>Best Time: {sc.bestTime ?? sc.lastTime}s</span>
+                          )}
+                          {(sc.bestDifficulty || sc.lastDifficulty) && (
+                            <span className={styles.scoreDifficulty}>
+                              {((sc.bestDifficulty || sc.lastDifficulty)).charAt(0).toUpperCase() + ((sc.bestDifficulty || sc.lastDifficulty)).slice(1)}
+                            </span>
                           )}
                         </div>
                       ) : (
                         <span className={styles.scoreUnplayed}>Not played yet</span>
                       )}
+                    </div>
+                    <div className={styles.scoreRowActions}>
                       {game.comingSoon ? (
                         <span className={styles.comingSoonBadge}>Coming Soon</span>
                       ) : (
@@ -625,13 +673,13 @@ export function App() {
                           onClick={() => { setView('games'); setSelectedGame(game.id); }}
                           aria-label={`Play ${game.title}`}
                         >
-                          <svg width="52" height="52" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <g clipPath="url(#clip0_25937_24189)">
+                          <svg width="36" height="36" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <g clipPath="url(#clip0_score_play)">
                               <path d="M57 28.5C57 44.2403 44.2403 57 28.5 57C12.7597 57 0 44.2403 0 28.5C0 12.7597 12.7597 0 28.5 0C44.2403 0 57 12.7597 57 28.5Z" fill="#3777FF"/>
                               <path d="M40.1751 27.0179L24.1439 16.3304C23.5972 15.9665 22.8949 15.9325 22.3156 16.2422C21.7368 16.5522 21.375 17.1558 21.375 17.8125V39.1875C21.375 39.8442 21.7368 40.4478 22.3156 40.7578C22.8949 41.0675 23.5972 41.0335 24.1439 40.6696L40.1751 29.9821C40.6709 29.6515 40.9683 29.0953 40.9683 28.5C40.9683 27.9047 40.6709 27.3484 40.1751 27.0179Z" fill="white"/>
                             </g>
                             <defs>
-                              <clipPath id="clip0_25937_24189">
+                              <clipPath id="clip0_score_play">
                                 <rect width="57" height="57" fill="white"/>
                               </clipPath>
                             </defs>
@@ -652,6 +700,7 @@ export function App() {
 
   /* ── Games lobby ── */
   if (view === 'games') {
+    const lobbyScores = getAllScores(urlMemberId);
     return (
       <div className={styles.dailyWrapper}>
         <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Back">‹ Back</button>
@@ -689,6 +738,24 @@ export function App() {
           })}
         </div>
 
+        <div className={styles.difficultyRow} role="radiogroup" aria-label="Select difficulty">
+          {['easy', 'medium', 'hard'].map(level => (
+            <label
+              key={level}
+              className={`${styles.difficultyBtn} ${styles[`difficultyBtn_${level}`]} ${selectedDifficulty === level ? styles.difficultyBtnActive : ''}`}
+            >
+              <input
+                type="radio"
+                name="difficulty"
+                value={level}
+                checked={selectedDifficulty === level}
+                onChange={() => setSelectedDifficulty(level)}
+              />
+              {level === 'easy' ? '🟢' : level === 'medium' ? '🟡' : '🔴'} {level.charAt(0).toUpperCase() + level.slice(1)}
+            </label>
+          ))}
+        </div>
+
         {selectedCategory === 'Favorites' ? (
           <section className={styles.gameSection} aria-label="Favorites">
             <h2 className={styles.sectionTitle}>
@@ -722,7 +789,12 @@ export function App() {
                       : game.icon}
                   </div>
                   <div className={styles.gameMeta}>
-                    <h3 className={styles.gameCardTitle}>{game.title}</h3>
+                    <h3 className={styles.gameCardTitle}>
+                      {game.title}
+                      {lobbyScores[game.id] != null && (
+                        <svg className={styles.playedCheck} width="18" height="18" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Played"><g clipPath="url(#pc1)"><path d="M15 0C6.76113 0 0 6.76113 0 15C0 23.2389 6.76113 30 15 30C23.2389 30 30 23.2389 30 15C30 6.76113 23.2389 0 15 0ZM13.1847 21.8227L6.61605 15.2541L9.10172 12.7684L13.2997 16.9664L21.7274 9.30516L24.0929 11.9058L13.1847 21.8227Z" fill="#1CB37C"/></g><defs><clipPath id="pc1"><rect width="30" height="30" fill="white"/></clipPath></defs></svg>
+                      )}
+                    </h3>
                     <p className={styles.gameCardDesc}>{game.description}</p>
                     <div className={styles.gameCardFooter}>
                       <span className={styles.gameDomain}>{game.domain}</span>
@@ -773,7 +845,12 @@ export function App() {
                       : game.icon}
                   </div>
                   <div className={styles.gameMeta}>
-                    <h3 className={styles.gameCardTitle}>{game.title}</h3>
+                    <h3 className={styles.gameCardTitle}>
+                      {game.title}
+                      {lobbyScores[game.id] != null && (
+                        <svg className={styles.playedCheck} width="18" height="18" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Played"><g clipPath="url(#pc2)"><path d="M15 0C6.76113 0 0 6.76113 0 15C0 23.2389 6.76113 30 15 30C23.2389 30 30 23.2389 30 15C30 6.76113 23.2389 0 15 0ZM13.1847 21.8227L6.61605 15.2541L9.10172 12.7684L13.2997 16.9664L21.7274 9.30516L24.0929 11.9058L13.1847 21.8227Z" fill="#1CB37C"/></g><defs><clipPath id="pc2"><rect width="30" height="30" fill="white"/></clipPath></defs></svg>
+                      )}
+                    </h3>
                     <p className={styles.gameCardDesc}>{game.description}</p>
                     <div className={styles.gameCardFooter}>
                       <span className={styles.gameDomain}>{game.domain}</span>
@@ -859,7 +936,7 @@ export function App() {
             <span className={styles.menuBtnBody}>
               <span className={styles.menuBtnTitle}>Daily Challenge</span>
               <span className={styles.menuBtnDesc}>
-                Play {GAME_GROUPS.length} random games — one from each category. Track your daily progress!
+                Play 2 random games each day. Track your daily progress!
               </span>
               <span className={styles.menuBtnFooter}>
                 <span className={styles.menuBtnCta}>Start →</span>

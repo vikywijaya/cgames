@@ -76,7 +76,7 @@ export function GameShell({
 
   function handleComplete({ finalScore, maxScore, completed = true }) {
     const durationSeconds = Math.round((Date.now() - (startTimeRef.current ?? Date.now())) / 1000);
-    const r = { score: finalScore, maxScore, completed, durationSeconds };
+    const r = { score: finalScore, maxScore, completed, durationSeconds, difficulty: localDifficulty };
     setResult(r);
     setPhase('finished');
     playComplete();
@@ -131,18 +131,12 @@ export function GameShell({
             {['easy', 'medium', 'hard'].map(level => (
               <button
                 key={level}
-                className={`${styles.difficultyOption} ${
-                  localDifficulty === level
-                    ? level === 'hard' ? styles.diffOptActiveHard
-                    : level === 'medium' ? styles.diffOptActiveMedium
-                    : styles.diffOptActiveEasy
-                    : ''
-                }`}
+                className={`${styles.difficultyOption} ${styles[`difficultyOption_${level}`]} ${localDifficulty === level ? styles.difficultyOptionActive : ''}`}
                 onClick={() => { playClick(); setLocalDifficulty(level); }}
                 role="radio"
                 aria-checked={localDifficulty === level}
               >
-                {level.charAt(0).toUpperCase() + level.slice(1)}
+                {level === 'easy' ? '🟢' : level === 'medium' ? '🟡' : '🔴'} {level.charAt(0).toUpperCase() + level.slice(1)}
               </button>
             ))}
           </div>
@@ -154,14 +148,14 @@ export function GameShell({
             <p className={styles.timeLimitNote}>Untimed</p>
           )}
           <div className={styles.instructionsFrame} role="region" aria-label="Game instructions">
+            <h2 className={styles.instructionsTitle}>How to play</h2>
             <div className={styles.instructions}>
-              <h2 className={styles.instructionsTitle}>How to play</h2>
               {renderInstructions(instructions)}
             </div>
-            <Button size="large" onClick={handleStart} autoFocus className={styles.playBtn}>
-              Play
-            </Button>
           </div>
+          <Button size="large" onClick={handleStart} autoFocus className={styles.playBtn}>
+            Play
+          </Button>
         </div>
       )}
 
