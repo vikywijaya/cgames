@@ -1,0 +1,181 @@
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.5) translateY(12px); }
+  60%  { opacity: 1; transform: scale(1.08) translateY(-2px); }
+  80%  { transform: scale(0.96) translateY(1px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) 0;
+  outline: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
+/* ── Meta bar ── */
+.meta {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 460px;
+  font-size: var(--text-sm);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1.5px solid #e2e8f0;
+  border-radius: var(--radius-xl);
+  padding: var(--space-2) var(--space-4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.metaLabel { color: var(--color-text-muted); }
+.metaLabel strong { color: var(--color-primary); }
+
+/* ── Board grid ── */
+.board {
+  display: inline-grid;
+  gap: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+  border: 3px solid #4a5568;
+}
+
+.tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background 0.15s ease;
+}
+
+/* ── Tile types ── */
+.tileOutside {
+  background: #1a202c;
+}
+
+.tileWall {
+  background: linear-gradient(135deg, #5a6478 0%, #3d4556 50%, #5a6478 100%);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.3),
+              inset 2px 2px 0 rgba(255, 255, 255, 0.12);
+}
+
+.tileFloor {
+  background: #f0ece4;
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+}
+
+.tileGoal {
+  background: #fce4e4;
+  box-shadow: inset 0 0 0 2px #e88e8e;
+  border-radius: 4px;
+}
+
+.tileBox {
+  background: #f0ece4;
+}
+
+.tileBoxOnGoal {
+  background: #c6f6d5;
+  box-shadow: inset 0 0 0 2px #68d391;
+  border-radius: 4px;
+}
+
+.tilePlayer {
+  background: #e0edff;
+}
+
+/* ── Player facing direction ── */
+.faceUp    { /* default */ }
+.faceDown  { /* default */ }
+.faceLeft  { transform: scaleX(-1); }
+.faceRight { /* default */ }
+
+/* ── Solved animation ── */
+@keyframes solvedPulse {
+  0%   { transform: scale(1); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2); }
+  50%  { transform: scale(1.03); box-shadow: 0 8px 28px rgba(46, 204, 113, 0.35); }
+  100% { transform: scale(1); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2); }
+}
+.boardSolved {
+  animation: solvedPulse 0.6s ease;
+  border-color: #27ae60;
+}
+
+/* ── D-pad ── */
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-top: var(--space-2);
+}
+
+.dpadRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.dpadCenter {
+  width: 48px;
+  height: 48px;
+}
+
+.dpadBtn {
+  width: 56px;
+  height: 56px;
+  border: 2px solid #a0aec0;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, #edf2f7 0%, #cbd5e0 100%);
+  color: #2d3748;
+  font-size: 1.4rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 80ms ease, background 0.15s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  -webkit-tap-highlight-color: transparent;
+}
+.dpadBtn:hover {
+  background: linear-gradient(180deg, #fff 0%, #e2e8f0 100%);
+  transform: scale(1.08);
+}
+.dpadBtn:active {
+  transform: scale(0.95);
+  background: #cbd5e0;
+}
+
+/* ── Action buttons ── */
+.actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.actionBtn {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: #2d3748;
+  background: var(--color-surface);
+  border: 2px solid #a0aec0;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), transform 80ms ease;
+}
+.actionBtn:hover:not(:disabled) {
+  background: #edf2f7;
+  transform: scale(1.04);
+}
+.actionBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

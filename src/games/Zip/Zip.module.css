@@ -1,0 +1,195 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-4) var(--space-8);
+  min-height: 0;
+}
+
+/* ── Top bar ── */
+.topBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  max-width: 480px;
+}
+
+.levelLabel {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-muted, #666);
+  min-width: 64px;
+}
+
+.progress {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+}
+
+.progressDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-neutral, #efefef);
+  border: 2px solid #ccc;
+  transition: background 300ms, border-color 300ms;
+}
+
+.progressDotDone {
+  background: var(--color-success, #1e7e34);
+  border-color: var(--color-success, #1e7e34);
+}
+
+.ctrlBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-neutral, #efefef);
+  background: #fff;
+  color: var(--color-primary, #1155cc);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.ctrlBtn:hover:not(:disabled) {
+  background: var(--color-secondary, #cfe2f3);
+  border-color: var(--color-primary, #1155cc);
+}
+
+.ctrlBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Won banner ── */
+.wonBanner {
+  font-size: var(--text-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-success, #1e7e34);
+  animation: popIn 350ms ease-out;
+  text-align: center;
+}
+
+@keyframes popIn {
+  0%   { transform: scale(0.6); opacity: 0; }
+  80%  { transform: scale(1.1); }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+/* ── Board ── */
+.board {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--size), 1fr);
+  grid-template-rows: repeat(var(--size), 1fr);
+  width: min(92vw, 420px);
+  height: min(92vw, 420px);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: #f0f0f0;
+  gap: 3px;
+  padding: 3px;
+  box-shadow: var(--shadow-md);
+  touch-action: none;
+  user-select: none;
+}
+
+/* Shake animation on invalid release */
+.shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15%       { transform: translateX(-6px); }
+  35%       { transform: translateX(6px); }
+  55%       { transform: translateX(-4px); }
+  75%       { transform: translateX(4px); }
+}
+
+/* ── SVG overlay ── */
+.svgOverlay {
+  position: absolute;
+  inset: 3px;
+  width: calc(100% - 6px);
+  height: calc(100% - 6px);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Cells ── */
+.cell {
+  position: relative;
+  background: #fff;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  z-index: 2;
+}
+
+.cellInPath {
+  background: color-mix(in srgb, var(--path-color, #1155cc) 18%, #fff);
+}
+
+.cellHead {
+  background: color-mix(in srgb, var(--path-color, #1155cc) 30%, #fff);
+}
+
+.cellWaypoint {
+  background: #fff;
+  box-shadow: inset 0 0 0 2.5px var(--color-primary, #1155cc);
+}
+
+.cellInPath.cellWaypoint {
+  box-shadow: inset 0 0 0 2.5px var(--path-color, #1155cc);
+}
+
+/* ── Waypoint number ── */
+.waypointNum {
+  font-size: clamp(14px, 3.5vw, 22px);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary, #1155cc);
+  line-height: 1;
+  z-index: 3;
+  transition: color 250ms;
+}
+
+.waypointNumVisited {
+  color: var(--path-color, #1155cc);
+}
+
+/* ── Head dot (path tip indicator) ── */
+.headDot {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  opacity: 0.9;
+  box-shadow: 0 0 0 3px #fff;
+  z-index: 4;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1);    }
+  50%       { transform: scale(1.25); }
+}
+
+/* ── Hint text ── */
+.hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted, #888);
+  text-align: center;
+  margin: 0;
+}

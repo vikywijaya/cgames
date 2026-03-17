@@ -8,6 +8,7 @@ export const GAME_IDS = {
   BLOCK_PUZZLE: 'block-puzzle',
   RING_SORT: 'ring-sort',
   MATH_CROSS: 'math-cross',
+  ZIP: 'zip',
 };
 
 export const GAME_TITLES = {
