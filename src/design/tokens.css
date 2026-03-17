@@ -1,7 +1,6 @@
 :root {
   /* ── Typography ─────────────────────────────────────────────────
-     Font: Atkinson Hyperlegible — purpose-built for senior / low-vision
-     readability. Clear, open letterforms with strong b/d/p/q distinction.
+     Font: Lexend — designed to reduce visual stress and improve reading fluency.
      Base: 18px root (html). All rem values below are relative to that.
      H1 Headline:  Bold 2.75rem → 49.5px
      Section Head: Bold 1.875rem → 33.75px
@@ -9,8 +8,8 @@
      Body Text:    Regular 1.375rem → 24.75px   (minimum ~18pt)
      Small label:  Regular 1.125rem → 20.25px   (no text smaller than ~15pt)
   ──────────────────────────────────────────────────────────────── */
-  --font-base:    'Atkinson Hyperlegible', system-ui, Arial, sans-serif;
-  --font-heading: 'Atkinson Hyperlegible', system-ui, Arial, sans-serif;
+  --font-base:    'Lexend', system-ui, Arial, sans-serif;
+  --font-heading: 'Lexend', system-ui, Arial, sans-serif;
 
   --text-xs:      1.125rem;   /* 20.25px — Small label  (no text below ~15pt) */
   --text-sm:      1.25rem;    /* 22.5px  — Secondary body */
@@ -24,7 +23,7 @@
   --font-weight-bold:    700;
 
   /* ── Brand Color Palette ────────────────────────────────────────
-     #1155cc  Primary Blue
+     #3A73D7  Primary Blue
      #cfe2f3  Secondary Light Blue
      #efefef  Secondary Light Gray
      #000000  Text Black
@@ -34,12 +33,12 @@
   --color-surface:      #ffffff;          /* Card background */
   --color-surface-2:    #efefef;          /* Secondary Light Gray — section bg */
   --color-border:       #e0e0e0;          /* Subtle border on white bg */
-  --color-border-hover: #1155cc;          /* Primary Blue on hover */
-  --color-primary:      #1155cc;          /* Primary Blue */
-  --color-primary-dk:   #0d44a8;          /* Darker Blue — pressed state */
-  --color-primary-light:#cfe2f3;          /* Secondary Light Blue — hover bg */
+  --color-border-hover: #3A73D7;          /* Primary Blue on hover */
+  --color-primary:      #3A73D7;          /* Primary Blue */
+  --color-primary-dk:   #2a5db0;          /* Darker Blue — pressed state */
+  --color-primary-light:#dbeafe;          /* Secondary Light Blue — hover bg */
 
-  --color-accent:       #1155cc;          /* Use Primary Blue per brand */
+  --color-accent:       #3A73D7;          /* Use Primary Blue per brand */
   --color-success:      #1e7e34;
   --color-success-bg:   rgba(30, 126, 52, 0.08);
   --color-error:        #c0392b;
@@ -48,17 +47,17 @@
 
   --color-text:         #000000;          /* Text Black */
   --color-text-muted:   #555555;          /* Softer black for secondary text */
-  --color-focus:        #1155cc;          /* Primary Blue for focus rings */
+  --color-focus:        #3A73D7;          /* Primary Blue for focus rings */
   --color-card-back:    #efefef;
   --color-card-front:   #ffffff;
 
   /* ── Pad colors for Pattern Sequence (keep vivid for gameplay) ── */
   --color-pad-red:        #ef4444;
-  --color-pad-blue:       #1155cc;
+  --color-pad-blue:       #3A73D7;
   --color-pad-yellow:     #eab308;
   --color-pad-green:      #22c55e;
   --color-pad-red-lit:    #fca5a5;
-  --color-pad-blue-lit:   #cfe2f3;
+  --color-pad-blue-lit:   #dbeafe;
   --color-pad-yellow-lit: #fde047;
   --color-pad-green-lit:  #86efac;
 

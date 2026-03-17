@@ -24,13 +24,7 @@ export function TopBar({ title, onBack, memberId, noBleed = false, home = false 
         <span className={styles.topBarTitle}>{title}</span>
       </div>
 
-      <div className={styles.topBarRight}>
-        <div className={styles.topBarProfile} aria-label={`Profile: ${memberId}`}>
-          <div className={styles.topBarAvatar} aria-hidden="true">
-            {getInitials(memberId)}
-          </div>
-        </div>
-      </div>
+      <div className={styles.topBarRight} />
     </header>
   );
 }
