@@ -10,7 +10,9 @@
       "WebSearch",
       "Bash(npm run:*)",
       "Bash(git pull:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "WebFetch(domain:cgames-nine.vercel.app)",
+      "Bash(curl -s \"https://cgames-nine.vercel.app/test-embed.html\")"
     ]
   }
 }
