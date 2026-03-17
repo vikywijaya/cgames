@@ -8,7 +8,9 @@
       "Bash(npx vite build --logLevel error)",
       "Bash(curl -s http://localhost:5173)",
       "WebSearch",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)"
     ]
   }
 }
