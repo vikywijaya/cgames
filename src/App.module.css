@@ -394,6 +394,7 @@
   flex-direction: column;
   min-height: 100dvh;
   background-color: #efefef;
+  padding-top: 60px; /* clear the fixed back button */
 }
 
 .dailyProgress {
@@ -459,7 +460,7 @@
 .interResult {
   max-width: 520px;
   margin: 0 auto;
-  padding: var(--space-8) var(--space-6) 0;
+  padding: var(--space-4) var(--space-6) 0;
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
@@ -533,7 +534,7 @@
 .dailyResult {
   max-width: 520px;
   margin: 0 auto;
-  padding: var(--space-8) var(--space-6) var(--space-16);
+  padding: var(--space-4) var(--space-6) var(--space-16);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -611,10 +612,19 @@
 .scoresView {
   max-width: 900px;
   margin: 0 auto;
-  padding: var(--space-8) var(--space-6) var(--space-16);
+  padding: var(--space-4) var(--space-6) var(--space-16);
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .scoresView {
+    padding: var(--space-8) var(--space-4) var(--space-12);
+    gap: var(--space-6);
+  }
 }
 
 .scoresHeader {
@@ -649,6 +659,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-4);
+  flex-wrap: wrap;
 }
 
 .achievementIcon {
@@ -674,7 +685,7 @@
 }
 
 .achievementDesc {
-  font-size: var(--text-xs);
+  font-size: 17px;
   color: rgba(255,255,255,0.7);
   font-weight: var(--font-weight-regular);
   line-height: 1.4;
@@ -704,7 +715,7 @@
 }
 
 .achievementScoreLabel {
-  font-size: 0.6rem;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.1em;
   color: rgba(255,255,255,0.6);
@@ -736,7 +747,7 @@
 }
 
 .achievementStatLabel {
-  font-size: 0.58rem;
+  font-size: 12px;
   font-weight: 600;
   color: rgba(255,255,255,0.6);
   text-transform: uppercase;
@@ -761,7 +772,7 @@
 }
 
 .achievementNextLabel {
-  font-size: 0.65rem;
+  font-size: 12px;
   color: rgba(255,255,255,0.65);
   text-align: center;
   margin: 0;
@@ -795,17 +806,37 @@
 
 .scoreRow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-3);
   background: #ffffff;
   border-radius: var(--radius-xl);
   padding: var(--space-3) var(--space-4);
   border: 1px solid var(--color-border);
   transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+  min-width: 0;
 }
 .scoreRow:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); border-color: var(--color-primary); }
 
-.scoreRowIcon { display: none; }
+
+.scoreRowIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  font-size: 2.5rem;
+  background: #f5f5f5;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.scoreRowIconImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
 
 .scoreRowInfo {
   flex: 1;
@@ -819,9 +850,16 @@
   font-size: var(--text-xs);
   font-weight: var(--font-weight-bold);
   color: var(--color-text);
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .scoreRowName {
+    white-space: normal;
+    word-break: break-word;
+  }
 }
 
 .scoreRowDomain {
@@ -834,47 +872,40 @@
 
 .scoreRowActions {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-3);
   flex-shrink: 0;
+  margin-left: auto;
 }
+
 
 .scoreRowStats {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
   gap: 4px;
-  min-width: 90px;
+  margin-top: 6px;
 }
 
 .scoreBest {
-  font-size: var(--text-xs);
+  font-size: 17px;
   font-weight: var(--font-weight-bold);
-  padding: 2px 8px;
-  border-radius: 99px;
-  background: rgba(0,0,0,0.05);
-}
-
-.scoreLast {
-  font-size: 0.65rem;
-  color: var(--color-text-muted);
-}
-
-.scorePlays {
-  font-size: 0.6rem;
-  color: var(--color-text-muted);
 }
 
 .scoreTime {
-  font-size: 0.6rem;
+  font-size: 17px;
+  color: var(--color-text-muted);
+}
+
+.scoreDifficulty {
+  font-size: 17px;
   color: var(--color-text-muted);
 }
 
 .scoreUnplayed {
-  font-size: 0.65rem;
+  font-size: 17px;
   color: var(--color-text-muted);
   font-style: italic;
-  text-align: right;
+  margin-top: 6px;
 }
 
 /* Small play button in scores view */
@@ -882,8 +913,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   background: none;
   border: none;
@@ -891,7 +922,7 @@
   flex-shrink: 0;
   transition: transform var(--transition-fast), opacity var(--transition-fast);
 }
-.playBtnSm svg { width: 52px; height: 52px; display: block; }
+.playBtnSm svg { width: 36px; height: 36px; display: block; }
 .playBtnSm:hover  { transform: scale(1.08); }
 .playBtnSm:active { transform: scale(0.95); }
 .playBtnSm:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; border-radius: 50%; }
@@ -902,11 +933,20 @@
 .lobby {
   max-width: 900px;
   margin: 0 auto;
-  padding: var(--space-8) var(--space-6) var(--space-16);
+  padding: var(--space-4) var(--space-6) var(--space-16);
   display: flex;
   flex-direction: column;
   gap: var(--space-10);
   background-color: #efefef;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .lobby {
+    padding: var(--space-8) var(--space-4) var(--space-12);
+    gap: var(--space-6);
+  }
 }
 
 /* ── Hero Header ──────────────────────────────────── */
@@ -953,6 +993,18 @@
   gap: var(--space-2);
   justify-content: center;
   flex-wrap: wrap;
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .categoryRow {
+    gap: var(--space-1);
+    justify-content: center;
+  }
+  .categoryPill {
+    min-height: 38px;
+    padding: 0 var(--space-3);
+  }
 }
 
 .categoryPill {
@@ -1021,11 +1073,62 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
+/* ── Difficulty Selector ──────────────────────────── */
+.difficultyRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0ee;
+  border-radius: var(--radius-full);
+  padding: 4px;
+  gap: 2px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.difficultyBtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-base);
+  color: var(--color-text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.difficultyBtn input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.difficultyBtnActive {
+  background: #ffffff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
+}
+
+.difficultyBtn_easy.difficultyBtnActive   { color: #1a9e5c; }
+.difficultyBtn_medium.difficultyBtnActive { color: #b97b0a; }
+.difficultyBtn_hard.difficultyBtnActive   { color: #d03a2e; }
+
 /* ── Category Sections ────────────────────────────── */
 .gameSection {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  min-width: 0;
 }
 
 .sectionTitle {
@@ -1038,6 +1141,87 @@
   color: var(--color-text);
   padding-bottom: var(--space-3);
   border-bottom: 1.5px solid var(--color-border);
+}
+
+/* ── Daily Challenge Preview ─────────────────────── */
+.dailyPreview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-4) var(--space-4);
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.dailyPreviewTitle {
+  font-family: var(--font-heading);
+  font-size: var(--text-xl);
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+  text-align: center;
+}
+
+.dailyPreviewSub {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  margin: 0;
+  text-align: center;
+}
+
+.dailyPreviewGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-6);
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  /* Two icon tiles side by side, title below each */
+  .dailyPreviewGrid {
+    display: flex;
+    flex-direction: row;
+    gap: var(--space-4);
+  }
+
+  .dailyPreviewGrid .gameCard {
+    flex: 1;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
+
+  .dailyPreviewGrid .gameIconBox {
+    height: 100px;
+    font-size: 3rem;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .dailyPreviewGrid .gameMeta {
+    padding: var(--space-2) var(--space-3) var(--space-3);
+    gap: 0;
+  }
+
+  .dailyPreviewGrid .gameCardTitle {
+    font-size: var(--text-sm);
+    justify-content: center;
+    text-align: center;
+  }
+
+  .dailyPreviewGrid .gameCardDesc,
+  .dailyPreviewGrid .gameCardFooter {
+    display: none;
+  }
+}
+
+.dailyGameNum {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  background: rgba(58, 115, 215, 0.1);
+  border-radius: var(--radius-full);
+  padding: 2px 10px;
 }
 
 /* ── Game Cards ───────────────────────────────────── */
@@ -1119,6 +1303,14 @@
   color: var(--color-text);
   margin: 0;
   line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.playedCheck {
+  flex-shrink: 0;
+  display: block;
 }
 
 .gameCardDesc {

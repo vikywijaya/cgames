@@ -11,18 +11,21 @@ function memberFavKey(memberId) {
 /**
  * Save a game score (percentage 0-100) to localStorage, keyed by memberId.
  */
-export function saveScore(gameId, pct, durationSeconds = null, memberId = null) {
+export function saveScore(gameId, pct, durationSeconds = null, memberId = null, difficulty = null) {
   const key = memberScoresKey(memberId);
   let data;
   try { data = JSON.parse(localStorage.getItem(key) || '{}'); }
   catch { data = {}; }
   const prev = data[gameId];
+  const isNewBest = !prev || pct >= prev.best;
   data[gameId] = {
-    best:      prev ? Math.max(prev.best, pct) : pct,
-    last:      pct,
-    lastTime:  durationSeconds,
-    playCount: prev ? prev.playCount + 1 : 1,
-    ts:        Date.now(),
+    best:           prev ? Math.max(prev.best, pct) : pct,
+    last:           pct,
+    lastTime:       durationSeconds,
+    bestTime:       isNewBest ? durationSeconds : (prev?.bestTime ?? durationSeconds),
+    bestDifficulty: isNewBest ? difficulty : (prev?.bestDifficulty ?? difficulty),
+    playCount:      prev ? prev.playCount + 1 : 1,
+    ts:             Date.now(),
   };
   try { localStorage.setItem(key, JSON.stringify(data)); } catch {}
 }
