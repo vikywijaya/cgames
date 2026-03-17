@@ -101,7 +101,7 @@
 .homeScreen {
   max-width: 640px;
   margin: 0 auto;
-  padding: 0 var(--space-4) var(--space-10);
+  padding: var(--space-8) var(--space-4) var(--space-10);
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
@@ -459,7 +459,7 @@
 .interResult {
   max-width: 520px;
   margin: 0 auto;
-  padding: 0 var(--space-6);    /* side padding so TopBar negative-margins work */
+  padding: var(--space-8) var(--space-6) 0;
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
@@ -533,7 +533,7 @@
 .dailyResult {
   max-width: 520px;
   margin: 0 auto;
-  padding: 0 var(--space-6) var(--space-16);  /* top=0: TopBar anchors the top */
+  padding: var(--space-8) var(--space-6) var(--space-16);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -611,7 +611,7 @@
 .scoresView {
   max-width: 900px;
   margin: 0 auto;
-  padding: 0 var(--space-6) var(--space-16);  /* top=0: TopBar anchors the top */
+  padding: var(--space-8) var(--space-6) var(--space-16);
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
@@ -892,7 +892,7 @@
 .lobby {
   max-width: 900px;
   margin: 0 auto;
-  padding: 0 var(--space-6) var(--space-16);  /* top=0: TopBar anchors the top */
+  padding: var(--space-8) var(--space-6) var(--space-16);
   display: flex;
   flex-direction: column;
   gap: var(--space-10);
