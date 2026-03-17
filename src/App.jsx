@@ -196,8 +196,8 @@ async function sendCallback(gameId, result) {
     durationSeconds: result.durationSeconds ?? 0,
     timestamp:       new Date().toISOString(),
   };
-  const headers = { 'Content-Type': 'application/json' };
-  if (urlAccessToken) headers['Authorization'] = `Bearer ${urlAccessToken}`;
+  const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+  if (urlAccessToken) headers['Access-Token'] = urlAccessToken;
   try {
     await fetch(urlCallbackUrl, { method: 'POST', headers, body: JSON.stringify(payload) });
   } catch (e) {
