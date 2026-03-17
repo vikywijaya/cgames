@@ -37,7 +37,7 @@ import { FlappyNumbers }  from './games/FlappyNumbers/FlappyNumbers';
 import { DotEd }          from './games/DotEd/DotEd';
 import { Zip }            from './games/Zip/Zip';
 import { Sokoban }        from './games/Sokoban/Sokoban';
-import { saveScore, getAllScores, getFavorites, toggleFavorite } from './utils/scoreStore';
+import { saveScore, getAllScores, getFavorites, toggleFavorite, saveTotalScore, getTotalScore } from './utils/scoreStore';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import './design/globals.css';
 import styles from './App.module.css';
@@ -170,12 +170,44 @@ const GAME_GROUPS = [
 
 const ALL_GAMES = GAME_GROUPS.flatMap(g => g.games);
 
-// Read URL params for iframe / embedded mode
-const params        = new URLSearchParams(window.location.search);
-const urlGameId     = params.get('gameId');
-const urlMemberId   = params.get('memberId')    ?? 'Abdul Khadir';
-const urlDifficulty = params.get('difficulty')  ?? 'easy';
-const urlCallbackUrl= params.get('callbackUrl') ?? undefined;
+// Read URL params
+const params          = new URLSearchParams(window.location.search);
+const urlGameId       = params.get('gameId');
+const urlMemberId     = params.get('memberId')     ?? 'guest';
+const urlDifficulty   = params.get('difficulty')   ?? 'easy';
+const urlCallbackUrl  = params.get('callbackUrl')  ?? undefined;
+const urlAccessToken  = params.get('access_token') ?? undefined;
+const urlTotalScore   = params.get('total_score');
+
+// Persist total_score from URL into localStorage on every load (if provided)
+if (urlTotalScore !== null && !isNaN(Number(urlTotalScore))) {
+  saveTotalScore(urlMemberId, Number(urlTotalScore));
+}
+
+/** POST game result to callbackUrl with Authorization header */
+async function sendCallback(gameId, result) {
+  if (!urlCallbackUrl) return;
+  const payload = {
+    memberId:        urlMemberId,
+    gameId,
+    score:           result.score        ?? 0,
+    maxScore:        result.maxScore     ?? 0,
+    completed:       result.completed    ?? true,
+    durationSeconds: result.durationSeconds ?? 0,
+    timestamp:       new Date().toISOString(),
+  };
+  const headers = { 'Content-Type': 'application/json' };
+  if (urlAccessToken) headers['Authorization'] = `Bearer ${urlAccessToken}`;
+  try {
+    await fetch(urlCallbackUrl, { method: 'POST', headers, body: JSON.stringify(payload) });
+  } catch (e) {
+    console.warn('[CaritaHub] Callback failed:', e);
+  }
+  // Also fire postMessage for iframe hosts
+  try {
+    window.parent.postMessage({ type: 'GAME_COMPLETE', payload }, '*');
+  } catch {}
+}
 
 /* ──────────────────────────────────────────────────────────────
    Helpers
@@ -199,28 +231,30 @@ function timeAgo(ts) {
 
 const ACHIEVEMENT_LEVELS = [
   { min: 0,  icon: '🌱', name: 'Newcomer',     desc: 'Play your first game to get started!' },
-  { min: 1,  icon: '🔭', name: 'Explorer',     desc: 'Discovering new brain challenges.' },
-  { min: 21, icon: '⚡', name: 'Challenger',   desc: 'Building consistency and skill.' },
-  { min: 41, icon: '🎯', name: 'Achiever',     desc: 'Strong performance across many games.' },
-  { min: 61, icon: '🏆', name: 'Champion',     desc: 'Outstanding cognitive performance!' },
-  { min: 81, icon: '🧠', name: 'Brain Master', desc: 'Your mind is truly exceptional!' },
+  { min: 10, icon: '🔭', name: 'Explorer',     desc: 'Discovering new brain challenges.' },
+  { min: 30, icon: '⚡', name: 'Challenger',   desc: 'Building consistency and skill.' },
+  { min: 50, icon: '🎯', name: 'Achiever',     desc: 'Strong performance across many games.' },
+  { min: 70, icon: '🏆', name: 'Champion',     desc: 'Outstanding cognitive performance!' },
+  { min: 90, icon: '🧠', name: 'Brain Master', desc: 'Your mind is truly exceptional!' },
 ];
 
-function computeAchievement(allScores, totalGames) {
-  const played   = Object.keys(allScores).length;
-  const bests    = Object.values(allScores).map(s => s.best);
-  const avgBest  = bests.length > 0
+function computeAchievement(allScores, memberId) {
+  const played     = Object.keys(allScores).length;
+  const bests      = Object.values(allScores).map(s => s.best);
+  const totalPlays = Object.values(allScores).reduce((sum, s) => sum + s.playCount, 0);
+  // avgBest = average best % across all played games (drives level)
+  const avgBest = bests.length > 0
     ? Math.round(bests.reduce((a, b) => a + b, 0) / bests.length)
     : 0;
-  const totalPlays = Object.values(allScores).reduce((sum, s) => sum + s.playCount, 0);
-  // achievement score: 50% breadth, 50% performance
-  const score = Math.round((played / totalGames) * 50 + (avgBest / 100) * 50);
+  // displayScore = total_score from URL/localStorage if available, else avgBest
+  const storedTotal = getTotalScore(memberId);
+  const score = storedTotal !== null ? storedTotal : avgBest;
 
-  const levelIdx  = ACHIEVEMENT_LEVELS.reduce((best, l, i) => score >= l.min ? i : best, 0);
+  const levelIdx  = ACHIEVEMENT_LEVELS.reduce((best, l, i) => avgBest >= l.min ? i : best, 0);
   const level     = ACHIEVEMENT_LEVELS[levelIdx];
   const nextLevel = ACHIEVEMENT_LEVELS[levelIdx + 1] ?? null;
   const progressPct = nextLevel
-    ? Math.round(((score - level.min) / (nextLevel.min - level.min)) * 100)
+    ? Math.round(((avgBest - level.min) / (nextLevel.min - level.min)) * 100)
     : 100;
 
   return { score, level, nextLevel, progressPct, played, avgBest, totalPlays };
@@ -263,7 +297,7 @@ export function App() {
   // dailyChallenge: { games: Array, index: number, scores: { gameId: pct }, lastPct: number|null }
   const [dailyChallenge,     setDailyChallenge]     = useState(null);
 
-  const [favorites, setFavorites] = useState(() => getFavorites());
+  const [favorites, setFavorites] = useState(() => getFavorites(urlMemberId));
 
   // Preserve lobby scroll position when entering/returning from a game
   const lobbyScrollRef = useRef(0);
@@ -283,7 +317,8 @@ export function App() {
   function handleDailyComplete(result) {
     const game = dailyChallenge.games[dailyChallenge.index];
     const pct  = computePct(result);
-    saveScore(game.id, pct, result.durationSeconds ?? null);
+    saveScore(game.id, pct, result.durationSeconds ?? null, urlMemberId);
+    sendCallback(game.id, result);
     setDailyChallenge(prev => ({
       ...prev,
       scores: { ...prev.scores, [game.id]: pct },
@@ -315,7 +350,11 @@ export function App() {
         memberId={urlMemberId}
         difficulty={urlDifficulty}
         callbackUrl={urlCallbackUrl}
-        onComplete={(result) => console.log('[CaritaHub Game Result]', result)}
+        onComplete={(result) => {
+            const pct = computePct(result);
+            saveScore(urlGameId, pct, result.durationSeconds ?? null, urlMemberId);
+            sendCallback(urlGameId, result);
+          }}
       />
     );
   }
@@ -327,13 +366,12 @@ export function App() {
       <div className={styles.dailyWrapper}>
         <button className={styles.floatingBack} onClick={() => setSelectedGame(null)} aria-label="Back">‹ Back</button>
         <GameComponent
-          memberId="Abdul Khadir"
+          memberId={urlMemberId}
           difficulty={selectedDifficulty}
-          callbackUrl={undefined}
           onComplete={(result) => {
             const pct = computePct(result);
-            saveScore(selectedGame, pct, result.durationSeconds ?? null);
-            console.log('[CaritaHub Game Result]', result);
+            saveScore(selectedGame, pct, result.durationSeconds ?? null, urlMemberId);
+            sendCallback(selectedGame, result);
           }}
           onBack={() => setSelectedGame(null)}
         />
@@ -371,9 +409,8 @@ export function App() {
 
         <GameComponent
           key={`daily-${game.id}-${index}`}
-          memberId="Abdul Khadir"
+          memberId={urlMemberId}
           difficulty={selectedDifficulty}
-          callbackUrl={undefined}
           onComplete={handleDailyComplete}
           onBack={abortDailyChallenge}
         />
@@ -493,9 +530,9 @@ export function App() {
 
   /* ── Scores dashboard ── */
   if (view === 'scores') {
-    const allScores   = getAllScores();
+    const allScores   = getAllScores(urlMemberId);
     const totalPlayed = ALL_GAMES.filter(g => allScores[g.id]).length;
-    const achievement = computeAchievement(allScores, ALL_GAMES.length);
+    const achievement = computeAchievement(allScores, urlMemberId);
 
     return (
       <div className={styles.dailyWrapper}>
@@ -517,7 +554,10 @@ export function App() {
                 <span className={styles.achievementName}>{achievement.level.name}</span>
                 <span className={styles.achievementDesc}>{achievement.level.desc}</span>
               </div>
-              <span className={styles.achievementScore}>{achievement.score}<small>/100</small></span>
+              <div className={styles.achievementScore}>
+                <span className={styles.achievementScoreNum}>{achievement.score}</span>
+                <span className={styles.achievementScoreLabel}>Total Score</span>
+              </div>
             </div>
             <div className={styles.achievementStatsRow}>
               <div className={styles.achievementStat}>
@@ -557,7 +597,6 @@ export function App() {
                 const sc = allScores[game.id] || null;
                 return (
                   <div key={game.id} className={styles.scoreRow}>
-                    <span className={styles.scoreRowIcon} aria-hidden="true">{game.icon}</span>
                     <div className={styles.scoreRowInfo}>
                       <span className={styles.scoreRowName}>{game.title}</span>
                       <span className={styles.scoreRowDomain}>{game.domain}</span>
@@ -671,8 +710,8 @@ export function App() {
                     role="button"
                     tabIndex={0}
                     className={`${styles.favBtn} ${styles.favBtnActive}`}
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setFavorites(toggleFavorite(game.id)); }}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setFavorites(toggleFavorite(game.id)); } }}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setFavorites(toggleFavorite(game.id, urlMemberId)); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setFavorites(toggleFavorite(game.id, urlMemberId)); } }}
                     aria-label={`Remove ${game.title} from favorites`}
                   >
                     <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/></svg>
@@ -718,8 +757,8 @@ export function App() {
                     role="button"
                     tabIndex={0}
                     className={`${styles.favBtn} ${favorites.has(game.id) ? styles.favBtnActive : ''}`}
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setFavorites(toggleFavorite(game.id)); }}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setFavorites(toggleFavorite(game.id)); } }}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setFavorites(toggleFavorite(game.id, urlMemberId)); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setFavorites(toggleFavorite(game.id, urlMemberId)); } }}
                     aria-label={favorites.has(game.id) ? `Remove ${game.title} from favorites` : `Add ${game.title} to favorites`}
                   >
                     <svg viewBox="0 0 24 24" width="20" height="20">
@@ -755,7 +794,7 @@ export function App() {
   }
 
   /* ── Home screen (default) ── */
-  const achievement = computeAchievement(getAllScores(), ALL_GAMES.length);
+  const achievement = computeAchievement(getAllScores(urlMemberId), urlMemberId);
 
   const getDaytimeGreeting = () => {
     const hour = new Date().getHours();
