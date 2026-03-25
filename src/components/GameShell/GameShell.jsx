@@ -15,6 +15,7 @@ import styles from './GameShell.module.css';
  *   children({ onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail })
  *   - onComplete({ finalScore, maxScore, completed }) — triggers the end screen
  *   - reportScore(n) — push current score into the HUD live display
+ *   - reportRound(current, total) — update round counter in HUD
  *   - playClick()   — short UI tick (button / card tap)
  *   - playSuccess() — rising chime (correct answer / match)
  *   - playFail()    — descending buzz (wrong answer / miss)
@@ -38,6 +39,8 @@ export function GameShell({
   const [animating, setAnimating] = useState(false); // true while entry animations play
   const [result, setResult] = useState(null);
   const [liveScore, setLiveScore] = useState(0);
+  const [round, setRound] = useState({ current: 0, total: 0 });
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
   const startTimeRef = useRef(null);
   const animTimerRef = useRef(null);
   const { playClick, playSuccess, playFail, playComplete, playPop, playReveal, playBoing, playTick } = useSoundFx();
@@ -73,6 +76,7 @@ export function GameShell({
     startTimeRef.current = Date.now();
     setResult(null);
     setLiveScore(0);
+    setRound({ current: 0, total: 0 });
     setAnimating(true);
     setPhase('playing');
     animTimerRef.current = setTimeout(() => setAnimating(false), ANIM_LOCK_MS);
@@ -91,16 +95,16 @@ export function GameShell({
     setPhase('idle');
     setResult(null);
     setLiveScore(0);
+    setRound({ current: 0, total: 0 });
   }
 
-  const diffBadgeClass =
-    localDifficulty === 'hard'
-      ? styles.badgeHard
-      : localDifficulty === 'medium'
-      ? styles.badgeMedium
-      : styles.badgeEasy;
-
-  const diffLabel = localDifficulty.charAt(0).toUpperCase() + localDifficulty.slice(1);
+  // Format seconds as MM:SS
+  function formatTime(secs) {
+    if (secs === null) return null;
+    const m = Math.floor(secs / 60).toString().padStart(2, '0');
+    const s = (secs % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
 
   // Convert instruction strings to bullet list
   function renderInstructions(inst) {
@@ -128,9 +132,56 @@ export function GameShell({
 
   return (
     <div className={styles.shell}>
+
+      {/* ── How To Play overlay (shown during game via ? button) ── */}
+      {showHowToPlay && (
+        <div className={styles.howToPlayOverlay} role="dialog" aria-modal="true" aria-label="How to play">
+          <div className={styles.howToPlayOverlayCard}>
+            <div className={styles.howToPlayOverlayHeader}>
+              <h2 className={styles.howToPlayOverlayTitle}>How To Play</h2>
+              <button
+                className={styles.howToPlayCloseBtn}
+                onClick={() => setShowHowToPlay(false)}
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+            <div className={styles.howToPlayOverlayBody}>
+              {renderInstructions(instructions)}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TOP BAR (all phases) ── */}
+      <header className={styles.topBar}>
+        <div className={styles.topBarLeft}>
+          {onBack && (
+            <button className={styles.topBarBack} onClick={onBack} aria-label="Go back">
+              ‹ Back
+            </button>
+          )}
+        </div>
+        <div className={styles.topBarCenter}>
+          <span className={styles.topBarTitle}>{title}</span>
+        </div>
+        <div className={styles.topBarRight}>
+          {phase === 'playing' && (
+            <button
+              className={styles.helpBtn}
+              onClick={() => setShowHowToPlay(true)}
+              aria-label="How to play"
+            >
+              ?
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* ── HOW TO PLAY (idle) ── */}
       {phase === 'idle' && (
         <div className={styles.startScreen}>
-          <h1 className={styles.gameTitle}>{title}</h1>
           {!shouldHideDifficulty && (
             <div className={styles.difficultyPicker} role="radiogroup" aria-label="Select difficulty">
               {['easy', 'medium', 'hard'].map(level => (
@@ -146,25 +197,43 @@ export function GameShell({
               ))}
             </div>
           )}
-          {effectiveTimeLimit ? (
-            <p className={styles.timeLimitNote}>
-              Time limit: {effectiveTimeLimit}s
-            </p>
-          ) : (
-            <p className={styles.timeLimitNote}>Untimed</p>
-          )}
+
           <div className={styles.instructionsFrame} role="region" aria-label="Game instructions">
-            <h2 className={styles.instructionsTitle}>How to play</h2>
+            <h2 className={styles.instructionsTitle}>How To Play</h2>
             <div className={styles.instructions}>
               {renderInstructions(instructions)}
             </div>
+            <div className={styles.playBtnWrapper}>
+              <Button size="large" onClick={handleStart} autoFocus className={styles.playBtn}>
+                Play
+              </Button>
+            </div>
           </div>
-          <Button size="large" onClick={handleStart} autoFocus className={styles.playBtn}>
-            Play
-          </Button>
         </div>
       )}
 
+      {/* ── PLAYING ── */}
+      {phase === 'playing' && (
+        <>
+<div className={`${styles.gameBody} ${animating ? styles.gameBodyLocked : ''}`}>
+            {children({
+              difficulty: localDifficulty,
+              onComplete: handleComplete,
+              reportScore: setLiveScore,
+              reportRound: (current, total) => setRound({ current, total }),
+              secondsLeft,
+              playClick,
+              playSuccess,
+              playFail,
+              playPop,
+              playReveal,
+              playBoing,
+            })}
+          </div>
+        </>
+      )}
+
+      {/* ── END SCREEN ── */}
       {phase === 'finished' && (
         <div className={styles.endScreen}>
           <h1 className={styles.endHeadline}>{headline}</h1>
@@ -192,48 +261,6 @@ export function GameShell({
             </Button>
           </div>
         </div>
-      )}
-
-      {phase === 'playing' && (
-        <>
-          <div className={styles.hud} role="banner" aria-label="Game status">
-            <div className={styles.hudScore} aria-live="polite" aria-atomic="true">
-              <span className={styles.hudScoreLabel}>Score </span>
-              <span>{liveScore}</span>
-            </div>
-            <div className={styles.hudTimer}>
-              {secondsLeft !== null ? (
-                <>
-                  <span className={styles.hudTimerLabel}>Time</span>
-                  <span
-                    className={`${styles.hudTimerValue} ${isUrgent ? styles.hudTimerUrgent : styles.hudTimerNormal}`}
-                    role="timer"
-                    aria-live="off"
-                    aria-label={`${secondsLeft} seconds remaining`}
-                  >
-                    {secondsLeft}s
-                  </span>
-                </>
-              ) : (
-                <span className={styles.hudTimerLabel}>Untimed</span>
-              )}
-            </div>
-          </div>
-          <div className={`${styles.gameBody} ${animating ? styles.gameBodyLocked : ''}`}>
-            {children({
-              difficulty: localDifficulty,
-              onComplete: handleComplete,
-              reportScore: setLiveScore,
-              secondsLeft,
-              playClick,
-              playSuccess,
-              playFail,
-              playPop,
-              playReveal,
-              playBoing,
-            })}
-          </div>
-        </>
       )}
 
     </div>

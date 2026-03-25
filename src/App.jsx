@@ -362,8 +362,7 @@ export function App() {
   if (selectedGame) {
     const GameComponent = GAME_MAP[selectedGame];
     return (
-      <div className={styles.dailyWrapper}>
-        <button className={styles.floatingBack} onClick={() => setSelectedGame(null)} aria-label="Back">‹ Back</button>
+      <div className={styles.gameWrapper}>
         <GameComponent
           memberId={urlMemberId}
           difficulty={selectedDifficulty}
@@ -427,8 +426,7 @@ export function App() {
     const { games, index } = dailyChallenge;
 
     return (
-      <div className={styles.dailyWrapper}>
-        <button className={styles.floatingBack} onClick={abortDailyChallenge} aria-label="Back">‹ Back</button>
+      <div className={styles.gameWrapper}>
         {/* Progress strip */}
         <div className={styles.dailyProgress} role="progressbar"
           aria-label={`Game ${index + 1} of ${games.length}`}>

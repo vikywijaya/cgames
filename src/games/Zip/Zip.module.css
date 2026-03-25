@@ -53,7 +53,7 @@
   border-radius: var(--radius-sm);
   border: 2px solid var(--color-neutral, #efefef);
   background: #fff;
-  color: var(--color-primary, #1155cc);
+  color: var(--color-primary, #3A73D7);
   cursor: pointer;
   transition: background var(--transition-fast), border-color var(--transition-fast);
   flex-shrink: 0;
@@ -61,7 +61,7 @@
 
 .ctrlBtn:hover:not(:disabled) {
   background: var(--color-secondary, #cfe2f3);
-  border-color: var(--color-primary, #1155cc);
+  border-color: var(--color-primary, #3A73D7);
 }
 
 .ctrlBtn:disabled {
@@ -139,34 +139,34 @@
 }
 
 .cellInPath {
-  background: color-mix(in srgb, var(--path-color, #1155cc) 18%, #fff);
+  background: color-mix(in srgb, var(--path-color, #3A73D7) 18%, #fff);
 }
 
 .cellHead {
-  background: color-mix(in srgb, var(--path-color, #1155cc) 30%, #fff);
+  background: color-mix(in srgb, var(--path-color, #3A73D7) 30%, #fff);
 }
 
 .cellWaypoint {
   background: #fff;
-  box-shadow: inset 0 0 0 2.5px var(--color-primary, #1155cc);
+  box-shadow: inset 0 0 0 2.5px var(--color-primary, #3A73D7);
 }
 
 .cellInPath.cellWaypoint {
-  box-shadow: inset 0 0 0 2.5px var(--path-color, #1155cc);
+  box-shadow: inset 0 0 0 2.5px var(--path-color, #3A73D7);
 }
 
 /* ── Waypoint number ── */
 .waypointNum {
   font-size: clamp(14px, 3.5vw, 22px);
   font-weight: var(--font-weight-bold);
-  color: var(--color-primary, #1155cc);
+  color: var(--color-primary, #3A73D7);
   line-height: 1;
   z-index: 3;
   transition: color 250ms;
 }
 
 .waypointNumVisited {
-  color: var(--path-color, #1155cc);
+  color: var(--path-color, #3A73D7);
 }
 
 /* ── Head dot (path tip indicator) ── */
