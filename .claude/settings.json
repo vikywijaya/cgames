@@ -15,7 +15,10 @@
       "Bash(curl -s \"https://cgames-nine.vercel.app/test-embed.html\")",
       "mcp__plugin_figma_figma__generate_figma_design",
       "Bash(open \"http://localhost:5173/#figmacapture=b150b12d-2e33-4bfe-be9d-9049d531cd3d&figmaendpoint=https%3A%2F%2Fmcp.figma.com%2Fmcp%2Fcapture%2Fb150b12d-2e33-4bfe-be9d-9049d531cd3d%2Fsubmit&figmadelay=1000\")",
-      "Bash(open \"http://localhost:5177/#figmacapture=a12d6928-0c06-4ca1-84ab-33e0de4347ce&figmaendpoint=https%3A%2F%2Fmcp.figma.com%2Fmcp%2Fcapture%2Fa12d6928-0c06-4ca1-84ab-33e0de4347ce%2Fsubmit&figmadelay=1000\")"
+      "Bash(open \"http://localhost:5177/#figmacapture=a12d6928-0c06-4ca1-84ab-33e0de4347ce&figmaendpoint=https%3A%2F%2Fmcp.figma.com%2Fmcp%2Fcapture%2Fa12d6928-0c06-4ca1-84ab-33e0de4347ce%2Fsubmit&figmadelay=1000\")",
+      "mcp__plugin_figma_figma__get_design_context",
+      "mcp__plugin_figma_figma__get_screenshot",
+      "Bash(git checkout:*)"
     ]
   }
 }

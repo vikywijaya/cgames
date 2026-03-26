@@ -125,7 +125,7 @@ const GAME_GROUPS = [
       { id: 'quick-maths',      title: 'Quick Maths',      icon: '➕', domain: 'Mental Arithmetic',   description: 'Solve addition, subtraction and multiplication problems fast.' },
       { id: 'sumix',             title: 'Sumix',            icon: '🧮', domain: 'Numeric Logic',      description: 'Activate numbers so each row and column sums to its target.' },
       { id: 'math-cross',       title: 'Math Cross',      icon: '✖️', domain: 'Mental Arithmetic',  description: 'Place numbers into a crossword of equations to make them all correct.' },
-      { id: 'dot-ed',             title: 'Dot.ed',          icon: '🔴', domain: 'Logic Puzzles',      description: 'Connect red dots to blue targets — match every capacity and need.' },
+      { id: 'dot-ed',             title: 'Dot.ed',          icon: '🔴', domain: 'Logic Puzzles',      description: 'Connect red dots to blue targets — match every capacity and need.', comingSoon: true },
     ],
   },
   {
@@ -138,7 +138,7 @@ const GAME_GROUPS = [
       { id: 'odd-one-out',         title: 'Odd One Out',         icon: '🔎', domain: 'Visual Reasoning', description: 'Spot the one emoji that doesn\'t belong.' },
       { id: 'spot-difference',     title: 'Spot the Difference', icon: '🔍', domain: 'Visual Scanning',  description: 'Find the tiles that differ between two emoji grids.' },
       { id: 'letter-count',        title: 'Letter Count',        icon: '🔠', domain: 'Visual Attention', description: 'Count how many times a letter appears in a word.' },
-      { id: 'tangram',              title: 'Tangram',             icon: '🔺', domain: 'Spatial Reasoning', description: 'Drag seven geometric pieces to fill the silhouette.', beta: true },
+      { id: 'tangram',              title: 'Tangram',             icon: '🔺', domain: 'Spatial Reasoning', description: 'Drag seven geometric pieces to fill the silhouette.', comingSoon: true },
     ],
   },
   {
@@ -362,8 +362,7 @@ export function App() {
   if (selectedGame) {
     const GameComponent = GAME_MAP[selectedGame];
     return (
-      <div className={styles.dailyWrapper}>
-        <button className={styles.floatingBack} onClick={() => setSelectedGame(null)} aria-label="Back">‹ Back</button>
+      <div className={styles.gameWrapper}>
         <GameComponent
           memberId={urlMemberId}
           difficulty={selectedDifficulty}
@@ -427,27 +426,7 @@ export function App() {
     const { games, index } = dailyChallenge;
 
     return (
-      <div className={styles.dailyWrapper}>
-        <button className={styles.floatingBack} onClick={abortDailyChallenge} aria-label="Back">‹ Back</button>
-        {/* Progress strip */}
-        <div className={styles.dailyProgress} role="progressbar"
-          aria-label={`Game ${index + 1} of ${games.length}`}>
-          {games.map((g, i) => (
-            <div
-              key={`${g.id}-${i}`}
-              className={[
-                styles.dailyDot,
-                i < index  ? styles.dailyDotDone   : '',
-                i === index ? styles.dailyDotActive : '',
-              ].join(' ')}
-              aria-hidden="true"
-            >
-              <span className={styles.dailyDotMark}>{i < index ? '✓' : i + 1}</span>
-              <span className={styles.dailyDotLabel}>{g.title}</span>
-            </div>
-          ))}
-        </div>
-
+      <div className={styles.gameWrapper}>
         <GameContext.Provider value={{ hideDifficulty: true }}>
           <GameComponent
             key={`daily-${game.id}-${index}`}

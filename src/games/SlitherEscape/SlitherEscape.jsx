@@ -359,6 +359,9 @@ function SlitherEscapeGame({ difficulty, onComplete, reportScore, secondsLeft, p
   const dragRef = useRef(null); // { snakeIdx, startX, startY, moved }
   const doneRef = useRef(false);
   const pidRef = useRef(0);
+  const advanceTimerRef = useRef(null);
+  const stateRef = useRef({ score, round, rounds, onComplete, reportScore, playSuccess });
+  stateRef.current = { score, round, rounds, onComplete, reportScore, playSuccess };
 
   // Generate level for current round
   const genLevel = useCallback((roundNum) => {
@@ -382,24 +385,28 @@ function SlitherEscapeGame({ difficulty, onComplete, reportScore, secondsLeft, p
     }
   }, [secondsLeft, score, rounds, onComplete]);
 
+  useEffect(() => () => clearTimeout(advanceTimerRef.current), []);
+
   // Check win
   useEffect(() => {
     if (solved || !snakes.length || !level || transitioning) return;
     if (!snakes.every(s => snakeAtExit(s))) return;
 
     setSolved(true);
-    playSuccess();
     spawnParticlesAtExits();
 
-    const newScore = score + 1;
+    const { score: s, round: r, rounds: total, onComplete: oc, reportScore: rs, playSuccess: ps } = stateRef.current;
+    ps();
+    const newScore = s + 1;
     setScore(newScore);
-    reportScore(newScore);
+    rs(newScore);
 
-    const timer = setTimeout(() => {
-      const next = round + 1;
-      if (next >= rounds) {
+    clearTimeout(advanceTimerRef.current);
+    advanceTimerRef.current = setTimeout(() => {
+      const next = r + 1;
+      if (next >= total) {
         doneRef.current = true;
-        onComplete({ finalScore: newScore, maxScore: rounds, completed: true });
+        oc({ finalScore: newScore, maxScore: total, completed: true });
         return;
       }
       setTransitioning(true);
@@ -414,7 +421,6 @@ function SlitherEscapeGame({ difficulty, onComplete, reportScore, secondsLeft, p
         setTransitioning(false);
       }, 350);
     }, 1000);
-    return () => clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [snakes, solved, transitioning]);
 

@@ -6,10 +6,11 @@ import { useState, useEffect, useRef } from 'react';
  * @param {object} options
  * @param {number|null} options.seconds - Total seconds to count down. null = no timer.
  * @param {boolean} options.active - Only counts when true.
+ * @param {number} options.resetKey - Increment to reset the timer immediately (e.g. on Play Again).
  * @param {function} options.onExpire - Called exactly once when countdown reaches 0.
  * @returns {{ secondsLeft: number|null }}
  */
-export function useCountdown({ seconds, active, onExpire }) {
+export function useCountdown({ seconds, active, resetKey = 0, onExpire }) {
   const [secondsLeft, setSecondsLeft] = useState(seconds ?? null);
   const expiredRef = useRef(false);
   const onExpireRef = useRef(onExpire);
@@ -19,16 +20,25 @@ export function useCountdown({ seconds, active, onExpire }) {
     onExpireRef.current = onExpire;
   });
 
-  // Reset when seconds/active changes
+  // Reset immediately whenever resetKey changes (Play Again) or seconds changes
   useEffect(() => {
-    if (!active || seconds == null) return;
+    if (seconds == null) return;
     expiredRef.current = false;
     setSecondsLeft(seconds);
+  }, [resetKey, seconds]);
+
+  // Start/stop the interval based on active
+  useEffect(() => {
+    if (!active || seconds == null) return;
 
     const interval = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
+          if (!expiredRef.current) {
+            expiredRef.current = true;
+            onExpireRef.current?.();
+          }
           return 0;
         }
         return prev - 1;
@@ -37,14 +47,6 @@ export function useCountdown({ seconds, active, onExpire }) {
 
     return () => clearInterval(interval);
   }, [active, seconds]);
-
-  // Fire onExpire in a separate effect that watches secondsLeft reaching 0
-  useEffect(() => {
-    if (secondsLeft === 0 && active && !expiredRef.current) {
-      expiredRef.current = true;
-      onExpireRef.current?.();
-    }
-  }, [secondsLeft, active]);
 
   return { secondsLeft };
 }

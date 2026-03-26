@@ -389,12 +389,20 @@
 /* ══════════════════════════════════════════════════════
    DAILY CHALLENGE — playing wrapper + progress strip
 ══════════════════════════════════════════════════════ */
+/* Game wrapper — full-height container for a single game (no padding, GameShell owns the top bar) */
+.gameWrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background-color: #ffffff;
+}
+
 .dailyWrapper {
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
   background-color: #efefef;
-  padding-top: 60px; /* clear the fixed back button */
+  padding-top: 60px; /* clear the fixed back button on daily preview */
 }
 
 .dailyProgress {
@@ -645,7 +653,7 @@
 /* ── Achievement Card ───────────────────────────────── */
 .achievementCard {
   width: 100%;
-  background: linear-gradient(135deg, #3A73D7 0%, #1a4fa8 100%);
+  background: linear-gradient(135deg, #3A73D7 0%, #2a5db0 100%);
   border-radius: 20px;
   padding: var(--space-5) var(--space-5) var(--space-4);
   display: flex;

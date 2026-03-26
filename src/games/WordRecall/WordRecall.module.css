@@ -1,140 +1,315 @@
-
 @keyframes popIn {
-  0%   { opacity: 0; transform: scale(0.5) translateY(12px); }
-  60%  { opacity: 1; transform: scale(1.08) translateY(-2px); }
-  80%  { transform: scale(0.96) translateY(1px); }
+  0%   { opacity: 0; transform: scale(0.7) translateY(10px); }
+  65%  { opacity: 1; transform: scale(1.06) translateY(-2px); }
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes chipIn {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── Shared container ───────────────────────────────── */
 .container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-6);
-  padding: var(--space-4) 0;
+  flex: 1;
+  padding: var(--space-5);
+  gap: var(--space-5);
+  box-sizing: border-box;
 }
 
-/* Study Phase */
+/* ═══════════════════════════════════════════════════
+   STUDY PHASE
+═══════════════════════════════════════════════════ */
 .studyPhase {
   display: flex;
   flex-direction: column;
+  gap: var(--space-5);
+  animation: slideUp 0.35s ease both;
+}
+
+/* Timer header card */
+.studyHeader {
+  background: var(--color-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
   align-items: center;
-  gap: var(--space-6);
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.studyHeaderText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.studyHeaderLabel {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  color: rgba(255,255,255,0.75);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.studyHeaderSub {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-regular);
+  color: rgba(255,255,255,0.9);
+}
+
+.studyTimerBadge {
+  background: rgba(255,255,255,0.2);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2) var(--space-4);
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.studyTimerNum {
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-bold);
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.studyTimerUnit {
+  font-size: var(--text-xs);
+  color: rgba(255,255,255,0.75);
+}
+
+/* Timer progress bar */
+.timerBar {
   width: 100%;
 }
 
-.studyLabel {
-  font-size: var(--text-lg);
-  color: var(--color-text-muted);
-  font-weight: 600;
-}
-
-.wordList {
-  display: flex;
-  flex-wrap: wrap;
+/* Word grid */
+.wordGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
   gap: var(--space-3);
-  justify-content: center;
-  max-width: 540px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .wordChip {
-  background-color: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-3) var(--space-6);
-  font-size: var(--text-lg);
-  font-weight: 600;
+  background: #ffffff;
+  border: 2px solid var(--color-primary-light);
+  border-radius: var(--radius-xl);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-md);
+  font-weight: var(--font-weight-bold);
   color: var(--color-text);
-  letter-spacing: 0.03em;
-  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  animation-delay: min(calc(var(--idx, 0) * 0.07s), 0.5s);
+  text-align: center;
+  letter-spacing: 0.02em;
+  box-shadow: var(--shadow-sm);
+  animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: min(calc(var(--idx, 0) * 0.06s), 0.45s);
 }
 
-.timerBar {
+.readyBtn {
   width: 100%;
-  max-width: 420px;
+  margin-top: var(--space-2);
 }
 
-/* Recall Phase */
+/* ═══════════════════════════════════════════════════
+   RECALL PHASE
+═══════════════════════════════════════════════════ */
 .recallPhase {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-6);
-  width: 100%;
-}
-
-.recallLabel {
-  font-size: var(--text-lg);
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.recallInputRow {
-  display: flex;
   gap: var(--space-4);
-  flex-wrap: wrap;
-  justify-content: center;
+  animation: slideUp 0.35s ease both;
+}
+
+/* Score + timer header */
+.recallHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.recallScorePill {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  background: var(--color-primary-light);
+  border-radius: var(--radius-full);
+  padding: var(--space-2) var(--space-4);
+}
+
+.recallScoreNum {
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.recallScoreMax {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.recallTimerPill {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: #fff3cd;
+  border-radius: var(--radius-full);
+  padding: var(--space-2) var(--space-4);
+}
+
+.recallTimerPillUrgent {
+  background: #fce8e6;
+}
+
+.recallTimerNum {
+  font-size: var(--text-md);
+  font-weight: var(--font-weight-bold);
+  color: #856404;
+  font-variant-numeric: tabular-nums;
+}
+
+.recallTimerNumUrgent {
+  color: var(--color-error);
+}
+
+.recallTimerLabel {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* Input card */
+.inputCard {
+  background: #f8fafc;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: border-color var(--transition-fast);
+}
+
+.inputCard:focus-within {
+  border-color: var(--color-primary);
+}
+
+.inputCard:focus-within.inputCardFound {
+  border-color: var(--color-success);
+}
+
+.inputCard:focus-within.inputCardError {
+  border-color: var(--color-error);
+}
+
+.inputRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .recallInput {
+  width: 100%;
   height: var(--min-target);
-  width: 220px;
-  background-color: var(--color-surface-2);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-md);
+  background: #ffffff;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-lg);
   color: var(--color-text);
   font-size: var(--text-md);
   font-family: var(--font-base);
   padding: 0 var(--space-4);
   outline: none;
   transition: border-color var(--transition-fast);
+  box-sizing: border-box;
 }
 
 .recallInput:focus {
-  border-color: var(--color-focus);
+  border-color: var(--color-primary);
+}
+
+.submitBtn {
+  width: 100%;
+}
+
+/* Feedback row */
+.feedbackRow {
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-1);
+}
+
+.feedbackDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .feedbackMsg {
   font-size: var(--text-sm);
-  min-height: 1.5em;
-  font-weight: 600;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
 }
 
-.feedbackFound {
-  color: var(--color-success);
+.feedbackFound .feedbackDot   { background: var(--color-success); }
+.feedbackFound .feedbackMsg   { color: var(--color-success); }
+.feedbackAlready .feedbackDot { background: var(--color-warning); }
+.feedbackAlready .feedbackMsg { color: var(--color-warning); }
+.feedbackNotFound .feedbackDot { background: var(--color-error); }
+.feedbackNotFound .feedbackMsg { color: var(--color-error); }
+
+/* Recalled words section */
+.recalledSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
-.feedbackAlready {
-  color: var(--color-warning);
+.recalledHeader {
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
-.feedbackNotFound {
-  color: var(--color-error);
-}
-
-.recalledList {
+.recalledGrid {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  justify-content: center;
-  max-width: 540px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .recalledWord {
-  background-color: var(--color-success-bg);
-  border: 1px solid var(--color-success);
-  border-radius: var(--radius-md);
-  padding: var(--space-2) var(--space-4);
+  background: var(--color-success-bg);
+  border: 1.5px solid var(--color-success);
+  border-radius: var(--radius-full);
+  padding: var(--space-1) var(--space-4);
   font-size: var(--text-sm);
+  font-weight: var(--font-weight-bold);
   color: var(--color-success);
-  font-weight: 600;
+  animation: chipIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
-.scoreCount {
-  font-size: var(--text-md);
-  color: var(--color-text-muted);
-}
-
-.scoreCount strong {
-  color: var(--color-primary);
+/* Finish button */
+.finishBtn {
+  width: 100%;
+  margin-top: var(--space-2);
 }

@@ -101,12 +101,6 @@ function TileFlipGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
     <div className={styles.wrapper}>
       <div className={styles.meta}>
         <span className={styles.roundLabel}>Round <strong>{round + 1}</strong> / {config.rounds}</span>
-        <span className={styles.phaseLabel}>
-          {phase === 'showing'   ? '👁 Memorise…' : ''}
-          {phase === 'recalling' ? '👆 Tap the lit tiles' : ''}
-          {phase === 'feedback'  && tapped.size === lit.size ? '✓ Correct!' : ''}
-          {phase === 'feedback'  && tapped.size  <  lit.size ? '✗ Wrong tile' : ''}
-        </span>
         <span className={styles.scoreLabel}>Score: <strong>{score}</strong></span>
       </div>
 
@@ -134,6 +128,13 @@ function TileFlipGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
             />
           );
         })}
+      </div>
+
+      <div className={styles.phaseLabel} aria-live="polite">
+        {phase === 'showing'   ? '👁 Memorise…' : ''}
+        {phase === 'recalling' ? '👆 Tap the lit tiles' : ''}
+        {phase === 'feedback'  && tapped.size === lit.size ? '✓ Correct!' : ''}
+        {phase === 'feedback'  && tapped.size  <  lit.size ? '✗ Wrong tile' : ''}
       </div>
     </div>
   );

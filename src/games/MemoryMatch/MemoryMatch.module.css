@@ -4,13 +4,14 @@
   align-items: center;
   gap: var(--space-4);
   width: 100%;
+  padding: var(--space-5);
+  box-sizing: border-box;
 }
 
 .grid {
   display: grid;
   gap: var(--space-2);
   width: 100%;
-  /* Cards fill available width up to a max so they don't get too large */
   max-width: 480px;
   margin: 0 auto;
 }

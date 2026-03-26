@@ -1,7 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
-import { Button } from '../../components/Button/Button';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import { GAME_IDS } from '../../utils/gameIds';
 import { usePatternSequence } from './usePatternSequence';
@@ -19,11 +18,12 @@ const PADS = [
   { index: 3, label: 'Green diamond', colorClass: styles.padGreen,  shape: '◆' },
 ];
 
-function PadGrid({ highlightedPad, onPress, disabled }) {
+function PadGrid({ highlightedPad, pressedPad, onPress, disabled }) {
   return (
     <div className={styles.padGrid} role="group" aria-label="Pattern pads">
       {PADS.map((pad) => {
         const isLit = highlightedPad === pad.index;
+        const isPressed = pressedPad === pad.index;
         return (
           <button
             key={pad.index}
@@ -31,6 +31,7 @@ function PadGrid({ highlightedPad, onPress, disabled }) {
               styles.pad,
               pad.colorClass,
               isLit ? styles.padLit : '',
+              isPressed ? styles.padPressed : '',
             ]
               .filter(Boolean)
               .join(' ')}
@@ -50,11 +51,15 @@ function PadGrid({ highlightedPad, onPress, disabled }) {
 
 PadGrid.propTypes = {
   highlightedPad: PropTypes.number,
+  pressedPad: PropTypes.number,
   onPress: PropTypes.func.isRequired,
   disabled: PropTypes.bool,
 };
 
-function PatternSequenceGame({ difficulty, onComplete, reportScore, playClick, playSuccess, playFail }) {
+function PatternSequenceGame({ difficulty, onComplete, reportScore, playSuccess, playFail, playReveal, playBoing }) {
+  const [pressedPad, setPressedPad] = useState(null);
+  const pressTimerRef = useRef(null);
+
   const {
     phase,
     highlightedPad,
@@ -64,7 +69,7 @@ function PatternSequenceGame({ difficulty, onComplete, reportScore, playClick, p
     startGame,
     score,
     maxScore,
-  } = usePatternSequence(difficulty);
+  } = usePatternSequence(difficulty, { onHighlight: () => playReveal() });
 
   useEffect(() => { reportScore?.(score); }, [score, reportScore]);
 
@@ -72,6 +77,17 @@ function PatternSequenceGame({ difficulty, onComplete, reportScore, playClick, p
     if (phase === 'correct') { playSuccess(); }
     if (phase === 'failed')  { playFail(); }
   }, [phase, playSuccess, playFail]);
+
+  // Clear pressed animation timer on unmount
+  useEffect(() => () => clearTimeout(pressTimerRef.current), []);
+
+  function handlePress(idx) {
+    playBoing();
+    setPressedPad(idx);
+    clearTimeout(pressTimerRef.current);
+    pressTimerRef.current = setTimeout(() => setPressedPad(null), 300);
+    presspad(idx);
+  }
 
   useEffect(() => {
     if (phase === 'failed') {
@@ -102,24 +118,36 @@ function PatternSequenceGame({ difficulty, onComplete, reportScore, playClick, p
       ? '🎉 You completed all rounds!'
       : '';
 
+  const statusClass = [
+    styles.statusText,
+    phase === 'showing' ? styles.showing : '',
+    phase === 'input' ? styles.input : '',
+    phase === 'correct' ? styles.correct : '',
+    phase === 'failed' ? styles.failed : '',
+  ].filter(Boolean).join(' ');
+
   return (
     <div className={styles.container}>
-      <p className={styles.roundInfo}>
+      <div className={styles.roundInfo}>
         Round <strong>{currentRound}</strong> of {maxRound}
-      </p>
+      </div>
 
-      <p className={styles.statusText} aria-live="polite" aria-atomic="true">
-        {statusText}
-      </p>
+      <div className={styles.statusCard}>
+        <p className={statusClass} aria-live="polite" aria-atomic="true">
+          {statusText}
+        </p>
+      </div>
 
       <PadGrid
         highlightedPad={highlightedPad}
-        onPress={(idx) => { playClick(); presspad(idx); }}
+        pressedPad={pressedPad}
+        onPress={handlePress}
         disabled={phase !== 'input'}
       />
 
       {phase === 'failed' && (
         <div className={styles.failedOverlay} role="alert">
+          <strong>Not quite!</strong>
           You reached round {currentRound} — well done for trying!
         </div>
       )}
@@ -131,9 +159,10 @@ PatternSequenceGame.propTypes = {
   difficulty:  PropTypes.string.isRequired,
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func,
-  playClick:   PropTypes.func.isRequired,
   playSuccess: PropTypes.func.isRequired,
   playFail:    PropTypes.func.isRequired,
+  playReveal:  PropTypes.func.isRequired,
+  playBoing:   PropTypes.func.isRequired,
 };
 
 export function PatternSequence({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
@@ -156,8 +185,8 @@ export function PatternSequence({ memberId, difficulty = 'easy', onComplete, cal
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: shellComplete, reportScore, difficulty: diff, playClick, playSuccess, playFail }) => (
-        <PatternSequenceGame difficulty={diff} onComplete={shellComplete} reportScore={reportScore} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
+      {({ onComplete: shellComplete, reportScore, difficulty: diff, playSuccess, playFail, playReveal, playBoing }) => (
+        <PatternSequenceGame difficulty={diff} onComplete={shellComplete} reportScore={reportScore} playSuccess={playSuccess} playFail={playFail} playReveal={playReveal} playBoing={playBoing} />
       )}
     </GameShell>
   );
