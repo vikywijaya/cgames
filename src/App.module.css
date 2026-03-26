@@ -21,7 +21,7 @@
   backdrop-filter: blur(8px);
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-xl);
-  font-size: var(--text-xs);
+  font-size: 16px;
   font-weight: var(--font-weight-bold);
   font-family: var(--font-base);
   color: var(--color-text-muted);
@@ -42,7 +42,7 @@
   background: transparent;
   border: 1.5px solid var(--color-border);
   border-radius: var(--radius-xl);
-  font-size: var(--text-xs);
+  font-size: 16px;
   font-weight: var(--font-weight-bold);
   font-family: var(--font-base);
   color: var(--color-text-muted);
@@ -996,89 +996,39 @@
 
 /* ── Category Filter ─────────────────────────────── */
 .categoryRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  justify-content: center;
-  flex-wrap: wrap;
   width: 100%;
 }
 
-@media (max-width: 480px) {
-  .categoryRow {
-    gap: var(--space-1);
-    justify-content: center;
-  }
-  .categoryPill {
-    min-height: 38px;
-    padding: 0 var(--space-3);
-  }
-}
-
-.categoryPill {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-1);
-  min-height: 44px;
+.categorySelect {
+  width: 100%;
+  height: 52px;
   padding: 0 var(--space-4);
-  border: none;
-  border-radius: var(--radius-full);
+  background-color: #ffffff;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
   font-size: var(--text-xs);
   font-weight: var(--font-weight-bold);
   font-family: var(--font-base);
-  color: var(--color-text-muted);
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  color: var(--color-text);
   cursor: pointer;
-  transition: box-shadow var(--transition-fast), background var(--transition-fast),
-    color var(--transition-fast), transform var(--transition-fast);
-  user-select: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath fill='%23555' d='M5 7l5 5 5-5H5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-4) center;
+  padding-right: var(--space-10);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-/* Hide the native radio input visually but keep it accessible */
-.categoryPill input[type="radio"] {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-  pointer-events: none;
+.categorySelect:hover {
+  border-color: var(--color-primary);
 }
 
-.categoryPill:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  color: var(--color-primary);
-  transform: translateY(-1px);
-}
-
-.categoryPillActive {
-  background: var(--color-primary);
-  color: #ffffff;
-  box-shadow: 0 4px 16px rgba(17, 85, 204, 0.3);
-}
-
-.categoryPillActive:hover {
-  background: var(--color-primary-dk);
-  color: #ffffff;
-}
-
-.categoryCount {
-  font-size: 0.65rem;
-  font-weight: 700;
-  background: rgba(0, 0, 0, 0.08);
-  color: inherit;
-  border-radius: var(--radius-full);
-  min-width: 20px;
-  height: 20px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 4px;
-}
-
-.categoryPillActive .categoryCount {
-  background: rgba(255, 255, 255, 0.2);
+.categorySelect:focus {
+  outline: none;
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px rgba(58, 115, 215, 0.15);
 }
 
 /* ── Difficulty Selector ──────────────────────────── */
@@ -1090,18 +1040,21 @@
   border-radius: var(--radius-full);
   padding: 4px;
   gap: 2px;
-  width: fit-content;
-  max-width: 100%;
+  width: 100%;
+  max-width: 360px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .difficultyBtn {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 5px;
+  flex: 1;
   min-height: 36px;
-  padding: 0 var(--space-5);
+  padding: 0 var(--space-3);
   border-radius: var(--radius-full);
   font-size: var(--text-xs);
   font-weight: var(--font-weight-bold);
@@ -1112,6 +1065,21 @@
   transition: background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
   user-select: none;
   white-space: nowrap;
+  overflow: hidden;
+}
+
+.difficultyDot {
+  font-size: 0.7em;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+@media (max-width: 360px) {
+  .difficultyBtn {
+    gap: 3px;
+    padding: 0 var(--space-2);
+    font-size: 1rem;
+  }
 }
 
 .difficultyBtn input[type="radio"] {

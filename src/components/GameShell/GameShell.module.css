@@ -21,12 +21,14 @@
   align-items: center;
   height: 60px;
   background-color: var(--color-primary);
-  padding: 0 var(--space-5);
+  padding: 0 var(--space-4);
   flex-shrink: 0;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .topBarLeft {
-  min-width: 80px;
+  min-width: 64px;
   display: flex;
   align-items: center;
 }
@@ -39,7 +41,7 @@
 }
 
 .topBarRight {
-  min-width: 80px;
+  min-width: 64px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -47,7 +49,7 @@
 
 .topBarTitle {
   font-family: var(--font-heading);
-  font-size: var(--text-md);
+  font-size: 16px;
   font-weight: var(--font-weight-bold);
   color: #ffffff;
   white-space: nowrap;
@@ -65,7 +67,7 @@
   background: transparent;
   border: none;
   font-family: var(--font-base);
-  font-size: var(--text-sm);
+  font-size: 16px;
   font-weight: var(--font-weight-bold);
   color: #ffffff;
   cursor: pointer;
@@ -104,6 +106,9 @@
   flex: 1;
   padding: var(--space-6) var(--space-5) var(--space-5);
   gap: var(--space-5);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
 }
 
 /* Difficulty picker — segmented toggle (matches game list style) */
@@ -114,17 +119,20 @@
   border-radius: var(--radius-full);
   padding: 4px;
   gap: 2px;
-  width: fit-content;
-  max-width: 100%;
+  width: 100%;
+  max-width: 360px;
+  box-sizing: border-box;
 }
 
 .difficultyOption {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 5px;
+  flex: 1;
   min-height: 36px;
-  padding: 0 var(--space-5);
+  padding: 0 var(--space-3);
   border: none;
   border-radius: var(--radius-full);
   background: transparent;
@@ -135,6 +143,21 @@
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
   white-space: nowrap;
+  overflow: hidden;
+}
+
+.difficultyDot {
+  font-size: 0.7em;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+@media (max-width: 360px) {
+  .difficultyOption {
+    gap: 3px;
+    padding: 0 var(--space-2);
+    font-size: 1rem;
+  }
 }
 
 .difficultyOptionActive {
@@ -163,7 +186,7 @@
   font-size: var(--text-md);
   font-weight: var(--font-weight-bold);
   color: var(--color-text);
-  padding: var(--space-5) var(--space-6);
+  padding: var(--space-5) var(--space-4);
   margin: 0;
   text-align: center;
 }
@@ -171,7 +194,7 @@
 .instructions {
   flex: 1;
   overflow-y: auto;
-  padding: 0 var(--space-6);
+  padding: 0 var(--space-4);
 }
 
 /* Bullet list */
@@ -218,7 +241,7 @@
 
 /* Play button inside the card */
 .playBtnWrapper {
-  padding: var(--space-6);
+  padding: var(--space-5) var(--space-4);
   display: flex;
   justify-content: center;
 }
@@ -302,7 +325,9 @@
   flex: 1;
   gap: var(--space-6);
   text-align: center;
-  padding: var(--space-6) var(--space-5);
+  padding: var(--space-6) var(--space-4);
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .endHeadline {
@@ -317,7 +342,7 @@
   border: none;
   border-radius: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  padding: var(--space-6) var(--space-8);
+  padding: var(--space-6) var(--space-5);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -393,7 +418,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-5) var(--space-6) var(--space-3);
+  padding: var(--space-5) var(--space-4) var(--space-3);
 }
 
 .howToPlayOverlayTitle {
@@ -422,5 +447,5 @@
 .howToPlayOverlayBody {
   flex: 1;
   overflow-y: auto;
-  padding: 0 var(--space-6) var(--space-6);
+  padding: 0 var(--space-4) var(--space-5);
 }

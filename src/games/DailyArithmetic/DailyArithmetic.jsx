@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
-import { Button } from '../../components/Button/Button';
 import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import { GAME_IDS } from '../../utils/gameIds';
@@ -9,24 +8,22 @@ import { useDailyArithmetic } from './useDailyArithmetic';
 import styles from './DailyArithmetic.module.css';
 
 const INSTRUCTIONS =
-  'Answer each arithmetic question by typing your answer and pressing Enter or clicking "Check". ' +
-  'Take your time — there is no time limit. A green tick means correct, a red cross means try the next one!';
+  'Answer each arithmetic question by choosing the correct answer. ' +
+  'Take your time — there is no time limit. A green highlight means correct, a red highlight means wrong!';
 
 function ArithmeticGame({ difficulty, onComplete, reportScore, playClick, playSuccess, playFail }) {
   const {
     question,
     currentIndex,
     totalQuestions,
-    inputValue,
-    setInputValue,
+    selectedChoice,
     feedback,
     score,
     maxScore,
     done,
-    submit,
+    selectChoice,
   } = useDailyArithmetic(difficulty);
 
-  const inputRef = useRef(null);
   const prevFeedbackRef = useRef(null);
 
   // Play sound when feedback changes
@@ -38,11 +35,6 @@ function ArithmeticGame({ difficulty, onComplete, reportScore, playClick, playSu
     prevFeedbackRef.current = feedback;
   }, [feedback, playSuccess, playFail]);
 
-  // Focus input when question changes
-  useEffect(() => {
-    if (!done) inputRef.current?.focus();
-  }, [currentIndex, done]);
-
   // Keep HUD score in sync
   useEffect(() => { reportScore?.(score); }, [score, reportScore]);
 
@@ -52,12 +44,6 @@ function ArithmeticGame({ difficulty, onComplete, reportScore, playClick, playSu
       onComplete({ finalScore: score, maxScore, completed: true });
     }
   }, [done, score, maxScore, onComplete]);
-
-  const inputClass = feedback === 'correct'
-    ? styles.correct
-    : feedback === 'wrong'
-    ? styles.wrong
-    : '';
 
   return (
     <div className={styles.container}>
@@ -81,28 +67,29 @@ function ArithmeticGame({ difficulty, onComplete, reportScore, playClick, playSu
         </p>
       </div>
 
-      <div className={styles.inputRow}>
-        <input
-          ref={inputRef}
-          type="number"
-          className={`${styles.numberInput} ${inputClass}`}
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') { playClick(); submit(); } }}
-          disabled={feedback !== null || done}
-          aria-label="Your answer"
-          inputMode="numeric"
-          autoComplete="off"
-        />
-        <span className={styles.feedbackIcon} aria-live="polite" aria-atomic="true">
-          {feedback === 'correct' ? '✅' : feedback === 'wrong' ? '❌' : null}
-        </span>
-        <Button
-          onClick={() => { playClick(); submit(); }}
-          disabled={feedback !== null || done || inputValue === ''}
-        >
-          Check
-        </Button>
+      <div className={styles.choicesGrid} role="group" aria-label="Answer choices">
+        {question.choices.map((choice) => {
+          const isSelected = selectedChoice === choice;
+          const choiceClass = isSelected
+            ? feedback === 'correct'
+              ? styles.choiceCorrect
+              : styles.choiceWrong
+            : feedback !== null && choice === question.answer
+            ? styles.choiceCorrect
+            : styles.choiceDefault;
+
+          return (
+            <button
+              key={choice}
+              className={`${styles.choiceBtn} ${choiceClass}`}
+              onClick={() => { playClick(); selectChoice(choice); }}
+              disabled={feedback !== null || done}
+              aria-pressed={isSelected}
+            >
+              {choice}
+            </button>
+          );
+        })}
       </div>
 
       <p className={styles.scoreDisplay}>
@@ -120,6 +107,7 @@ ArithmeticGame.propTypes = {
   playSuccess: PropTypes.func.isRequired,
   playFail:    PropTypes.func.isRequired,
 };
+
 
 export function DailyArithmetic({
   memberId,

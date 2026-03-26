@@ -3,8 +3,9 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-6);
-  padding: var(--space-4) 0;
+  padding: var(--space-4) var(--space-4);
   width: 100%;
+  box-sizing: border-box;
 }
 
 .progress {
@@ -30,41 +31,47 @@
   letter-spacing: 0.05em;
 }
 
-.inputRow {
-  display: flex;
+.choicesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: var(--space-3);
-  align-items: center;
   width: 100%;
   max-width: 420px;
 }
 
-.numberInput {
-  flex: 1;
-  min-width: 0;
-  height: 56px;
+.choiceBtn {
+  height: 64px;
   background-color: var(--color-surface-2);
   border: 2px solid var(--color-border);
   border-radius: var(--radius-md);
   color: var(--color-text);
-  font-size: var(--text-lg);
+  font-size: clamp(1.2rem, 5vw, var(--text-xl));
   font-family: var(--font-base);
-  padding: 0 var(--space-4);
-  text-align: center;
-  outline: none;
-  transition: border-color var(--transition-fast);
-  /* Remove browser spinner arrows */
-  -moz-appearance: textfield;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), transform 80ms ease;
 }
-.numberInput::-webkit-inner-spin-button,
-.numberInput::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-.numberInput:focus { border-color: var(--color-focus); }
-.numberInput.correct { border-color: var(--color-success); background-color: var(--color-success-bg); }
-.numberInput.wrong   { border-color: var(--color-error);   background-color: var(--color-error-bg); }
 
-.feedbackIcon {
-  font-size: var(--text-xl);
-  min-width: 32px;
-  text-align: center;
+.choiceBtn:hover:not(:disabled) {
+  border-color: var(--color-focus);
+  background-color: var(--color-surface);
+  transform: translateY(-2px);
+}
+
+.choiceBtn:disabled {
+  cursor: default;
+}
+
+.choiceDefault {}
+
+.choiceCorrect {
+  border-color: var(--color-success);
+  background-color: var(--color-success-bg);
+}
+
+.choiceWrong {
+  border-color: var(--color-error);
+  background-color: var(--color-error-bg);
 }
 
 .scoreDisplay { font-size: var(--text-md); color: var(--color-text-muted); }
