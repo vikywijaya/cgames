@@ -125,6 +125,11 @@
   transition: transform 100ms ease, border-color var(--transition-fast),
     box-shadow var(--transition-fast);
   background: var(--color-bg);
+  /* Reset button defaults that add vertical space */
+  line-height: 0;
+  font-size: 0;
+  vertical-align: top;
+  align-content: start;
 }
 .pieceCard:hover {
   transform: scale(1.08);
@@ -147,6 +152,8 @@
   width: 22px;
   height: 22px;
   border-radius: 4px;
+  display: block;
+  flex-shrink: 0;
 }
 .pieceCellFilled {
   border: 1px solid rgba(0, 0, 0, 0.1);
