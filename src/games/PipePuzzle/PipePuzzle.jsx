@@ -62,9 +62,9 @@ function colorOf(id) {
 
 // ── Difficulty ────────────────────────────────────────────────────
 const DIFFICULTY_CONFIG = {
-  easy:   { rows: 4, cols: 4, numColors: 2, timeLimitSeconds: null },
-  medium: { rows: 5, cols: 5, numColors: 3, timeLimitSeconds: 240 },
-  hard:   { rows: 6, cols: 6, numColors: 4, timeLimitSeconds: 150 },
+  easy:   { rows: 4, cols: 4, numColors: 2, rounds: 5, timeLimitSeconds: null },
+  medium: { rows: 5, cols: 5, numColors: 3, rounds: 6, timeLimitSeconds: 240 },
+  hard:   { rows: 6, cols: 6, numColors: 4, rounds: 8, timeLimitSeconds: 150 },
 };
 
 // ── Utility ───────────────────────────────────────────────────────
@@ -331,42 +331,47 @@ TileSVG.propTypes = {
   connectedColor: PropTypes.string,
 };
 
+function buildPuzzle(rows, cols, numColors) {
+  let result;
+  for (let i = 0; i < 15; i++) {
+    result = generatePuzzle(rows, cols, numColors);
+    if (result.colorPairs.length === numColors) break;
+  }
+  const scrambled = scramblePuzzle(result.grid);
+  return { grid: scrambled, colorPairs: result.colorPairs };
+}
+
 // ── Inner game ────────────────────────────────────────────────────
 function PipeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess }) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
+  const { rows, cols, numColors, rounds } = config;
 
-  const [puzzle,   setPuzzle]   = useState(null);  // { grid, colorPairs }
-  const [connected, setConnected] = useState(new Map());
-  const [won,      setWon]      = useState(false);
-  const [animKey,  setAnimKey]  = useState(null); // tracks which tile was just tapped
-  const doneRef = useRef(false);
+  const [round,     setRound]     = useState(0);
+  const [score,     setScore]     = useState(0);
+  const [[puzzle, connected], setPuzzleState] = useState(() => {
+    const p = buildPuzzle(rows, cols, numColors);
+    return [p, computeConnected(p.grid, rows, cols)];
+  });
+  const [won,       setWon]       = useState(false);
+  const [animKey,   setAnimKey]   = useState(null);
+  const doneRef        = useRef(false);
+  const advanceTimerRef = useRef(null);
+  const stateRef = useRef({ score, round, rounds, rows, cols, numColors, onComplete, reportScore, playSuccess });
+  stateRef.current = { score, round, rounds, rows, cols, numColors, onComplete, reportScore, playSuccess };
 
-  // ── Generate puzzle on mount ──────────────────────────────────
-  useEffect(() => {
-    let result;
-    // Retry until we get all requested colors placed
-    for (let i = 0; i < 15; i++) {
-      result = generatePuzzle(config.rows, config.cols, config.numColors);
-      if (result.colorPairs.length === config.numColors) break;
-    }
-    const scrambled = scramblePuzzle(result.grid);
-    const initialPuzzle = { grid: scrambled, colorPairs: result.colorPairs };
-    setPuzzle(initialPuzzle);
-    setConnected(computeConnected(scrambled, config.rows, config.cols));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useEffect(() => () => clearTimeout(advanceTimerRef.current), []);
 
   // ── Time up ───────────────────────────────────────────────────
   useEffect(() => {
     if (secondsLeft === 0 && !doneRef.current) {
       doneRef.current = true;
-      onComplete({ finalScore: 0, maxScore: 1, completed: false });
+      onComplete({ finalScore: score, maxScore: rounds, completed: false });
     }
-  }, [secondsLeft, onComplete]);
+  }, [secondsLeft, score, rounds, onComplete]);
 
   // ── Tap a tile to rotate it ───────────────────────────────────
   const rotateTile = useCallback((r, c) => {
-    if (doneRef.current || !puzzle) return;
+    if (doneRef.current || won || !puzzle) return;
     const cell = puzzle.grid[r][c];
     if (!cell || cell.isEndpoint) return;
 
@@ -374,28 +379,40 @@ function PipeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick,
     setAnimKey(`${r},${c}`);
     setTimeout(() => setAnimKey(null), 160);
 
-    setPuzzle(prev => {
-      const newGrid = prev.grid.map((row, ri) =>
-        row.map((cell, ci) => {
-          if (ri !== r || ci !== c) return cell;
-          return { ...cell, currentRotation: (cell.currentRotation + 1) % 4 };
-        })
-      );
-      const newConnected = computeConnected(newGrid, config.rows, config.cols);
-      setConnected(newConnected);
+    const newGrid = puzzle.grid.map((row, ri) =>
+      row.map((cl, ci) => {
+        if (ri !== r || ci !== c) return cl;
+        return { ...cl, currentRotation: (cl.currentRotation + 1) % 4 };
+      })
+    );
+    const newPuzzle = { ...puzzle, grid: newGrid };
+    const newConnected = computeConnected(newGrid, rows, cols);
+    setPuzzleState([newPuzzle, newConnected]);
 
-      if (!doneRef.current && checkWin(newGrid, prev.colorPairs, config.rows, config.cols)) {
-        doneRef.current = true;
-        setWon(true);
-        playSuccess();
-        reportScore(1);
-        // Delay slightly so the win flash is visible before shell takes over
-        setTimeout(() => onComplete({ finalScore: 1, maxScore: 1, completed: true }), 600);
-      }
+    if (!doneRef.current && checkWin(newGrid, puzzle.colorPairs, rows, cols)) {
+      const { score: s, round: rnd, rounds: total, rows: ro, cols: co, numColors: nc, onComplete: oc, reportScore: rs, playSuccess: ps } = stateRef.current;
+      ps();
+      const newScore = s + 1;
+      setScore(newScore);
+      rs(newScore);
+      setWon(true);
 
-      return { ...prev, grid: newGrid };
-    });
-  }, [puzzle, config.rows, config.cols, onComplete, reportScore, playClick, playSuccess]);
+      clearTimeout(advanceTimerRef.current);
+      advanceTimerRef.current = setTimeout(() => {
+        if (doneRef.current) return;
+        const nextRound = rnd + 1;
+        if (nextRound >= total) {
+          doneRef.current = true;
+          oc({ finalScore: newScore, maxScore: total, completed: true });
+          return;
+        }
+        setRound(nextRound);
+        const np = buildPuzzle(ro, co, nc);
+        setPuzzleState([np, computeConnected(np.grid, ro, co)]);
+        setWon(false);
+      }, 800);
+    }
+  }, [puzzle, rows, cols, won, playClick]);
 
   if (!puzzle) {
     return <div className={styles.loading}>Building puzzle…</div>;
@@ -405,32 +422,32 @@ function PipeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick,
 
   return (
     <div className={styles.wrapper}>
-      {/* Color legend */}
-      <div className={styles.legend}>
-        {colorPairs.map(({ colorId }) => {
-          const info = colorOf(colorId);
-          const done = (() => {
+      {/* Round counter + color legend */}
+      <div className={styles.meta}>
+        <span className={styles.roundLabel}>Puzzle <strong>{round + 1}</strong> / {rounds}</span>
+        <div className={styles.legend}>
+          {colorPairs.map(({ colorId }) => {
+            const info = colorOf(colorId);
             const [[r1,c1],[r2,c2]] = colorPairs.find(p => p.colorId === colorId).endpoints;
-            return isConnected(grid, r1, c1, r2, c2, config.rows, config.cols);
-          })();
-          return (
-            <span
-              key={colorId}
-              className={`${styles.legendDot} ${done ? styles.legendDone : ''}`}
-              style={{ background: info.pipe }}
-              aria-label={`${colorId} ${done ? 'connected' : 'not connected'}`}
-            />
-          );
-        })}
+            const done = isConnected(grid, r1, c1, r2, c2, rows, cols);
+            return (
+              <span
+                key={colorId}
+                className={`${styles.legendDot} ${done ? styles.legendDone : ''}`}
+                style={{ background: info.pipe }}
+                aria-label={`${colorId} ${done ? 'connected' : 'not connected'}`}
+              />
+            );
+          })}
+        </div>
       </div>
 
       {/* The grid */}
       <div
         className={`${styles.grid} ${won ? styles.gridWon : ''}`}
         style={{
-          gridTemplateColumns: `repeat(${config.cols}, 1fr)`,
-          gridTemplateRows:    `repeat(${config.rows}, 1fr)`,
-          // Explicit height so rows have a definite size for SVG height:100% to resolve
+          gridTemplateColumns: `repeat(${cols}, 1fr)`,
+          gridTemplateRows:    `repeat(${rows}, 1fr)`,
           height: `min(360px, calc(100vw - 40px))`,
         }}
         role="grid"

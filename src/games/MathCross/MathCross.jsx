@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
@@ -320,9 +320,18 @@ function MathCrossGame({ difficulty, onComplete, reportScore, secondsLeft, playC
   const [usedTray, setUsedTray] = useState(new Set());
   const [solved, setSolved] = useState(false);
   const [justPlacedKey, setJustPlacedKey] = useState(null);
+  const advanceTimerRef = useRef(null);
+  const doneRef = useRef(false);
+  const stateRef = useRef({ score, round, rounds, config, onComplete, reportScore, playSuccess });
+  stateRef.current = { score, round, rounds, config, onComplete, reportScore, playSuccess };
+
+  useEffect(() => () => clearTimeout(advanceTimerRef.current), []);
 
   useEffect(() => {
-    if (secondsLeft === 0) onComplete({ finalScore: score, maxScore: rounds, completed: false });
+    if (secondsLeft === 0 && !doneRef.current) {
+      doneRef.current = true;
+      onComplete({ finalScore: score, maxScore: rounds, completed: false });
+    }
   }, [secondsLeft, score, rounds, onComplete]);
 
   // Check if all slots are correctly filled
@@ -336,21 +345,26 @@ function MathCrossGame({ difficulty, onComplete, reportScore, secondsLeft, playC
   }, [placed, puzzle]);
 
   useEffect(() => {
-    if (!isSolved || solved) return;
+    if (!isSolved || solved || doneRef.current) return;
     setSolved(true);
-    playSuccess();
-    const newScore = score + 1;
-    setScore(newScore);
-    reportScore(newScore);
 
-    const timer = setTimeout(() => {
-      const nextRound = round + 1;
-      if (nextRound >= rounds) {
-        onComplete({ finalScore: newScore, maxScore: rounds, completed: true });
+    const { score: s, round: r, rounds: total, config: cfg, onComplete: oc, reportScore: rs, playSuccess: ps } = stateRef.current;
+    ps();
+    const newScore = s + 1;
+    setScore(newScore);
+    rs(newScore);
+
+    clearTimeout(advanceTimerRef.current);
+    advanceTimerRef.current = setTimeout(() => {
+      if (doneRef.current) return;
+      const nextRound = r + 1;
+      if (nextRound >= total) {
+        doneRef.current = true;
+        oc({ finalScore: newScore, maxScore: total, completed: true });
         return;
       }
       setRound(nextRound);
-      setPuzzle(generatePuzzle(config.hCount, config.vCount, config.maxNum));
+      setPuzzle(generatePuzzle(cfg.hCount, cfg.vCount, cfg.maxNum));
       setPlaced({});
       setSelectedSlot(null);
       setSelectedTray(null);
@@ -358,8 +372,7 @@ function MathCrossGame({ difficulty, onComplete, reportScore, secondsLeft, playC
       setSolved(false);
       setJustPlacedKey(null);
     }, 900);
-    return () => clearTimeout(timer);
-  }, [isSolved, solved, score, round, rounds, config, onComplete, reportScore, playSuccess]);
+  }, [isSolved, solved]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Place a number: either select tray then slot, or slot then tray
   const placeNumber = useCallback((slotKey, trayIdx) => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
@@ -106,6 +106,9 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
   const [hoverCell, setHoverCell] = useState(null);
   const [solved, setSolved] = useState(false);
   const [justPlaced, setJustPlaced] = useState(new Set());
+  const advanceTimerRef = useRef(null);
+  const stateRef = useRef({ score, round, rounds, gridSize, onComplete, reportScore, playSuccess });
+  stateRef.current = { score, round, rounds, gridSize, onComplete, reportScore, playSuccess };
 
   function initBoard(puz) {
     return Array.from({ length: puz.gridSize }, (_, r) =>
@@ -130,23 +133,28 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
     return count;
   }, [boardState, puzzle.gridSize]);
 
+  useEffect(() => () => clearTimeout(advanceTimerRef.current), []);
+
   // Check solved
   useEffect(() => {
     if (emptyCells !== 0 || solved) return;
     setSolved(true);
-    playSuccess();
-    const newScore = score + 1;
-    setScore(newScore);
-    reportScore(newScore);
 
-    const timer = setTimeout(() => {
-      const nextRound = round + 1;
-      if (nextRound >= rounds) {
-        onComplete({ finalScore: newScore, maxScore: rounds, completed: true });
+    const { score: s, round: r, rounds: total, gridSize: gs, onComplete: oc, reportScore: rs, playSuccess: ps } = stateRef.current;
+    ps();
+    const newScore = s + 1;
+    setScore(newScore);
+    rs(newScore);
+
+    clearTimeout(advanceTimerRef.current);
+    advanceTimerRef.current = setTimeout(() => {
+      const nextRound = r + 1;
+      if (nextRound >= total) {
+        oc({ finalScore: newScore, maxScore: total, completed: true });
         return;
       }
       setRound(nextRound);
-      const newPuzzle = generatePuzzle(gridSize);
+      const newPuzzle = generatePuzzle(gs);
       setPuzzle(newPuzzle);
       setBoardState(initBoard(newPuzzle));
       setPiecesUsed(new Set());
@@ -154,8 +162,7 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
       setSolved(false);
       setJustPlaced(new Set());
     }, 900);
-    return () => clearTimeout(timer);
-  }, [emptyCells, solved, score, round, rounds, gridSize, onComplete, reportScore, playSuccess]);
+  }, [emptyCells, solved]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Compute preview cells when hovering
   const preview = useMemo(() => {
@@ -354,7 +361,7 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
               key={idx}
               className={cardClass}
               onClick={() => handlePieceClick(idx)}
-              style={{ gridTemplateColumns: `repeat(${maxC}, 22px)` }}
+              style={{ gridTemplateColumns: `repeat(${maxC}, 22px)`, gridTemplateRows: `repeat(${maxR}, 22px)` }}
               disabled={used || solved}
               aria-label={`Piece ${idx + 1}${used ? ', placed' : selected ? ', selected' : ''}`}
               aria-pressed={selected}

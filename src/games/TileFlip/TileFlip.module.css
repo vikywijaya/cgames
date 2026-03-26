@@ -31,9 +31,16 @@
 }
 .roundLabel { color: var(--color-text-muted); }
 .roundLabel strong { color: var(--color-primary); }
-.phaseLabel { font-style: italic; color: var(--color-text-muted); flex: 1; text-align: center; }
 .scoreLabel { color: var(--color-text-muted); }
 .scoreLabel strong { color: var(--color-primary); }
+
+.phaseLabel {
+  font-size: var(--text-base);
+  font-style: italic;
+  color: var(--color-text-muted);
+  text-align: center;
+  min-height: 1.5em;
+}
 
 .grid {
   display: grid;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
@@ -86,6 +86,12 @@ function SumixGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
   const [puzzle, setPuzzle] = useState(() => generatePuzzle(rows, cols, config.maxVal));
   const [active, setActive] = useState(() => Array.from({ length: rows }, () => Array(cols).fill(false)));
   const [solved, setSolved] = useState(false);
+  const advanceTimerRef = useRef(null);
+  // Keep latest values accessible in the advance callback without re-scheduling
+  const stateRef = useRef({ score, round, rounds, rows, cols, maxVal: config.maxVal, onComplete, reportScore, playSuccess });
+  stateRef.current = { score, round, rounds, rows, cols, maxVal: config.maxVal, onComplete, reportScore, playSuccess };
+
+  useEffect(() => () => clearTimeout(advanceTimerRef.current), []);
 
   useEffect(() => {
     if (secondsLeft === 0) onComplete({ finalScore: score, maxScore: rounds, completed: false });
@@ -115,24 +121,26 @@ function SumixGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
   useEffect(() => {
     if (!isSolved || solved) return;
     setSolved(true);
-    playSuccess();
-    const newScore = score + 1;
-    setScore(newScore);
-    reportScore(newScore);
 
-    const timer = setTimeout(() => {
-      const nextRound = round + 1;
-      if (nextRound >= rounds) {
-        onComplete({ finalScore: newScore, maxScore: rounds, completed: true });
+    const { score: s, round: r, rounds: total, rows: ro, cols: co, maxVal, onComplete: oc, reportScore: rs, playSuccess: ps } = stateRef.current;
+    ps();
+    const newScore = s + 1;
+    setScore(newScore);
+    rs(newScore);
+
+    clearTimeout(advanceTimerRef.current);
+    advanceTimerRef.current = setTimeout(() => {
+      const nextRound = r + 1;
+      if (nextRound >= total) {
+        oc({ finalScore: newScore, maxScore: total, completed: true });
         return;
       }
       setRound(nextRound);
-      setPuzzle(generatePuzzle(rows, cols, config.maxVal));
-      setActive(Array.from({ length: rows }, () => Array(cols).fill(false)));
+      setPuzzle(generatePuzzle(ro, co, maxVal));
+      setActive(Array.from({ length: ro }, () => Array(co).fill(false)));
       setSolved(false);
     }, 800);
-    return () => clearTimeout(timer);
-  }, [isSolved, solved, score, round, rounds, rows, cols, config.maxVal, onComplete, reportScore, playSuccess]);
+  }, [isSolved, solved]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleCell = useCallback((r, c) => {
     if (solved) return;
