@@ -427,25 +427,6 @@ export function App() {
 
     return (
       <div className={styles.gameWrapper}>
-        {/* Progress strip */}
-        <div className={styles.dailyProgress} role="progressbar"
-          aria-label={`Game ${index + 1} of ${games.length}`}>
-          {games.map((g, i) => (
-            <div
-              key={`${g.id}-${i}`}
-              className={[
-                styles.dailyDot,
-                i < index  ? styles.dailyDotDone   : '',
-                i === index ? styles.dailyDotActive : '',
-              ].join(' ')}
-              aria-hidden="true"
-            >
-              <span className={styles.dailyDotMark}>{i < index ? '✓' : i + 1}</span>
-              <span className={styles.dailyDotLabel}>{g.title}</span>
-            </div>
-          ))}
-        </div>
-
         <GameContext.Provider value={{ hideDifficulty: true }}>
           <GameComponent
             key={`daily-${game.id}-${index}`}
