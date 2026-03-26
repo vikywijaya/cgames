@@ -91,11 +91,6 @@
   background: #e0edff;
 }
 
-/* ── Player facing direction ── */
-.faceUp    { /* default */ }
-.faceDown  { /* default */ }
-.faceLeft  { transform: scaleX(-1); }
-.faceRight { /* default */ }
 
 /* ── Solved animation ── */
 @keyframes solvedPulse {
