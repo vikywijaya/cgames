@@ -11,7 +11,8 @@
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  padding: var(--space-2) 0;
+  padding: var(--space-2) var(--space-4);
+  box-sizing: border-box;
   outline: none;
   -webkit-user-select: none;
   user-select: none;
@@ -23,17 +24,18 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
   width: 100%;
   max-width: 460px;
-  font-size: var(--text-sm);
+  font-size: 14px;
   background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
   border: 1.5px solid #e2e8f0;
   border-radius: var(--radius-xl);
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-3);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
 }
-.metaLabel { color: var(--color-text-muted); }
+.metaLabel { color: var(--color-text-muted); white-space: nowrap; }
 .metaLabel strong { color: var(--color-primary); }
 
 /* ── Board grid ── */
@@ -119,18 +121,18 @@
 }
 
 .dpadCenter {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
 }
 
 .dpadBtn {
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border: 2px solid #a0aec0;
   border-radius: var(--radius-lg);
   background: linear-gradient(180deg, #edf2f7 0%, #cbd5e0 100%);
   color: #2d3748;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-weight: 700;
   cursor: pointer;
   display: flex;
@@ -156,8 +158,8 @@
 }
 
 .actionBtn {
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-3);
+  font-size: 14px;
   font-weight: 600;
   color: #2d3748;
   background: var(--color-surface);
