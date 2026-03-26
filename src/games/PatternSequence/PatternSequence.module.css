@@ -1,33 +1,96 @@
 
+@keyframes padPressFlash {
+  0%   { filter: brightness(1.2); transform: scale(0.97); }
+  100% { filter: brightness(1);   transform: scale(1); }
+}
+
 @keyframes popIn {
   0%   { opacity: 0; transform: scale(0.5) translateY(12px); }
   60%  { opacity: 1; transform: scale(1.08) translateY(-2px); }
   80%  { transform: scale(0.96) translateY(1px); }
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
+
+@keyframes fadeSlideIn {
+  0%   { opacity: 0; transform: translateY(-8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGlow {
+  0%   { box-shadow: 0 0 0 0 rgba(58, 115, 215, 0.3); }
+  50%  { box-shadow: 0 0 0 8px rgba(58, 115, 215, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(58, 115, 215, 0); }
+}
+
 .container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-8);
-  padding: var(--space-4) 0;
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-5);
 }
 
-.statusText {
-  font-size: var(--text-lg);
-  color: var(--color-text-muted);
-  min-height: 1.8em;
-  text-align: center;
-  font-weight: 500;
-}
-
+/* Round progress pill */
 .roundInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-surface, #f8fafc);
+  border: 1.5px solid var(--color-border, #e2e8f0);
+  border-radius: 999px;
+  padding: 6px 18px;
   font-size: var(--text-md);
   color: var(--color-text-muted);
+  font-weight: 500;
 }
 
 .roundInfo strong {
   color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* Status card */
+.statusCard {
+  width: 100%;
+  max-width: 340px;
+  height: 72px;
+  background: var(--color-surface, #f8fafc);
+  border: 1.5px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4) var(--space-6);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeSlideIn 0.25s ease both;
+}
+
+.statusText {
+  font-size: 24px;
+  color: var(--color-text-muted);
+  text-align: center;
+  font-weight: 500;
+  margin: 0;
+}
+
+.statusText.showing {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.statusText.input {
+  color: var(--color-success, #16a34a);
+  font-weight: 600;
+}
+
+.statusText.correct {
+  color: var(--color-success, #16a34a);
+  font-weight: 600;
+}
+
+.statusText.failed {
+  color: var(--color-error, #dc2626);
+  font-weight: 600;
 }
 
 /* 2x2 pad grid */
@@ -78,6 +141,11 @@
 .padYellow { background-color: var(--color-pad-yellow); }
 .padGreen  { background-color: var(--color-pad-green);  }
 
+/* Pressed click effect */
+.padPressed {
+  animation: padPressFlash 0.3s ease-out both !important;
+}
+
 /* Lit state */
 .padLit.padRed    { background-color: var(--color-pad-red-lit);    box-shadow: 0 0 32px var(--color-pad-red-lit); }
 .padLit.padBlue   { background-color: var(--color-pad-blue-lit);   box-shadow: 0 0 32px var(--color-pad-blue-lit); }
@@ -85,12 +153,21 @@
 .padLit.padGreen  { background-color: var(--color-pad-green-lit);  box-shadow: 0 0 32px var(--color-pad-green-lit); }
 
 .failedOverlay {
-  background-color: var(--color-error-bg);
-  border: 2px solid var(--color-error);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4) var(--space-8);
-  color: var(--color-error);
-  font-size: var(--text-lg);
+  width: 100%;
+  max-width: 340px;
+  background-color: var(--color-error-bg, #fef2f2);
+  border: 2px solid var(--color-error, #dc2626);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4) var(--space-6);
+  color: var(--color-error, #dc2626);
+  font-size: var(--text-md);
   font-weight: 600;
   text-align: center;
+  animation: fadeSlideIn 0.3s ease both;
+}
+
+.failedOverlay strong {
+  display: block;
+  font-size: var(--text-lg);
+  margin-bottom: var(--space-1);
 }

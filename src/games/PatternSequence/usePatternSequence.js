@@ -13,7 +13,7 @@ function randomPad() {
   return Math.floor(Math.random() * PAD_COUNT);
 }
 
-export function usePatternSequence(difficulty = 'easy') {
+export function usePatternSequence(difficulty = 'easy', { onHighlight } = {}) {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   const [sequence, setSequence] = useState(() =>
@@ -24,6 +24,8 @@ export function usePatternSequence(difficulty = 'easy') {
   const [phase, setPhase] = useState('idle'); // 'idle'|'showing'|'input'|'correct'|'failed'|'won'
   const [currentRound, setCurrentRound] = useState(config.startLen);
   const abortRef = useRef(false);
+  const onHighlightRef = useRef(onHighlight);
+  onHighlightRef.current = onHighlight;
 
   const showSequence = useCallback(
     async (seq) => {
@@ -37,6 +39,7 @@ export function usePatternSequence(difficulty = 'easy') {
       for (const pad of seq) {
         if (abortRef.current) return;
         setHighlightedPad(pad);
+        onHighlightRef.current?.(pad);
         await delay(config.flashMs);
         if (abortRef.current) return;
         setHighlightedPad(null);
