@@ -4,6 +4,17 @@ import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './FaceMemory.module.css';
 
+import female1 from '../../assets/faces/female/female1.png';
+import female2 from '../../assets/faces/female/female2.png';
+import female3 from '../../assets/faces/female/female3.png';
+import female4 from '../../assets/faces/female/female4.png';
+import female5 from '../../assets/faces/female/female5.png';
+import male1 from '../../assets/faces/male/male1.png';
+import male2 from '../../assets/faces/male/male2.png';
+import male3 from '../../assets/faces/male/male3.png';
+import male4 from '../../assets/faces/male/male4.png';
+import male5 from '../../assets/faces/male/male5.png';
+
 const DIFFICULTY_CONFIG = {
   easy:   { rounds: 6, faceCount: 3, studySec: 8  },
   medium: { rounds: 8, faceCount: 5, studySec: 10 },
@@ -11,12 +22,16 @@ const DIFFICULTY_CONFIG = {
 };
 
 const FACES = [
-  { emoji: '👩‍🦰', name: 'Sarah' },  { emoji: '👨‍🦳', name: 'Robert' },
-  { emoji: '👩‍🦱', name: 'Maria' },  { emoji: '👴', name: 'George' },
-  { emoji: '👩‍🦲', name: 'Linda' },  { emoji: '👨‍🦱', name: 'James' },
-  { emoji: '🧓', name: 'Dorothy' }, { emoji: '👨‍🦲', name: 'William' },
-  { emoji: '👩', name: 'Patricia'}, { emoji: '🧔', name: 'David' },
-  { emoji: '👩‍🦳', name: 'Helen' },  { emoji: '👨', name: 'Michael' },
+  { img: female1, name: 'Sarah' },
+  { img: male1,   name: 'Robert' },
+  { img: female2, name: 'Maria' },
+  { img: male2,   name: 'George' },
+  { img: female3, name: 'Linda' },
+  { img: male3,   name: 'James' },
+  { img: female4, name: 'Dorothy' },
+  { img: male4,   name: 'William' },
+  { img: female5, name: 'Patricia' },
+  { img: male5,   name: 'David' },
 ];
 
 function shuffle(arr) {
@@ -92,7 +107,7 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, play
         <div className={styles.faceGrid}>
           {data.faces.map((f, i) => (
             <div key={i} className={styles.faceCard}>
-              <span className={styles.faceEmoji}>{f.emoji}</span>
+              <img src={f.img} alt={f.name} className={styles.faceImg} />
               <span className={styles.faceName}>{f.name}</span>
             </div>
           ))}
@@ -108,7 +123,7 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, play
       </div>
       <p className={styles.prompt}>What is this person's name?</p>
       <div className={styles.targetFace}>
-        <span className={styles.targetEmoji}>{data.target.emoji}</span>
+        <img src={data.target.img} alt={data.target.name} className={styles.targetImg} />
       </div>
       <div className={styles.options}>
         {data.options.map((name, i) => {
