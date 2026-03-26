@@ -40,6 +40,7 @@ export function GameShell({
   const [result, setResult] = useState(null);
   const [liveScore, setLiveScore] = useState(0);
   const [round, setRound] = useState({ current: 0, total: 0 });
+  const [gameKey, setGameKey] = useState(0); // bump to force full child remount on Play Again
   const [showHowToPlay, setShowHowToPlay] = useState(false);
   const startTimeRef = useRef(null);
   const animTimerRef = useRef(null);
@@ -54,6 +55,7 @@ export function GameShell({
   const { secondsLeft } = useCountdown({
     seconds: effectiveTimeLimit,
     active: phase === 'playing' && !animating,
+    resetKey: gameKey,
     onExpire: () => {
       if (phase === 'playing') {
         handleComplete({ finalScore: liveScore, maxScore: 0, completed: false });
@@ -92,6 +94,7 @@ export function GameShell({
   }
 
   function handlePlayAgain() {
+    setGameKey(k => k + 1); // force child remount so refs/state are fully fresh
     setPhase('idle');
     setResult(null);
     setLiveScore(0);
@@ -215,20 +218,35 @@ export function GameShell({
       {/* ── PLAYING ── */}
       {phase === 'playing' && (
         <>
-<div className={`${styles.gameBody} ${animating ? styles.gameBodyLocked : ''}`}>
-            {children({
-              difficulty: localDifficulty,
-              onComplete: handleComplete,
-              reportScore: setLiveScore,
-              reportRound: (current, total) => setRound({ current, total }),
-              secondsLeft,
-              playClick,
-              playSuccess,
-              playFail,
-              playPop,
-              playReveal,
-              playBoing,
-            })}
+          {/* Timer HUD bar */}
+          {effectiveTimeLimit !== null && (
+            <div className={`${styles.timerHud} ${isUrgent ? styles.timerHudUrgent : ''}`}>
+              <span className={styles.timerIcon}>⏱</span>
+              <span className={styles.timerValue}>{formatTime(secondsLeft)}</span>
+              <div className={styles.timerTrack}>
+                <div
+                  className={`${styles.timerFill} ${isUrgent ? styles.timerFillUrgent : ''}`}
+                  style={{ width: `${Math.max(0, (secondsLeft / effectiveTimeLimit) * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+          <div className={`${styles.gameBody} ${animating ? styles.gameBodyLocked : ''}`}>
+            <div key={gameKey}>
+              {children({
+                difficulty: localDifficulty,
+                onComplete: handleComplete,
+                reportScore: setLiveScore,
+                reportRound: (current, total) => setRound({ current, total }),
+                secondsLeft: animating ? effectiveTimeLimit : secondsLeft,
+                playClick,
+                playSuccess,
+                playFail,
+                playPop,
+                playReveal,
+                playBoing,
+              })}
+            </div>
           </div>
         </>
       )}
