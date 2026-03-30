@@ -28,6 +28,11 @@ export function devApiPlugin() {
           const host = req.headers.host;
           const baseUrl = `${protocol}://${host}`;
 
+          // Parse completed game IDs from query param: ?completed=math-cross,whack-a-mole
+          const url = new URL(req.url, `${protocol}://${host}`);
+          const completedParam = url.searchParams.get('completed') || '';
+          const completedSet = new Set(completedParam.split(',').filter(Boolean));
+
           const games = buildDailyGames();
 
           const data = games.map((game, index) => ({
@@ -38,7 +43,7 @@ export function devApiPlugin() {
             category:    game.categoryName,
             icon_url:    `${baseUrl}/games/${gameIconFilename(game.id)}`,
             url:         `${baseUrl}/${game.id}`,
-            is_complete: false,
+            is_complete: completedSet.has(game.id),
           }));
 
           res.statusCode = 200;

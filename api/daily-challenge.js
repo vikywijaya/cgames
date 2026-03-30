@@ -19,6 +19,10 @@ export default function handler(req, res) {
     const host = req.headers.host;
     const baseUrl = `${protocol}://${host}`;
 
+    // Parse completed game IDs from query param: ?completed=math-cross,whack-a-mole
+    const completedParam = req.query?.completed || '';
+    const completedSet = new Set(completedParam.split(',').filter(Boolean));
+
     const games = buildDailyGames();
 
     const data = games.map((game, index) => ({
@@ -29,7 +33,7 @@ export default function handler(req, res) {
       category:    game.categoryName,
       icon_url:    `${baseUrl}/games/${gameIconFilename(game.id)}`,
       url:         `${baseUrl}/${game.id}`,
-      is_complete: false,
+      is_complete: completedSet.has(game.id),
     }));
 
     return res.status(200).json({ status: 'success', data });
