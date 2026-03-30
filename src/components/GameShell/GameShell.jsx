@@ -162,7 +162,10 @@ export function GameShell({
         <div className={styles.topBarLeft}>
           {onBack && (
             <button className={styles.topBarBack} onClick={onBack} aria-label="Go back">
-              ‹ Back
+              ‹
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+              </svg>
             </button>
           )}
         </div>
@@ -195,7 +198,10 @@ export function GameShell({
                   role="radio"
                   aria-checked={localDifficulty === level}
                 >
-                  {level === 'easy' ? '🟢' : level === 'medium' ? '🟡' : '🔴'} {level.charAt(0).toUpperCase() + level.slice(1)}
+                  <span className={styles.difficultyDot} aria-hidden="true">
+                    {level === 'easy' ? '🟢' : level === 'medium' ? '🟡' : '🔴'}
+                  </span>
+                  {level.charAt(0).toUpperCase() + level.slice(1)}
                 </button>
               ))}
             </div>

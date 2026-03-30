@@ -383,7 +383,7 @@ export function App() {
     const previewScores = getAllScores(urlMemberId);
     return (
       <div className={styles.dailyWrapper}>
-        <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Back">‹ Back</button>
+        <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Back">‹ <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         <div className={styles.dailyPreview}>
           <h2 className={styles.dailyPreviewTitle}>Today's Challenge</h2>
           <p className={styles.dailyPreviewSub}>Play these 2 games and see how you score!</p>
@@ -448,7 +448,7 @@ export function App() {
 
     return (
       <div className={styles.dailyWrapper}>
-        <button className={styles.floatingBack} onClick={abortDailyChallenge} aria-label="Back">‹ Back</button>
+        <button className={styles.floatingBack} onClick={abortDailyChallenge} aria-label="Back">‹ <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         <div className={styles.interResult}>
         <div className={styles.interProgress}>
           {games.map((g, i) => (
@@ -506,7 +506,7 @@ export function App() {
 
     return (
       <div className={styles.dailyWrapper}>
-        <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Back">‹ Back</button>
+        <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Back">‹ <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         <div className={styles.dailyResult}>
         <div className={styles.resultTrophy}>{trophy}</div>
         <h2 className={styles.resultHeadline}>Challenge Complete!</h2>
@@ -558,7 +558,7 @@ export function App() {
 
     return (
       <div className={styles.dailyWrapper}>
-        <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Back">‹ Back</button>
+        <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Back">‹ <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         <div className={styles.scoresView}>
         <div className={styles.scoresHeader}>
           <img
@@ -685,7 +685,7 @@ export function App() {
     const lobbyScores = getAllScores(urlMemberId);
     return (
       <div className={styles.dailyWrapper}>
-        <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Back">‹ Back</button>
+        <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Back">‹ <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         <div className={styles.lobby}>
         <header className={styles.lobbyHeader}>
           <img
@@ -695,29 +695,25 @@ export function App() {
           />
         </header>
 
-        <div className={styles.categoryRow} role="radiogroup" aria-label="Filter by category">
-          {['All', 'Favorites', ...GAME_GROUPS.map(g => g.category)].map(cat => {
-            const isFav = cat === 'Favorites';
-            const group = GAME_GROUPS.find(g => g.category === cat);
-            const shortLabel = isFav ? 'Favorites' : ({ 'Attention & Reflexes': 'Reflexes', 'Numbers & Logic': 'Numbers', 'Visual & Spatial': 'Visual', 'General Knowledge': 'Knowledge' }[cat] ?? cat);
-            const count = cat === 'All' ? ALL_GAMES.length : isFav ? favorites.size : group?.games.length;
-            return (
-              <label
-                key={cat}
-                className={`${styles.categoryPill} ${selectedCategory === cat ? styles.categoryPillActive : ''}`}
-                title={cat}
-              >
-                <input
-                  type="radio"
-                  name="category"
-                  value={cat}
-                  checked={selectedCategory === cat}
-                  onChange={() => setSelectedCategory(cat)}
-                />
-                {isFav ? <span aria-hidden="true">❤️</span> : group ? <span aria-hidden="true">{group.icon}</span> : null} {shortLabel} <span className={styles.categoryCount}>{count}</span>
-              </label>
-            );
-          })}
+        <div className={styles.categoryRow}>
+          <select
+            className={styles.categorySelect}
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            aria-label="Filter by category"
+          >
+            {['All', 'Favorites', ...GAME_GROUPS.map(g => g.category)].map(cat => {
+              const isFav = cat === 'Favorites';
+              const group = GAME_GROUPS.find(g => g.category === cat);
+              const count = cat === 'All' ? ALL_GAMES.length : isFav ? favorites.size : group?.games.length;
+              const icon = isFav ? '❤️' : group ? group.icon : '📋';
+              return (
+                <option key={cat} value={cat}>
+                  {icon} {cat} ({count})
+                </option>
+              );
+            })}
+          </select>
         </div>
 
         <div className={styles.difficultyRow} role="radiogroup" aria-label="Select difficulty">
@@ -733,7 +729,10 @@ export function App() {
                 checked={selectedDifficulty === level}
                 onChange={() => setSelectedDifficulty(level)}
               />
-              {level === 'easy' ? '🟢' : level === 'medium' ? '🟡' : '🔴'} {level.charAt(0).toUpperCase() + level.slice(1)}
+              <span className={styles.difficultyDot} aria-hidden="true">
+                {level === 'easy' ? '🟢' : level === 'medium' ? '🟡' : '🔴'}
+              </span>
+              {level.charAt(0).toUpperCase() + level.slice(1)}
             </label>
           ))}
         </div>

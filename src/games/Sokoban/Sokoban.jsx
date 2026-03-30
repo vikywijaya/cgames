@@ -523,10 +523,10 @@ function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
     setHistory([]);
   }, [solved, levels, levelIdx, playClick]);
 
-  // Compute cell size based on grid dimensions
-  // Scale cells to fill available space (max ~420px board width, min 36px cells)
-  const maxBoard = 420;
-  const cellSize = Math.max(36, Math.min(56, Math.floor(maxBoard / Math.max(state.width, state.height))));
+  // Compute cell size based on grid dimensions and screen width
+  // Reserve 32px side padding (2×16px) so board fits on 320px screens
+  const maxBoard = Math.min(420, (typeof window !== 'undefined' ? window.innerWidth : 420) - 32);
+  const cellSize = Math.max(30, Math.min(52, Math.floor(maxBoard / Math.max(state.width, state.height))));
 
   return (
     <div
