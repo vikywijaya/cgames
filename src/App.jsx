@@ -269,14 +269,31 @@ function getProgressHint(scores, totalGames) {
   return `${totalPlays} sessions across ${played} games — ${totalGames - played} more games await you! 🌟`;
 }
 
+function dailySeed() {
+  const d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+
+function seededRandom(seed) {
+  // Simple mulberry32 PRNG
+  let s = seed >>> 0;
+  return function () {
+    s += 0x6d2b79f5;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+    return ((t ^ (t >>> 14)) >>> 0) / 0x100000000;
+  };
+}
+
 function buildDailyGames() {
-  // Pick 2 random games from all available, non-coming-soon games
+  // Pick 2 games seeded by today's date — same selection all day
   const pool = GAME_GROUPS.flatMap(group =>
     group.games
       .filter(g => !g.comingSoon)
       .map(g => ({ ...g, categoryIcon: group.icon, categoryName: group.category }))
   );
-  const shuffled = pool.slice().sort(() => Math.random() - 0.5);
+  const rand = seededRandom(dailySeed());
+  const shuffled = pool.slice().sort(() => rand() - 0.5);
   return shuffled.slice(0, 2);
 }
 
@@ -542,7 +559,7 @@ export function App() {
 
         <div className={styles.resultActions}>
           <button className={styles.primaryBtn} onClick={startDailyChallenge}>
-            🔄 New Challenge
+            🔄 Play Again
           </button>
         </div>
         </div>
