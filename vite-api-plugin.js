@@ -35,8 +35,8 @@ export function devApiPlugin() {
 
           const games = buildDailyGames();
 
-          const data = games.map((game, index) => ({
-            id:          index + 1,
+          const data = games.map((game) => ({
+            id:          game.id,
             name:        game.title,
             description: game.description,
             domain:      game.domain,
