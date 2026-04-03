@@ -118,17 +118,15 @@ function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft, play
         })}
       </div>
 
-      {/* Sorted preview at bottom */}
-      {feedback === 'correct' && (
-        <div className={styles.correctRow}>
-          {sorted.map((n, i) => (
-            <span key={i} className={styles.correctNum}>{n}</span>
-          ))}
-        </div>
-      )}
-      {feedback === 'wrong' && (
-        <p className={styles.feedbackBad}>Wrong order — try again!</p>
-      )}
+      {/* Sorted preview at bottom — always rendered to avoid layout shift */}
+      <div className={styles.correctRow} style={{ visibility: feedback === 'correct' ? 'visible' : 'hidden' }}>
+        {sorted.map((n, i) => (
+          <span key={i} className={styles.correctNum}>{n}</span>
+        ))}
+      </div>
+      <p className={feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
+        {feedback === 'wrong' ? 'Wrong order — try again!' : '\u00A0'}
+      </p>
     </div>
   );
 }

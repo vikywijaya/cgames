@@ -11,7 +11,7 @@
   align-items: center;
   gap: var(--space-4);
   width: 100%;
-  padding: var(--space-2) 0;
+  padding: 0;
 }
 
 .progress { font-size: var(--text-sm); color: var(--color-text-muted); }
@@ -62,5 +62,6 @@
   background: rgba(248,113,113,0.15) !important;
 }
 
-.feedbackOk  { font-size: var(--text-md); font-weight: 600; color: #4ade80; text-align: center; }
-.feedbackBad { font-size: var(--text-md); font-weight: 600; color: #f87171; text-align: center; }
+.feedbackOk  { font-size: var(--text-md); font-weight: 600; color: #4ade80; text-align: center; min-height: 1.4em; }
+.feedbackBad { font-size: var(--text-md); font-weight: 600; color: #f87171; text-align: center; min-height: 1.4em; }
+.feedbackSlot { font-size: var(--text-md); font-weight: 600; color: transparent; text-align: center; min-height: 1.4em; }

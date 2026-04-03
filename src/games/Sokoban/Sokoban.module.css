@@ -11,7 +11,7 @@
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  padding: var(--space-2) var(--space-4);
+  padding: 0;
   box-sizing: border-box;
   outline: none;
   -webkit-user-select: none;

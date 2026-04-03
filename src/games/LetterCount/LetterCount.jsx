@@ -135,8 +135,9 @@ function LetterCountGame({ difficulty, onComplete, reportScore, secondsLeft, pla
         })}
       </div>
 
-      {feedback === 'correct' && <p className={styles.feedbackOk}>✓ Correct! ({puzzle.answer}×)</p>}
-      {feedback === 'wrong'   && <p className={styles.feedbackBad}>✗ It appears {puzzle.answer} time{puzzle.answer > 1 ? 's' : ''}.</p>}
+      <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
+        {feedback === 'correct' ? `✓ Correct! (${puzzle.answer}×)` : feedback === 'wrong' ? `✗ It appears ${puzzle.answer} time${puzzle.answer > 1 ? 's' : ''}.` : '\u00A0'}
+      </p>
     </div>
   );
 }

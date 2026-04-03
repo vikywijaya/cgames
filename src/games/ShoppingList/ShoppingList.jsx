@@ -153,11 +153,9 @@ function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft, pl
       {!submitted && (
         <button className={styles.submitBtn} onClick={handleSubmit}>Done</button>
       )}
-      {result && (
-        <p className={result.roundScore > 0 ? styles.feedbackOk : styles.feedbackBad}>
-          {result.correct} correct · {result.missed} missed · {result.wrong} wrong
-        </p>
-      )}
+      <p className={result ? (result.roundScore > 0 ? styles.feedbackOk : styles.feedbackBad) : styles.feedbackSlot}>
+        {result ? `${result.correct} correct · ${result.missed} missed · ${result.wrong} wrong` : '\u00A0'}
+      </p>
     </div>
   );
 }

@@ -156,11 +156,9 @@ function CapitalQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pla
         })}
       </div>
 
-      {feedback && (
-        <p className={feedback === 'correct' ? styles.feedbackOk : styles.feedbackBad}>
-          {feedback === 'correct' ? '✓ Correct!' : `✗ It's ${question.correct.capital}`}
-        </p>
-      )}
+      <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
+        {feedback === 'correct' ? '✓ Correct!' : feedback ? `✗ It's ${question.correct.capital}` : '\u00A0'}
+      </p>
     </div>
   );
 }

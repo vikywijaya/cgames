@@ -111,8 +111,9 @@ function QuickMathsGame({ difficulty, onComplete, reportScore, secondsLeft, play
         })}
       </div>
 
-      {feedback === 'correct' && <p className={styles.feedbackOk}>✓ Correct!</p>}
-      {feedback === 'wrong'   && <p className={styles.feedbackBad}>✗ Answer: {q.answer}</p>}
+      <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
+        {feedback === 'correct' ? '✓ Correct!' : feedback === 'wrong' ? `✗ Answer: ${q.answer}` : '\u00A0'}
+      </p>
     </div>
   );
 }

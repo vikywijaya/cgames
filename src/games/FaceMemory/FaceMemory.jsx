@@ -133,11 +133,9 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, play
           return <button key={i} className={cls} style={{ '--idx': i }} onClick={() => handleChoice(name)} disabled={!!feedback}>{name}</button>;
         })}
       </div>
-      {feedback && (
-        <p className={feedback === 'correct' ? styles.feedbackOk : styles.feedbackBad}>
-          {feedback === 'correct' ? '✓ Correct!' : `✗ That was ${data.target.name}`}
-        </p>
-      )}
+      <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
+        {feedback === 'correct' ? '✓ Correct!' : feedback ? `✗ That was ${data.target.name}` : '\u00A0'}
+      </p>
     </div>
   );
 }

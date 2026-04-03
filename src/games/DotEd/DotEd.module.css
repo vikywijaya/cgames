@@ -14,7 +14,7 @@
   min-height: 60vh;
   gap: 20px;
   width: 100%;
-  padding: var(--space-4) 0;
+  padding: 0;
   background: #2d6a4f;
   border-radius: var(--radius-xl);
   position: relative;
@@ -271,7 +271,7 @@
 /* ── Responsive ───────────────────────────────────────── */
 @media (max-width: 480px) {
   .wrapper {
-    padding: var(--space-3) 0;
+    padding: 0;
     min-height: 50vh;
   }
   .board {

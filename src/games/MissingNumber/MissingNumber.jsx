@@ -124,8 +124,9 @@ function MissingNumberGame({ difficulty, onComplete, reportScore, secondsLeft, p
         })}
       </div>
 
-      {feedback === 'correct' && <p className={styles.feedbackOk}>✓ Correct!</p>}
-      {feedback === 'wrong'   && <p className={styles.feedbackBad}>✗ Answer: {puzzle.answer}</p>}
+      <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
+        {feedback === 'correct' ? '✓ Correct!' : feedback === 'wrong' ? `✗ Answer: ${puzzle.answer}` : '\u00A0'}
+      </p>
     </div>
   );
 }

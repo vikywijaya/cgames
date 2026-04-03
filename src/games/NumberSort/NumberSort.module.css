@@ -11,7 +11,7 @@
   align-items: center;
   gap: var(--space-6);
   width: 100%;
-  padding: var(--space-4) 0;
+  padding: 0;
 }
 
 .meta {
@@ -112,4 +112,7 @@
   font-weight: 600;
   color: #f87171;
   text-align: center;
+  min-height: 1.4em;
 }
+
+.feedbackSlot { font-size: var(--text-md); font-weight: 600; color: transparent; text-align: center; min-height: 1.4em; }

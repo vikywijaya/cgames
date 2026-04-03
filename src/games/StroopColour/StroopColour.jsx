@@ -137,8 +137,9 @@ function StroopGame({ difficulty, onComplete, reportScore, secondsLeft, playClic
         })}
       </div>
 
-      {feedback === 'correct' && <p className={styles.feedbackOk}>✓ Correct!</p>}
-      {feedback === 'wrong'   && <p className={styles.feedbackBad}>✗ Wrong ink colour</p>}
+      <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
+        {feedback === 'correct' ? '✓ Correct!' : feedback === 'wrong' ? '✗ Wrong ink colour' : '\u00A0'}
+      </p>
     </div>
   );
 }

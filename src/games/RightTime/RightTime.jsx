@@ -194,11 +194,9 @@ function RightTimeGame({ difficulty, onComplete, reportScore, secondsLeft, playC
         })}
       </div>
 
-      {feedback && (
-        <p className={feedback === 'correct' ? styles.feedbackCorrect : styles.feedbackWrong}>
-          {feedback === 'correct' ? '✓ Correct!' : `✗ It was ${formatTime(question.correct)}`}
-        </p>
-      )}
+      <p className={feedback === 'correct' ? styles.feedbackCorrect : feedback === 'wrong' ? styles.feedbackWrong : styles.feedbackSlot}>
+        {feedback === 'correct' ? '✓ Correct!' : feedback ? `✗ It was ${formatTime(question.correct)}` : '\u00A0'}
+      </p>
     </div>
   );
 }
