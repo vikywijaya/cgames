@@ -348,11 +348,15 @@ function FlappyNumbersGame({
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.meta}>
-        <span className={styles.tip}>
-          {hasColor ? 'Match number + color' : 'Tap or Space to flap'}
-        </span>
-        <span className={styles.scoreLabel}>Score: <strong>{g.sc}</strong></span>
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>FLAPPY NUMBERS</span>
+          <span className={styles.infoHeaderSub}>{hasColor ? 'Match number + color' : 'Tap or Space to flap'}</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{g.sc}</span>
+          <span className={styles.infoBadgeSub}>pts</span>
+        </div>
       </div>
 
       <div

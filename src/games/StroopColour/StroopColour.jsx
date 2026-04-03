@@ -102,9 +102,15 @@ function StroopGame({ difficulty, onComplete, reportScore, secondsLeft, playClic
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.meta}>
-        <span className={styles.roundLabel}>Round <strong>{round + 1}</strong> / {config.rounds}</span>
-        <span className={styles.scoreLabel}>Score: <strong>{score}</strong></span>
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>STROOP COLOUR</span>
+          <span className={styles.infoHeaderSub}>Round {round + 1} of {config.rounds}</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>/ {config.rounds}</span>
+        </div>
       </div>
 
       <p className={styles.prompt}>Tap the <strong>INK colour</strong> of the word below:</p>

@@ -180,16 +180,14 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playBoing
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.statusRow}>
-        <div className={styles.livesRow} aria-label={`${lives} lives`}>
-          {Array.from({ length: 3 }).map((_, i) => (
-            <span key={i} className={i < lives ? styles.heartFull : styles.heartEmpty}>
-              {i < lives ? '❤️' : '🖤'}
-            </span>
-          ))}
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>WHACK-A-MOLE</span>
+          <span className={styles.infoHeaderSub}>{lives} lives remaining</span>
         </div>
-        <div className={styles.scoreDisplay} aria-live="polite" aria-atomic="true">
-          Score: <strong>{score}</strong>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>pts</span>
         </div>
       </div>
 

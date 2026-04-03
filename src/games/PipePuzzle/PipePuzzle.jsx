@@ -422,24 +422,31 @@ function PipeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick,
 
   return (
     <div className={styles.wrapper}>
-      {/* Round counter + color legend */}
-      <div className={styles.meta}>
-        <span className={styles.roundLabel}>Puzzle <strong>{round + 1}</strong> / {rounds}</span>
-        <div className={styles.legend}>
-          {colorPairs.map(({ colorId }) => {
-            const info = colorOf(colorId);
-            const [[r1,c1],[r2,c2]] = colorPairs.find(p => p.colorId === colorId).endpoints;
-            const done = isConnected(grid, r1, c1, r2, c2, rows, cols);
-            return (
-              <span
-                key={colorId}
-                className={`${styles.legendDot} ${done ? styles.legendDone : ''}`}
-                style={{ background: info.pipe }}
-                aria-label={`${colorId} ${done ? 'connected' : 'not connected'}`}
-              />
-            );
-          })}
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>PIPE PUZZLE</span>
+          <span className={styles.infoHeaderSub}>Puzzle {round + 1} of {rounds}</span>
         </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{round + 1}</span>
+          <span className={styles.infoBadgeSub}>/ {rounds}</span>
+        </div>
+      </div>
+      {/* Color legend */}
+      <div className={styles.legend}>
+        {colorPairs.map(({ colorId }) => {
+          const info = colorOf(colorId);
+          const [[r1,c1],[r2,c2]] = colorPairs.find(p => p.colorId === colorId).endpoints;
+          const done = isConnected(grid, r1, c1, r2, c2, rows, cols);
+          return (
+            <span
+              key={colorId}
+              className={`${styles.legendDot} ${done ? styles.legendDone : ''}`}
+              style={{ background: info.pipe }}
+              aria-label={`${colorId} ${done ? 'connected' : 'not connected'}`}
+            />
+          );
+        })}
       </div>
 
       {/* The grid */}

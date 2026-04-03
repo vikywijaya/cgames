@@ -537,11 +537,15 @@ function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Level info */}
-      <div className={styles.meta}>
-        <span className={styles.metaLabel}>Level <strong>{levelIdx + 1}</strong> / {totalLevels}</span>
-        <span className={styles.metaLabel}>Moves: <strong>{moves}</strong></span>
-        <span className={styles.metaLabel}>Pushes: <strong>{pushes}</strong></span>
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>SOKOBAN</span>
+          <span className={styles.infoHeaderSub}>Level {levelIdx + 1} of {totalLevels} · {moves} moves</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{pushes}</span>
+          <span className={styles.infoBadgeSub}>pushes</span>
+        </div>
       </div>
 
       {/* Grid */}

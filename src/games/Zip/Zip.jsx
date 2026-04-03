@@ -334,16 +334,17 @@ function ZipGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, pl
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.topBar}>
-        <div className={styles.levelLabel}>Level {levelIdx + 1}</div>
-        <div className={styles.progress}>
-          {Array.from({ length: maxWaypoint }).map((_, i) => (
-            <div
-              key={i}
-              className={`${styles.progressDot} ${i < waypointsHit ? styles.progressDotDone : ''}`}
-            />
-          ))}
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>ZIP</span>
+          <span className={styles.infoHeaderSub}>Level {levelIdx + 1}</span>
         </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{waypointsHit}</span>
+          <span className={styles.infoBadgeSub}>/ {maxWaypoint}</span>
+        </div>
+      </div>
+      <div className={styles.topBar}>
         <button
           className={styles.ctrlBtn}
           onClick={restart}

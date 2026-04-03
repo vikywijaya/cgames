@@ -185,9 +185,15 @@ function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.meta}>
-        <span className={styles.roundLabel}>Puzzle <strong>{round + 1}</strong> / {rounds}</span>
-        <span className={styles.movesLabel}>Moves: <strong>{moves}</strong></span>
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>RING SORT</span>
+          <span className={styles.infoHeaderSub}>Puzzle {round + 1} of {rounds}</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{moves}</span>
+          <span className={styles.infoBadgeSub}>moves</span>
+        </div>
       </div>
 
       <div className={`${styles.rodsArea} ${solved ? styles.areasSolved : ''}`}>

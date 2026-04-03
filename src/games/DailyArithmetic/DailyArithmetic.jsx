@@ -47,14 +47,15 @@ function ArithmeticGame({ difficulty, onComplete, reportScore, playClick, playSu
 
   return (
     <div className={styles.container}>
-      <div className={styles.progress}>
-        <ProgressBar
-          value={currentIndex}
-          max={totalQuestions}
-          label={`Question ${currentIndex + 1} of ${totalQuestions}`}
-          showValues={false}
-          ariaLabel={`Question ${currentIndex + 1} of ${totalQuestions}`}
-        />
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>DAILY CHALLENGE</span>
+          <span className={styles.infoHeaderSub}>Question {currentIndex + 1} of {totalQuestions}</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>/ {totalQuestions}</span>
+        </div>
       </div>
 
       <div className={styles.questionCard}>

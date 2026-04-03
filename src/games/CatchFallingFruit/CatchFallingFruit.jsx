@@ -265,17 +265,14 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
 
   return (
     <div className={styles.wrapper}>
-      {/* Lives + score */}
-      <div className={styles.statusRow}>
-        <div className={styles.livesRow} aria-label={`${displayLives} lives remaining`}>
-          {Array.from({ length: config.lives }).map((_, i) => (
-            <span key={i} className={i < displayLives ? styles.heartFull : styles.heartEmpty}>
-              {i < displayLives ? '❤️' : '🖤'}
-            </span>
-          ))}
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>CATCH FRUIT</span>
+          <span className={styles.infoHeaderSub}>{displayLives} lives remaining</span>
         </div>
-        <div className={styles.scoreDisplay} aria-live="polite" aria-atomic="true">
-          Score: <strong>{displayScore}</strong>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{displayScore}</span>
+          <span className={styles.infoBadgeSub}>pts</span>
         </div>
       </div>
 

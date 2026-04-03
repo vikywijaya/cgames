@@ -598,10 +598,15 @@ function SlitherEscapeGame({ difficulty, onComplete, reportScore, secondsLeft, p
         <div className={styles.bgHills} />
       </div>
 
-      {/* HUD */}
-      <div className={styles.hud}>
-        <div className={styles.pill}><span className={styles.pillLabel}>Level</span><span className={styles.pillVal}>{round + 1}<small>/{rounds}</small></span></div>
-        <div className={styles.pill}><span className={styles.pillLabel}>Moves</span><span className={styles.pillVal}>{moves}</span></div>
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>SLITHER ESCAPE</span>
+          <span className={styles.infoHeaderSub}>Level {round + 1} of {rounds}</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{moves}</span>
+          <span className={styles.infoBadgeSub}>moves</span>
+        </div>
       </div>
 
       {/* Board */}

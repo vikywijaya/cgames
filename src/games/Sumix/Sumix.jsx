@@ -154,8 +154,15 @@ function SumixGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.meta}>
-        <span className={styles.roundLabel}>Puzzle <strong>{round + 1}</strong> / {rounds}</span>
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>SUMIX</span>
+          <span className={styles.infoHeaderSub}>Puzzle {round + 1} of {rounds}</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{round + 1}</span>
+          <span className={styles.infoBadgeSub}>/ {rounds}</span>
+        </div>
       </div>
 
       <div className={`${styles.board} ${solved ? styles.boardSolved : ''}`}>

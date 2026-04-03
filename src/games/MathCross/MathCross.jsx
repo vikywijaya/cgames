@@ -447,10 +447,15 @@ function MathCrossGame({ difficulty, onComplete, reportScore, secondsLeft, playC
 
   return (
     <div className={styles.wrapper}>
-      {/* Contextual hint with round counter */}
-      <div className={styles.hint} aria-live="polite">
-        <span className={styles.roundLabel}>Puzzle <strong>{round + 1}</strong>/{rounds} &nbsp;·&nbsp; </span>
-        {hintText}
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>MATH CROSS</span>
+          <span className={styles.infoHeaderSub}>{hintText}</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{round + 1}</span>
+          <span className={styles.infoBadgeSub}>/ {rounds}</span>
+        </div>
       </div>
 
       {/* Grid */}

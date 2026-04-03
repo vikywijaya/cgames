@@ -127,8 +127,15 @@ function CapitalQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pla
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.progress}>
-        Question <strong>{qIndex + 1}</strong> of {config.questions}
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>CAPITAL QUIZ</span>
+          <span className={styles.infoHeaderSub}>Question {qIndex + 1} of {config.questions}</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>/ {config.questions}</span>
+        </div>
       </div>
 
       <div className={styles.questionCard}>
