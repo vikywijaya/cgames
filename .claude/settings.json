@@ -21,7 +21,10 @@
       "Bash(git checkout:*)",
       "Bash(xargs basename:*)",
       "Bash(vercel whoami:*)",
-      "Bash(npx vercel:*)"
+      "Bash(npx vercel:*)",
+      "Bash(curl -s \"https://cailinglim.github.io/ch-brand/\")",
+      "Bash(curl -s \"https://cailinglim.github.io/ch-brand/colors\")",
+      "Bash(grep -v \"^$\")"
     ]
   }
 }
