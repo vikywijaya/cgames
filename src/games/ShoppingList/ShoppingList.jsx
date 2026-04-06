@@ -110,9 +110,15 @@ function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft, pl
   if (phase === 'study') {
     return (
       <div className={styles.wrapper}>
-        <div className={styles.meta}>
-          <span>Round <strong>{round + 1}</strong> / {config.rounds}</span>
-          <span className={styles.countdown}>Memorise in <strong>{timer}s</strong></span>
+        <div className={styles.infoHeader}>
+          <div className={styles.infoHeaderText}>
+            <span className={styles.infoHeaderLabel}>SHOPPING LIST</span>
+            <span className={styles.infoHeaderSub}>Round {round + 1} of {config.rounds}</span>
+          </div>
+          <div className={styles.infoBadge}>
+            <span className={styles.infoBadgeNum}>{timer}</span>
+            <span className={styles.infoBadgeSub}>s</span>
+          </div>
         </div>
         <p className={styles.prompt}>Remember these items!</p>
         <div className={styles.studyList}>
@@ -128,9 +134,15 @@ function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft, pl
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.meta}>
-        <span>Round <strong>{round + 1}</strong> / {config.rounds}</span>
-        <span className={styles.tickCount}>{ticked.size} ticked</span>
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>SHOPPING LIST</span>
+          <span className={styles.infoHeaderSub}>Round {round + 1} of {config.rounds}</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{ticked.size}</span>
+          <span className={styles.infoBadgeSub}>ticked</span>
+        </div>
       </div>
       <p className={styles.prompt}>Tick everything that was on the list</p>
       <div className={styles.choiceGrid}>
@@ -153,11 +165,9 @@ function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft, pl
       {!submitted && (
         <button className={styles.submitBtn} onClick={handleSubmit}>Done</button>
       )}
-      {result && (
-        <p className={result.roundScore > 0 ? styles.feedbackOk : styles.feedbackBad}>
-          {result.correct} correct · {result.missed} missed · {result.wrong} wrong
-        </p>
-      )}
+      <p className={result ? (result.roundScore > 0 ? styles.feedbackOk : styles.feedbackBad) : styles.feedbackSlot}>
+        {result ? `${result.correct} correct · ${result.missed} missed · ${result.wrong} wrong` : '\u00A0'}
+      </p>
     </div>
   );
 }

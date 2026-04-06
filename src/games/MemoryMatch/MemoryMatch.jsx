@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
+import { ProgressBar } from '../../components/ProgressBar/ProgressBar';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import { GAME_IDS } from '../../utils/gameIds';
 import { useMemoryMatch } from './useMemoryMatch';
@@ -69,18 +70,42 @@ function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft, pla
     }
   }, [done, matchCount, maxMatches, onComplete]);
 
-  // Handle time-up
   useEffect(() => {
     if (timeLimitSeconds !== null && secondsLeft === 0 && !done) {
       onComplete({ finalScore: matchCount, maxScore: maxMatches, completed: false });
     }
   }, [secondsLeft, timeLimitSeconds, done, matchCount, maxMatches, onComplete]);
 
+  const pairsLeft = maxMatches - matchCount;
+
   return (
     <div className={styles.container}>
-      <p className={styles.scoreRow} aria-live="polite">
-        Matched: <strong>{matchCount}</strong> / {maxMatches}
-      </p>
+
+      {/* ── Info header — WordRecall style ── */}
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>Memory Match</span>
+          <span className={styles.infoHeaderSub}>
+            {pairsLeft === 0 ? 'All pairs found!' : `${pairsLeft} pair${pairsLeft !== 1 ? 's' : ''} left`}
+          </span>
+        </div>
+        <div className={styles.infoScoreBadge} aria-live="polite" aria-label={`${matchCount} of ${maxMatches} pairs matched`}>
+          <span className={styles.infoScoreNum}>{matchCount}</span>
+          <span className={styles.infoScoreMax}>/ {maxMatches}</span>
+        </div>
+      </div>
+
+      {/* ── Match progress bar ── */}
+      <div className={styles.progressBar}>
+        <ProgressBar
+          value={matchCount}
+          max={maxMatches}
+          ariaLabel="Pairs matched"
+          colorVariant={matchCount === maxMatches ? 'success' : 'default'}
+        />
+      </div>
+
+      {/* ── Card grid ── */}
       <div
         className={styles.grid}
         style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
@@ -97,6 +122,7 @@ function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft, pla
           />
         ))}
       </div>
+
     </div>
   );
 }

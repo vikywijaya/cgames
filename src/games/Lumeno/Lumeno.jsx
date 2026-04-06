@@ -155,27 +155,23 @@ function LumenoGame({ difficulty, onComplete, reportScore, playSuccess, playFail
       onPointerLeave={commitPath}
       style={{ touchAction: 'none', userSelect: 'none' }}
     >
-      {/* HUD row */}
-      <div className={styles.hud}>
-        <div className={styles.hudItem}>
-          <span className={styles.hudLabel}>Moves</span>
-          <span className={`${styles.hudVal} ${movesLeft <= 5 ? styles.hudUrgent : ''}`}>
-            {movesLeft}
-          </span>
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>LUMENO</span>
+          <span className={styles.infoHeaderSub}>{movesLeft} moves left</span>
         </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>pts</span>
+        </div>
+      </div>
 
-        <div className={styles.chainPill} style={{ opacity: path.length > 0 ? 1 : 0 }}>
-          <span style={{ color: pathColor?.bg ?? 'inherit' }}>
-            {path.length >= MIN_CHAIN
-              ? `${path.length} orbs · +${path.length * path.length} pts`
-              : `${path.length} / ${MIN_CHAIN} min`}
-          </span>
-        </div>
-
-        <div className={styles.hudItem}>
-          <span className={styles.hudLabel}>Score</span>
-          <span className={styles.hudVal}>{score}</span>
-        </div>
+      <div className={styles.chainPill} style={{ opacity: path.length > 0 ? 1 : 0 }}>
+        <span style={{ color: pathColor?.bg ?? 'inherit' }}>
+          {path.length >= MIN_CHAIN
+            ? `${path.length} orbs · +${path.length * path.length} pts`
+            : `${path.length} / ${MIN_CHAIN} min`}
+        </span>
       </div>
 
       {/* Grid */}

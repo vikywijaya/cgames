@@ -157,8 +157,15 @@ function FlagQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.progress}>
-        Question <strong>{qIndex + 1}</strong> of {config.questions}
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>FLAG QUIZ</span>
+          <span className={styles.infoHeaderSub}>Question {qIndex + 1} of {config.questions}</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>/ {config.questions}</span>
+        </div>
       </div>
 
       {/* Flag display */}
@@ -193,11 +200,9 @@ function FlagQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
         })}
       </div>
 
-      {feedback && (
-        <p className={feedback === 'correct' ? styles.feedbackCorrect : styles.feedbackWrong}>
-          {feedback === 'correct' ? '✓ Correct!' : `✗ That was ${question.correct.name}`}
-        </p>
-      )}
+      <p className={feedback === 'correct' ? styles.feedbackCorrect : feedback === 'wrong' ? styles.feedbackWrong : styles.feedbackSlot}>
+        {feedback === 'correct' ? '✓ Correct!' : feedback ? `✗ That was ${question.correct.name}` : '\u00A0'}
+      </p>
     </div>
   );
 }

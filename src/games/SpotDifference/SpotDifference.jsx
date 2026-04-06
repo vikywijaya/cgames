@@ -106,10 +106,15 @@ function SpotDifferenceGame({ difficulty, onComplete, reportScore, secondsLeft, 
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.meta}>
-        <span className={styles.roundLabel}>Round <strong>{round + 1}</strong> / {config.rounds}</span>
-        <span className={styles.hint}>Find <strong>{config.changes}</strong> difference{config.changes > 1 ? 's' : ''}</span>
-        <span className={styles.scoreLabel}>Score: <strong>{score}</strong></span>
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>SPOT DIFFERENCE</span>
+          <span className={styles.infoHeaderSub}>Round {round + 1} of {config.rounds} · Find {config.changes} difference{config.changes > 1 ? 's' : ''}</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>/ {config.rounds}</span>
+        </div>
       </div>
 
       <div className={styles.gridsRow}>
@@ -150,7 +155,9 @@ function SpotDifferenceGame({ difficulty, onComplete, reportScore, secondsLeft, 
         ))}
       </div>
 
-      {feedback === 'correct' && <p className={styles.feedbackOk}>✓ All differences found!</p>}
+      <p className={feedback === 'correct' ? styles.feedbackOk : styles.feedbackSlot}>
+        {feedback === 'correct' ? '✓ All differences found!' : '\u00A0'}
+      </p>
     </div>
   );
 }

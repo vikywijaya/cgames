@@ -1,0 +1,38 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: inherit;
+}
+
+.label {
+  font-family: var(--font-heading);
+  font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.number {
+  font-size: clamp(5rem, 22vw, 9rem);
+  color: var(--color-primary);
+}
+
+.go {
+  font-size: clamp(3.5rem, 16vw, 6.5rem);
+  color: #16a34a;
+}
+
+.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.hidden {
+  opacity: 0;
+  transform: scale(0.7);
+}

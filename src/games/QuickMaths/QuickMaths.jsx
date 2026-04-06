@@ -85,9 +85,15 @@ function QuickMathsGame({ difficulty, onComplete, reportScore, secondsLeft, play
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.meta}>
-        <span className={styles.roundLabel}>Round <strong>{round + 1}</strong> / {config.rounds}</span>
-        <span className={styles.scoreLabel}>Score: <strong>{score}</strong></span>
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>QUICK MATHS</span>
+          <span className={styles.infoHeaderSub}>Round {round + 1} of {config.rounds}</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>/ {config.rounds}</span>
+        </div>
       </div>
 
       <div className={styles.questionCard}>
@@ -111,8 +117,9 @@ function QuickMathsGame({ difficulty, onComplete, reportScore, secondsLeft, play
         })}
       </div>
 
-      {feedback === 'correct' && <p className={styles.feedbackOk}>✓ Correct!</p>}
-      {feedback === 'wrong'   && <p className={styles.feedbackBad}>✗ Answer: {q.answer}</p>}
+      <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
+        {feedback === 'correct' ? '✓ Correct!' : feedback === 'wrong' ? `✗ Answer: ${q.answer}` : '\u00A0'}
+      </p>
     </div>
   );
 }

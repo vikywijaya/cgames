@@ -128,8 +128,15 @@ function PatternSequenceGame({ difficulty, onComplete, reportScore, playSuccess,
 
   return (
     <div className={styles.container}>
-      <div className={styles.roundInfo}>
-        Round <strong>{currentRound}</strong> of {maxRound}
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>PATTERN SEQUENCE</span>
+          <span className={styles.infoHeaderSub}>{statusText}</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{currentRound}</span>
+          <span className={styles.infoBadgeSub}>/ {maxRound}</span>
+        </div>
       </div>
 
       <div className={styles.statusCard}>

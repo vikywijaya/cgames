@@ -278,9 +278,15 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.meta}>
-        <span className={styles.roundLabel}>Puzzle <strong>{round + 1}</strong> / {rounds}</span>
-        <span className={styles.roundLabel}>{emptyCells} cell{emptyCells !== 1 ? 's' : ''} left</span>
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>BLOCK PUZZLE</span>
+          <span className={styles.infoHeaderSub}>Puzzle {round + 1} of {rounds}</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{emptyCells}</span>
+          <span className={styles.infoBadgeSub}>left</span>
+        </div>
       </div>
 
       {/* Board */}

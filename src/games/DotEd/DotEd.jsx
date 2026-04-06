@@ -607,9 +607,18 @@ function DotEdGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, 
 
   return (
     <div className={styles.wrapper}>
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>DOT ED</span>
+          <span className={styles.infoHeaderSub}>Level {levelIdx + 1}</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{levelIdx + 1}</span>
+          <span className={styles.infoBadgeSub}>/ {totalLevels}</span>
+        </div>
+      </div>
       {/* Top controls */}
       <div className={styles.topBar}>
-        <div className={styles.levelLabel}>Level {levelIdx + 1}</div>
         <div className={styles.controls}>
           <button className={styles.ctrlBtn} onClick={restart} disabled={won} aria-label="Restart" title="Restart">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

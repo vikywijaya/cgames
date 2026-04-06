@@ -89,9 +89,15 @@ function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft, play
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.meta}>
-        <span className={styles.roundLabel}>Round <strong>{round + 1}</strong> / {config.rounds}</span>
-        <span className={styles.instruction}>Tap smallest → largest</span>
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>NUMBER SORT</span>
+          <span className={styles.infoHeaderSub}>Round {round + 1} of {config.rounds} · Tap smallest → largest</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>/ {config.rounds}</span>
+        </div>
       </div>
 
       <div className={styles.grid}>
@@ -118,17 +124,15 @@ function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft, play
         })}
       </div>
 
-      {/* Sorted preview at bottom */}
-      {feedback === 'correct' && (
-        <div className={styles.correctRow}>
-          {sorted.map((n, i) => (
-            <span key={i} className={styles.correctNum}>{n}</span>
-          ))}
-        </div>
-      )}
-      {feedback === 'wrong' && (
-        <p className={styles.feedbackBad}>Wrong order — try again!</p>
-      )}
+      {/* Sorted preview at bottom — always rendered to avoid layout shift */}
+      <div className={styles.correctRow} style={{ visibility: feedback === 'correct' ? 'visible' : 'hidden' }}>
+        {sorted.map((n, i) => (
+          <span key={i} className={styles.correctNum}>{n}</span>
+        ))}
+      </div>
+      <p className={feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
+        {feedback === 'wrong' ? 'Wrong order — try again!' : '\u00A0'}
+      </p>
     </div>
   );
 }

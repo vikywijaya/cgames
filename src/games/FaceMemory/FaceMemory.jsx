@@ -99,9 +99,15 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, play
   if (phase === 'study') {
     return (
       <div className={styles.wrapper}>
-        <div className={styles.meta}>
-          <span>Round <strong>{round + 1}</strong> / {config.rounds}</span>
-          <span className={styles.countdown}>Remember in <strong>{timer}s</strong></span>
+        <div className={styles.infoHeader}>
+          <div className={styles.infoHeaderText}>
+            <span className={styles.infoHeaderLabel}>FACE MEMORY</span>
+            <span className={styles.infoHeaderSub}>Round {round + 1} of {config.rounds}</span>
+          </div>
+          <div className={styles.infoBadge}>
+            <span className={styles.infoBadgeNum}>{timer}</span>
+            <span className={styles.infoBadgeSub}>s</span>
+          </div>
         </div>
         <p className={styles.prompt}>Remember these people and their names!</p>
         <div className={styles.faceGrid}>
@@ -118,8 +124,15 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, play
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.meta}>
-        <span>Round <strong>{round + 1}</strong> / {config.rounds}</span>
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>FACE MEMORY</span>
+          <span className={styles.infoHeaderSub}>Round {round + 1} of {config.rounds}</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>/ {config.rounds}</span>
+        </div>
       </div>
       <p className={styles.prompt}>What is this person's name?</p>
       <div className={styles.targetFace}>
@@ -133,11 +146,9 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, play
           return <button key={i} className={cls} style={{ '--idx': i }} onClick={() => handleChoice(name)} disabled={!!feedback}>{name}</button>;
         })}
       </div>
-      {feedback && (
-        <p className={feedback === 'correct' ? styles.feedbackOk : styles.feedbackBad}>
-          {feedback === 'correct' ? '✓ Correct!' : `✗ That was ${data.target.name}`}
-        </p>
-      )}
+      <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
+        {feedback === 'correct' ? '✓ Correct!' : feedback ? `✗ That was ${data.target.name}` : '\u00A0'}
+      </p>
     </div>
   );
 }

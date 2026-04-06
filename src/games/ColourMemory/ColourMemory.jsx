@@ -140,11 +140,17 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, pl
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.meta}>
-        <span className={styles.roundLabel}>Round <strong>{round + 1}</strong> / {config.rounds}</span>
-        <span className={styles.phaseLabel}>
-          {!ready ? 'Get ready…' : phase === 'showing' ? 'Watch the sequence…' : phase === 'recalling' ? 'Now repeat it!' : feedback === 'correct' ? '✓ Correct!' : '✗ Wrong!'}
-        </span>
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>COLOUR MEMORY</span>
+          <span className={styles.infoHeaderSub}>
+            {!ready ? 'Get ready…' : phase === 'showing' ? 'Watch the sequence…' : phase === 'recalling' ? 'Now repeat it!' : feedback === 'correct' ? 'Correct!' : 'Wrong!'}
+          </span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{round + 1}</span>
+          <span className={styles.infoBadgeSub}>/ {config.rounds}</span>
+        </div>
       </div>
 
       <div className={styles.progress}>{progressDots}</div>

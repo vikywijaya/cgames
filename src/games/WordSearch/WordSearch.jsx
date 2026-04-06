@@ -136,9 +136,16 @@ function WordSearchGame({ difficulty, onComplete, reportScore, playClick, playSu
         )}
       </div>
 
-      <p className={styles.scoreCount}>
-        <strong>{score}</strong> / {maxScore} found
-      </p>
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderLabel}>WORD SEARCH</span>
+          <span className={styles.infoHeaderSub}>{score} of {maxScore} found</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>/ {maxScore}</span>
+        </div>
+      </div>
 
       <Button
         variant="secondary"
