@@ -24,7 +24,10 @@
       "Bash(npx vercel:*)",
       "Bash(curl -s \"https://cailinglim.github.io/ch-brand/\")",
       "Bash(curl -s \"https://cailinglim.github.io/ch-brand/colors\")",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(ls /Users/vikywijaya/Documents/WEESWARES/VibeCoding/newcgame/cgames/src/assets/*.svg /Users/vikywijaya/Documents/WEESWARES/VibeCoding/newcgame/cgames/src/assets/*.png)",
+      "Bash(xargs -I{} basename {})",
+      "WebFetch(domain:docs.leonardo.ai)"
     ]
   }
 }
