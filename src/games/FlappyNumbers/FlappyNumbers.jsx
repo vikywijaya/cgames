@@ -134,6 +134,7 @@ function FlappyNumbersGame({
   difficulty, onComplete, reportScore,
   playClick, playSuccess, playFail,
 }) {
+  const t = useTranslation();
   const cfg = DIFF_CFG[difficulty] || DIFF_CFG.easy;
   const gRef = useRef(null);
   const rafRef = useRef(0);

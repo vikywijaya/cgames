@@ -345,6 +345,7 @@ SnakeFace.propTypes = { dir: PropTypes.string };
    Main game component
    ══════════════════════════════════════════════════════════════ */
 function SlitherEscapeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+  const t = useTranslation();
   const rounds = DIFFICULTY_CONFIG[difficulty]?.rounds ?? 8;
 
   const [round, setRound] = useState(0);

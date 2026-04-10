@@ -52,6 +52,7 @@ let nextId = 0;
 
 // ── Inner game ─────────────────────────────────────────────────────
 function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   const areaRef       = useRef(null);

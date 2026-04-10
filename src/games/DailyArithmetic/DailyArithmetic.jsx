@@ -10,6 +10,7 @@ import { useTranslation } from '../../i18n/useTranslation';
 
 
 function ArithmeticGame({ difficulty, onComplete, reportScore, playClick, playSuccess, playFail }) {
+  const t = useTranslation();
   const {
     question,
     currentIndex,

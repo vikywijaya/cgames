@@ -43,6 +43,7 @@ function buildQuestion(gridSize) {
 }
 
 function OddOneOutGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const [qIndex,   setQIndex]   = useState(0);
   const [score,    setScore]    = useState(0);

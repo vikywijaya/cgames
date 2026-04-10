@@ -396,6 +396,7 @@ function tileContent(ch, direction) {
 /*  Inner game component                                */
 /* ══════════════════════════════════════════════════════ */
 function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+  const t = useTranslation();
   const levels = LEVELS[difficulty] || LEVELS.easy;
   const totalLevels = levels.length;
 

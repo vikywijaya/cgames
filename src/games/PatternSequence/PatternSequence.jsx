@@ -55,6 +55,7 @@ PadGrid.propTypes = {
 };
 
 function PatternSequenceGame({ difficulty, onComplete, reportScore, playSuccess, playFail, playReveal, playBoing }) {
+  const t = useTranslation();
   const [pressedPad, setPressedPad] = useState(null);
   const pressTimerRef = useRef(null);
 

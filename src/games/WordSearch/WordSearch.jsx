@@ -10,6 +10,7 @@ import { useTranslation } from '../../i18n/useTranslation';
 
 
 function WordSearchGame({ difficulty, onComplete, reportScore, playClick, playSuccess, playFail }) {
+  const t = useTranslation();
   const {
     grid,
     words,

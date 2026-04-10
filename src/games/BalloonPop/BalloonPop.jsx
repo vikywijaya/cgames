@@ -20,6 +20,7 @@ let nextId = 0;
 
 // ── Inner game ─────────────────────────────────────────────────────
 function BalloonGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, playFail }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   const areaRef     = useRef(null);

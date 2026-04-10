@@ -113,6 +113,7 @@ function wallKey(r1, c1, r2, c2) {
    Inner game
 ────────────────────────────────────────────────────────── */
 function ZipGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, playSuccess, playClick, playFail }) {
+  const t = useTranslation();
   const levels = LEVELS[difficulty] ?? LEVELS.easy;
   const totalLevels = levels.length;
 

@@ -17,6 +17,7 @@ const DIFFICULTY_CONFIG = {
  * Exercises visual working memory and spatial recall.
  */
 function TileFlipGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const total = config.gridSize * config.gridSize;
 

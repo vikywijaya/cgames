@@ -28,6 +28,7 @@ function generateNumbers(count, maxVal) {
 
 // Player taps numbers in ascending order. Tapped numbers highlight and lock in.
 function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   const [round,    setRound]    = useState(0);

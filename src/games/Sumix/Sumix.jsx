@@ -79,6 +79,7 @@ function generatePuzzle(rows, cols, maxVal) {
 }
 
 function SumixGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { rows, cols, rounds } = config;
 

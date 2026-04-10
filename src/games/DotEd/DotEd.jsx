@@ -249,6 +249,7 @@ FlyingCircle.propTypes = {
    Inner game component
 ────────────────────────────────────────────────────────── */
 function DotEdGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, playSuccess, playClick, playFail }) {
+  const t = useTranslation();
   const levels = LEVELS[difficulty] ?? LEVELS.easy;
   const totalLevels = levels.length;
 

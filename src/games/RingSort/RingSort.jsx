@@ -63,6 +63,7 @@ function generatePuzzle(numColors, ringsPerColor, extraRods) {
 }
 
 function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail, playPop, playBoing }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { numColors, ringsPerColor, rodCapacity, extraRods, rounds } = config;
 

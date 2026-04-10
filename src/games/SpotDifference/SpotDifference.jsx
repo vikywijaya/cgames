@@ -48,6 +48,7 @@ function buildPuzzle(gridSize, changes) {
  * Player taps a cell in the RIGHT grid that differs from the left.
  */
 function SpotDifferenceGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const [round,    setRound]    = useState(0);
   const [score,    setScore]    = useState(0);

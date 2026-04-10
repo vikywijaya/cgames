@@ -307,6 +307,7 @@ function generateSimpleCrossPuzzle(hCount, vCount, maxNum) {
 }
 
 function MathCrossGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail, playPop }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { rounds } = config;
 

@@ -89,6 +89,7 @@ function buildQuestion(pool) {
 }
 
 function CapitalQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const pool   = POOL_MAP[config.pool];
 

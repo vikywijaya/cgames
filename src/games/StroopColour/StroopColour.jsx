@@ -27,6 +27,7 @@ const COLOURS = [
  * Incongruent trials (word ≠ ink) exercise inhibitory control.
  */
 function StroopGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   const [round,    setRound]    = useState(0);

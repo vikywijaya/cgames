@@ -91,6 +91,7 @@ function HammerSVG({ visible }) {
 }
 
 function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playBoing, playFail }) {
+  const t = useTranslation();
   const config   = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const holes    = config.holes;
   const useBombs = difficulty !== 'easy';

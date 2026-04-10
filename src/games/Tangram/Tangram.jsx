@@ -147,6 +147,7 @@ function buildRound(gridSize) {
    TangramGame — the inner game component
 ────────────────────────────────────────────────────── */
 function TangramGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { rounds, showOutlines } = config;
   const boardSize = 240; // SVG viewBox size for the board area

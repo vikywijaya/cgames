@@ -24,6 +24,7 @@ function randomCell(gridSize, exclude = []) {
 }
 
 function SnakeLiteGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { gridSize } = config;
   const mid = Math.floor(gridSize / 2);

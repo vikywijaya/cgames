@@ -12,6 +12,7 @@ import { useTranslation } from '../../i18n/useTranslation';
 
 
 function WordRecallGame({ difficulty, onComplete, reportScore, playClick, playSuccess, playFail }) {
+  const t = useTranslation();
   const {
     wordList,
     phase,

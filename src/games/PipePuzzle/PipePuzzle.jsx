@@ -344,6 +344,7 @@ function buildPuzzle(rows, cols, numColors) {
 
 // ── Inner game ────────────────────────────────────────────────────
 function PipeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { rows, cols, numColors, rounds } = config;
 

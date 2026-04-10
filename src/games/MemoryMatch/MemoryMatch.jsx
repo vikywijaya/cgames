@@ -51,6 +51,7 @@ CardTile.propTypes = {
 };
 
 function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft, playReveal, playSuccess }) {
+  const t = useTranslation();
   const { cards, cardState, flipCard, matchCount, maxMatches, cols, timeLimitSeconds, done } =
     useMemoryMatch(difficulty);
 

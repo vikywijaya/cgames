@@ -53,6 +53,7 @@ function dropAndFill(grid, cleared, rows, cols, n) {
 
 /* ── Inner game component ─────────────────────────────── */
 function LumenoGame({ difficulty, onComplete, reportScore, playSuccess, playFail, playPop }) {
+  const t = useTranslation();
   const cfg = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   const [grid,      setGrid]      = useState(() => buildGrid(cfg.rows, cfg.cols, cfg.numColors));

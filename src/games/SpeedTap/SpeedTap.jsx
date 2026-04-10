@@ -18,6 +18,7 @@ const TARGETS      = ['⭐', '🌟', '💎', '🎯'];
 const DISTRACTORS  = ['🍎', '🐶', '🌸', '🚗', '🎈', '🏠', '🐱', '🌈', '🎵', '🍦'];
 
 function SpeedTapGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const [counting,  setCounting]  = useState(true);
   const [round,     setRound]     = useState(0);

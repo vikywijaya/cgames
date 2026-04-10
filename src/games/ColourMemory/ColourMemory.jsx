@@ -26,6 +26,7 @@ function randomSeq(len) {
 
 // phase: 'showing' | 'recalling' | 'feedback'
 function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail, playReveal }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   const [round, setRound]         = useState(0);
