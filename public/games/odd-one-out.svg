@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a4e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d2b6b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="tileGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2e3a8e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a2060;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="oddTileGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3e1a5e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#200d40;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="magGlassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.35" />
+      <stop offset="100%" style="stop-color:#aad4ff;stop-opacity:0.1" />
+    </linearGradient>
+    <linearGradient id="titleGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff6b9d;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffe566;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="magnifyGlow">
+      <feGaussianBlur stdDeviation="7" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="oddGlow">
+      <feGaussianBlur stdDeviation="10" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="90" ry="90" fill="url(#bgGrad)"/>
+
+  <!-- Radial center glow -->
+  <radialGradient id="cGlow" cx="50%" cy="54%" r="50%">
+    <stop offset="0%" style="stop-color:#2a1a7e;stop-opacity:0.5" />
+    <stop offset="100%" style="stop-color:#1a1a4e;stop-opacity:0" />
+  </radialGradient>
+  <rect width="512" height="512" rx="90" ry="90" fill="url(#cGlow)"/>
+
+  <!-- Title -->
+  <rect x="58" y="44" width="396" height="62" rx="14" ry="14"
+        fill="#ffffff" opacity="0.07"/>
+  <text x="256" y="90" font-family="Arial Black, Arial" font-size="32" font-weight="900"
+        fill="url(#titleGrad)" text-anchor="middle" letter-spacing="3"
+        filter="url(#glow)">ODD ONE OUT</text>
+
+  <!--
+    3x3 grid of emoji-like icons.
+    Cell size: 102x102, gap: 14
+    Grid starts at x=65, y=138
+    Stride: 116
+
+    Layout:
+    [star][star][star]
+    [star][CIRCLE][star]
+    [star][star][star]
+
+    The center cell (1,1) is the "odd one out" - a circle instead of a star.
+  -->
+
+  <!-- Helper: draw star polygon centered at (cx,cy) with outer r=34, inner r=14 -->
+  <!-- Star path template (5-point) for cx=0,cy=0: -->
+  <!-- We'll define a reusable star shape via symbol -->
+
+  <!-- === ROW 0 === -->
+
+  <!-- [0,0] Star tile -->
+  <rect x="65" y="138" width="102" height="102" rx="16" ry="16" fill="url(#tileGrad)"
+        stroke="#3a4aae" stroke-width="1.5"/>
+  <!-- Star at (116,189) -->
+  <polygon points="116,155 122,175 143,175 127,187 133,207 116,196 99,207 105,187 89,175 110,175"
+           fill="#ffe566" opacity="0.9" filter="url(#glow)"/>
+
+  <!-- [0,1] Star tile -->
+  <rect x="181" y="138" width="102" height="102" rx="16" ry="16" fill="url(#tileGrad)"
+        stroke="#3a4aae" stroke-width="1.5"/>
+  <polygon points="232,155 238,175 259,175 243,187 249,207 232,196 215,207 221,187 205,175 226,175"
+           fill="#ffe566" opacity="0.9" filter="url(#glow)"/>
+
+  <!-- [0,2] Star tile -->
+  <rect x="297" y="138" width="102" height="102" rx="16" ry="16" fill="url(#tileGrad)"
+        stroke="#3a4aae" stroke-width="1.5"/>
+  <polygon points="348,155 354,175 375,175 359,187 365,207 348,196 331,207 337,187 321,175 342,175"
+           fill="#ffe566" opacity="0.9" filter="url(#glow)"/>
+
+  <!-- === ROW 1 === -->
+
+  <!-- [1,0] Star tile -->
+  <rect x="65" y="254" width="102" height="102" rx="16" ry="16" fill="url(#tileGrad)"
+        stroke="#3a4aae" stroke-width="1.5"/>
+  <polygon points="116,271 122,291 143,291 127,303 133,323 116,312 99,323 105,303 89,291 110,291"
+           fill="#ffe566" opacity="0.9" filter="url(#glow)"/>
+
+  <!-- [1,1] ODD TILE - Circle, not star, highlighted -->
+  <!-- Glowing ring around it -->
+  <circle cx="232" cy="305" r="62" fill="none" stroke="#ff6b9d"
+          stroke-width="3" opacity="0.7" filter="url(#oddGlow)"/>
+  <circle cx="232" cy="305" r="56" fill="none" stroke="#ffaacc"
+          stroke-width="1.5" opacity="0.5" stroke-dasharray="8,5"/>
+  <!-- Tile bg (darker, distinct) -->
+  <rect x="181" y="254" width="102" height="102" rx="16" ry="16" fill="url(#oddTileGrad)"
+        stroke="#aa44cc" stroke-width="2.5"/>
+  <!-- The ODD icon: a circle/pentagon shape instead of star -->
+  <circle cx="232" cy="305" r="28" fill="none" stroke="#ff6b9d" stroke-width="4"
+          filter="url(#glow)"/>
+  <circle cx="232" cy="305" r="14" fill="#ff6b9d" opacity="0.85"
+          filter="url(#glow)"/>
+
+  <!-- [1,2] Star tile -->
+  <rect x="297" y="254" width="102" height="102" rx="16" ry="16" fill="url(#tileGrad)"
+        stroke="#3a4aae" stroke-width="1.5"/>
+  <polygon points="348,271 354,291 375,291 359,303 365,323 348,312 331,323 337,303 321,291 342,291"
+           fill="#ffe566" opacity="0.9" filter="url(#glow)"/>
+
+  <!-- === ROW 2 === -->
+
+  <!-- [2,0] Star tile -->
+  <rect x="65" y="370" width="102" height="102" rx="16" ry="16" fill="url(#tileGrad)"
+        stroke="#3a4aae" stroke-width="1.5"/>
+  <polygon points="116,387 122,407 143,407 127,419 133,439 116,428 99,439 105,419 89,407 110,407"
+           fill="#ffe566" opacity="0.9" filter="url(#glow)"/>
+
+  <!-- [2,1] Star tile -->
+  <rect x="181" y="370" width="102" height="102" rx="16" ry="16" fill="url(#tileGrad)"
+        stroke="#3a4aae" stroke-width="1.5"/>
+  <polygon points="232,387 238,407 259,407 243,419 249,439 232,428 215,439 221,419 205,407 226,407"
+           fill="#ffe566" opacity="0.9" filter="url(#glow)"/>
+
+  <!-- [2,2] Star tile -->
+  <rect x="297" y="370" width="102" height="102" rx="16" ry="16" fill="url(#tileGrad)"
+        stroke="#3a4aae" stroke-width="1.5"/>
+  <polygon points="348,387 354,407 375,407 359,419 365,439 348,428 331,439 337,419 321,407 342,407"
+           fill="#ffe566" opacity="0.9" filter="url(#glow)"/>
+
+  <!-- === MAGNIFYING GLASS (overlaid on center) === -->
+  <!-- Position: handle extends to bottom-right from center cell -->
+  <!-- Lens circle centered around (232,305) but shifted slightly upper-right -->
+  <!-- Glass lens -->
+  <circle cx="330" cy="215" r="50" fill="url(#magGlassGrad)"
+          stroke="#ffffff" stroke-width="5" filter="url(#magnifyGlow)" opacity="0.85"/>
+  <!-- Glass lens inner shimmer -->
+  <circle cx="315" cy="200" r="16" fill="#ffffff" opacity="0.18"/>
+  <!-- Handle -->
+  <line x1="368" y1="253" x2="418" y2="306"
+        stroke="#ffffff" stroke-width="9" stroke-linecap="round" opacity="0.85"/>
+  <line x1="368" y1="253" x2="418" y2="306"
+        stroke="#aad4ff" stroke-width="5" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Exclamation point inside lens -->
+  <text x="330" y="228" font-family="Arial Black, Arial" font-size="38" font-weight="900"
+        fill="#ff6b9d" text-anchor="middle" filter="url(#glow)">!</text>
+
+</svg>

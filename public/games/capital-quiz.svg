@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a4e"/>
+      <stop offset="100%" style="stop-color:#0d2b6b"/>
+    </linearGradient>
+    <linearGradient id="globeGrad" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e4db7"/>
+      <stop offset="100%" style="stop-color:#0c2f7a"/>
+    </linearGradient>
+    <linearGradient id="pinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b35"/>
+      <stop offset="100%" style="stop-color:#ff3d6e"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#243a8a"/>
+      <stop offset="100%" style="stop-color:#162260"/>
+    </linearGradient>
+    <radialGradient id="globeShine" cx="35%" cy="30%" r="60%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.2)"/>
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0)"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <filter id="pinGlow">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="globeClip">
+      <circle cx="256" cy="290" r="140"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="90" fill="url(#bg)"/>
+
+  <!-- Subtle star dots -->
+  <circle cx="50" cy="100" r="1.5" fill="white" opacity="0.35"/>
+  <circle cx="130" cy="55" r="1" fill="white" opacity="0.25"/>
+  <circle cx="460" cy="90" r="2" fill="white" opacity="0.35"/>
+  <circle cx="480" cy="180" r="1" fill="white" opacity="0.3"/>
+  <circle cx="40" cy="380" r="1.5" fill="white" opacity="0.3"/>
+  <circle cx="490" cy="420" r="1" fill="white" opacity="0.25"/>
+
+  <!-- Title -->
+  <text x="256" y="68" text-anchor="middle" font-family="Arial Black, Arial" font-weight="900" font-size="33" fill="white" letter-spacing="4" filter="url(#shadow)">CAPITAL QUIZ</text>
+
+  <!-- Globe circle -->
+  <circle cx="256" cy="278" r="142" fill="url(#globeGrad)" filter="url(#shadow)"/>
+
+  <!-- Land masses (stylized continents) -->
+  <g clip-path="url(#globeClip)">
+    <!-- Ocean base already from circle -->
+    <!-- North America -->
+    <ellipse cx="180" cy="240" rx="38" ry="52" fill="#2d6a27" opacity="0.9" transform="rotate(-15,180,240)"/>
+    <ellipse cx="190" cy="300" rx="22" ry="30" fill="#2d6a27" opacity="0.85" transform="rotate(-10,190,300)"/>
+    <!-- Europe -->
+    <ellipse cx="270" cy="225" rx="28" ry="28" fill="#2d6a27" opacity="0.9"/>
+    <!-- Africa -->
+    <ellipse cx="278" cy="295" rx="30" ry="48" fill="#2d6a27" opacity="0.9"/>
+    <!-- Asia -->
+    <ellipse cx="340" cy="240" rx="48" ry="36" fill="#2d6a27" opacity="0.9"/>
+    <!-- Australia -->
+    <ellipse cx="355" cy="320" rx="24" ry="18" fill="#2d6a27" opacity="0.85"/>
+    <!-- South America -->
+    <ellipse cx="198" cy="335" rx="20" ry="34" fill="#2d6a27" opacity="0.85" transform="rotate(5,198,335)"/>
+  </g>
+
+  <!-- Globe latitude lines -->
+  <g clip-path="url(#globeClip)" opacity="0.2">
+    <ellipse cx="256" cy="278" rx="142" ry="40" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1"/>
+    <ellipse cx="256" cy="228" rx="120" ry="28" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="0.8"/>
+    <ellipse cx="256" cy="328" rx="120" ry="28" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="0.8"/>
+    <line x1="256" y1="136" x2="256" y2="420" stroke="rgba(255,255,255,0.5)" stroke-width="0.8"/>
+    <line x1="114" y1="278" x2="398" y2="278" stroke="rgba(255,255,255,0.5)" stroke-width="0.8"/>
+  </g>
+
+  <!-- Globe rim -->
+  <circle cx="256" cy="278" r="142" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2"/>
+
+  <!-- Shine overlay -->
+  <circle cx="256" cy="278" r="142" fill="url(#globeShine)"/>
+
+  <!-- Location Pin -->
+  <g transform="translate(256, 210)" filter="url(#pinGlow)">
+    <!-- Pin body -->
+    <path d="M0,-38 C-22,-38 -38,-22 -38,0 C-38,26 0,62 0,62 C0,62 38,26 38,0 C38,-22 22,-38 0,-38 Z" fill="url(#pinGrad)"/>
+    <!-- Pin inner circle -->
+    <circle cx="0" cy="0" r="16" fill="white" opacity="0.9"/>
+    <circle cx="0" cy="0" r="10" fill="url(#pinGrad)"/>
+    <!-- Pin shadow drop -->
+    <ellipse cx="0" cy="68" rx="14" ry="5" fill="rgba(0,0,0,0.3)"/>
+  </g>
+
+  <!-- Answer card -->
+  <rect x="80" y="408" width="352" height="56" rx="28" fill="url(#cardGrad)" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="256" y="443" text-anchor="middle" font-family="Arial Black, Arial" font-weight="900" font-size="20" fill="white" letter-spacing="1">Paris</text>
+  <text x="376" y="443" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" fill="rgba(255,200,100,0.8)">?</text>
+
+  <!-- Subtitle -->
+  <text x="256" y="484" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="rgba(255,255,255,0.38)" letter-spacing="3">NAME THE CAPITAL</text>
+</svg>

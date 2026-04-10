@@ -1,0 +1,154 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a4e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d2b6b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cyanBlock" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#67e8f9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0891b2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="yellowBlock" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fde68a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="purpleBlock" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#c084fc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7e22ce;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="greenBlock" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4ade80;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#15803d;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="redBlock" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f87171;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b91c1c;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="orangeBlock" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fb923c;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c2410c;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="emptyCell" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a6e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#132848;stop-opacity:1" />
+    </linearGradient>
+    <filter id="blockGlow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="dropGlow">
+      <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="90" ry="90" fill="url(#bgGrad)"/>
+
+  <!-- Subtle glow -->
+  <circle cx="256" cy="320" r="200" fill="#7e22ce" opacity="0.05"/>
+
+  <!-- Board grid: 7 cols x 7 rows, cell=52px, gap=4px, start x=58, y=148 -->
+  <!-- Total width: 7*52 + 6*4 = 364+24=388, center at 256 -> start=256-194=62 -->
+  <!-- Total height same: 388, start y=148, end y=536 (clips at bottom due to bg) -->
+
+  <!-- Draw empty grid cells first -->
+  <!-- Row 1 (y=148): cells at x=62,118,174,230,286,342,398 -->
+  <rect x="62" y="148" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+  <rect x="118" y="148" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+  <rect x="174" y="148" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+  <rect x="230" y="148" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+  <rect x="286" y="148" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+  <rect x="342" y="148" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+  <rect x="398" y="148" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+
+  <!-- Row 2 (y=204) -->
+  <rect x="62" y="204" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+  <rect x="118" y="204" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+  <!-- cyan filled -->
+  <rect x="174" y="204" width="52" height="52" rx="6" fill="url(#cyanBlock)" filter="url(#blockGlow)"/>
+  <rect x="230" y="204" width="52" height="52" rx="6" fill="url(#cyanBlock)" filter="url(#blockGlow)"/>
+  <!-- empty -->
+  <rect x="286" y="204" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+  <rect x="342" y="204" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+  <rect x="398" y="204" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+
+  <!-- Row 3 (y=260) -->
+  <rect x="62" y="260" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+  <!-- yellow filled -->
+  <rect x="118" y="260" width="52" height="52" rx="6" fill="url(#yellowBlock)" filter="url(#blockGlow)"/>
+  <!-- cyan -->
+  <rect x="174" y="260" width="52" height="52" rx="6" fill="url(#cyanBlock)" filter="url(#blockGlow)"/>
+  <rect x="230" y="260" width="52" height="52" rx="6" fill="url(#cyanBlock)" filter="url(#blockGlow)"/>
+  <!-- purple -->
+  <rect x="286" y="260" width="52" height="52" rx="6" fill="url(#purpleBlock)" filter="url(#blockGlow)"/>
+  <rect x="342" y="260" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+  <rect x="398" y="260" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+
+  <!-- Row 4 (y=316) -->
+  <!-- green -->
+  <rect x="62" y="316" width="52" height="52" rx="6" fill="url(#greenBlock)" filter="url(#blockGlow)"/>
+  <rect x="118" y="316" width="52" height="52" rx="6" fill="url(#yellowBlock)" filter="url(#blockGlow)"/>
+  <rect x="174" y="316" width="52" height="52" rx="6" fill="url(#yellowBlock)" filter="url(#blockGlow)"/>
+  <rect x="230" y="316" width="52" height="52" rx="6" fill="url(#cyanBlock)" filter="url(#blockGlow)"/>
+  <rect x="286" y="316" width="52" height="52" rx="6" fill="url(#purpleBlock)" filter="url(#blockGlow)"/>
+  <rect x="342" y="316" width="52" height="52" rx="6" fill="url(#purpleBlock)" filter="url(#blockGlow)"/>
+  <rect x="398" y="316" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+
+  <!-- Row 5 (y=372) - full completed row (green glow) -->
+  <rect x="62" y="372" width="52" height="52" rx="6" fill="url(#greenBlock)" filter="url(#blockGlow)"/>
+  <rect x="118" y="372" width="52" height="52" rx="6" fill="url(#orangeBlock)" filter="url(#blockGlow)"/>
+  <rect x="174" y="372" width="52" height="52" rx="6" fill="url(#yellowBlock)" filter="url(#blockGlow)"/>
+  <rect x="230" y="372" width="52" height="52" rx="6" fill="url(#redBlock)" filter="url(#blockGlow)"/>
+  <rect x="286" y="372" width="52" height="52" rx="6" fill="url(#cyanBlock)" filter="url(#blockGlow)"/>
+  <rect x="342" y="372" width="52" height="52" rx="6" fill="url(#purpleBlock)" filter="url(#blockGlow)"/>
+  <rect x="398" y="372" width="52" height="52" rx="6" fill="url(#greenBlock)" filter="url(#blockGlow)"/>
+  <!-- Completed row glow strip -->
+  <rect x="60" y="370" width="396" height="56" rx="8" fill="#4ade80" opacity="0.08" filter="url(#dropGlow)"/>
+
+  <!-- Row 6 (y=428) - bottom partial -->
+  <rect x="62" y="428" width="52" height="52" rx="6" fill="url(#orangeBlock)" filter="url(#blockGlow)"/>
+  <rect x="118" y="428" width="52" height="52" rx="6" fill="url(#orangeBlock)" filter="url(#blockGlow)"/>
+  <rect x="174" y="428" width="52" height="52" rx="6" fill="url(#redBlock)" filter="url(#blockGlow)"/>
+  <rect x="230" y="428" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+  <rect x="286" y="428" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+  <rect x="342" y="428" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+  <rect x="398" y="428" width="52" height="52" rx="6" fill="url(#emptyCell)" stroke="#1e3a6e" stroke-width="1"/>
+
+  <!-- Highlight shines on filled blocks (top-left gloss) -->
+  <rect x="177" y="207" width="40" height="16" rx="5" fill="white" opacity="0.3"/>
+  <rect x="233" y="207" width="40" height="16" rx="5" fill="white" opacity="0.3"/>
+  <rect x="121" y="263" width="40" height="16" rx="5" fill="white" opacity="0.3"/>
+  <rect x="65" y="319" width="40" height="16" rx="5" fill="white" opacity="0.3"/>
+
+  <!-- Falling piece (L-shape) above board, dropping in -->
+  <!-- L-piece in orange, falling from top -->
+  <g opacity="0.85" filter="url(#dropGlow)">
+    <rect x="342" y="88" width="52" height="52" rx="6" fill="url(#orangeBlock)"/>
+    <rect x="342" y="148" width="52" height="52" rx="6" fill="url(#orangeBlock)"/>
+    <rect x="398" y="148" width="52" height="52" rx="6" fill="url(#orangeBlock)"/>
+    <rect x="345" y="91" width="42" height="16" rx="5" fill="white" opacity="0.3"/>
+    <rect x="345" y="151" width="42" height="16" rx="5" fill="white" opacity="0.3"/>
+  </g>
+
+  <!-- Drop shadow/trail effect -->
+  <rect x="342" y="204" width="52" height="3" rx="2" fill="#fb923c" opacity="0.3"/>
+  <rect x="398" y="204" width="52" height="3" rx="2" fill="#fb923c" opacity="0.3"/>
+
+  <!-- Dashed guide lines for falling piece -->
+  <line x1="342" y1="204" x2="342" y2="316" stroke="#fb923c" stroke-width="1" stroke-dasharray="4,4" opacity="0.2"/>
+  <line x1="394" y1="204" x2="394" y2="316" stroke="#fb923c" stroke-width="1" stroke-dasharray="4,4" opacity="0.2"/>
+
+  <!-- Title -->
+  <text x="256" y="96" font-family="Arial Black, Arial" font-weight="900" font-size="58" fill="white" text-anchor="middle" letter-spacing="4">BLOCKS</text>
+  <text x="256" y="96" font-family="Arial Black, Arial" font-weight="900" font-size="58" fill="#c084fc" text-anchor="middle" letter-spacing="4" opacity="0.35" filter="url(#blockGlow)">BLOCKS</text>
+
+  <!-- Border -->
+  <rect width="512" height="512" rx="90" ry="90" fill="none" stroke="#c084fc" stroke-width="2" opacity="0.2"/>
+</svg>

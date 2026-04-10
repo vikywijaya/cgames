@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /Users/onezero/Projects/Flutter/LIVE/CARITAHUB/cgames/src -type f -name *.dart)",
+      "Bash(npm install:*)"
+    ],
+    "additionalDirectories": [
+      "/Users/onezero/Projects/Flutter/LIVE/CARITAHUB/cgames/src/assets/games"
+    ]
+  }
+}
