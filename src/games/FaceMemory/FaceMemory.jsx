@@ -14,6 +14,7 @@ import male2 from '../../assets/faces/male/male2.png';
 import male3 from '../../assets/faces/male/male3.png';
 import male4 from '../../assets/faces/male/male4.png';
 import male5 from '../../assets/faces/male/male5.png';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const DIFFICULTY_CONFIG = {
   easy:   { rounds: 6, faceCount: 3, studySec: 8  },
@@ -101,8 +102,8 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, play
       <div className={styles.wrapper}>
         <div className={styles.infoHeader}>
           <div className={styles.infoHeaderText}>
-            <span className={styles.infoHeaderLabel}>FACE MEMORY</span>
-            <span className={styles.infoHeaderSub}>Round {round + 1} of {config.rounds}</span>
+            <span className={styles.infoHeaderLabel}>{t.games['face-memory'].label}</span>
+            <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
           </div>
           <div className={styles.infoBadge}>
             <span className={styles.infoBadgeNum}>{timer}</span>
@@ -127,7 +128,7 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, play
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
           <span className={styles.infoHeaderLabel}>FACE MEMORY</span>
-          <span className={styles.infoHeaderSub}>Round {round + 1} of {config.rounds}</span>
+          <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{score}</span>
@@ -158,11 +159,12 @@ FaceMemoryGame.propTypes = { difficulty: PropTypes.string.isRequired, onComplete
 const TIME_LIMITS = { easy: null, medium: null, hard: null };
 
 export function FaceMemory({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'face-memory', callbackUrl, onComplete });
   return (
-    <GameShell gameId="face-memory" title="Face Memory"
-      instructions={`Study the faces and their names for ${config.studySec} seconds. Then identify who's who!`}
+    <GameShell gameId="face-memory" title={t.games['face-memory'].title}
+      instructions={t.games['face-memory'].instructions}
       difficulty={difficulty} timeLimits={TIME_LIMITS} onGameComplete={fireCallback}
       onBack={onBack} musicMuted={musicMuted} onToggleMusic={onToggleMusic}>
       {({ onComplete: sc, reportScore, secondsLeft, difficulty: diff, playClick, playSuccess, playFail }) => (

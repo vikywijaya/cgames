@@ -6,10 +6,8 @@ import { useGameCallback } from '../../hooks/useGameCallback';
 import { GAME_IDS } from '../../utils/gameIds';
 import { useMemoryMatch } from './useMemoryMatch';
 import styles from './MemoryMatch.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
-const INSTRUCTIONS =
-  'Flip cards to find matching pairs. Click a card to reveal it, then find its match. ' +
-  'Matched pairs stay face-up. Find all pairs to win!';
 
 function CardTile({ card, state, onFlip, index }) {
   const { isFlipped, isMatched, isMismatched } = state;
@@ -84,9 +82,9 @@ function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft, pla
       {/* ── Info header — WordRecall style ── */}
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>Memory Match</span>
+          <span className={styles.infoHeaderLabel}>{t.games['memory-match'].label}</span>
           <span className={styles.infoHeaderSub}>
-            {pairsLeft === 0 ? 'All pairs found!' : `${pairsLeft} pair${pairsLeft !== 1 ? 's' : ''} left`}
+            {pairsLeft === 0 ? t.common.allPairsFound : `${pairsLeft} ${pairsLeft !== 1 ? t.common.pairsLeft : t.common.pairLeft}`}
           </span>
         </div>
         <div className={styles.infoScoreBadge} aria-live="polite" aria-label={`${matchCount} of ${maxMatches} pairs matched`}>
@@ -140,6 +138,7 @@ MemoryMatchGame.propTypes = {
 const TIME_LIMITS = { easy: null, medium: 120, hard: 90 };
 
 export function MemoryMatch({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete } = useGameCallback({
     memberId,
     gameId: GAME_IDS.MEMORY_MATCH,
@@ -150,8 +149,8 @@ export function MemoryMatch({ memberId, difficulty = 'easy', onComplete, callbac
   return (
     <GameShell
       gameId={GAME_IDS.MEMORY_MATCH}
-      title="Memory Match"
-      instructions={INSTRUCTIONS}
+      title={t.games['memory-match'].title}
+      instructions={t.games['memory-match'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireComplete}

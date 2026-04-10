@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './SnakeLite.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const DIFFICULTY_CONFIG = {
   easy:   { gridSize: 12, intervalMs: 260, timeLimitSeconds: null },
@@ -190,12 +191,13 @@ SnakeLiteGame.propTypes = {
 const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
 
 export function SnakeLite({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'snake-lite', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="snake-lite"
-      title="Snake"
-      instructions="Guide the snake to eat as much fruit as possible. Swipe or use arrow keys to turn — don't hit the walls or yourself!"
+      title={t.games['snake-lite'].title}
+      instructions={t.games['snake-lite'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

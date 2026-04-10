@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './Sokoban.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 /* ── Tile types ── */
 const WALL  = '#';
@@ -539,8 +540,8 @@ function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
     >
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>SOKOBAN</span>
-          <span className={styles.infoHeaderSub}>Level {levelIdx + 1} of {totalLevels} · {moves} moves</span>
+          <span className={styles.infoHeaderLabel}>{t.games['sokoban'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.level} {levelIdx + 1} {t.common.of} {totalLevels} · {moves} {t.common.movesLeft}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{pushes}</span>
@@ -625,13 +626,14 @@ SokobanGame.propTypes = {
 /*  Outer wrapper with GameShell                         */
 /* ══════════════════════════════════════════════════════ */
 export function Sokoban({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete } = useGameCallback({ memberId, gameId: 'sokoban', callbackUrl, onComplete });
 
   return (
     <GameShell
       gameId="sokoban"
-      title="Sokoban"
-      instructions="Push all the boxes onto the target spots. You can only push one box at a time — you can't pull! Use arrow keys, WASD, swipe, or the on-screen D-pad to move. Press Z or tap Undo to take back a move."
+      title={t.games['sokoban'].title}
+      instructions={t.games['sokoban'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireComplete}

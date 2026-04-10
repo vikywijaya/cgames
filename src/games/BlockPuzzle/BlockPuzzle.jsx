@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './BlockPuzzle.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 /* ── Colours for pieces ── */
 const PIECE_COLORS = [
@@ -280,8 +281,8 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>BLOCK PUZZLE</span>
-          <span className={styles.infoHeaderSub}>Puzzle {round + 1} of {rounds}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['block-puzzle'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.puzzle} {round + 1} {t.common.of} {rounds}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{emptyCells}</span>
@@ -403,12 +404,13 @@ BlockPuzzleGame.propTypes = {
 };
 
 export function BlockPuzzle({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'block-puzzle', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="block-puzzle"
-      title="Blocks"
-      instructions="Place the block pieces on the board until you complete the puzzle. Tap a piece to select it, then tap an empty cell on the board to place it. Tap a placed piece on the board to remove it. Fill all the empty cells to solve the puzzle!"
+      title={t.games['block-puzzle'].title}
+      instructions={t.games['block-puzzle'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

@@ -4,6 +4,7 @@ import { GameShell } from '../../components/GameShell/GameShell';
 import { GameCountdown } from '../../components/GameCountdown/GameCountdown';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './SpeedTap.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const DIFFICULTY_CONFIG = {
   //  rounds  showMs  gridSize  distractors  timeLimitSeconds
@@ -181,12 +182,13 @@ const TIME_LIMITS = {
 };
 
 export function SpeedTap({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'speed-tap', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="speed-tap"
-      title="Speed Tap"
-      instructions="Find the matching emoji in the grid and tap it as fast as you can! The target is shown at the top."
+      title={t.games['speed-tap'].title}
+      instructions={t.games['speed-tap'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './ShoppingList.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const DIFFICULTY_CONFIG = {
   easy:   { rounds: 6, listSize: 5,  studySec: 10, choicesSize: 8  },
@@ -112,8 +113,8 @@ function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft, pl
       <div className={styles.wrapper}>
         <div className={styles.infoHeader}>
           <div className={styles.infoHeaderText}>
-            <span className={styles.infoHeaderLabel}>SHOPPING LIST</span>
-            <span className={styles.infoHeaderSub}>Round {round + 1} of {config.rounds}</span>
+            <span className={styles.infoHeaderLabel}>{t.games['shopping-list'].label}</span>
+            <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
           </div>
           <div className={styles.infoBadge}>
             <span className={styles.infoBadgeNum}>{timer}</span>
@@ -137,7 +138,7 @@ function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft, pl
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
           <span className={styles.infoHeaderLabel}>SHOPPING LIST</span>
-          <span className={styles.infoHeaderSub}>Round {round + 1} of {config.rounds}</span>
+          <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{ticked.size}</span>
@@ -177,11 +178,12 @@ ShoppingListGame.propTypes = { difficulty: PropTypes.string.isRequired, onComple
 const TIME_LIMITS = { easy: null, medium: null, hard: null };
 
 export function ShoppingList({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'shopping-list', callbackUrl, onComplete });
   return (
-    <GameShell gameId="shopping-list" title="Shopping List"
-      instructions={`Study the shopping list for ${config.studySec} seconds. Then tick every item you remember from the choices shown.`}
+    <GameShell gameId="shopping-list" title={t.games['shopping-list'].title}
+      instructions={t.games['shopping-list'].instructions}
       difficulty={difficulty} timeLimits={TIME_LIMITS} onGameComplete={fireCallback}
       onBack={onBack} musicMuted={musicMuted} onToggleMusic={onToggleMusic}>
       {({ onComplete: sc, reportScore, secondsLeft, difficulty: diff, playClick, playSuccess, playFail }) => (

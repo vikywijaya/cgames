@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './CapitalQuiz.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const DIFFICULTY_CONFIG = {
   easy:   { questions: 8,  timeLimitSeconds: null, pool: 'easy'   },
@@ -129,8 +130,8 @@ function CapitalQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pla
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>CAPITAL QUIZ</span>
-          <span className={styles.infoHeaderSub}>Question {qIndex + 1} of {config.questions}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['capital-quiz'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.question} {qIndex + 1} {t.common.of} {config.questions}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{score}</span>
@@ -183,12 +184,13 @@ CapitalQuizGame.propTypes = {
 const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
 
 export function CapitalQuiz({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'capital-quiz', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="capital-quiz"
-      title="Capital City Quiz"
-      instructions="Choose the correct capital city for each country shown. Exercises general knowledge and geography."
+      title={t.games['capital-quiz'].title}
+      instructions={t.games['capital-quiz'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

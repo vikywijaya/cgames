@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './FlagQuiz.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 // ── Difficulty config ──────────────────────────────────────────────
 const DIFFICULTY_CONFIG = {
@@ -159,8 +160,8 @@ function FlagQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>FLAG QUIZ</span>
-          <span className={styles.infoHeaderSub}>Question {qIndex + 1} of {config.questions}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['flag-quiz'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.question} {qIndex + 1} {t.common.of} {config.questions}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{score}</span>
@@ -221,13 +222,14 @@ FlagQuizGame.propTypes = {
 const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
 
 export function FlagQuiz({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'flag-quiz', callbackUrl, onComplete });
 
   return (
     <GameShell
       gameId="flag-quiz"
-      title="Flag Quiz"
-      instructions="Look at the flag and choose the correct country. Exercises general knowledge and visual recognition."
+      title={t.games['flag-quiz'].title}
+      instructions={t.games['flag-quiz'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './RingSort.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const RING_COLORS = [
   { bg: '#f87171', name: 'red' },
@@ -187,8 +188,8 @@ function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>RING SORT</span>
-          <span className={styles.infoHeaderSub}>Puzzle {round + 1} of {rounds}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['ring-sort'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.puzzle} {round + 1} {t.common.of} {rounds}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{moves}</span>
@@ -266,12 +267,13 @@ RingSortGame.propTypes = {
 };
 
 export function RingSort({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'ring-sort', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="ring-sort"
-      title="Rings"
-      instructions="Place the rings of the same colour on each rod. Tap a rod to pick up the top ring, then tap another rod to place it. Sort all the rings by colour to complete the puzzle!"
+      title={t.games['ring-sort'].title}
+      instructions={t.games['ring-sort'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

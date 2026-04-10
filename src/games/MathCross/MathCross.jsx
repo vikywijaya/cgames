@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './MathCross.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 /*
  * Layout: equations laid out on a grid. Each equation is either horizontal or
@@ -449,7 +450,7 @@ function MathCrossGame({ difficulty, onComplete, reportScore, secondsLeft, playC
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>MATH CROSS</span>
+          <span className={styles.infoHeaderLabel}>{t.games['math-cross'].label}</span>
           <span className={styles.infoHeaderSub}>{hintText}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -556,12 +557,13 @@ MathCrossGame.propTypes = {
 };
 
 export function MathCross({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'math-cross', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="math-cross"
-      title="Math Cross"
-      instructions="Place the numbers in the tiles to make the operations correct. Tap a number from the tray, then tap an empty slot. Tap a placed number to remove it. Every row and column equation must be satisfied!"
+      title={t.games['math-cross'].title}
+      instructions={t.games['math-cross'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './Lumeno.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const DIFFICULTY_CONFIG = {
   easy:   { cols: 5, rows: 5, numColors: 4, moves: 20 },
@@ -157,8 +158,8 @@ function LumenoGame({ difficulty, onComplete, reportScore, playSuccess, playFail
     >
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>LUMENO</span>
-          <span className={styles.infoHeaderSub}>{movesLeft} moves left</span>
+          <span className={styles.infoHeaderLabel}>{t.games['lumeno'].label}</span>
+          <span className={styles.infoHeaderSub}>{movesLeft} {t.common.movesLeft}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{score}</span>
@@ -224,14 +225,15 @@ LumenoGame.propTypes = {
 const TIME_LIMITS = { easy: null, medium: null, hard: null };
 
 export function Lumeno({ memberId, difficulty = 'easy', callbackUrl, onComplete, onBack }) {
+  const t = useTranslation();
   const { fireComplete } = useGameCallback({ memberId, gameId: 'lumeno', callbackUrl, onComplete });
   const cfg = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   return (
     <GameShell
       gameId="lumeno"
-      title="Lumeno"
-      instructions="Drag through 3 or more orbs of the same colour to clear them. You can connect in any direction, including diagonally. The longer the chain, the more points you score. You have a limited number of moves — use them wisely!"
+      title={t.games['lumeno'].title}
+      instructions={t.games['lumeno'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireComplete}

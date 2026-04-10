@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './QuickMaths.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const DIFFICULTY_CONFIG = {
   easy:   { rounds: 10, ops: ['+'],         maxA: 10,  maxB: 10,  timeLimitSeconds: null },
@@ -87,8 +88,8 @@ function QuickMathsGame({ difficulty, onComplete, reportScore, secondsLeft, play
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>QUICK MATHS</span>
-          <span className={styles.infoHeaderSub}>Round {round + 1} of {config.rounds}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['quick-maths'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{score}</span>
@@ -137,13 +138,14 @@ QuickMathsGame.propTypes = {
 const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
 
 export function QuickMaths({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'quick-maths', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="quick-maths"
-      title="Quick Maths"
-      instructions={`Solve each arithmetic problem and tap the correct answer. ${config.rounds} rounds total.`}
+      title={t.games['quick-maths'].title}
+      instructions={t.games['quick-maths'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

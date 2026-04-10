@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './PipePuzzle.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 // ── Directions: N=0, E=1, S=2, W=3 ───────────────────────────────
 const DR = [-1, 0, 1, 0];
@@ -424,8 +425,8 @@ function PipeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick,
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>PIPE PUZZLE</span>
-          <span className={styles.infoHeaderSub}>Puzzle {round + 1} of {rounds}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['pipe-puzzle'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.puzzle} {round + 1} {t.common.of} {rounds}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{round + 1}</span>
@@ -514,6 +515,7 @@ export function PipePuzzle({
   musicMuted,
   onToggleMusic,
 }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { fireComplete: fireCallback } = useGameCallback({
     memberId,
@@ -540,7 +542,7 @@ export function PipePuzzle({
   return (
     <GameShell
       gameId="pipe-puzzle"
-      title="Pipe Puzzle"
+      title={t.games['pipe-puzzle'].title}
       instructions={instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}

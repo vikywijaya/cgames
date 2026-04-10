@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './DotEd.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 /* ──────────────────────────────────────────────────────────
    Grid-based level data (visual layout only).
@@ -609,8 +610,8 @@ function DotEdGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, 
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>DOT ED</span>
-          <span className={styles.infoHeaderSub}>Level {levelIdx + 1}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['dot-ed'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.level} {levelIdx + 1}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{levelIdx + 1}</span>
@@ -620,7 +621,7 @@ function DotEdGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, 
       {/* Top controls */}
       <div className={styles.topBar}>
         <div className={styles.controls}>
-          <button className={styles.ctrlBtn} onClick={restart} disabled={won} aria-label="Restart" title="Restart">
+          <button className={styles.ctrlBtn} onClick={restart} disabled={won} aria-label="Restart" title={t.games['dot-ed'].title}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
             </svg>
@@ -724,13 +725,14 @@ DotEdGame.propTypes = {
    Exported wrapper (GameShell integration)
 ────────────────────────────────────────────────────────── */
 export function DotEd({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack }) {
+  const t = useTranslation();
   const { fireComplete } = useGameCallback({ memberId, gameId: 'dot-ed', callbackUrl, onComplete });
 
   return (
     <GameShell
       gameId="dot-ed"
       title="Dot.ed"
-      instructions="Swipe from any red dot to any blue square to connect them. Each red dot shows white pips for its capacity. Each blue square shows how many connections it needs. Drain every dot and fill every square to complete the level!"
+      instructions={t.games['dot-ed'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireComplete}

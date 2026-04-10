@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './Sumix.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const DIFFICULTY_CONFIG = {
   easy:   { rows: 3, cols: 3, rounds: 5, maxVal: 9,  timeLimitSeconds: null },
@@ -156,8 +157,8 @@ function SumixGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>SUMIX</span>
-          <span className={styles.infoHeaderSub}>Puzzle {round + 1} of {rounds}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['sumix'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.puzzle} {round + 1} {t.common.of} {rounds}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{round + 1}</span>
@@ -222,12 +223,13 @@ SumixGame.propTypes = {
 };
 
 export function Sumix({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'sumix', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="sumix"
-      title="Sumix"
-      instructions="Activate the correct numbers so that their sum equals the target number in each row and column. Tap a number to toggle it on or off. Exercises numeric reasoning and logic."
+      title={t.games['sumix'].title}
+      instructions={t.games['sumix'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

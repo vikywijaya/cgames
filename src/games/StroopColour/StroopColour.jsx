@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './StroopColour.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const DIFFICULTY_CONFIG = {
   easy:   { rounds: 10, match: true,  timeLimitSeconds: null },   // word matches ink colour
@@ -104,8 +105,8 @@ function StroopGame({ difficulty, onComplete, reportScore, secondsLeft, playClic
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>STROOP COLOUR</span>
-          <span className={styles.infoHeaderSub}>Round {round + 1} of {config.rounds}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['stroop-colour'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{score}</span>
@@ -163,12 +164,13 @@ StroopGame.propTypes = {
 const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
 
 export function StroopColour({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'stroop-colour', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="stroop-colour"
-      title="Stroop Colour"
-      instructions="A colour word is shown in a coloured ink. Tap the button that matches the INK colour — not what the word says!"
+      title={t.games['stroop-colour'].title}
+      instructions={t.games['stroop-colour'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

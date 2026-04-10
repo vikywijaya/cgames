@@ -39,6 +39,7 @@ import { Zip }            from './games/Zip/Zip';
 import { Sokoban }        from './games/Sokoban/Sokoban';
 import { saveScore, getAllScores, getFavorites, toggleFavorite, saveTotalScore, getTotalScore } from './utils/scoreStore';
 import { GameContext } from './context/GameContext';
+import translations from './i18n/index';
 import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import './design/globals.css';
 import styles from './App.module.css';
@@ -179,6 +180,7 @@ const urlDifficulty   = params.get('difficulty')   ?? 'easy';
 const urlCallbackUrl  = params.get('callbackUrl')  ?? undefined;
 const urlAccessToken  = params.get('access_token') ?? undefined;
 const urlTotalScore   = params.get('total_score');
+const urlLangCode     = params.get('langCode')     ?? 'en';
 
 // Persist total_score from URL into localStorage on every load (if provided)
 if (urlTotalScore !== null && !isNaN(Number(urlTotalScore))) {
@@ -221,16 +223,25 @@ function computePct(result) {
 }
 
 
-const ACHIEVEMENT_LEVELS = [
-  { min: 0,  icon: '🌱', name: 'Newcomer',     desc: 'Play your first game to get started!' },
-  { min: 10, icon: '🔭', name: 'Explorer',     desc: 'Discovering new brain challenges.' },
-  { min: 30, icon: '⚡', name: 'Challenger',   desc: 'Building consistency and skill.' },
-  { min: 50, icon: '🎯', name: 'Achiever',     desc: 'Strong performance across many games.' },
-  { min: 70, icon: '🏆', name: 'Champion',     desc: 'Outstanding cognitive performance!' },
-  { min: 90, icon: '🧠', name: 'Brain Master', desc: 'Your mind is truly exceptional!' },
+const ACHIEVEMENT_LEVELS_BASE = [
+  { min: 0,  icon: '🌱', nameKey: 'newcomer',    descKey: 'newcomerDesc' },
+  { min: 10, icon: '🔭', nameKey: 'explorer',    descKey: 'explorerDesc' },
+  { min: 30, icon: '⚡', nameKey: 'challenger',  descKey: 'challengerDesc' },
+  { min: 50, icon: '🎯', nameKey: 'achiever',    descKey: 'achieverDesc' },
+  { min: 70, icon: '🏆', nameKey: 'champion',    descKey: 'championDesc' },
+  { min: 90, icon: '🧠', nameKey: 'brainMaster', descKey: 'brainMasterDesc' },
 ];
 
-function computeAchievement(allScores, memberId) {
+function buildAchievementLevels(t) {
+  return ACHIEVEMENT_LEVELS_BASE.map(l => ({
+    ...l,
+    name: t.app[l.nameKey],
+    desc: t.app[l.descKey],
+  }));
+}
+
+function computeAchievement(allScores, memberId, levels) {
+  const ACHIEVEMENT_LEVELS = levels;
   const played     = Object.keys(allScores).length;
   const bests      = Object.values(allScores).map(s => s.best);
   const totalPlays = Object.values(allScores).reduce((sum, s) => sum + s.playCount, 0);
@@ -301,6 +312,30 @@ function buildDailyGames() {
    App
 ────────────────────────────────────────────────────────────── */
 export function App() {
+  const t = translations[urlLangCode] || translations.en;
+
+  const achievementLevels = buildAchievementLevels(t);
+
+  // Helper: translate game title/description using i18n
+  const tGame = (game) => {
+    const gt = t.games[game.id];
+    return gt ? { ...game, title: gt.title, description: gt.description } : game;
+  };
+  const categoryNames = [
+    t.app.categories.memory,
+    t.app.categories.attention,
+    t.app.categories.numbers,
+    t.app.categories.visual,
+    t.app.categories.knowledge,
+    t.app.categories.arcade,
+  ];
+  const translatedGroups = GAME_GROUPS.map((g, i) => ({
+    ...g,
+    category: categoryNames[i] || g.category,
+    games: g.games.map(tGame),
+  }));
+  const translatedAllGames = translatedGroups.flatMap(g => g.games);
+
   // view: 'home' | 'games' | 'scores' | 'daily' | 'daily-playing' | 'daily-inter' | 'daily-result'
   const [view,               setView]               = useState('home');
   const [selectedGame,       setSelectedGame]       = useState(null);
@@ -362,16 +397,18 @@ export function App() {
   if (urlGameId && GAME_MAP[urlGameId]) {
     const GameComponent = GAME_MAP[urlGameId];
     return (
-      <GameComponent
-        memberId={urlMemberId}
-        difficulty={urlDifficulty}
-        callbackUrl={urlCallbackUrl}
-        onComplete={(result) => {
-            const pct = computePct(result);
-            saveScore(urlGameId, pct, result.durationSeconds ?? null, urlMemberId, result.difficulty ?? null);
-            sendCallback(urlGameId, result);
-          }}
-      />
+      <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
+        <GameComponent
+          memberId={urlMemberId}
+          difficulty={urlDifficulty}
+          callbackUrl={urlCallbackUrl}
+          onComplete={(result) => {
+              const pct = computePct(result);
+              saveScore(urlGameId, pct, result.durationSeconds ?? null, urlMemberId, result.difficulty ?? null);
+              sendCallback(urlGameId, result);
+            }}
+        />
+      </GameContext.Provider>
     );
   }
 
@@ -379,18 +416,20 @@ export function App() {
   if (selectedGame) {
     const GameComponent = GAME_MAP[selectedGame];
     return (
-      <div className={styles.gameWrapper}>
-        <GameComponent
-          memberId={urlMemberId}
-          difficulty={selectedDifficulty}
-          onComplete={(result) => {
-            const pct = computePct(result);
-            saveScore(selectedGame, pct, result.durationSeconds ?? null, urlMemberId, result.difficulty ?? null);
-            sendCallback(selectedGame, result);
-          }}
-          onBack={() => setSelectedGame(null)}
-        />
-      </div>
+      <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
+        <div className={styles.gameWrapper}>
+          <GameComponent
+            memberId={urlMemberId}
+            difficulty={selectedDifficulty}
+            onComplete={(result) => {
+              const pct = computePct(result);
+              saveScore(selectedGame, pct, result.durationSeconds ?? null, urlMemberId, result.difficulty ?? null);
+              sendCallback(selectedGame, result);
+            }}
+            onBack={() => setSelectedGame(null)}
+          />
+        </div>
+      </GameContext.Provider>
     );
   }
 
@@ -402,8 +441,8 @@ export function App() {
       <div className={styles.dailyWrapper}>
         <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Back">‹ <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         <div className={styles.dailyPreview}>
-          <h2 className={styles.dailyPreviewTitle}>Today's Challenge</h2>
-          <p className={styles.dailyPreviewSub}>Play these 2 games and see how you score!</p>
+          <h2 className={styles.dailyPreviewTitle}>{t.app.todaysChallenge}</h2>
+          <p className={styles.dailyPreviewSub}>{t.app.playTheseGames}</p>
           <div className={styles.dailyPreviewGrid}>
             {games.map((game, i) => (
               <div key={`${game.id}-${i}`} className={styles.gameCard} style={{ cursor: 'default' }}>
@@ -422,14 +461,14 @@ export function App() {
                   <p className={styles.gameCardDesc}>{game.description}</p>
                   <div className={styles.gameCardFooter}>
                     <span className={styles.gameDomain}>{game.domain}</span>
-                    <span className={styles.dailyGameNum}>Game {i + 1}</span>
+                    <span className={styles.dailyGameNum}>{t.app.game} {i + 1}</span>
                   </div>
                 </div>
               </div>
             ))}
           </div>
           <button className={styles.primaryBtn} onClick={confirmDailyChallenge}>
-            Start Challenge →
+            {t.app.startChallenge}
           </button>
         </div>
       </div>
@@ -444,7 +483,7 @@ export function App() {
 
     return (
       <div className={styles.gameWrapper}>
-        <GameContext.Provider value={{ hideDifficulty: true }}>
+        <GameContext.Provider value={{ hideDifficulty: true, langCode: urlLangCode }}>
           <GameComponent
             key={`daily-${game.id}-${index}`}
             memberId={urlMemberId}
@@ -498,12 +537,12 @@ export function App() {
             <small className={styles.interPct}>%</small>
           </div>
           <p className={styles.interSub}>
-            {lastPct >= 75 ? 'Excellent!' : lastPct >= 50 ? 'Well done!' : 'Keep going!'}
+            {lastPct >= 75 ? t.shell.excellent : lastPct >= 50 ? t.shell.wellDone : t.app.keepGoing}
           </p>
 
           <div className={styles.interActions}>
             <button className={styles.primaryBtn} onClick={advanceDailyChallenge}>
-              {isLast ? '🏁 See Results' : 'Next Game →'}
+              {isLast ? t.app.seeResults : t.app.nextGame}
             </button>
           </div>
         </div>
@@ -526,12 +565,12 @@ export function App() {
         <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Back">‹ <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         <div className={styles.dailyResult}>
         <div className={styles.resultTrophy}>{trophy}</div>
-        <h2 className={styles.resultHeadline}>Challenge Complete!</h2>
+        <h2 className={styles.resultHeadline}>{t.app.challengeComplete}</h2>
         <div className={styles.resultAvgScore}>{avg}<small className={styles.resultPct}>%</small></div>
         <p className={styles.resultSub}>
-          {avg >= 75 ? 'Excellent work! Your mind is sharp!' :
-           avg >= 50 ? 'Great effort! Keep practising!' :
-           'Well done for completing the challenge!'}
+          {avg >= 75 ? t.app.excellentWork :
+           avg >= 50 ? t.app.greatEffortChallenge :
+           t.app.wellDoneChallenge}
         </p>
 
         <div className={styles.resultList}>
@@ -559,7 +598,7 @@ export function App() {
 
         <div className={styles.resultActions}>
           <button className={styles.primaryBtn} onClick={startDailyChallenge}>
-            🔄 Play Again
+            {t.app.playAgainDaily}
           </button>
         </div>
         </div>
@@ -570,8 +609,8 @@ export function App() {
   /* ── Scores dashboard ── */
   if (view === 'scores') {
     const allScores   = getAllScores(urlMemberId);
-    const totalPlayed = ALL_GAMES.filter(g => allScores[g.id]).length;
-    const achievement = computeAchievement(allScores, urlMemberId);
+    const totalPlayed = translatedAllGames.filter(g => allScores[g.id]).length;
+    const achievement = computeAchievement(allScores, urlMemberId, achievementLevels);
 
     return (
       <div className={styles.dailyWrapper}>
@@ -583,7 +622,7 @@ export function App() {
             alt="Cognitive Games"
             className={styles.scoresTitleImg}
           />
-          <p className={styles.scoresMeta}>{totalPlayed} of {ALL_GAMES.length} games played</p>
+          <p className={styles.scoresMeta}>{totalPlayed} / {translatedAllGames.length} {t.app.gamesPlayed}</p>
 
           {/* ── Achievement Card ── */}
           <div className={styles.achievementCard}>
@@ -595,21 +634,21 @@ export function App() {
               </div>
               <div className={styles.achievementScore}>
                 <span className={styles.achievementScoreNum}>{achievement.score}</span>
-                <span className={styles.achievementScoreLabel}>Total Score</span>
+                <span className={styles.achievementScoreLabel}>{t.app.totalScore}</span>
               </div>
             </div>
             <div className={styles.achievementStatsRow}>
               <div className={styles.achievementStat}>
                 <span className={styles.achievementStatVal}>{achievement.played}</span>
-                <span className={styles.achievementStatLabel}>games played</span>
+                <span className={styles.achievementStatLabel}>{t.app.gamesPlayed}</span>
               </div>
               <div className={styles.achievementStat}>
                 <span className={styles.achievementStatVal}>{achievement.avgBest}%</span>
-                <span className={styles.achievementStatLabel}>avg best score</span>
+                <span className={styles.achievementStatLabel}>{t.app.avgBestScore}</span>
               </div>
               <div className={styles.achievementStat}>
                 <span className={styles.achievementStatVal}>{achievement.totalPlays}</span>
-                <span className={styles.achievementStatLabel}>total sessions</span>
+                <span className={styles.achievementStatLabel}>{t.app.totalSessions}</span>
               </div>
             </div>
             <div className={styles.achievementProgressWrap}>
@@ -620,13 +659,13 @@ export function App() {
             </div>
             {achievement.nextLevel && (
               <p className={styles.achievementNextLabel}>
-                {achievement.progressPct}% to <strong>{achievement.nextLevel.name}</strong> {achievement.nextLevel.icon}
+                {achievement.progressPct}% {t.app.to} <strong>{achievement.nextLevel.name}</strong> {achievement.nextLevel.icon}
               </p>
             )}
           </div>
         </div>
 
-        {GAME_GROUPS.map(group => (
+        {translatedGroups.map(group => (
           <section key={group.category} className={styles.scoreSection}>
             <h2 className={styles.scoreSectionTitle}>
               <span aria-hidden="true">{group.icon}</span> {group.category}
@@ -660,12 +699,12 @@ export function App() {
                           )}
                         </div>
                       ) : (
-                        <span className={styles.scoreUnplayed}>Not played yet</span>
+                        <span className={styles.scoreUnplayed}>{t.app.noPlays}</span>
                       )}
                     </div>
                     <div className={styles.scoreRowActions}>
                       {game.comingSoon ? (
-                        <span className={styles.comingSoonBadge}>Coming Soon</span>
+                        <span className={styles.comingSoonBadge}>{t.app.comingSoon}</span>
                       ) : (
                         <button
                           className={styles.playBtnSm}
@@ -719,14 +758,15 @@ export function App() {
             onChange={(e) => setSelectedCategory(e.target.value)}
             aria-label="Filter by category"
           >
-            {['All', 'Favorites', ...GAME_GROUPS.map(g => g.category)].map(cat => {
+            {['All', 'Favorites', ...translatedGroups.map(g => g.category)].map(cat => {
               const isFav = cat === 'Favorites';
-              const group = GAME_GROUPS.find(g => g.category === cat);
-              const count = cat === 'All' ? ALL_GAMES.length : isFav ? favorites.size : group?.games.length;
+              const group = translatedGroups.find(g => g.category === cat);
+              const count = cat === 'All' ? translatedAllGames.length : isFav ? favorites.size : group?.games.length;
               const icon = isFav ? '❤️' : group ? group.icon : '📋';
+              const displayName = cat === 'All' ? t.app.all : cat === 'Favorites' ? t.app.favorites : cat;
               return (
                 <option key={cat} value={cat}>
-                  {icon} {cat} ({count})
+                  {icon} {displayName} ({count})
                 </option>
               );
             })}
@@ -757,13 +797,13 @@ export function App() {
         {selectedCategory === 'Favorites' ? (
           <section className={styles.gameSection} aria-label="Favorites">
             <h2 className={styles.sectionTitle}>
-              <span aria-hidden="true">❤️</span> Favorites
+              <span aria-hidden="true">❤️</span> {t.app.favorites}
             </h2>
             {favorites.size === 0 ? (
-              <p className={styles.favoritesEmpty}>Tap the heart icon on any game card to add it to your favorites.</p>
+              <p className={styles.favoritesEmpty}>{t.app.favoritesEmpty}</p>
             ) : (
             <div className={styles.gameGrid} role="list">
-              {ALL_GAMES.filter(g => favorites.has(g.id)).map(game => (
+              {translatedAllGames.filter(g => favorites.has(g.id)).map(game => (
                 <button
                   key={game.id}
                   className={`${styles.gameCard} ${game.comingSoon ? styles.gameCardDisabled : ''}`}
@@ -798,7 +838,7 @@ export function App() {
                       <span className={styles.gameDomain}>{game.domain}</span>
                       {game.beta && <span className={styles.betaBadge}>Beta</span>}
                       {game.comingSoon
-                        ? <span className={styles.comingSoonBadge}>Coming Soon</span>
+                        ? <span className={styles.comingSoonBadge}>{t.app.comingSoon}</span>
                         : <span className={styles.playButton} aria-hidden="true"><svg width="52" height="52" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg"><g clipPath="url(#pb)"><path d="M57 28.5C57 44.2403 44.2403 57 28.5 57C12.7597 57 0 44.2403 0 28.5C0 12.7597 12.7597 0 28.5 0C44.2403 0 57 12.7597 57 28.5Z" fill="#3777FF"/><path d="M40.1751 27.0179L24.1439 16.3304C23.5972 15.9665 22.8949 15.9325 22.3156 16.2422C21.7368 16.5522 21.375 17.1558 21.375 17.8125V39.1875C21.375 39.8442 21.7368 40.4478 22.3156 40.7578C22.8949 41.0675 23.5972 41.0335 24.1439 40.6696L40.1751 29.9821C40.6709 29.6515 40.9683 29.0953 40.9683 28.5C40.9683 27.9047 40.6709 27.3484 40.1751 27.0179Z" fill="white"/></g><defs><clipPath id="pb"><rect width="57" height="57" fill="white"/></clipPath></defs></svg></span>}
                     </div>
                   </div>
@@ -807,7 +847,7 @@ export function App() {
             </div>
             )}
           </section>
-        ) : GAME_GROUPS
+        ) : translatedGroups
           .filter(group => selectedCategory === 'All' || group.category === selectedCategory)
           .map(group => (
           <section key={group.category} className={styles.gameSection} aria-label={group.category}>
@@ -854,7 +894,7 @@ export function App() {
                       <span className={styles.gameDomain}>{game.domain}</span>
                       {game.beta && <span className={styles.betaBadge}>Beta</span>}
                       {game.comingSoon
-                        ? <span className={styles.comingSoonBadge}>Coming Soon</span>
+                        ? <span className={styles.comingSoonBadge}>{t.app.comingSoon}</span>
                         : <span className={styles.playButton} aria-hidden="true"><svg width="52" height="52" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg"><g clipPath="url(#pb)"><path d="M57 28.5C57 44.2403 44.2403 57 28.5 57C12.7597 57 0 44.2403 0 28.5C0 12.7597 12.7597 0 28.5 0C44.2403 0 57 12.7597 57 28.5Z" fill="#3777FF"/><path d="M40.1751 27.0179L24.1439 16.3304C23.5972 15.9665 22.8949 15.9325 22.3156 16.2422C21.7368 16.5522 21.375 17.1558 21.375 17.8125V39.1875C21.375 39.8442 21.7368 40.4478 22.3156 40.7578C22.8949 41.0675 23.5972 41.0335 24.1439 40.6696L40.1751 29.9821C40.6709 29.6515 40.9683 29.0953 40.9683 28.5C40.9683 27.9047 40.6709 27.3484 40.1751 27.0179Z" fill="white"/></g><defs><clipPath id="pb"><rect width="57" height="57" fill="white"/></clipPath></defs></svg></span>}
                     </div>
                   </div>
@@ -869,14 +909,14 @@ export function App() {
   }
 
   /* ── Home screen (default) ── */
-  const achievement = computeAchievement(getAllScores(urlMemberId), urlMemberId);
+  const achievement = computeAchievement(getAllScores(urlMemberId), urlMemberId, achievementLevels);
 
   const getDaytimeGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return { text: 'Good morning', emoji: '🌤️' };
-    if (hour < 17) return { text: 'Good afternoon', emoji: '☀️' };
-    if (hour < 21) return { text: 'Good evening', emoji: '🌆' };
-    return { text: 'Good night', emoji: '🌙' };
+    if (hour < 12) return { text: t.app.goodMorning, emoji: '🌤️' };
+    if (hour < 17) return { text: t.app.goodAfternoon, emoji: '☀️' };
+    if (hour < 21) return { text: t.app.goodEvening, emoji: '🌆' };
+    return { text: t.app.goodNight, emoji: '🌙' };
   };
   const greeting = getDaytimeGreeting();
 
@@ -901,7 +941,7 @@ export function App() {
               </div>
               <div className={styles.levelScore}>
                 <span className={styles.levelScoreNum}>{achievement.score}</span>
-                <span className={styles.levelScoreLabel}>score</span>
+                <span className={styles.levelScoreLabel}>{t.app.score}</span>
               </div>
             </div>
             <div className={styles.levelBarTrack}>
@@ -913,8 +953,8 @@ export function App() {
             <div className={styles.levelBarFooter}>
               <span className={styles.levelBarNextLabel}>
                 {achievement.nextLevel
-                  ? `Next: ${achievement.nextLevel.name} ${achievement.nextLevel.icon}`
-                  : '🎉 Max level reached!'}
+                  ? `${t.app.next}: ${achievement.nextLevel.name} ${achievement.nextLevel.icon}`
+                  : t.app.maxLevel}
               </span>
               <span className={styles.levelBarPct}>
                 {achievement.nextLevel ? `${achievement.progressPct}%` : '100%'}
@@ -932,12 +972,12 @@ export function App() {
           >
             <span className={styles.menuBtnIcon}>🧩</span>
             <span className={styles.menuBtnBody}>
-              <span className={styles.menuBtnTitle}>Daily Challenge</span>
+              <span className={styles.menuBtnTitle}>{t.app.dailyChallenge}</span>
               <span className={styles.menuBtnDesc}>
-                Play 2 random games each day. Track your daily progress!
+                {t.app.dailyChallengeDesc}
               </span>
               <span className={styles.menuBtnFooter}>
-                <span className={styles.menuBtnCta}>Start →</span>
+                <span className={styles.menuBtnCta}>{t.app.start}</span>
               </span>
             </span>
           </button>
@@ -949,12 +989,12 @@ export function App() {
           >
             <span className={styles.menuBtnIcon}>🎮</span>
             <span className={styles.menuBtnBody}>
-              <span className={styles.menuBtnTitle}>Browse Games</span>
+              <span className={styles.menuBtnTitle}>{t.app.browseGames}</span>
               <span className={styles.menuBtnDesc}>
-                Browse all {ALL_GAMES.length} games across {GAME_GROUPS.length} categories and play any game you like.
+                {t.app.browseGamesDesc.replace('{count}', translatedAllGames.length).replace('{categories}', translatedGroups.length)}
               </span>
               <span className={styles.menuBtnFooter}>
-                <span className={styles.menuBtnCta}>Browse →</span>
+                <span className={styles.menuBtnCta}>{t.app.browse}</span>
               </span>
             </span>
           </button>
@@ -966,12 +1006,12 @@ export function App() {
           >
             <span className={styles.menuBtnIcon}>🏆</span>
             <span className={styles.menuBtnBody}>
-              <span className={styles.menuBtnTitle}>Score</span>
+              <span className={styles.menuBtnTitle}>{t.app.scoreTitle}</span>
               <span className={styles.menuBtnDesc}>
-                View your best scores, completion times, and performance.
+                {t.app.scoreDesc}
               </span>
               <span className={styles.menuBtnFooter}>
-                <span className={styles.menuBtnCta}>View →</span>
+                <span className={styles.menuBtnCta}>{t.app.view}</span>
               </span>
             </span>
           </button>

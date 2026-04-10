@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './CurrencyQuiz.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const DIFFICULTY_CONFIG = {
   easy:   { rounds: 8,  pool: 'basic',    timeLimitSeconds: null },
@@ -114,8 +115,8 @@ function CurrencyQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pl
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>CURRENCY QUIZ</span>
-          <span className={styles.infoHeaderSub}>Round {round + 1} of {config.rounds}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['currency-quiz'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{score}</span>
@@ -163,12 +164,13 @@ CurrencyQuizGame.propTypes = {
 const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
 
 export function CurrencyQuiz({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'currency-quiz', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="currency-quiz"
-      title="Currency Quiz"
-      instructions="Name the currency used in each country. Tap the correct answer."
+      title={t.games['currency-quiz'].title}
+      instructions={t.games['currency-quiz'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

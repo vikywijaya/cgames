@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './SlitherEscape.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 /* ══════════════════════════════════════════════════════════════
    Constants
@@ -600,8 +601,8 @@ function SlitherEscapeGame({ difficulty, onComplete, reportScore, secondsLeft, p
 
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>SLITHER ESCAPE</span>
-          <span className={styles.infoHeaderSub}>Level {round + 1} of {rounds}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['slither-escape'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.level} {round + 1} {t.common.of} {rounds}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{moves}</span>
@@ -721,12 +722,13 @@ SlitherEscapeGame.propTypes = {
    Outer wrapper
    ══════════════════════════════════════════════════════════════ */
 export function SlitherEscape({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'slither-escape', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="slither-escape"
-      title="Slither Escape"
-      instructions="Drag each coloured snake to its matching exit! Snakes slide until they hit a wall or another snake. Move snakes out of the way in the right order to clear the path!"
+      title={t.games['slither-escape'].title}
+      instructions={t.games['slither-escape'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

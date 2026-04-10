@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './WhackAMole.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const DIFFICULTY_CONFIG = {
   easy:   { showMs: 1800, intervalMs: 1600, timeLimitSeconds: 60,  holes: 6 },
@@ -182,8 +183,8 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playBoing
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>WHACK-A-MOLE</span>
-          <span className={styles.infoHeaderSub}>{lives} lives remaining</span>
+          <span className={styles.infoHeaderLabel}>{t.games['whack-a-mole'].label}</span>
+          <span className={styles.infoHeaderSub}>{lives} {t.common.livesRemaining}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{score}</span>
@@ -253,6 +254,7 @@ WhackGame.propTypes = {
 const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
 
 export function WhackAMole({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'whack-a-mole', callbackUrl, onComplete });
   const useBombs = difficulty !== 'easy';
@@ -260,7 +262,7 @@ export function WhackAMole({ memberId, difficulty = 'easy', onComplete, callback
   return (
     <GameShell
       gameId="whack-a-mole"
-      title="Whack-a-Mole"
+      title={t.games['whack-a-mole'].title}
       instructions={useBombs
         ? `Tap the moles quickly — but avoid the bombs! You have 3 lives. Score as many as you can in ${config.timeLimitSeconds} seconds.`
         : `Tap the moles as fast as you can! Score as many as you can in ${config.timeLimitSeconds} seconds.`}

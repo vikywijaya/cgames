@@ -6,10 +6,8 @@ import { useGameCallback } from '../../hooks/useGameCallback';
 import { GAME_IDS } from '../../utils/gameIds';
 import { useDailyArithmetic } from './useDailyArithmetic';
 import styles from './DailyArithmetic.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
-const INSTRUCTIONS =
-  'Answer each arithmetic question by choosing the correct answer. ' +
-  'Take your time — there is no time limit. A green highlight means correct, a red highlight means wrong!';
 
 function ArithmeticGame({ difficulty, onComplete, reportScore, playClick, playSuccess, playFail }) {
   const {
@@ -49,8 +47,8 @@ function ArithmeticGame({ difficulty, onComplete, reportScore, playClick, playSu
     <div className={styles.container}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>DAILY CHALLENGE</span>
-          <span className={styles.infoHeaderSub}>Question {currentIndex + 1} of {totalQuestions}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['daily-arithmetic'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.question} {currentIndex + 1} {t.common.of} {totalQuestions}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{score}</span>
@@ -119,6 +117,7 @@ export function DailyArithmetic({
   musicMuted,
   onToggleMusic,
 }) {
+  const t = useTranslation();
   const { fireComplete } = useGameCallback({
     memberId,
     gameId: GAME_IDS.DAILY_ARITHMETIC,
@@ -129,8 +128,8 @@ export function DailyArithmetic({
   return (
     <GameShell
       gameId={GAME_IDS.DAILY_ARITHMETIC}
-      title="Daily Arithmetic"
-      instructions={INSTRUCTIONS}
+      title={t.games['daily-arithmetic'].title}
+      instructions={t.games['daily-arithmetic'].instructions}
       difficulty={difficulty}
       timeLimits={{ easy: null, medium: null, hard: null }}
       onGameComplete={fireComplete}

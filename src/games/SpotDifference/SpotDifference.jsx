@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './SpotDifference.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const DIFFICULTY_CONFIG = {
   easy:   { rounds: 6,  gridSize: 3, changes: 1, timeLimitSeconds: null },
@@ -108,8 +109,8 @@ function SpotDifferenceGame({ difficulty, onComplete, reportScore, secondsLeft, 
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>SPOT DIFFERENCE</span>
-          <span className={styles.infoHeaderSub}>Round {round + 1} of {config.rounds} · Find {config.changes} difference{config.changes > 1 ? 's' : ''}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['spot-difference'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{score}</span>
@@ -175,12 +176,13 @@ SpotDifferenceGame.propTypes = {
 const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
 
 export function SpotDifference({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'spot-difference', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="spot-difference"
-      title="Spot the Difference"
-      instructions="Two emoji grids are shown side by side. Tap the cells in the right grid that differ from the left."
+      title={t.games['spot-difference'].title}
+      instructions={t.games['spot-difference'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

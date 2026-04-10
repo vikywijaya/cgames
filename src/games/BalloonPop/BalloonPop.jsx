@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './BalloonPop.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 // ── Config ─────────────────────────────────────────────────────────
 const DIFFICULTY_CONFIG = {
@@ -142,8 +143,8 @@ function BalloonGame({ difficulty, onComplete, reportScore, secondsLeft, playPop
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>BALLOON POP</span>
-          <span className={styles.infoHeaderSub}>{displayLives} lives remaining</span>
+          <span className={styles.infoHeaderLabel}>{t.games['balloon-pop'].label}</span>
+          <span className={styles.infoHeaderSub}>{displayLives} {t.common.livesRemaining}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{displayScore}</span>
@@ -216,14 +217,15 @@ BalloonGame.propTypes = {
 const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
 
 export function BalloonPop({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'balloon-pop', callbackUrl, onComplete });
 
   return (
     <GameShell
       gameId="balloon-pop"
-      title="Balloon Pop"
-      instructions={`Tap the balloons to pop them before they float away! You have ${config.lives} lives — each balloon that escapes costs one life. Exercises attention and reaction speed.`}
+      title={t.games['balloon-pop'].title}
+      instructions={t.games['balloon-pop'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

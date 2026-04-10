@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './NumberSort.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const DIFFICULTY_CONFIG = {
   easy:   { rounds: 8,  count: 4, maxVal: 20,  timeLimitSeconds: null },
@@ -91,8 +92,8 @@ function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft, play
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>NUMBER SORT</span>
-          <span className={styles.infoHeaderSub}>Round {round + 1} of {config.rounds} · Tap smallest → largest</span>
+          <span className={styles.infoHeaderLabel}>{t.games['number-sort'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds} · {t.common.tapSmallestToLargest}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{score}</span>
@@ -150,13 +151,14 @@ NumberSortGame.propTypes = {
 const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
 
 export function NumberSort({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'number-sort', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="number-sort"
-      title="Number Sort"
-      instructions={`Tap the numbers in order from smallest to largest. You have ${config.rounds} rounds. Exercises numeric reasoning and ordering.`}
+      title={t.games['number-sort'].title}
+      instructions={t.games['number-sort'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

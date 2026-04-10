@@ -5,6 +5,7 @@ import { useSoundFx } from '../../hooks/useSoundFx';
 import { Button } from '../Button/Button';
 import { ProgressBar } from '../ProgressBar/ProgressBar';
 import { useGameContext } from '../../context/GameContext';
+import { useTranslation } from '../../i18n/useTranslation';
 import styles from './GameShell.module.css';
 
 /**
@@ -33,6 +34,7 @@ export function GameShell({
   onBack,
 }) {
   const { hideDifficulty: ctxHideDifficulty } = useGameContext();
+  const t = useTranslation();
   const shouldHideDifficulty = hideDifficulty || ctxHideDifficulty;
   const [localDifficulty, setLocalDifficulty] = useState(difficulty);
   const [phase, setPhase] = useState('idle'); // 'idle' | 'playing' | 'finished'
@@ -131,7 +133,7 @@ export function GameShell({
 
   const pct = phase === 'finished' && result.maxScore > 0 ? result.score / result.maxScore : 0;
   const headline =
-    pct >= 0.9 ? 'Excellent!' : pct >= 0.7 ? 'Well done!' : pct >= 0.5 ? 'Great effort!' : 'Keep practising!';
+    pct >= 0.9 ? t.shell.excellent : pct >= 0.7 ? t.shell.wellDone : pct >= 0.5 ? t.shell.greatEffort : t.shell.keepPractising;
 
   return (
     <div className={styles.shell}>
@@ -141,7 +143,7 @@ export function GameShell({
         <div className={styles.howToPlayOverlay} role="dialog" aria-modal="true" aria-label="How to play">
           <div className={styles.howToPlayOverlayCard}>
             <div className={styles.howToPlayOverlayHeader}>
-              <h2 className={styles.howToPlayOverlayTitle}>How To Play</h2>
+              <h2 className={styles.howToPlayOverlayTitle}>{t.shell.howToPlay}</h2>
               <button
                 className={styles.howToPlayCloseBtn}
                 onClick={() => setShowHowToPlay(false)}
@@ -201,20 +203,20 @@ export function GameShell({
                   <span className={styles.difficultyDot} aria-hidden="true">
                     {level === 'easy' ? '🟢' : level === 'medium' ? '🟡' : '🔴'}
                   </span>
-                  {level.charAt(0).toUpperCase() + level.slice(1)}
+                  {t.shell[level]}
                 </button>
               ))}
             </div>
           )}
 
           <div className={styles.instructionsFrame} role="region" aria-label="Game instructions">
-            <h2 className={styles.instructionsTitle}>How To Play</h2>
+            <h2 className={styles.instructionsTitle}>{t.shell.howToPlay}</h2>
             <div className={styles.instructions}>
               {renderInstructions(instructions)}
             </div>
             <div className={styles.playBtnWrapper}>
               <Button size="large" onClick={handleStart} autoFocus className={styles.playBtn}>
-                Play
+                {t.shell.play}
               </Button>
             </div>
           </div>
@@ -262,12 +264,12 @@ export function GameShell({
         <div className={styles.endScreen}>
           <h1 className={styles.endHeadline}>{headline}</h1>
           {!result.completed && (
-            <span className={styles.timedOutBadge}>Time ran out</span>
+            <span className={styles.timedOutBadge}>{t.shell.timeRanOut}</span>
           )}
           <div className={styles.endScoreCard} role="region" aria-label="Your results">
             <div aria-live="polite">
               <div className={styles.endScoreValue}>{result.score}</div>
-              <div className={styles.endScoreMax}>out of {result.maxScore}</div>
+              <div className={styles.endScoreMax}>{t.shell.outOf} {result.maxScore}</div>
             </div>
             <ProgressBar
               value={result.score}
@@ -276,12 +278,12 @@ export function GameShell({
               colorVariant={pct >= 0.7 ? 'success' : pct >= 0.4 ? 'default' : 'warning'}
             />
             <p className={styles.endDuration}>
-              Completed in {result.durationSeconds} second{result.durationSeconds !== 1 ? 's' : ''}
+              {t.shell.completedIn} {result.durationSeconds} {result.durationSeconds !== 1 ? t.shell.secondsPlural : t.shell.seconds}
             </p>
           </div>
           <div className={styles.endButtonGroup}>
             <Button size="large" onClick={handlePlayAgain} autoFocus>
-              Play Again
+              {t.shell.playAgain}
             </Button>
           </div>
         </div>

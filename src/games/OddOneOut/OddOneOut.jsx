@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './OddOneOut.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const DIFFICULTY_CONFIG = {
   easy:   { questions: 8,  gridSize: 3, timeLimitSeconds: null },
@@ -79,8 +80,8 @@ function OddOneOutGame({ difficulty, onComplete, reportScore, secondsLeft, playC
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>ODD ONE OUT</span>
-          <span className={styles.infoHeaderSub}>Question {qIndex + 1} of {config.questions}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['odd-one-out'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.question} {qIndex + 1} {t.common.of} {config.questions}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{score}</span>
@@ -137,12 +138,13 @@ OddOneOutGame.propTypes = {
 const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
 
 export function OddOneOut({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'odd-one-out', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="odd-one-out"
-      title="Odd One Out"
-      instructions="Look at the grid of emoji and tap the one that doesn't belong with the others. Exercises visual categorisation and attention to detail."
+      title={t.games['odd-one-out'].title}
+      instructions={t.games['odd-one-out'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

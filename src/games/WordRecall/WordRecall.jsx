@@ -8,11 +8,8 @@ import { useCountdown } from '../../hooks/useCountdown';
 import { GAME_IDS } from '../../utils/gameIds';
 import { useWordRecall } from './useWordRecall';
 import styles from './WordRecall.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
-const INSTRUCTIONS =
-  'You will see a list of words. Study them carefully! When the time is up, ' +
-  'the words will disappear and you will type as many as you can remember. ' +
-  'Spelling counts, but upper and lower case do not matter.';
 
 function WordRecallGame({ difficulty, onComplete, reportScore, playClick, playSuccess, playFail }) {
   const {
@@ -197,6 +194,7 @@ WordRecallGame.propTypes = {
 };
 
 export function WordRecall({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete } = useGameCallback({
     memberId,
     gameId: GAME_IDS.WORD_RECALL,
@@ -207,8 +205,8 @@ export function WordRecall({ memberId, difficulty = 'easy', onComplete, callback
   return (
     <GameShell
       gameId={GAME_IDS.WORD_RECALL}
-      title="Word Recall"
-      instructions={INSTRUCTIONS}
+      title={t.games['word-recall'].title}
+      instructions={t.games['word-recall'].instructions}
       difficulty={difficulty}
       timeLimits={{ easy: null, medium: null, hard: null }}
       onGameComplete={fireComplete}

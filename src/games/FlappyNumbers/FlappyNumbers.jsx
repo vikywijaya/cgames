@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './FlappyNumbers.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 /* ══════════════════════════════════════════════════════════════
    Constants
@@ -350,8 +351,8 @@ function FlappyNumbersGame({
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>FLAPPY NUMBERS</span>
-          <span className={styles.infoHeaderSub}>{hasColor ? 'Match number + color' : 'Tap or Space to flap'}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['flappy-numbers'].label}</span>
+          <span className={styles.infoHeaderSub}>{hasColor ? t.common.matchNumberColor : t.common.tapOrSpaceToFlap}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{g.sc}</span>
@@ -478,13 +479,14 @@ export function FlappyNumbers({
   memberId, difficulty = 'easy', onComplete, callbackUrl,
   onBack, musicMuted, onToggleMusic,
 }) {
+  const t = useTranslation();
   const { fireComplete } = useGameCallback({
     memberId, gameId: 'flappy-numbers', callbackUrl, onComplete,
   });
   return (
     <GameShell
       gameId="flappy-numbers"
-      title="Flappy Numbers"
+      title={t.games['flappy-numbers'].title}
       instructions={
         difficulty === 'easy'
           ? 'Tap or press Space to flap upward. Fly through the tile that matches your number. Avoid all other tiles. It gets faster the longer you survive!'

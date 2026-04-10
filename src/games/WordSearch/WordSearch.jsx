@@ -6,18 +6,8 @@ import { useGameCallback } from '../../hooks/useGameCallback';
 import { GAME_IDS } from '../../utils/gameIds';
 import { useWordSearch } from './useWordSearch';
 import styles from './WordSearch.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
-const INSTRUCTIONS = (
-  <>
-    <p>
-      Find all the hidden words in the letter grid. Click a <strong>starting letter</strong> then
-      click the <strong>ending letter</strong> of the word. Words can go across, down, or diagonally.
-    </p>
-    <p style={{ marginTop: '8px' }}>
-      Click <em>Clear Selection</em> to cancel if you misclick.
-    </p>
-  </>
-);
 
 function WordSearchGame({ difficulty, onComplete, reportScore, playClick, playSuccess, playFail }) {
   const {
@@ -138,8 +128,8 @@ function WordSearchGame({ difficulty, onComplete, reportScore, playClick, playSu
 
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>WORD SEARCH</span>
-          <span className={styles.infoHeaderSub}>{score} of {maxScore} found</span>
+          <span className={styles.infoHeaderLabel}>{t.games['word-search'].label}</span>
+          <span className={styles.infoHeaderSub}>{score} {t.common.of} {maxScore} {t.common.found}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{score}</span>
@@ -167,6 +157,7 @@ WordSearchGame.propTypes = {
 };
 
 export function WordSearch({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete } = useGameCallback({
     memberId,
     gameId: GAME_IDS.WORD_SEARCH,
@@ -177,8 +168,8 @@ export function WordSearch({ memberId, difficulty = 'easy', onComplete, callback
   return (
     <GameShell
       gameId={GAME_IDS.WORD_SEARCH}
-      title="Word Search"
-      instructions={INSTRUCTIONS}
+      title={t.games['word-search'].title}
+      instructions={t.games['word-search'].instructions}
       difficulty={difficulty}
       timeLimits={{ easy: null, medium: null, hard: null }}
       onGameComplete={fireComplete}

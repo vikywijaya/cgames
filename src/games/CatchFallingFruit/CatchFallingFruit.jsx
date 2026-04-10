@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './CatchFallingFruit.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 // ── Difficulty config ──────────────────────────────────────────────
 const DIFFICULTY_CONFIG = {
@@ -267,8 +268,8 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>CATCH FRUIT</span>
-          <span className={styles.infoHeaderSub}>{displayLives} lives remaining</span>
+          <span className={styles.infoHeaderLabel}>{t.games['catch-falling-fruit'].label}</span>
+          <span className={styles.infoHeaderSub}>{displayLives} {t.common.livesRemaining}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{displayScore}</span>
@@ -361,6 +362,7 @@ export function CatchFallingFruit({
   musicMuted,
   onToggleMusic,
 }) {
+  const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'catch-falling-fruit', callbackUrl, onComplete });
 
@@ -389,7 +391,7 @@ export function CatchFallingFruit({
   return (
     <GameShell
       gameId="catch-falling-fruit"
-      title="Catch the Falling Fruit"
+      title={t.games['catch-falling-fruit'].title}
       instructions={instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}

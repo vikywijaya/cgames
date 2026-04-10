@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './ColourMemory.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 const DIFFICULTY_CONFIG = {
   easy:   { rounds: 6,  startLen: 3, maxLen: 5,  showMs: 600, gapMs: 300 },
@@ -142,9 +143,9 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, pl
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>COLOUR MEMORY</span>
+          <span className={styles.infoHeaderLabel}>{t.games['colour-memory'].label}</span>
           <span className={styles.infoHeaderSub}>
-            {!ready ? 'Get ready…' : phase === 'showing' ? 'Watch the sequence…' : phase === 'recalling' ? 'Now repeat it!' : feedback === 'correct' ? 'Correct!' : 'Wrong!'}
+            {!ready ? t.common.getReady : phase === 'showing' ? t.common.watchSequence : phase === 'recalling' ? t.common.nowRepeat : feedback === 'correct' ? t.common.correct : t.common.wrong}
           </span>
         </div>
         <div className={styles.infoBadge}>
@@ -187,12 +188,13 @@ ColourMemoryGame.propTypes = {
 const TIME_LIMITS = { easy: null, medium: null, hard: null };
 
 export function ColourMemory({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'colour-memory', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="colour-memory"
-      title="Color Memory"
-      instructions="Watch the sequence of colours light up, then tap them back in the same order. The sequence gets longer each round!"
+      title={t.games['colour-memory'].title}
+      instructions={t.games['colour-memory'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

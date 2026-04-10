@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './RightTime.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 // ── Difficulty config ──────────────────────────────────────────────
 const DIFFICULTY_CONFIG = {
@@ -163,8 +164,8 @@ function RightTimeGame({ difficulty, onComplete, reportScore, secondsLeft, playC
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>RIGHT TIME</span>
-          <span className={styles.infoHeaderSub}>Question {qIndex + 1} of {config.questions}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['right-time'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.question} {qIndex + 1} {t.common.of} {config.questions}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{score}</span>
@@ -222,13 +223,14 @@ RightTimeGame.propTypes = {
 const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
 
 export function RightTime({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'right-time', callbackUrl, onComplete });
 
   return (
     <GameShell
       gameId="right-time"
-      title="Right Time"
-      instructions="Look at the analog clock and choose the correct time from the four options. Exercises time-reading and visual cognition."
+      title={t.games['right-time'].title}
+      instructions={t.games['right-time'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

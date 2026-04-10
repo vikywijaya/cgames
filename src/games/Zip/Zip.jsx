@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './Zip.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 /* ──────────────────────────────────────────────────────────
    Zip — Hamiltonian Path puzzle
@@ -336,8 +337,8 @@ function ZipGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, pl
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>ZIP</span>
-          <span className={styles.infoHeaderSub}>Level {levelIdx + 1}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['zip'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.level} {levelIdx + 1}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{waypointsHit}</span>
@@ -350,7 +351,7 @@ function ZipGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, pl
           onClick={restart}
           disabled={won}
           aria-label="Restart"
-          title="Restart level"
+          title={t.games['zip'].title}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
@@ -455,13 +456,14 @@ ZipGame.propTypes = {
    Exported wrapper
 ────────────────────────────────────────────────────────── */
 export function Zip({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack }) {
+  const t = useTranslation();
   const { fireComplete } = useGameCallback({ memberId, gameId: 'zip', callbackUrl, onComplete });
 
   return (
     <GameShell
       gameId="zip"
       title="Zip"
-      instructions="Draw a path starting from 1, passing through each number in order. Your path must cover every single cell on the grid. Move horizontally or vertically — no crossing!"
+      instructions={t.games['zip'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireComplete}

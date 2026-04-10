@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './Tangram.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
 /* ── The 7 classic tangram pieces (tans) ──
    Each piece is defined as a polygon in a normalised coordinate space.
@@ -313,8 +314,8 @@ function TangramGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>TANGRAM</span>
-          <span className={styles.infoHeaderSub}>Puzzle {round + 1} of {rounds}</span>
+          <span className={styles.infoHeaderLabel}>{t.games['tangram'].label}</span>
+          <span className={styles.infoHeaderSub}>{t.common.puzzle} {round + 1} {t.common.of} {rounds}</span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{placedCount}</span>
@@ -460,12 +461,13 @@ TangramGame.propTypes = {
 };
 
 export function Tangram({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'tangram', callbackUrl, onComplete });
   return (
     <GameShell
       gameId="tangram"
-      title="Tangram"
-      instructions="Drag the seven geometric pieces onto the board to fill the silhouette. Each piece must be placed in its correct position. Match the dashed outlines to solve the puzzle!"
+      title={t.games['tangram'].title}
+      instructions={t.games['tangram'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       onGameComplete={fireCallback}

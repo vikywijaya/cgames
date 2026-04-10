@@ -5,10 +5,8 @@ import { useGameCallback } from '../../hooks/useGameCallback';
 import { GAME_IDS } from '../../utils/gameIds';
 import { usePatternSequence } from './usePatternSequence';
 import styles from './PatternSequence.module.css';
+import { useTranslation } from '../../i18n/useTranslation';
 
-const INSTRUCTIONS =
-  'Watch the coloured pads light up in a sequence, then repeat the pattern by clicking the pads in the same order. ' +
-  'Each round adds one more step. Take your time — there is no time pressure during your turn!';
 
 // Each pad has a unique shape icon for colour-blind accessibility
 const PADS = [
@@ -130,7 +128,7 @@ function PatternSequenceGame({ difficulty, onComplete, reportScore, playSuccess,
     <div className={styles.container}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>PATTERN SEQUENCE</span>
+          <span className={styles.infoHeaderLabel}>{t.games['pattern-sequence'].label}</span>
           <span className={styles.infoHeaderSub}>{statusText}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -173,6 +171,7 @@ PatternSequenceGame.propTypes = {
 };
 
 export function PatternSequence({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
+  const t = useTranslation();
   const { fireComplete } = useGameCallback({
     memberId,
     gameId: GAME_IDS.PATTERN_SEQUENCE,
@@ -183,8 +182,8 @@ export function PatternSequence({ memberId, difficulty = 'easy', onComplete, cal
   return (
     <GameShell
       gameId={GAME_IDS.PATTERN_SEQUENCE}
-      title="Pattern Sequence"
-      instructions={INSTRUCTIONS}
+      title={t.games['pattern-sequence'].title}
+      instructions={t.games['pattern-sequence'].instructions}
       difficulty={difficulty}
       timeLimits={{ easy: null, medium: null, hard: null }}
       onGameComplete={fireComplete}
