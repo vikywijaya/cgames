@@ -43,12 +43,12 @@ function WordSearchGame({ difficulty, onComplete, reportScore, playClick, playSu
 
   const statusText =
     lastResult === 'found'
-      ? '✓ Found!'
+      ? t.common.foundWord
       : lastResult === 'miss'
-      ? '✗ Not a word — try again'
+      ? t.common.notAWord
       : selectionStart
-      ? 'Now click the last letter'
-      : 'Click the first letter of a word';
+      ? t.common.clickLastLetter
+      : t.common.clickFirstLetter;
 
   const statusClass =
     lastResult === 'found'

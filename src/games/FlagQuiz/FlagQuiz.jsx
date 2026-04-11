@@ -203,7 +203,7 @@ function FlagQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
       </div>
 
       <p className={feedback === 'correct' ? styles.feedbackCorrect : feedback === 'wrong' ? styles.feedbackWrong : styles.feedbackSlot}>
-        {feedback === 'correct' ? '✓ Correct!' : feedback ? `✗ That was ${question.correct.name}` : '\u00A0'}
+        {feedback === 'correct' ? t.common.correct : feedback ? `${t.games['flag-quiz'].wrongAnswer} ${question.correct.name}` : '\u00A0'}
       </p>
     </div>
   );

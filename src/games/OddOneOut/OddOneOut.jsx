@@ -120,7 +120,7 @@ function OddOneOutGame({ difficulty, onComplete, reportScore, secondsLeft, playC
       </div>
 
       <p className={feedback ? (feedback.correct ? styles.feedbackOk : styles.feedbackBad) : styles.feedbackSlot}>
-        {feedback ? (feedback.correct ? '✓ Correct!' : '✗ That was the odd one!') : '\u00A0'}
+        {feedback ? (feedback.correct ? t.common.correct : t.games['odd-one-out'].wrongAnswer) : '\u00A0'}
       </p>
     </div>
   );

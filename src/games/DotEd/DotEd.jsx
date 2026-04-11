@@ -650,7 +650,7 @@ function DotEdGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, 
         </div>
       )}
 
-      {won && <div className={styles.wonText}>Level Complete!</div>}
+      {won && <div className={styles.wonText}>{t.common.levelComplete}</div>}
 
       {/* Grid board */}
       <div className={styles.board} ref={boardRef} style={{ '--cols': cols }}>
@@ -732,7 +732,7 @@ export function DotEd({ memberId, difficulty = 'easy', onComplete, callbackUrl, 
   return (
     <GameShell
       gameId="dot-ed"
-      title="Dot.ed"
+      title={t.games['dot-ed'].title}
       instructions={t.games['dot-ed'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}

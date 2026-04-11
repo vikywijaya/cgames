@@ -149,7 +149,7 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, play
         })}
       </div>
       <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
-        {feedback === 'correct' ? '✓ Correct!' : feedback ? `✗ That was ${data.target.name}` : '\u00A0'}
+        {feedback === 'correct' ? t.common.correct : feedback ? `${t.games['face-memory'].wrongAnswer} ${data.target.name}` : '\u00A0'}
       </p>
     </div>
   );

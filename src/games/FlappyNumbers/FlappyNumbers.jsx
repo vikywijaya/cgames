@@ -447,15 +447,15 @@ function FlappyNumbersGame({
 
         {/* Tap to start */}
         {g.ph === 'waiting' && (
-          <div className={styles.tapPrompt}>Tap to start!</div>
+          <div className={styles.tapPrompt}>{t.common.tapToStart}</div>
         )}
 
         {/* Game over overlay */}
         {g.ph === 'dead' && (
           <div className={styles.ov}>
             <div className={styles.ovBox}>
-              <h2 className={styles.ovT}>Game Over</h2>
-              <p className={styles.ovSc}>Score: {g.sc}</p>
+              <h2 className={styles.ovT}>{t.common.gameOver}</h2>
+              <p className={styles.ovSc}>{t.shell.score}: {g.sc}</p>
             </div>
           </div>
         )}

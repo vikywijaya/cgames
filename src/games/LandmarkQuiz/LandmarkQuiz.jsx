@@ -145,7 +145,7 @@ function LandmarkQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pl
       </div>
 
       <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
-        {feedback === 'correct' ? '✓ Correct!' : feedback === 'wrong' ? `✗ It's in ${q.country}` : '\u00A0'}
+        {feedback === 'correct' ? t.common.correct : feedback === 'wrong' ? `${t.games['landmark-quiz'].wrongAnswer} ${q.country}` : '\u00A0'}
       </p>
     </div>
   );

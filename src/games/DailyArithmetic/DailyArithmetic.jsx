@@ -93,7 +93,7 @@ function ArithmeticGame({ difficulty, onComplete, reportScore, playClick, playSu
       </div>
 
       <p className={styles.scoreDisplay}>
-        Score: <strong>{score}</strong> / {maxScore}
+        {t.shell.score}: <strong>{score}</strong> / {maxScore}
       </p>
     </div>
   );

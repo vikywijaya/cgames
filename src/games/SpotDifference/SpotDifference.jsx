@@ -158,7 +158,7 @@ function SpotDifferenceGame({ difficulty, onComplete, reportScore, secondsLeft, 
       </div>
 
       <p className={feedback === 'correct' ? styles.feedbackOk : styles.feedbackSlot}>
-        {feedback === 'correct' ? '✓ All differences found!' : '\u00A0'}
+        {feedback === 'correct' ? t.common.allPairsFound : '\u00A0'}
       </p>
     </div>
   );

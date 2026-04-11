@@ -71,11 +71,11 @@ function WordRecallGame({ difficulty, onComplete, reportScore, playClick, playSu
 
   const feedbackText =
     lastResult === 'found'
-      ? 'Correct!'
+      ? t.common.correct
       : lastResult === 'already'
-      ? 'Already recalled'
+      ? t.common.alreadyRecalled
       : lastResult === 'notFound'
-      ? 'Not on the list'
+      ? t.common.notOnList
       : '';
 
   const isUrgentRecall = (recallLeft ?? recallSeconds) <= 10;
@@ -88,8 +88,8 @@ function WordRecallGame({ difficulty, onComplete, reportScore, playClick, playSu
         <div className={styles.studyPhase}>
           <div className={styles.studyHeader}>
             <div className={styles.studyHeaderText}>
-              <span className={styles.studyHeaderLabel}>Study Phase</span>
-              <span className={styles.studyHeaderSub}>Memorise all the words</span>
+              <span className={styles.studyHeaderLabel}>{t.common.studyPhase}</span>
+              <span className={styles.studyHeaderSub}>{t.common.memoriseWords}</span>
             </div>
             <div className={styles.studyTimerBadge} aria-live="polite" aria-label={`${studyLeft} seconds remaining`}>
               <span className={styles.studyTimerNum}>{studyLeft ?? studySeconds}</span>
@@ -115,7 +115,7 @@ function WordRecallGame({ difficulty, onComplete, reportScore, playClick, playSu
           </ul>
 
           <Button size="large" onClick={enterRecall} className={styles.readyBtn}>
-            I&apos;m ready!
+            {t.common.imReady}
           </Button>
         </div>
       )}
@@ -127,7 +127,7 @@ function WordRecallGame({ difficulty, onComplete, reportScore, playClick, playSu
           <div className={styles.recallHeader}>
             <div className={styles.recallScorePill} aria-live="polite" aria-atomic="true">
               <span className={styles.recallScoreNum}>{recalled.size}</span>
-              <span className={styles.recallScoreMax}>/ {maxScore} words</span>
+              <span className={styles.recallScoreMax}>/ {maxScore} {t.common.words}</span>
             </div>
             <div className={`${styles.recallTimerPill} ${isUrgentRecall ? styles.recallTimerPillUrgent : ''}`}
               role="timer" aria-live="off" aria-label={`${recallLeft} seconds remaining`}>
@@ -147,14 +147,14 @@ function WordRecallGame({ difficulty, onComplete, reportScore, playClick, playSu
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') { playClick(); submitWord(); } }}
-                placeholder="Type a word and press Enter…"
+                placeholder={t.games['word-recall'].placeholder}
                 aria-label="Type a word you remember"
                 autoComplete="off"
                 autoCorrect="off"
                 spellCheck={false}
               />
               <Button size="large" onClick={() => { playClick(); submitWord(); }} disabled={!inputValue.trim()} className={styles.submitBtn}>
-                Submit
+                {t.common.submit}
               </Button>
             </div>
             {lastResult && (
@@ -167,7 +167,7 @@ function WordRecallGame({ difficulty, onComplete, reportScore, playClick, playSu
 
           {recalled.size > 0 && (
             <div className={styles.recalledSection}>
-              <span className={styles.recalledHeader}>Recalled so far</span>
+              <span className={styles.recalledHeader}>{t.common.recalledSoFar}</span>
               <ul className={styles.recalledGrid} role="list" aria-label="Words recalled so far">
                 {[...recalled].map((word) => (
                   <li key={word} className={styles.recalledWord}>{word}</li>
@@ -177,7 +177,7 @@ function WordRecallGame({ difficulty, onComplete, reportScore, playClick, playSu
           )}
 
           <Button variant="secondary" onClick={() => onComplete({ finalScore: score, maxScore, completed: true })} className={styles.finishBtn}>
-            Finish
+            {t.common.finish}
           </Button>
         </div>
       )}

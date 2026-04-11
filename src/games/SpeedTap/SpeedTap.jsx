@@ -149,16 +149,16 @@ function SpeedTapGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
 
       {/* Score + feedback row */}
       <div className={styles.bottomRow}>
-        <span className={styles.scoreLabel}>Score: <strong>{score}</strong></span>
+        <span className={styles.scoreLabel}>{t.shell.score}: <strong>{score}</strong></span>
         <p className={
           feedback === 'correct' ? styles.feedbackOk :
           feedback === 'wrong'   ? styles.feedbackBad :
           feedback === 'miss'    ? styles.feedbackBad :
           styles.feedbackSlot
         }>
-          {feedback === 'correct' ? '✓ Great!'
-           : feedback === 'wrong' ? '✗ Try again!'
-           : feedback === 'miss'  ? 'Keep going!'
+          {feedback === 'correct' ? t.common.great
+           : feedback === 'wrong' ? t.common.tryAgain
+           : feedback === 'miss'  ? t.common.keepGoing
            : '\u00A0'}
         </p>
       </div>

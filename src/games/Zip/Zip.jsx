@@ -360,7 +360,7 @@ function ZipGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, pl
         </button>
       </div>
 
-      {won && <div className={styles.wonBanner}>Level Complete! 🎉</div>}
+      {won && <div className={styles.wonBanner}>{t.common.levelComplete} 🎉</div>}
 
       <div
         ref={boardRef}
@@ -463,7 +463,7 @@ export function Zip({ memberId, difficulty = 'easy', onComplete, callbackUrl, on
   return (
     <GameShell
       gameId="zip"
-      title="Zip"
+      title={t.games['zip'].title}
       instructions={t.games['zip'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}

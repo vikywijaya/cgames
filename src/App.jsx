@@ -189,7 +189,7 @@ function computeAchievement(allScores, memberId, levels) {
   return { score, level, nextLevel, progressPct, played, avgBest, totalPlays };
 }
 
-function getProgressHint(scores, totalGames) {
+function getProgressHint(scores, totalGames, t) {
   const played     = Object.keys(scores).length;
   const totalPlays = Object.values(scores).reduce((sum, s) => sum + s.playCount, 0);
   const bests      = Object.values(scores).map(s => s.best);
@@ -197,13 +197,13 @@ function getProgressHint(scores, totalGames) {
     ? Math.round(bests.reduce((a, b) => a + b, 0) / bests.length)
     : 0;
 
-  if (played === 0)    return "Ready to start your brain workout? Pick a game below! 🚀";
-  if (totalPlays === 1) return "Great first session! Explore more games to keep your mind active. 💪";
-  if (played === 1)     return `You've played ${totalPlays} sessions — try a different game today to mix it up! 🎯`;
-  if (avgBest >= 80)    return `Impressive! ${played} games played, average best score ${avgBest}% — you're on fire! 🔥`;
+  if (played === 0)    return `${t.app.motiv0} 🚀`;
+  if (totalPlays === 1) return `${t.app.motiv1} 💪`;
+  if (played === 1)     return `${t.app.motivTry.replace('{plays}', totalPlays)} 🎯`;
+  if (avgBest >= 80)    return `${t.app.motivHigh.replace('{played}', played).replace('{avg}', avgBest)} 🔥`;
   if (played >= Math.ceil(totalGames * 0.5))
-    return `You've explored ${played} of ${totalGames} games with an average best of ${avgBest}%. Keep discovering! ⭐`;
-  return `${totalPlays} sessions across ${played} games — ${totalGames - played} more games await you! 🌟`;
+    return `${t.app.motivExplore.replace('{played}', played).replace('{total}', totalGames).replace('{avg}', avgBest)} ⭐`;
+  return `${t.app.motivDefault.replace('{plays}', totalPlays).replace('{played}', played).replace('{remaining}', totalGames - played)} 🌟`;
 }
 
 // dailySeed, seededRandom, buildDailyGames are imported from ./shared/gameData
@@ -219,7 +219,8 @@ export function App() {
   // Helper: translate game title/description using i18n
   const tGame = (game) => {
     const gt = t.games[game.id];
-    return gt ? { ...game, title: gt.title, description: gt.description } : game;
+    const domain = t.app.domains?.[game.domain] || game.domain;
+    return gt ? { ...game, title: gt.title, description: gt.description, domain } : { ...game, domain };
   };
   const categoryNames = [
     t.app.categories.memory,
@@ -256,7 +257,7 @@ export function App() {
 
   /* ── Daily challenge handlers ── */
   function startDailyChallenge() {
-    const games = buildDailyGames();
+    const games = buildDailyGames().map(tGame);
     setDailyChallenge({ games, index: 0, scores: {}, lastPct: null });
     setView('daily');
   }
@@ -587,14 +588,14 @@ export function App() {
                         <div className={styles.scoreRowStats}>
                           <span className={styles.scoreBest}
                             style={{ color: sc.best >= 75 ? 'var(--color-success)' : sc.best >= 50 ? 'var(--color-warning)' : 'var(--color-error)' }}>
-                            Best Score: {sc.best}
+                            {t.app.bestScore}: {sc.best}
                           </span>
                           {(sc.bestTime != null || sc.lastTime != null) && (
-                            <span className={styles.scoreTime}>Best Time: {sc.bestTime ?? sc.lastTime}s</span>
+                            <span className={styles.scoreTime}>{t.app.bestTime}: {sc.bestTime ?? sc.lastTime}s</span>
                           )}
                           {(sc.bestDifficulty || sc.lastDifficulty) && (
                             <span className={styles.scoreDifficulty}>
-                              {((sc.bestDifficulty || sc.lastDifficulty)).charAt(0).toUpperCase() + ((sc.bestDifficulty || sc.lastDifficulty)).slice(1)}
+                              {t.shell[sc.bestDifficulty || sc.lastDifficulty] || (sc.bestDifficulty || sc.lastDifficulty)}
                             </span>
                           )}
                         </div>
@@ -689,7 +690,7 @@ export function App() {
               <span className={styles.difficultyDot} aria-hidden="true">
                 {level === 'easy' ? '🟢' : level === 'medium' ? '🟡' : '🔴'}
               </span>
-              {level.charAt(0).toUpperCase() + level.slice(1)}
+              {t.shell[level]}
             </label>
           ))}
         </div>

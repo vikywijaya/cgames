@@ -120,7 +120,7 @@ function QuickMathsGame({ difficulty, onComplete, reportScore, secondsLeft, play
       </div>
 
       <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
-        {feedback === 'correct' ? '✓ Correct!' : feedback === 'wrong' ? `✗ Answer: ${q.answer}` : '\u00A0'}
+        {feedback === 'correct' ? t.common.correct : feedback === 'wrong' ? `${t.games['quick-maths'].wrongAnswer} ${q.answer}` : '\u00A0'}
       </p>
     </div>
   );

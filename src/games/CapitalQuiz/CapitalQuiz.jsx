@@ -166,7 +166,7 @@ function CapitalQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pla
       </div>
 
       <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
-        {feedback === 'correct' ? '✓ Correct!' : feedback ? `✗ It's ${question.correct.capital}` : '\u00A0'}
+        {feedback === 'correct' ? t.common.correct : feedback ? `${t.games['capital-quiz'].wrongAnswer} ${question.correct.capital}` : '\u00A0'}
       </p>
     </div>
   );

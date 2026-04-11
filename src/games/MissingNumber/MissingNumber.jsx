@@ -133,7 +133,7 @@ function MissingNumberGame({ difficulty, onComplete, reportScore, secondsLeft, p
       </div>
 
       <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
-        {feedback === 'correct' ? '✓ Correct!' : feedback === 'wrong' ? `✗ Answer: ${puzzle.answer}` : '\u00A0'}
+        {feedback === 'correct' ? t.common.correct : feedback === 'wrong' ? `${t.games['missing-number'].wrongAnswer} ${puzzle.answer}` : '\u00A0'}
       </p>
     </div>
   );

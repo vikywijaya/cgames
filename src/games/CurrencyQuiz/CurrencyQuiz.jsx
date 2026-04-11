@@ -146,7 +146,7 @@ function CurrencyQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pl
       </div>
 
       <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
-        {feedback === 'correct' ? '✓ Correct!' : feedback === 'wrong' ? `✗ It's the ${q.currency}` : '\u00A0'}
+        {feedback === 'correct' ? t.common.correct : feedback === 'wrong' ? `${t.games['currency-quiz'].wrongAnswer} ${q.currency}` : '\u00A0'}
       </p>
     </div>
   );

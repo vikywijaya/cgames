@@ -106,15 +106,15 @@ function PatternSequenceGame({ difficulty, onComplete, reportScore, playSuccess,
 
   const statusText =
     phase === 'showing'
-      ? 'Watch the sequence…'
+      ? t.common.watchSequence
       : phase === 'input'
-      ? 'Your turn — repeat the pattern!'
+      ? t.common.yourTurn
       : phase === 'correct'
-      ? '✓ Correct! Get ready for the next round…'
+      ? t.games['pattern-sequence'].correctNextRound
       : phase === 'failed'
-      ? 'Not quite — see your score below!'
+      ? t.games['pattern-sequence'].notQuite
       : phase === 'won'
-      ? '🎉 You completed all rounds!'
+      ? t.games['pattern-sequence'].completedAll
       : '';
 
   const statusClass = [

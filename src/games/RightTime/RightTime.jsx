@@ -204,7 +204,7 @@ function RightTimeGame({ difficulty, onComplete, reportScore, secondsLeft, playC
       </div>
 
       <p className={feedback === 'correct' ? styles.feedbackCorrect : feedback === 'wrong' ? styles.feedbackWrong : styles.feedbackSlot}>
-        {feedback === 'correct' ? '✓ Correct!' : feedback ? `✗ It was ${formatTime(question.correct)}` : '\u00A0'}
+        {feedback === 'correct' ? t.common.correct : feedback ? `${t.games['right-time'].wrongAnswer} ${formatTime(question.correct)}` : '\u00A0'}
       </p>
     </div>
   );

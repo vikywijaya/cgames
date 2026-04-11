@@ -139,10 +139,10 @@ function TileFlipGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
       </div>
 
       <div className={styles.phaseLabel} aria-live="polite">
-        {phase === 'showing'   ? '👁 Memorise…' : ''}
-        {phase === 'recalling' ? '👆 Tap the lit tiles' : ''}
-        {phase === 'feedback'  && tapped.size === lit.size ? '✓ Correct!' : ''}
-        {phase === 'feedback'  && tapped.size  <  lit.size ? '✗ Wrong tile' : ''}
+        {phase === 'showing'   ? `👁 ${t.common.memorise}` : ''}
+        {phase === 'recalling' ? `👆 ${t.common.tapLitTiles}` : ''}
+        {phase === 'feedback'  && tapped.size === lit.size ? t.common.correct : ''}
+        {phase === 'feedback'  && tapped.size  <  lit.size ? t.common.wrongTile : ''}
       </div>
     </div>
   );

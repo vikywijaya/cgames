@@ -144,7 +144,7 @@ function LetterCountGame({ difficulty, onComplete, reportScore, secondsLeft, pla
       </div>
 
       <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
-        {feedback === 'correct' ? `✓ Correct! (${puzzle.answer}×)` : feedback === 'wrong' ? `✗ It appears ${puzzle.answer} time${puzzle.answer > 1 ? 's' : ''}.` : '\u00A0'}
+        {feedback === 'correct' ? `${t.common.correct} (${puzzle.answer}×)` : feedback === 'wrong' ? `${t.games['letter-count'].wrongAnswer} ${puzzle.answer} ${t.games['letter-count'].times}` : '\u00A0'}
       </p>
     </div>
   );
