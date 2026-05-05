@@ -294,6 +294,10 @@ export function App() {
     setDailyChallenge(null);
   }
 
+  function returnToDailyChallenge() {
+    setView('daily');
+  }
+
   /* ── Embedded mode ── */
   if (urlGameId && GAME_MAP[urlGameId]) {
     const GameComponent = GAME_MAP[urlGameId];
@@ -390,7 +394,7 @@ export function App() {
             memberId={urlMemberId}
             difficulty={selectedDifficulty}
             onComplete={handleDailyComplete}
-            onBack={abortDailyChallenge}
+            onBack={returnToDailyChallenge}
           />
         </GameContext.Provider>
       </div>
