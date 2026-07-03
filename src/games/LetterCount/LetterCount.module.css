@@ -70,21 +70,6 @@
   color: var(--color-text);
 }
 
-.charHighlight {
-  font-size: clamp(1.6rem, 6vw, 2.4rem);
-  font-weight: 900;
-  letter-spacing: 0.05em;
-  font-family: var(--font-mono, monospace);
-  color: var(--color-primary);
-  text-shadow: 0 0 12px rgba(245,158,11,0.6);
-  animation: glow 1.2s ease-in-out infinite alternate;
-}
-
-@keyframes glow {
-  from { text-shadow: 0 0 6px rgba(245,158,11,0.4); }
-  to   { text-shadow: 0 0 18px rgba(245,158,11,0.9); }
-}
-
 .options {
   display: grid;
   grid-template-columns: 1fr 1fr;

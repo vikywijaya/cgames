@@ -148,6 +148,31 @@
   transform: scale(0.9);
 }
 
+.pieceDragging {
+  opacity: 0.35;
+}
+
+/* ── Drag ghost (follows the pointer) ── */
+.dragGhost {
+  position: fixed;
+  z-index: 1000;
+  display: grid;
+  gap: 3px;
+  /* Anchor the ghost's top-left near the pointer so it matches where the
+     piece's top-left will land on the board. */
+  transform: translate(-20px, -20px);
+  pointer-events: none;
+  opacity: 0.9;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.25));
+}
+
+.dragGhostCell {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: transparent;
+}
+
 .pieceCell {
   width: 22px;
   height: 22px;

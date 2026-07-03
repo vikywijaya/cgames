@@ -6,9 +6,9 @@ import styles from './ShoppingList.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
 
 const DIFFICULTY_CONFIG = {
-  easy:   { rounds: 6, listSize: 5,  studySec: 10, choicesSize: 8  },
-  medium: { rounds: 8, listSize: 8,  studySec: 12, choicesSize: 12 },
-  hard:   { rounds: 10,listSize: 11, studySec: 12, choicesSize: 16 },
+  easy:   { rounds: 6, listSize: 4, studySec: 10, choicesSize: 8  },
+  medium: { rounds: 8, listSize: 6, studySec: 12, choicesSize: 10 },
+  hard:   { rounds: 10,listSize: 8, studySec: 12, choicesSize: 12 },
 };
 
 const ALL_ITEMS = [
@@ -106,7 +106,7 @@ function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft, pl
         setSubmitted(false);
         setResult(null);
       }
-    }, 1800);
+    }, 1100);
   }, [submitted, ticked, data, score, round, config, reportScore, onComplete, playSuccess, playFail]);
 
   if (phase === 'study') {

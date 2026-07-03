@@ -1155,7 +1155,7 @@
 }
 
 @media (max-width: 480px) {
-  /* Two icon tiles side by side, title below each */
+  /* Two square cover tiles side by side */
   .dailyPreviewGrid {
     display: flex;
     flex-direction: row;
@@ -1164,121 +1164,125 @@
 
   .dailyPreviewGrid .gameCard {
     flex: 1;
-    border-radius: 20px;
-    box-shadow: var(--shadow-sm);
   }
 
-  .dailyPreviewGrid .gameIconBox {
-    height: 100px;
-    font-size: 3rem;
-    border-radius: 20px 20px 0 0;
-  }
-
-  .dailyPreviewGrid .gameMeta {
-    padding: var(--space-2) var(--space-3) var(--space-3);
-    gap: 0;
-  }
-
-  .dailyPreviewGrid .gameCardTitle {
-    font-size: var(--text-sm);
-    justify-content: center;
-    text-align: center;
-  }
-
-  .dailyPreviewGrid .gameCardDesc,
-  .dailyPreviewGrid .gameCardFooter {
-    display: none;
-  }
 }
 
 .dailyGameNum {
-  font-size: var(--text-xs);
+  font-size: 0.6rem;
   font-weight: var(--font-weight-bold);
-  color: var(--color-primary);
-  background: var(--color-primary-light);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(4px);
   border-radius: var(--radius-full);
-  padding: 2px 10px;
+  padding: 2px 9px;
 }
 
 /* ── Game Cards ───────────────────────────────────── */
 .gameGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-6);
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: clamp(10px, 1.4vw, 16px);
 }
 
 @media (max-width: 480px) {
   .gameGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
+/* ── Square cover card: full-bleed image, title floats over a dark fade ── */
 .gameCard {
   position: relative;
   overflow: hidden;
-  background-color: var(--color-surface);
+  background: #2A2520;          /* dark base behind emoji / while image loads */
   border: none;
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
-  padding: 0;                  /* padding lives in gameMeta */
-  min-height: 0;               /* driven by icon height + meta content */
-  display: flex;
-  flex-direction: column;      /* vertical: icon on top, meta below */
-  align-items: stretch;
-  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+  border-radius: 14px;
+  padding: 0;
+  aspect-ratio: 1 / 1;          /* square cover */
+  display: block;
+  width: 100%;
+  transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1),
+              box-shadow 180ms ease-out, border-color 180ms ease-out;
   cursor: pointer;
   text-align: left;
   font: inherit;
   color: inherit;
 }
-.gameCard:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+.gameCard:hover,
+.gameCard:focus-visible {
+  transform: translateY(-2px) scale(1.015);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px rgba(55, 119, 255, 0.4), 0 8px 24px rgba(55, 119, 255, 0.25);
+  outline: none;
 }
+.gameCard:active { transform: scale(0.98); }
 
-/* Top icon zone — full-width strip, clipped by card's overflow:hidden */
+/* Cover fills the whole card */
 .gameIconBox {
-  position: relative;          /* normal flow, stacks on top */
-  left: unset;
-  top: unset;
-  bottom: unset;
+  position: absolute;
+  inset: 0;
   width: 100%;
-  min-width: 0;
-  height: 140px;               /* fixed icon zone height */
-  flex-shrink: 0;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 4rem;             /* 72px at 18px base */
-  background: var(--color-surface-2);
+  font-size: 4.5rem;
+  background: linear-gradient(135deg, #2b3a55 0%, #1a2438 100%); /* dark wash for emoji fallback */
   pointer-events: none;
   overflow: hidden;
+  z-index: 0;
 }
 
 .gameIconImg {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   display: block;
 }
 
+/* Dark bottom fade so the white title reads over any cover */
+.gameCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.80) 0%,
+    rgba(0, 0, 0, 0.55) 26%,
+    rgba(0, 0, 0, 0.15) 55%,
+    rgba(0, 0, 0, 0) 75%
+  );
+}
+
+/* Text overlay pinned to the bottom of the card */
 .gameMeta {
-  flex: 1;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  padding: var(--space-4) var(--space-4) var(--space-4);
-  background: var(--color-surface);
+  gap: 2px;
+  padding: 12px 14px 13px;
+  background: transparent;
 }
 
 .gameCardTitle {
   font-family: var(--font-heading);
-  font-size: var(--text-md);
+  font-size: 1.05rem;
   font-weight: 800;
-  color: var(--color-text);
+  color: #ffffff;
   margin: 0;
-  line-height: 1.2;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1289,48 +1293,41 @@
   display: block;
 }
 
-.gameCardDesc {
-  font-size: var(--text-xs);
-  font-weight: var(--font-weight-regular);
-  color: var(--color-text-muted);
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* Bottom row: domain tag on the left, Play button on the right */
+/* Bottom row: domain badge + (daily) game number */
 .gameCardFooter {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
-  margin-top: var(--space-2);
+  margin-top: 5px;
 }
+.gameCardFooter:empty { display: none; }
 
+/* Category badge — pinned to the top-left of the card, over the cover */
 .gameDomain {
-  font-size: 0.55rem;
-  font-weight: var(--font-weight-regular);
-  color: var(--color-text-muted);
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 3;
+  max-width: calc(100% - 56px);   /* leave room for the favourite heart top-right */
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 4px 9px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
   letter-spacing: 0;
   text-transform: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
 }
 
-.playButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  background: none;
-  border: none;
-  padding: 0;
-  transition: transform var(--transition-fast);
-}
-.playButton svg { display: block; }
-.playButton:hover { transform: scale(1.08); }
-.playButton:active { transform: scale(0.95); }
-.playButton:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; border-radius: 50%; }
+/* Whole card is clickable; the separate play circle is hidden in the overlay design */
+.playButton { display: none; }
 
 /* ── Coming Soon / Disabled game card ── */
 .gameCardDisabled {
@@ -1375,28 +1372,27 @@
 /* ── Favorite heart button (inside .gameCard) ── */
 .favBtn {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 2;
+  top: 8px;
+  right: 8px;
+  z-index: 3;
   width: 36px;
   height: 36px;
   border: none;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(4px);
+  border-radius: 0;
+  background: none;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #ccc;
-  transition: color 0.2s, transform 0.2s, background 0.2s;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  color: rgba(255, 255, 255, 0.92);
+  transition: color 0.2s, transform 0.2s;
+  /* soft shadow so the bare heart stays legible over any cover */
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
   padding: 0;
   pointer-events: auto;
 }
 .favBtn:hover {
   color: #e74c5e;
-  background: rgba(255, 255, 255, 0.95);
   transform: scale(1.15);
 }
 .favBtnActive {

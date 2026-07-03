@@ -124,7 +124,7 @@ function LetterCountGame({ difficulty, onComplete, reportScore, secondsLeft, pla
 
       <div className={styles.wordBox}>
         {puzzle.word.split('').map((ch, i) => (
-          <span key={i} className={ch === puzzle.targetLetter ? styles.charHighlight : styles.char}>
+          <span key={i} className={styles.char}>
             {ch}
           </span>
         ))}

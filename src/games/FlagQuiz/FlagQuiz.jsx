@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
@@ -19,8 +19,10 @@ function flag(code) {
   ).join('');
 }
 
-// ── Flag data pools ────────────────────────────────────────────────
-// Each entry: { code, name }
+// ── Flag data tiers ────────────────────────────────────────────────
+// Each entry: { code, name }. Tiers are DISJOINT and ordered by how
+// familiar/recognizable the country's flag is: easy = household-name
+// nations, medium = moderately known, hard = less-recognizable flags.
 const EASY_FLAGS = [
   { code: 'US', name: 'United States' },
   { code: 'GB', name: 'United Kingdom' },
@@ -35,20 +37,16 @@ const EASY_FLAGS = [
   { code: 'IN', name: 'India' },
   { code: 'BR', name: 'Brazil' },
   { code: 'MX', name: 'Mexico' },
-  { code: 'ZA', name: 'South Africa' },
-  { code: 'NG', name: 'Nigeria' },
   { code: 'NZ', name: 'New Zealand' },
 ];
 
 const MEDIUM_FLAGS = [
-  ...EASY_FLAGS,
   { code: 'KR', name: 'South Korea' },
   { code: 'AR', name: 'Argentina' },
   { code: 'RU', name: 'Russia' },
   { code: 'TR', name: 'Turkey' },
   { code: 'EG', name: 'Egypt' },
   { code: 'ID', name: 'Indonesia' },
-  { code: 'PK', name: 'Pakistan' },
   { code: 'TH', name: 'Thailand' },
   { code: 'SA', name: 'Saudi Arabia' },
   { code: 'SE', name: 'Sweden' },
@@ -58,10 +56,11 @@ const MEDIUM_FLAGS = [
   { code: 'GR', name: 'Greece' },
   { code: 'PL', name: 'Poland' },
   { code: 'NL', name: 'Netherlands' },
+  { code: 'ZA', name: 'South Africa' },
+  { code: 'NG', name: 'Nigeria' },
 ];
 
 const HARD_FLAGS = [
-  ...MEDIUM_FLAGS,
   { code: 'PH', name: 'Philippines' },
   { code: 'VN', name: 'Vietnam' },
   { code: 'MY', name: 'Malaysia' },
@@ -87,6 +86,7 @@ const HARD_FLAGS = [
   { code: 'BE', name: 'Belgium' },
   { code: 'DK', name: 'Denmark' },
   { code: 'FI', name: 'Finland' },
+  { code: 'PK', name: 'Pakistan' },
 ];
 
 const POOL_MAP = { easy: EASY_FLAGS, medium: MEDIUM_FLAGS, hard: HARD_FLAGS };
@@ -100,13 +100,9 @@ function shuffle(arr) {
   return a;
 }
 
-function buildQuestion(pool, usedIndices) {
-  // pick a correct answer not yet used
-  const available = pool.filter((_, i) => !usedIndices.has(i));
-  const pickFrom  = available.length >= 4 ? available : pool;
-  const correct   = pickFrom[Math.floor(Math.random() * pickFrom.length)];
-
-  // 3 distractors
+// Build one question for a given correct answer; distractors come from
+// the same tier so the options are plausible and consistently difficult.
+function buildQuestion(correct, pool) {
   const distractors = shuffle(pool.filter(f => f.code !== correct.code)).slice(0, 3);
   const options = shuffle([correct, ...distractors]);
   return { correct, options };
@@ -118,12 +114,25 @@ function FlagQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const pool   = POOL_MAP[config.pool];
 
-  const usedRef = { current: new Set() };
+  // Pre-shuffled queue of distinct correct answers for this attempt, so no
+  // flag repeats until the tier is exhausted. Built once per mount.
+  const queueRef = useRef(shuffle(pool));
+  const cursorRef = useRef(0);
+  const nextCorrect = useCallback(() => {
+    const q = queueRef.current;
+    if (cursorRef.current >= q.length) {
+      // Tier exhausted — reshuffle for a fresh, non-adjacent-repeating pass.
+      queueRef.current = shuffle(pool);
+      cursorRef.current = 0;
+    }
+    return queueRef.current[cursorRef.current++];
+  }, [pool]);
+
   const [qIndex,   setQIndex]   = useState(0);
   const [score,    setScore]    = useState(0);
   const [feedback, setFeedback] = useState(null);
   const [chosen,   setChosen]   = useState(null);
-  const [question, setQuestion] = useState(() => buildQuestion(pool, usedRef.current));
+  const [question, setQuestion] = useState(() => buildQuestion(nextCorrect(), pool));
 
   // Time-up
   useEffect(() => {
@@ -141,8 +150,8 @@ function FlagQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
     setQIndex(next);
     setFeedback(null);
     setChosen(null);
-    setQuestion(buildQuestion(pool, new Set()));
-  }, [qIndex, score, config.questions, pool, onComplete]);
+    setQuestion(buildQuestion(nextCorrect(), pool));
+  }, [qIndex, score, config.questions, pool, nextCorrect, onComplete]);
 
   const handleChoice = useCallback((opt) => {
     if (feedback) return;

@@ -11,13 +11,16 @@ const DIFFICULTY_CONFIG = {
   hard:   { rounds: 18, match: false, timeLimitSeconds: 60  },    // mostly incongruent, faster pressure
 };
 
+// Palette chosen so every colour is clearly distinguishable from the others.
+// Orange was removed (it collided with both yellow and red); replaced with a
+// vivid pink. Red and yellow are deepened/brightened for extra hue separation.
 const COLOURS = [
-  { name: 'Red',    hex: '#f87171' },
-  { name: 'Blue',   hex: '#60a5fa' },
-  { name: 'Green',  hex: '#4ade80' },
-  { name: 'Yellow', hex: '#fbbf24' },
-  { name: 'Purple', hex: '#c084fc' },
-  { name: 'Orange', hex: '#fb923c' },
+  { name: 'Red',    hex: '#ef4444' },
+  { name: 'Blue',   hex: '#3b82f6' },
+  { name: 'Green',  hex: '#22c55e' },
+  { name: 'Yellow', hex: '#facc15' },
+  { name: 'Purple', hex: '#a855f7' },
+  { name: 'Pink',   hex: '#ec4899' },
 ];
 
 /**

@@ -79,6 +79,7 @@
 }
 .topBarBack:hover { background-color: rgba(255,255,255,0.15); }
 .topBarBack:focus-visible { outline: 3px solid rgba(255,255,255,0.6); outline-offset: 2px; }
+.topBarBackLabel { line-height: 1; }
 
 /* ── ? Help Button ──────────────────────────────────── */
 .helpBtn {

@@ -1,6 +1,7 @@
 // Bahasa Melayu
 export default {
   shell: {
+    back: 'Kembali',
     howToPlay: 'Cara Bermain',
     play: 'Main',
     playAgain: 'Main Lagi',
@@ -153,7 +154,6 @@ export default {
   games: {
     'memory-match': { title: 'Padanan Ingatan', label: 'PADANAN INGATAN', description: 'Terbalikkan kad untuk cari pasangan.', instructions: 'Terbalikkan kad untuk cari pasangan. Klik kad untuk mendedahkannya, kemudian cari pasangannya. Pasangan yang sepadan kekal terbuka. Cari semua pasangan untuk menang!' },
     'word-recall': { title: 'Ingat Perkataan', label: 'INGAT PERKATAAN', description: 'Kaji senarai, kemudian ingat semula.', instructions: 'Anda akan melihat senarai perkataan. Kaji dengan teliti! Apabila masa tamat, perkataan akan hilang dan anda perlu menaip sebanyak mungkin yang anda ingat.', placeholder: 'Taip perkataan dan tekan Enter…' },
-    'pattern-sequence': { title: 'Urutan Corak', label: 'URUTAN CORAK', description: 'Perhatikan dan ulang urutan pad cahaya.', instructions: 'Perhatikan pad berwarna menyala dalam urutan, kemudian ulang corak dengan mengklik pad dalam susunan yang sama.', correctNextRound: '✓ Betul! Bersedia untuk pusingan seterusnya…', notQuite: 'Hampir — lihat skor anda di bawah!', completedAll: '🎉 Anda telah selesaikan semua pusingan!' },
     'daily-arithmetic': { title: 'Aritmetik Harian', label: 'CABARAN HARIAN', description: 'Selesaikan soalan matematik mengikut kadar sendiri.', instructions: 'Jawab setiap soalan aritmetik dengan memilih jawapan yang betul. Ambil masa anda — tiada had masa.' },
     'word-search': { title: 'Cari Perkataan', label: 'CARI PERKATAAN', description: 'Cari perkataan tersembunyi dalam grid huruf.', instructions: 'Cari semua perkataan tersembunyi dalam grid huruf. Klik huruf pertama kemudian klik huruf terakhir.', clearSelection: 'Batal Pilihan' },
     'catch-falling-fruit': { title: 'Tangkap Buah', label: 'TANGKAP BUAH', description: 'Gelongsor untuk tangkap buah jatuh dalam bakul.', instructions: 'Buah akan jatuh dari langit — tangkap dalam bakul anda! Sentuh: gelongsor jari anda. Bom — hilang nyawa! Bintang — +3 bonus!' },

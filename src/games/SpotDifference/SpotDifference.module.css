@@ -72,11 +72,17 @@
   gap: 4px;
 }
 
-/* Left grid cells — static spans */
+/* Grid cells — identical box model for span (left) and button (right) so
+   both grids line up perfectly at every difficulty. */
 .cell {
+  box-sizing: border-box;
   width: clamp(48px, 11vw, 68px);
   height: clamp(48px, 11vw, 68px);
+  margin: 0;
+  padding: 0;
   font-size: clamp(1.4rem, 4.5vw, 2rem);
+  font-family: inherit;
+  line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -85,13 +91,15 @@
   border-radius: var(--radius-md);
   position: relative;
   cursor: default;
+  appearance: none;
+  -webkit-appearance: none;
   user-select: none;
   -webkit-user-select: none;
   animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   animation-delay: min(calc(var(--idx, 0) * 0.07s), 0.5s);
 }
 
-/* Right grid cells — tappable buttons (reset appearance) */
+/* Right grid cells — tappable buttons (interactive states only) */
 button.cell {
   cursor: pointer;
   transition: border-color var(--transition-fast), background var(--transition-fast), transform 80ms ease;

@@ -7,9 +7,9 @@ import { useTranslation } from '../../i18n/useTranslation';
 
 // ── Difficulty config ──────────────────────────────────────────────
 const DIFFICULTY_CONFIG = {
-  easy:   { fallSpeed: 2,   spawnMs: 2000, timeLimitSeconds: null, lives: 5, basketWidth: 110 },
-  medium: { fallSpeed: 3.5, spawnMs: 1400, timeLimitSeconds: 120,  lives: 3, basketWidth: 90  },
-  hard:   { fallSpeed: 5,   spawnMs: 900,  timeLimitSeconds: 90,   lives: 3, basketWidth: 70  },
+  easy:   { fallSpeed: 2,   spawnMs: 2000, timeLimitSeconds: 90, lives: 5, basketWidth: 110 },
+  medium: { fallSpeed: 3.5, spawnMs: 1400, timeLimitSeconds: 75, lives: 3, basketWidth: 90  },
+  hard:   { fallSpeed: 5,   spawnMs: 900,  timeLimitSeconds: 60, lives: 3, basketWidth: 70  },
 };
 
 const FRUITS = ['🍎', '🍊', '🍋', '🍇', '🍓', '🍑', '🍒', '🥝'];
@@ -56,6 +56,8 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   const areaRef       = useRef(null);
+  const controlRef    = useRef(null);
+  const draggingRef   = useRef(false);
   const rafRef        = useRef(null);
   const itemsRef      = useRef([]);       // all falling items (fruits + obstacles + powerups)
   const basketXRef    = useRef(0.5);      // 0–1 normalised centre of basket
@@ -202,39 +204,46 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
     return () => cancelAnimationFrame(rafRef.current);
   }, [config.fallSpeed, config.basketWidth, config.lives, finish, reportScore, playSuccess, playFail]);
 
-  // ── Touch input: attach with { passive: false } so preventDefault works ──
+  // ── Control track input ───────────────────────────────────────────
+  // A dedicated track BELOW the play area drives the basket, so the player's
+  // finger never covers the falling items or the basket. Pointer position is
+  // written straight to a ref (no React state per move) so the basket tracks
+  // input promptly even at high fall speeds. The rAF loop renders the new
+  // position each frame.
   useEffect(() => {
-    const area = areaRef.current;
-    if (!area) return;
+    const track = controlRef.current;
+    if (!track) return;
 
-    function getX(e) {
-      const rect = area.getBoundingClientRect();
-      const touch = e.touches[0] ?? e.changedTouches[0];
-      return Math.max(0.05, Math.min(0.95, (touch.clientX - rect.left) / rect.width));
+    function posFromEvent(clientX) {
+      const rect = track.getBoundingClientRect();
+      return Math.max(0.05, Math.min(0.95, (clientX - rect.left) / rect.width));
     }
-
-    function onTouchStart(e) {
+    function onDown(e) {
       e.preventDefault();
-      basketXRef.current = getX(e);
+      draggingRef.current = true;
+      track.setPointerCapture?.(e.pointerId);
+      basketXRef.current = posFromEvent(e.clientX);
     }
-    function onTouchMove(e) {
+    function onMove(e) {
+      if (!draggingRef.current) return;
       e.preventDefault();
-      basketXRef.current = getX(e);
+      basketXRef.current = posFromEvent(e.clientX);
+    }
+    function onUp(e) {
+      draggingRef.current = false;
+      track.releasePointerCapture?.(e.pointerId);
     }
 
-    area.addEventListener('touchstart', onTouchStart, { passive: false });
-    area.addEventListener('touchmove',  onTouchMove,  { passive: false });
+    track.addEventListener('pointerdown', onDown, { passive: false });
+    track.addEventListener('pointermove', onMove, { passive: false });
+    track.addEventListener('pointerup', onUp);
+    track.addEventListener('pointercancel', onUp);
     return () => {
-      area.removeEventListener('touchstart', onTouchStart);
-      area.removeEventListener('touchmove',  onTouchMove);
+      track.removeEventListener('pointerdown', onDown);
+      track.removeEventListener('pointermove', onMove);
+      track.removeEventListener('pointerup', onUp);
+      track.removeEventListener('pointercancel', onUp);
     };
-  }, []);
-
-  // ── Mouse input ───────────────────────────────────────────────────
-  const handleMouseMove = useCallback((e) => {
-    const rect = areaRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    basketXRef.current = Math.max(0.05, Math.min(0.95, (e.clientX - rect.left) / rect.width));
   }, []);
 
   // ── Keyboard input ────────────────────────────────────────────────
@@ -278,19 +287,11 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
         </div>
       </div>
 
-      {/* Controls row: left button | game area | right button */}
+      {/* Play area — kept unobstructed; the basket is driven from the control track below */}
       <div className={styles.gameRow}>
-        <button
-          className={`${styles.sideBtn} ${styles.sideBtnLeft}`}
-          onPointerDown={tapLeft}
-          aria-label="Move basket left"
-          tabIndex={-1}
-        >‹</button>
-
         <div
           ref={areaRef}
           className={styles.gameArea}
-          onMouseMove={handleMouseMove}
           role="application"
           aria-label="Catch the fruit game area"
         >
@@ -327,6 +328,33 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
             🧺
           </div>
         </div>
+      </div>
+
+      {/* Dedicated control track below the play area */}
+      <div className={styles.controlRow}>
+        <button
+          className={`${styles.sideBtn} ${styles.sideBtnLeft}`}
+          onPointerDown={tapLeft}
+          aria-label="Move basket left"
+          tabIndex={-1}
+        >‹</button>
+
+        <div
+          ref={controlRef}
+          className={styles.controlTrack}
+          role="slider"
+          aria-label="Move basket"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          tabIndex={-1}
+        >
+          <div
+            className={styles.controlThumb}
+            style={{ left: `calc(${basketXRef.current * 100}% )` }}
+            aria-hidden="true"
+          >🧺</div>
+          <span className={styles.controlHint}>Slide to move the basket</span>
+        </div>
 
         <button
           className={`${styles.sideBtn} ${styles.sideBtnRight}`}
@@ -335,8 +363,6 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
           tabIndex={-1}
         >›</button>
       </div>
-
-      <p className={styles.hint}>Slide your finger across the game area to move the basket</p>
     </div>
   );
 }
@@ -371,7 +397,7 @@ export function CatchFallingFruit({
     <>
       <p>Fruit will fall from the sky — catch them in your basket!</p>
       <ul style={{ marginTop: 8, paddingLeft: 20, lineHeight: 1.8 }}>
-        <li><strong>Touch:</strong> slide your finger across the game area</li>
+        <li><strong>Touch:</strong> slide along the control bar below the play area</li>
         <li><strong>Buttons:</strong> tap ‹ › on either side to jump the basket</li>
         <li><strong>Keyboard:</strong> ← → arrow keys</li>
       </ul>

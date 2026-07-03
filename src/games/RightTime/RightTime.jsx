@@ -27,33 +27,63 @@ function timesEqual(a, b) {
   return a.h === b.h && a.m === b.m;
 }
 
-function generateOptions(correct, minuteStep) {
-  const options = [correct];
-  const attempts = new Set([`${correct.h}:${correct.m}`]);
+// Distractors must be visually distinguishable on a clock face. Two options that
+// share an hour must differ by at least this many minutes, so we never produce
+// near-duplicate times like 2:30 vs 2:31 on Hard.
+const MIN_MINUTE_GAP = 5;
 
-  while (options.length < 4) {
+// Snap distractor minutes to a 5-min grid regardless of difficulty, so every
+// option lands on a readable clock position.
+const OPTION_MINUTE_STEP = 5;
+
+// Total absolute minutes (0–719) for a 12-hour clock, used to compare spacing.
+function totalMinutes({ h, m }) {
+  return (h % 12) * 60 + m;
+}
+
+// True if `candidate` is far enough from every already-chosen option.
+function isWellSpaced(candidate, options) {
+  return options.every((opt) => {
+    if (opt.h === candidate.h) {
+      return Math.abs(opt.m - candidate.m) >= MIN_MINUTE_GAP;
+    }
+    // Different hour — also reject if the overall times are within the gap
+    // (e.g. 2:58 vs 3:00) so the answers never read as near-identical.
+    return Math.abs(totalMinutes(opt) - totalMinutes(candidate)) >= MIN_MINUTE_GAP;
+  });
+}
+
+function generateOptions(correct) {
+  const options = [correct];
+
+  let guard = 0;
+  while (options.length < 4 && guard < 500) {
+    guard += 1;
     let candidate;
-    let key;
-    do {
-      // vary either hour or minute to keep distractors plausible
-      const varyHour = Math.random() < 0.5;
-      if (varyHour) {
-        let h = correct.h + (Math.random() < 0.5 ? 1 : -1) * (Math.floor(Math.random() * 3) + 1);
-        h = ((h - 1 + 12) % 12) + 1;
-        candidate = { h, m: correct.m };
-      } else {
-        const steps = Math.floor(60 / minuteStep);
-        let m = correct.m + (Math.random() < 0.5 ? 1 : -1) * minuteStep * (Math.floor(Math.random() * 3) + 1);
-        m = ((m % 60) + 60) % 60;
-        // round to step
-        m = Math.round(m / minuteStep) * minuteStep % 60;
-        candidate = { h: correct.h, m };
-      }
-      key = `${candidate.h}:${candidate.m}`;
-    } while (attempts.has(key));
-    attempts.add(key);
-    options.push(candidate);
+    const varyHour = Math.random() < 0.5;
+    if (varyHour) {
+      let h = correct.h + (Math.random() < 0.5 ? 1 : -1) * (Math.floor(Math.random() * 3) + 1);
+      h = ((h - 1 + 12) % 12) + 1;
+      candidate = { h, m: correct.m };
+    } else {
+      const steps = Math.floor(60 / OPTION_MINUTE_STEP);
+      let m = (Math.floor(Math.random() * steps) * OPTION_MINUTE_STEP) % 60;
+      candidate = { h: correct.h, m };
+    }
+    if (isWellSpaced(candidate, options)) options.push(candidate);
   }
+
+  // Fallback: if random spacing failed to fill 4, fan out by fixed +15-min hops.
+  let hop = 1;
+  while (options.length < 4) {
+    const base = totalMinutes(correct);
+    const tm = (((base + hop * 15) % 720) + 720) % 720;
+    const candidate = { h: (Math.floor(tm / 60) % 12) || 12, m: tm % 60 };
+    if (isWellSpaced(candidate, options)) options.push(candidate);
+    hop += 1;
+    if (hop > 48) break;
+  }
+
   // shuffle
   for (let i = options.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -79,10 +109,29 @@ function ClockFace({ h, m, size = 200 }) {
     return <line x1={cx} y1={cy} x2={x2} y2={y2} stroke={color} strokeWidth={width} strokeLinecap="round" />;
   }
 
-  // Hour markers
+  // Minute ticks (60) — thin marks except on the hour, which are drawn bolder below
+  const minuteTicks = Array.from({ length: 60 }, (_, i) => {
+    if (i % 5 === 0) return null; // hour positions handled by bold markers
+    const angle = (i / 60) * 2 * Math.PI - Math.PI / 2;
+    const innerR = r - 5;
+    const outerR = r - 2;
+    return (
+      <line
+        key={`mt-${i}`}
+        x1={cx + Math.cos(angle) * innerR}
+        y1={cy + Math.sin(angle) * innerR}
+        x2={cx + Math.cos(angle) * outerR}
+        y2={cy + Math.sin(angle) * outerR}
+        stroke="rgba(228,228,231,0.3)"
+        strokeWidth={1}
+      />
+    );
+  });
+
+  // Hour markers (bolder)
   const markers = Array.from({ length: 12 }, (_, i) => {
     const angle = (i / 12) * 2 * Math.PI - Math.PI / 2;
-    const innerR = r - 10;
+    const innerR = r - 12;
     const outerR = r - 2;
     return (
       <line
@@ -91,8 +140,8 @@ function ClockFace({ h, m, size = 200 }) {
         y1={cy + Math.sin(angle) * innerR}
         x2={cx + Math.cos(angle) * outerR}
         y2={cy + Math.sin(angle) * outerR}
-        stroke="rgba(228,228,231,0.5)"
-        strokeWidth={2}
+        stroke="rgba(228,228,231,0.6)"
+        strokeWidth={3}
       />
     );
   });
@@ -101,6 +150,7 @@ function ClockFace({ h, m, size = 200 }) {
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
       {/* Face */}
       <circle cx={cx} cy={cy} r={r} fill="#1a1a25" stroke="rgba(255,255,255,0.15)" strokeWidth={3} />
+      {minuteTicks}
       {markers}
       {/* Hour hand */}
       {hand(hourAngle,   r * 0.52, 5, '#60a5fa')}
@@ -124,7 +174,7 @@ function RightTimeGame({ difficulty, onComplete, reportScore, secondsLeft, playC
   const [chosen, setChosen]     = useState(null);
   const [question, setQuestion] = useState(() => {
     const t = randomTime(config.minuteStep);
-    return { correct: t, options: generateOptions(t, config.minuteStep) };
+    return { correct: t, options: generateOptions(t) };
   });
 
   // Time-up
@@ -144,7 +194,7 @@ function RightTimeGame({ difficulty, onComplete, reportScore, secondsLeft, playC
     setFeedback(null);
     setChosen(null);
     const t = randomTime(config.minuteStep);
-    setQuestion({ correct: t, options: generateOptions(t, config.minuteStep) });
+    setQuestion({ correct: t, options: generateOptions(t) });
   }, [qIndex, score, config.questions, config.minuteStep, onComplete]);
 
   const handleChoice = useCallback((opt) => {

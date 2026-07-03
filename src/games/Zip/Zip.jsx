@@ -66,10 +66,10 @@ const LEVELS = {
       numbers: { 0: 1, 7: 2, 14: 3, 21: 4, 28: 5, 35: 6 },
       walls: [],
     },
-    // 6×6 level 4
+    // 6×6 level 4 — verified solvable (replaces a previously unsolvable layout)
     {
       size: 6,
-      numbers: { 5: 1, 10: 2, 17: 3, 24: 4, 29: 5, 30: 6 },
+      numbers: { 0: 1, 25: 2, 14: 3, 15: 4, 28: 5, 5: 6 },
       walls: [],
     },
   ],

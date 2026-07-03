@@ -189,44 +189,6 @@ function scramblePuzzle(grid) {
 }
 
 // ── Connectivity ──────────────────────────────────────────────────
-function computeConnected(grid, rows, cols) {
-  // BFS from each endpoint; returns Map<"r,c", colorId> for reachable cells
-  const result = new Map();
-
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const cell = grid[r][c];
-      if (!cell?.isEndpoint) continue;
-
-      const queue = [[r, c]];
-      const seen = new Set([`${r},${c}`]);
-
-      while (queue.length) {
-        const [cr, cc] = queue.shift();
-        const curr = grid[cr][cc];
-        if (!curr) continue;
-
-        const key = `${cr},${cc}`;
-        // First color to claim a cell wins (skip if already claimed by another)
-        if (!result.has(key)) result.set(key, cell.colorId);
-        else if (result.get(key) !== cell.colorId) continue; // conflict, stop
-
-        for (const d of getOpenings(curr.shape, curr.currentRotation)) {
-          const nr = cr + DR[d];
-          const nc = cc + DC[d];
-          if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
-          const nb = grid[nr][nc];
-          if (!nb) continue;
-          if (!getOpenings(nb.shape, nb.currentRotation).includes((d + 2) % 4)) continue;
-          const nk = `${nr},${nc}`;
-          if (!seen.has(nk)) { seen.add(nk); queue.push([nr, nc]); }
-        }
-      }
-    }
-  }
-  return result;
-}
-
 function isConnected(grid, r1, c1, r2, c2, rows, cols) {
   const visited = new Set([`${r1},${c1}`]);
   const queue = [[r1, c1]];
@@ -255,6 +217,17 @@ function checkWin(grid, colorPairs, rows, cols) {
   );
 }
 
+// Returns a Set of colorIds whose two endpoints are FULLY connected.
+// Used for rendering so that pipes only reveal their target colour once the
+// whole pair is solved — partial connections must NOT give away the answer.
+function solvedColors(grid, colorPairs, rows, cols) {
+  const solved = new Set();
+  for (const { colorId, endpoints: [[r1, c1], [r2, c2]] } of colorPairs) {
+    if (isConnected(grid, r1, c1, r2, c2, rows, cols)) solved.add(colorId);
+  }
+  return solved;
+}
+
 // ── SVG Tile renderer ─────────────────────────────────────────────
 // All coordinates inside a 60×60 viewBox
 const VB = 60;
@@ -263,7 +236,7 @@ const PIPE_W = 13;   // stroke-width
 const BULB_R = 11;   // endpoint circle radius
 const BULB_GLOW = 16;// outer glow circle
 
-function TileSVG({ cell, connectedColor }) {
+function TileSVG({ cell, solved }) {
   if (!cell || cell.shape === 'empty') return null;
 
   const opens = getOpenings(cell.shape, cell.currentRotation);
@@ -273,7 +246,13 @@ function TileSVG({ cell, connectedColor }) {
   const hasW = opens.includes(3);
 
   const info = colorOf(cell.colorId);
-  const pipe = connectedColor ? info.pipe : '#9BA8B5';
+  const NEUTRAL = '#9BA8B5';
+  // Pipe segments stay neutral until the WHOLE pair is solved — this avoids
+  // recolouring on partial connection, which would reveal the answer.
+  const pipe = solved ? info.pipe : NEUTRAL;
+  // Endpoint bulbs always show their own colour: they are the fixed reference
+  // dots the player must connect, not a hint about the path.
+  const bulb = info.pipe;
 
   // Corner = exactly 2 adjacent sides open
   const adjPairs = [
@@ -317,8 +296,8 @@ function TileSVG({ cell, connectedColor }) {
       {/* Endpoint bulb */}
       {cell.isEndpoint && (
         <>
-          <circle cx={HALF} cy={HALF} r={BULB_GLOW} fill={pipe} opacity={0.18} />
-          <circle cx={HALF} cy={HALF} r={BULB_R}    fill={pipe} />
+          <circle cx={HALF} cy={HALF} r={BULB_GLOW} fill={bulb} opacity={0.18} />
+          <circle cx={HALF} cy={HALF} r={BULB_R}    fill={bulb} />
           {/* Shine */}
           <circle cx={HALF - 3} cy={HALF - 4} r={3.5} fill="white" opacity={0.55} />
         </>
@@ -328,8 +307,8 @@ function TileSVG({ cell, connectedColor }) {
 }
 
 TileSVG.propTypes = {
-  cell:           PropTypes.object,
-  connectedColor: PropTypes.string,
+  cell:   PropTypes.object,
+  solved: PropTypes.bool,
 };
 
 function buildPuzzle(rows, cols, numColors) {
@@ -350,9 +329,11 @@ function PipeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick,
 
   const [round,     setRound]     = useState(0);
   const [score,     setScore]     = useState(0);
-  const [[puzzle, connected], setPuzzleState] = useState(() => {
+  // `solved` is a Set of colorIds whose pair is FULLY connected — used for
+  // colouring so partial connections never reveal the answer.
+  const [[puzzle, solved], setPuzzleState] = useState(() => {
     const p = buildPuzzle(rows, cols, numColors);
-    return [p, computeConnected(p.grid, rows, cols)];
+    return [p, solvedColors(p.grid, p.colorPairs, rows, cols)];
   });
   const [won,       setWon]       = useState(false);
   const [animKey,   setAnimKey]   = useState(null);
@@ -388,8 +369,8 @@ function PipeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick,
       })
     );
     const newPuzzle = { ...puzzle, grid: newGrid };
-    const newConnected = computeConnected(newGrid, rows, cols);
-    setPuzzleState([newPuzzle, newConnected]);
+    const newSolved = solvedColors(newGrid, puzzle.colorPairs, rows, cols);
+    setPuzzleState([newPuzzle, newSolved]);
 
     if (!doneRef.current && checkWin(newGrid, puzzle.colorPairs, rows, cols)) {
       const { score: s, round: rnd, rounds: total, rows: ro, cols: co, numColors: nc, onComplete: oc, reportScore: rs, playSuccess: ps } = stateRef.current;
@@ -410,7 +391,7 @@ function PipeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick,
         }
         setRound(nextRound);
         const np = buildPuzzle(ro, co, nc);
-        setPuzzleState([np, computeConnected(np.grid, ro, co)]);
+        setPuzzleState([np, solvedColors(np.grid, np.colorPairs, ro, co)]);
         setWon(false);
       }, 800);
     }
@@ -465,7 +446,7 @@ function PipeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick,
         {grid.map((row, r) =>
           row.map((cell, c) => {
             const key = `${r},${c}`;
-            const connectedColor = connected.get(key) ?? null;
+            const isSolved = cell ? solved.has(cell.colorId) : false;
             const isAnim = animKey === key;
             return (
               <div
@@ -475,7 +456,7 @@ function PipeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick,
                   ${cell ? styles.tilePipe : styles.tileEmpty}
                   ${cell?.isEndpoint ? styles.tileEndpoint : ''}
                   ${isAnim ? styles.tileRotate : ''}
-                  ${won && connectedColor ? styles.tileWon : ''}`}
+                  ${won && isSolved ? styles.tileWon : ''}`}
                 onClick={() => rotateTile(r, c)}
                 aria-label={
                   cell
@@ -483,7 +464,7 @@ function PipeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick,
                     : `Empty tile row ${r + 1} col ${c + 1}`
                 }
               >
-                <TileSVG cell={cell} connectedColor={connectedColor} />
+                <TileSVG cell={cell} solved={isSolved} />
               </div>
             );
           })

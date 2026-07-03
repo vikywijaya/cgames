@@ -1,6 +1,7 @@
 // 中文 (Chinese)
 export default {
   shell: {
+    back: '返回',
     howToPlay: '如何玩',
     play: '开始',
     playAgain: '再玩一次',
@@ -153,7 +154,6 @@ export default {
   games: {
     'memory-match': { title: '记忆配对', label: '记忆配对', description: '翻卡找配对。', instructions: '翻开卡片找到配对。点击卡片将其翻开，然后找到它的配对。配对成功的卡片保持翻开。找到所有配对即可获胜！' },
     'word-recall': { title: '单词回忆', label: '单词回忆', description: '学习列表，然后回忆。', instructions: '你将看到一组单词。仔细记住！时间到后，单词会消失，你需要输入尽可能多的记住的单词。', placeholder: '输入单词后按回车…' },
-    'pattern-sequence': { title: '图案序列', label: '图案序列', description: '观察并重复灯光序列。', instructions: '观察彩色灯依次亮起，然后按相同顺序点击灯来重复图案。序列每轮变长！', correctNextRound: '✓ 正确！准备下一轮…', notQuite: '差一点——看看你的分数！', completedAll: '🎉 你完成了所有回合！' },
     'daily-arithmetic': { title: '每日算术', label: '每日挑战', description: '按自己的节奏解答数学题。', instructions: '选择正确答案来回答每道算术题。慢慢来——没有时间限制。' },
     'word-search': { title: '找字游戏', label: '找字游戏', description: '在字母网格中找到隐藏的单词。', instructions: '在字母网格中找到所有隐藏的单词。点击起始字母然后点击结束字母。', clearSelection: '取消选择' },
     'catch-falling-fruit': { title: '接水果', label: '接水果', description: '滑动篮子接住掉落的水果。', instructions: '水果会从天上掉下来——用篮子接住！滑动手指移动。炸弹——接到会失去一条命！星星——+3奖励分！' },

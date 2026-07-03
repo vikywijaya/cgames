@@ -201,12 +201,33 @@ export function useWordSearch(difficulty = 'easy') {
 
   const selectionCellSet = new Set(selectionCells.map((c) => `${c.row},${c.col}`));
 
+  // When a start cell is chosen, compute every cell that forms a valid straight
+  // line (H / V / 45° diagonal) from it, so the UI can highlight which cells are
+  // valid end points. This makes the interaction obvious for first-time users.
+  const validTargetSet = new Set();
+  if (selectionStart) {
+    const dirs = [
+      [0, 1], [0, -1], [1, 0], [-1, 0],
+      [1, 1], [1, -1], [-1, 1], [-1, -1],
+    ];
+    for (const [dr, dc] of dirs) {
+      let r = selectionStart.row + dr;
+      let c = selectionStart.col + dc;
+      while (r >= 0 && r < size && c >= 0 && c < size) {
+        validTargetSet.add(`${r},${c}`);
+        r += dr;
+        c += dc;
+      }
+    }
+  }
+
   return {
     grid,
     words,
     foundWords,
     foundCellSet,
     selectionCellSet,
+    validTargetSet,
     selectionStart,
     lastResult,
     clickCell,

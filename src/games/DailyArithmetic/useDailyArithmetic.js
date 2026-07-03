@@ -1,22 +1,30 @@
 import { useState, useCallback } from 'react';
 
 const DIFFICULTY_CONFIG = {
-  easy:   { ops: ['+'],        range: [1, 20],  questions: 8 },
-  medium: { ops: ['+', '-'],   range: [1, 50],  questions: 10 },
-  hard:   { ops: ['+', '-', '×'], range: [1, 12], questions: 12 },
+  easy:   { ops: ['+'],            range: [1, 20],   mulRange: [2, 9],   questions: 8 },
+  medium: { ops: ['+', '-'],       range: [1, 50],   mulRange: [2, 12],  questions: 10 },
+  hard:   { ops: ['+', '-', '×', '÷'], range: [10, 99], mulRange: [3, 15], questions: 14 },
 };
 
 function randInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function generateQuestion(ops, range) {
+function generateQuestion(ops, range, mulRange) {
   const op = ops[Math.floor(Math.random() * ops.length)];
   const [min, max] = range;
+  const [mulMin, mulMax] = mulRange;
 
+  if (op === '÷') {
+    // Build a division with a clean integer result.
+    const b = randInt(mulMin, mulMax);
+    const quotient = randInt(mulMin, mulMax);
+    const a = b * quotient;
+    return { a, op, b, answer: quotient };
+  }
   if (op === '×') {
-    const a = randInt(1, max);
-    const b = randInt(1, max);
+    const a = randInt(mulMin, mulMax);
+    const b = randInt(mulMin, mulMax);
     return { a, op, b, answer: a * b };
   }
   if (op === '-') {
@@ -52,7 +60,7 @@ export function useDailyArithmetic(difficulty = 'easy') {
 
   const [questions] = useState(() =>
     Array.from({ length: config.questions }, () => {
-      const q = generateQuestion(config.ops, config.range);
+      const q = generateQuestion(config.ops, config.range, config.mulRange);
       return { ...q, choices: generateChoices(q.answer) };
     })
   );

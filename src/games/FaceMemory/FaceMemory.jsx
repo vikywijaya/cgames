@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
@@ -22,17 +22,23 @@ const DIFFICULTY_CONFIG = {
   hard:   { rounds: 10,faceCount: 7, studySec: 10 },
 };
 
-const FACES = [
-  { img: female1, name: 'Sarah' },
-  { img: male1,   name: 'Robert' },
-  { img: female2, name: 'Maria' },
-  { img: male2,   name: 'George' },
-  { img: female3, name: 'Linda' },
-  { img: male3,   name: 'James' },
-  { img: female4, name: 'Dorothy' },
-  { img: male4,   name: 'William' },
-  { img: female5, name: 'Patricia' },
-  { img: male5,   name: 'David' },
+// Only 10 face images exist (5 male, 5 female). To create much more variation
+// across rounds and sessions, each face is assigned a name drawn from a large
+// gender-matched name pool at session start, so face↔name pairings differ every play.
+const FEMALE_IMGS = [female1, female2, female3, female4, female5];
+const MALE_IMGS   = [male1, male2, male3, male4, male5];
+
+const FEMALE_NAMES = [
+  'Sarah', 'Maria', 'Linda', 'Dorothy', 'Patricia',
+  'Margaret', 'Helen', 'Barbara', 'Nancy', 'Susan',
+  'Carol', 'Ruth', 'Joan', 'Betty', 'Janet',
+  'Alice', 'Grace', 'Rose', 'Doris', 'Evelyn',
+];
+const MALE_NAMES = [
+  'Robert', 'George', 'James', 'William', 'David',
+  'Charles', 'Thomas', 'Frank', 'Harold', 'Walter',
+  'Henry', 'Albert', 'Arthur', 'Edward', 'Donald',
+  'Ronald', 'Kenneth', 'Raymond', 'Eugene', 'Philip',
 ];
 
 function shuffle(arr) {
@@ -44,13 +50,34 @@ function shuffle(arr) {
   return a;
 }
 
-function buildRound(faceCount) {
-  const pool = shuffle(FACES);
-  const faces = pool.slice(0, faceCount);
+// Assign a unique random name to every face for this session.
+function buildFaceDeck() {
+  const femaleNames = shuffle(FEMALE_NAMES).slice(0, FEMALE_IMGS.length);
+  const maleNames   = shuffle(MALE_NAMES).slice(0, MALE_IMGS.length);
+  const faces = [
+    ...FEMALE_IMGS.map((img, i) => ({ img, name: femaleNames[i] })),
+    ...MALE_IMGS.map((img, i) => ({ img, name: maleNames[i] })),
+  ];
+  return faces;
+}
+
+// Build a round that prefers faces not recently shown, so each round rotates in
+// fresh faces rather than repeating 8 of 10 every time.
+function buildRound(deck, faceCount, recentNames) {
+  // Prefer faces not used in the most recent round; fall back to the rest.
+  const fresh = deck.filter(f => !recentNames.has(f.name));
+  const stale = deck.filter(f => recentNames.has(f.name));
+  const ordered = [...shuffle(fresh), ...shuffle(stale)];
+  const faces = ordered.slice(0, faceCount);
   // Pick one face to quiz on
   const target = faces[Math.floor(Math.random() * faces.length)];
-  // 3 other name distractors from pool (different from shown faces preferred)
-  const distNames = shuffle(pool.slice(faceCount)).slice(0, 3).map(f => f.name);
+  // 3 name distractors, preferring names of faces NOT shown this round
+  const others = deck.filter(f => f.name !== target.name && !faces.some(s => s.name === f.name));
+  let distNames = shuffle(others).slice(0, 3).map(f => f.name);
+  if (distNames.length < 3) {
+    const extra = shuffle(faces.filter(f => f.name !== target.name).map(f => f.name));
+    distNames = [...distNames, ...extra].slice(0, 3);
+  }
   const options = shuffle([target.name, ...distNames]);
   return { faces, target, options };
 }
@@ -58,11 +85,15 @@ function buildRound(faceCount) {
 function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
+  const deckRef = useRef(null);
+  if (deckRef.current === null) deckRef.current = buildFaceDeck();
+  const deck = deckRef.current;
+
   const [round,  setRound]  = useState(0);
   const [score,  setScore]  = useState(0);
   const [phase,  setPhase]  = useState('study');
   const [timer,  setTimer]  = useState(config.studySec);
-  const [data,   setData]   = useState(() => buildRound(config.faceCount));
+  const [data,   setData]   = useState(() => buildRound(deck, config.faceCount, new Set()));
   const [chosen, setChosen] = useState(null);
   const [feedback,setFeedback] = useState(null);
 
@@ -92,11 +123,12 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, play
       if (next >= config.rounds) {
         onComplete({ finalScore: newScore, maxScore: config.rounds, completed: true });
       } else {
+        const recentNames = new Set(data.faces.map(f => f.name));
         setRound(next); setPhase('study'); setTimer(config.studySec);
-        setData(buildRound(config.faceCount)); setChosen(null); setFeedback(null);
+        setData(buildRound(deck, config.faceCount, recentNames)); setChosen(null); setFeedback(null);
       }
     }, 900);
-  }, [feedback, data, score, round, config, reportScore, onComplete, playClick, playSuccess, playFail]);
+  }, [feedback, data, score, round, config, deck, reportScore, onComplete, playClick, playSuccess, playFail]);
 
   if (phase === 'study') {
     return (

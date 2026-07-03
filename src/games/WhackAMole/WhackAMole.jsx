@@ -139,15 +139,22 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playBoing
       // Auto-hide after showMs
       setTimeout(() => {
         if (doneRef.current) return;
-        // If mole escaped (wasn't whacked), no penalty here — just hide
+        // Only penalise a missed MOLE (a missed bomb is correctly avoided).
+        const escapedType = activeRef.current[idx];
         activeRef.current = { ...activeRef.current };
         delete activeRef.current[idx];
         setActive({ ...activeRef.current });
+        if (escapedType === 'mole') {
+          playFail();
+          livesRef.current -= 1;
+          setLives(livesRef.current);
+          if (livesRef.current <= 0) finish();
+        }
       }, config.showMs);
     }, config.intervalMs);
 
     return () => clearInterval(timerRef.current);
-  }, [holes, config.showMs, config.intervalMs, useBombs]);
+  }, [holes, config.showMs, config.intervalMs, useBombs, finish, playFail]);
 
   const handleTap = useCallback((idx) => {
     if (doneRef.current) return;
@@ -172,11 +179,11 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playBoing
         setHammer(null);
       }, 350);
     } else {
-      // Bomb tapped
+      // Bomb tapped — ends the game immediately
       playFail();
-      livesRef.current -= 1;
-      setLives(livesRef.current);
-      if (livesRef.current <= 0) finish();
+      livesRef.current = 0;
+      setLives(0);
+      finish();
     }
   }, [finish, reportScore, playBoing, playFail]);
 

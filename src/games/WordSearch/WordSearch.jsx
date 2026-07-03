@@ -17,6 +17,7 @@ function WordSearchGame({ difficulty, onComplete, reportScore, playClick, playSu
     foundWords,
     foundCellSet,
     selectionCellSet,
+    validTargetSet,
     selectionStart,
     lastResult,
     clickCell,
@@ -75,7 +76,7 @@ function WordSearchGame({ difficulty, onComplete, reportScore, playClick, playSu
       {/* Grid */}
       <div
         className={styles.grid}
-        style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+        style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, '--cols': cols }}
         role="grid"
         aria-label="Word search grid"
       >
@@ -85,11 +86,13 @@ function WordSearchGame({ difficulty, onComplete, reportScore, playClick, playSu
             const isFound = foundCellSet.has(key);
             const isSelected = selectionCellSet.has(key);
             const isStart = selectionStart && selectionStart.row === r && selectionStart.col === c;
+            const isValidTarget = validTargetSet.has(key);
 
             const cellClass = [
               styles.cell,
               isFound ? styles.found : '',
               isSelected && !isFound ? styles.selected : '',
+              isValidTarget && !isFound && !isSelected ? styles.validTarget : '',
               isStart ? styles.start : '',
             ]
               .filter(Boolean)

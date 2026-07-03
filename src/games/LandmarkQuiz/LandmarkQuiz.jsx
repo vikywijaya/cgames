@@ -11,8 +11,12 @@ const DIFFICULTY_CONFIG = {
   hard:   { rounds: 16, pool: 'all',      timeLimitSeconds: 90   },
 };
 
+// Tiers are DISJOINT and ordered by how recognizable the landmark is:
+// basic = world-famous icons, extended = moderately known, all =
+// less-familiar landmarks. Each tier is large enough to fill its
+// difficulty's round count without repeats.
 const ALL_LANDMARKS = [
-  // basic
+  // basic (world-famous)
   { name: 'Eiffel Tower',         country: 'France',        emoji: '🗼', pool: 'basic' },
   { name: 'Statue of Liberty',    country: 'United States', emoji: '🗽', pool: 'basic' },
   { name: 'Big Ben',              country: 'United Kingdom',emoji: '🕐', pool: 'basic' },
@@ -21,40 +25,62 @@ const ALL_LANDMARKS = [
   { name: 'Sydney Opera House',   country: 'Australia',     emoji: '🎭', pool: 'basic' },
   { name: 'Taj Mahal',            country: 'India',         emoji: '🕌', pool: 'basic' },
   { name: 'Pyramids of Giza',     country: 'Egypt',         emoji: '🔺', pool: 'basic' },
-  // extended
+  { name: 'Mount Fuji',           country: 'Japan',         emoji: '🗻', pool: 'basic' },
+  { name: 'Christ the Redeemer',  country: 'Brazil',        emoji: '✝️',  pool: 'basic' },
+  // extended (moderately known)
   { name: 'Machu Picchu',         country: 'Peru',          emoji: '🏔️', pool: 'extended' },
   { name: 'Sagrada Família',       country: 'Spain',         emoji: '⛪', pool: 'extended' },
   { name: 'Acropolis',            country: 'Greece',        emoji: '🏛️', pool: 'extended' },
-  { name: 'Christ the Redeemer',  country: 'Brazil',        emoji: '✝️',  pool: 'extended' },
   { name: 'Burj Khalifa',         country: 'UAE',           emoji: '🏢', pool: 'extended' },
-  { name: 'Mount Fuji',           country: 'Japan',         emoji: '🗻', pool: 'extended' },
   { name: 'Angkor Wat',           country: 'Cambodia',      emoji: '🛕', pool: 'extended' },
   { name: 'Chichen Itza',         country: 'Mexico',        emoji: '🏯', pool: 'extended' },
-  // all (rarer)
-  { name: 'Petra',                country: 'Jordan',        emoji: '🪨', pool: 'all' },
+  { name: 'Niagara Falls',        country: 'Canada',        emoji: '🌊', pool: 'extended' },
+  { name: 'Stonehenge',           country: 'United Kingdom',emoji: '🌀', pool: 'extended' },
+  { name: 'Petra',                country: 'Jordan',        emoji: '🪨', pool: 'extended' },
+  { name: 'Leaning Tower of Pisa',country: 'Italy',         emoji: '🏛️', pool: 'extended' },
+  { name: 'Mount Rushmore',       country: 'United States', emoji: '🗿', pool: 'extended' },
+  { name: 'Brandenburg Gate',     country: 'Germany',       emoji: '🏛️', pool: 'extended' },
+  // all (less-familiar)
   { name: 'Hagia Sophia',         country: 'Turkey',        emoji: '🕍', pool: 'all' },
-  { name: 'Stonehenge',           country: 'United Kingdom',emoji: '🌀', pool: 'all' },
   { name: 'Alhambra',             country: 'Spain',         emoji: '🏰', pool: 'all' },
-  { name: 'Niagara Falls',        country: 'Canada',        emoji: '🌊', pool: 'all' },
   { name: 'Forbidden City',       country: 'China',         emoji: '🏯', pool: 'all' },
   { name: 'Victoria Falls',       country: 'Zambia',        emoji: '💦', pool: 'all' },
   { name: 'Uluru (Ayers Rock)',   country: 'Australia',     emoji: '🟥', pool: 'all' },
+  { name: 'Borobudur',            country: 'Indonesia',     emoji: '🛕', pool: 'all' },
+  { name: 'Neuschwanstein Castle',country: 'Germany',       emoji: '🏰', pool: 'all' },
+  { name: 'Table Mountain',       country: 'South Africa',  emoji: '⛰️', pool: 'all' },
+  { name: 'Moai Statues',         country: 'Chile',         emoji: '🗿', pool: 'all' },
+  { name: 'Mont-Saint-Michel',    country: 'France',        emoji: '🏰', pool: 'all' },
+  { name: 'Pamukkale',            country: 'Turkey',        emoji: '🏞️', pool: 'all' },
+  { name: 'Bagan Temples',        country: 'Myanmar',       emoji: '🛕', pool: 'all' },
+  { name: 'Kremlin',              country: 'Russia',        emoji: '🏛️', pool: 'all' },
+  { name: 'Marina Bay Sands',     country: 'Singapore',     emoji: '🏨', pool: 'all' },
+  { name: 'Sheikh Zayed Mosque',  country: 'UAE',           emoji: '🕌', pool: 'all' },
+  { name: 'Banff Lakes',          country: 'Canada',        emoji: '🏞️', pool: 'all' },
 ];
 
 const POOL_MAP = {
   basic:    ALL_LANDMARKS.filter(l => l.pool === 'basic'),
-  extended: ALL_LANDMARKS.filter(l => l.pool === 'basic' || l.pool === 'extended'),
-  all:      ALL_LANDMARKS,
+  extended: ALL_LANDMARKS.filter(l => l.pool === 'extended'),
+  all:      ALL_LANDMARKS.filter(l => l.pool === 'all'),
 };
 
-function buildQuestion(poolName) {
-  const pool = POOL_MAP[poolName];
-  const item = pool[Math.floor(Math.random() * pool.length)];
-  // Options: correct country + 3 wrong countries from pool
+function shuffleArr(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Distractors are other countries drawn from the same tier so the options
+// are plausible.
+function buildQuestion(item, pool) {
   const otherCountries = [...new Set(pool.filter(l => l.country !== item.country).map(l => l.country))];
   const opts = [item.country];
-  while (opts.length < 4 && otherCountries.length >= opts.length) {
-    const pick = otherCountries[Math.floor(Math.random() * otherCountries.length)];
+  for (const pick of shuffleArr(otherCountries)) {
+    if (opts.length >= 4) break;
     if (!opts.includes(pick)) opts.push(pick);
   }
   for (let i = opts.length - 1; i > 0; i--) {
@@ -67,9 +93,23 @@ function buildQuestion(poolName) {
 function LandmarkQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
   const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
+  const pool   = POOL_MAP[config.pool];
+
+  // Pre-shuffled queue of distinct landmarks for this attempt, so no
+  // landmark repeats until the tier is exhausted.
+  const queueRef = useRef(shuffleArr(pool));
+  const cursorRef = useRef(0);
+  const nextItem = useCallback(() => {
+    if (cursorRef.current >= queueRef.current.length) {
+      queueRef.current = shuffleArr(pool);
+      cursorRef.current = 0;
+    }
+    return queueRef.current[cursorRef.current++];
+  }, [pool]);
+
   const [round,    setRound]    = useState(0);
   const [score,    setScore]    = useState(0);
-  const [q,        setQ]        = useState(() => buildQuestion(config.pool));
+  const [q,        setQ]        = useState(() => buildQuestion(nextItem(), pool));
   const [feedback, setFeedback] = useState(null);
   const [picked,   setPicked]   = useState(null);
   const scoreRef = useRef(0);
@@ -90,10 +130,10 @@ function LandmarkQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pl
       return;
     }
     setRound(newRound);
-    setQ(buildQuestion(config.pool));
+    setQ(buildQuestion(nextItem(), pool));
     setFeedback(null);
     setPicked(null);
-  }, [config, onComplete]);
+  }, [config, pool, nextItem, onComplete]);
 
   const handlePick = useCallback((val) => {
     if (feedback || doneRef.current) return;

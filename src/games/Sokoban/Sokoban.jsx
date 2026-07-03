@@ -253,6 +253,31 @@ function isSolved(grid) {
   return true;
 }
 
+/* ── Detect a box pushed into an unwinnable corner ──
+   A box (not on a goal) is unrecoverable when two perpendicular neighbours are
+   walls/edges — it can never be pushed out. Used to warn the player so they can
+   undo instead of being stuck without realising it. */
+function hasDeadlockedBox(grid) {
+  const rows = grid.length;
+  const cols = grid[0].length;
+  const blocked = (r, c) => {
+    if (r < 0 || r >= rows || c < 0 || c >= cols) return true; // outside = wall
+    return grid[r][c] === WALL;
+  };
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (grid[r][c] !== BOX) continue; // BOX_ON_GOAL is fine
+      const up = blocked(r - 1, c);
+      const down = blocked(r + 1, c);
+      const left = blocked(r, c - 1);
+      const right = blocked(r, c + 1);
+      // Cornered: a vertical wall AND a horizontal wall meet at the box.
+      if ((up || down) && (left || right)) return true;
+    }
+  }
+  return false;
+}
+
 /* ── Try to move in a direction; returns new state or null ── */
 function tryMove(grid, playerR, playerC, dr, dc) {
   const rows = grid.length;
@@ -408,6 +433,7 @@ function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
   const [solved, setSolved] = useState(false);
   const [history, setHistory] = useState([]);
   const [direction, setDirection] = useState('down');
+  const [stuck, setStuck] = useState(false);
   const wrapperRef = useRef(null);
 
   // Swipe handling
@@ -440,6 +466,9 @@ function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
     setMoves(m => m + 1);
     if (result.pushed) setPushes(p => p + 1);
 
+    // Warn if a box was just pushed into an unrecoverable corner.
+    if (result.pushed) setStuck(hasDeadlockedBox(result.grid));
+
     // Check solved
     if (isSolved(result.grid)) {
       setSolved(true);
@@ -460,6 +489,7 @@ function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
         setPushes(0);
         setSolved(false);
         setHistory([]);
+        setStuck(false);
       }, 1200);
     }
   }, [state, solved, moves, pushes, score, levelIdx, totalLevels, levels, playClick, playFail, playSuccess, reportScore, onComplete]);
@@ -479,6 +509,7 @@ function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
         setState({ grid: last.grid, playerR: last.playerR, playerC: last.playerC, height: state.height, width: state.width });
         setMoves(last.moves);
         setPushes(last.pushes);
+        setStuck(hasDeadlockedBox(last.grid));
         return prev.slice(0, -1);
       });
     }
@@ -513,6 +544,7 @@ function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
     setState({ grid: last.grid, playerR: last.playerR, playerC: last.playerC, height: state.height, width: state.width });
     setMoves(last.moves);
     setPushes(last.pushes);
+    setStuck(hasDeadlockedBox(last.grid));
     setHistory(prev => prev.slice(0, -1));
   }, [solved, history, state.height, state.width, playClick]);
 
@@ -523,6 +555,7 @@ function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
     setMoves(0);
     setPushes(0);
     setHistory([]);
+    setStuck(false);
   }, [solved, levels, levelIdx, playClick]);
 
   // Compute cell size based on grid dimensions and screen width
@@ -590,6 +623,13 @@ function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
         </div>
       </div>
 
+      {/* Stuck-corner warning */}
+      {stuck && !solved && (
+        <div className={styles.stuckWarning} role="status">
+          ⚠️ A box is stuck in a corner — use Undo or Restart
+        </div>
+      )}
+
       {/* Action buttons */}
       <div className={styles.actions}>
         <button
@@ -598,7 +638,7 @@ function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
           disabled={solved || history.length === 0}
           aria-label="Undo last move"
         >
-          ↩ Undo
+          {t.common.undo}
         </button>
         <button
           className={styles.actionBtn}
@@ -606,7 +646,7 @@ function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
           disabled={solved}
           aria-label="Restart level"
         >
-          🔄 Restart
+          {t.common.restart}
         </button>
       </div>
     </div>

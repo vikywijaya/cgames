@@ -23,6 +23,7 @@ function WordRecallGame({ difficulty, onComplete, reportScore, playClick, playSu
     studySeconds,
     recallSeconds,
     enterRecall,
+    enterReview,
     submitWord,
     score,
     maxScore,
@@ -37,11 +38,11 @@ function WordRecallGame({ difficulty, onComplete, reportScore, playClick, playSu
     onExpire: enterRecall,
   });
 
-  // Recall countdown — ends the game
+  // Recall countdown — ends the recall phase and shows the review
   const { secondsLeft: recallLeft } = useCountdown({
     seconds: recallSeconds,
     active: phase === 'recall',
-    onExpire: () => onComplete({ finalScore: score, maxScore, completed: true }),
+    onExpire: enterReview,
   });
 
   useEffect(() => { reportScore?.(score); }, [score, reportScore]);
@@ -55,12 +56,12 @@ function WordRecallGame({ difficulty, onComplete, reportScore, playClick, playSu
     if (phase === 'recall') inputRef.current?.focus();
   }, [phase]);
 
-  // End game if all words recalled
+  // End recall phase if all words recalled — show the review
   useEffect(() => {
     if (phase === 'recall' && recalled.size === maxScore) {
-      onComplete({ finalScore: score, maxScore, completed: true });
+      enterReview();
     }
-  }, [recalled.size, maxScore, phase, score, onComplete]);
+  }, [recalled.size, maxScore, phase, enterReview]);
 
   const feedbackClass =
     lastResult === 'found'
@@ -176,7 +177,36 @@ function WordRecallGame({ difficulty, onComplete, reportScore, playClick, playSu
             </div>
           )}
 
-          <Button variant="secondary" onClick={() => onComplete({ finalScore: score, maxScore, completed: true })} className={styles.finishBtn}>
+          <Button variant="secondary" onClick={enterReview} className={styles.finishBtn}>
+            {t.common.finish}
+          </Button>
+        </div>
+      )}
+
+      {/* ── REVIEW PHASE ── */}
+      {phase === 'review' && (
+        <div className={styles.reviewPhase}>
+          <div className={styles.reviewHeader}>
+            <span className={styles.reviewScoreNum}>{score}</span>
+            <span className={styles.reviewScoreMax}>/ {maxScore} {t.common.words}</span>
+          </div>
+
+          <ul className={styles.reviewGrid} role="list" aria-label="Word review">
+            {wordList.map((word) => {
+              const got = recalled.has(word);
+              return (
+                <li
+                  key={word}
+                  className={`${styles.reviewWord} ${got ? styles.reviewWordFound : styles.reviewWordMissed}`}
+                >
+                  <span className={styles.reviewMark} aria-hidden="true">{got ? '✓' : '✗'}</span>
+                  <span className={styles.reviewWordText}>{word}</span>
+                </li>
+              );
+            })}
+          </ul>
+
+          <Button size="large" onClick={() => onComplete({ finalScore: score, maxScore, completed: true })} className={styles.finishBtn}>
             {t.common.finish}
           </Button>
         </div>

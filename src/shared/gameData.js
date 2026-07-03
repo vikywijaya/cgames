@@ -17,7 +17,6 @@ export const GAME_GROUPS = [
     category: 'Attention & Reflexes',
     icon: '⚡',
     games: [
-      { id: 'pattern-sequence', title: 'Pattern Sequence', icon: '🎵', domain: 'Attention',          description: 'Watch and repeat a light-pad sequence.' },
       { id: 'balloon-pop',      title: 'Balloon Pop',      icon: '🎈', domain: 'Reaction Speed',      description: 'Tap balloons before they float away!' },
       { id: 'whack-a-mole',     title: 'Whack-a-Mole',    icon: '🐹', domain: 'Reaction Speed',      description: 'Tap the moles before they disappear!' },
       { id: 'speed-tap',        title: 'Speed Tap',        icon: '⭐', domain: 'Selective Attention', description: 'A target emoji appears among distractors — tap it fast!' },
@@ -81,7 +80,7 @@ export const GAME_GROUPS = [
 // Map game IDs to their image file extensions (for stable icon URLs via public/)
 const GAME_IMAGE_EXT = {
   'memory-match': 'png', 'word-recall': 'png', 'colour-memory': 'png',
-  'face-memory': 'png', 'shopping-list': 'png', 'pattern-sequence': 'png',
+  'face-memory': 'png', 'shopping-list': 'png',
   'daily-arithmetic': 'png', 'catch-falling-fruit': 'png', 'right-time': 'png',
   'word-search': 'png', 'ring-sort': 'png',
 };

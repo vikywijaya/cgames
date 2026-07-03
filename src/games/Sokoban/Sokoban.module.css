@@ -157,6 +157,18 @@
   gap: var(--space-3);
 }
 
+.stuckWarning {
+  font-size: 13px;
+  font-weight: 600;
+  color: #92400e;
+  background: #fef3c7;
+  border: 1.5px solid #fcd34d;
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-3);
+  text-align: center;
+  max-width: 460px;
+}
+
 .actionBtn {
   padding: var(--space-2) var(--space-3);
   font-size: 14px;

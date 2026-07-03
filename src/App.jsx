@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { MemoryMatch }      from './games/MemoryMatch/MemoryMatch';
 import { WordRecall }       from './games/WordRecall/WordRecall';
-import { PatternSequence }  from './games/PatternSequence/PatternSequence';
 import { DailyArithmetic }  from './games/DailyArithmetic/DailyArithmetic';
 import { WordSearch }       from './games/WordSearch/WordSearch';
 import { CatchFallingFruit }from './games/CatchFallingFruit/CatchFallingFruit';
@@ -45,17 +44,19 @@ import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import './design/globals.css';
 import styles from './App.module.css';
 
-// Pre-generated card images (src/assets/games/<id>.png).
-// Falls back to the emoji icon when an image isn't present yet.
-const gameImages = import.meta.glob('./assets/games/*.{png,svg}', { eager: true, query: '?url', import: 'default' });
+// Pre-generated square card covers (src/assets/games/<id>.{jpg,png,svg}).
+// Prefer the square .jpg cover art; fall back to png/svg, then emoji.
+const gameImages = import.meta.glob('./assets/games/*.{jpg,png,svg}', { eager: true, query: '?url', import: 'default' });
 function getGameImage(id) {
-  return gameImages[`./assets/games/${id}.png`] ?? gameImages[`./assets/games/${id}.svg`] ?? null;
+  return gameImages[`./assets/games/${id}.jpg`]
+    ?? gameImages[`./assets/games/${id}.png`]
+    ?? gameImages[`./assets/games/${id}.svg`]
+    ?? null;
 }
 
 const GAME_MAP = {
   'memory-match':      MemoryMatch,
   'word-recall':       WordRecall,
-  'pattern-sequence':  PatternSequence,
   'daily-arithmetic':  DailyArithmetic,
   'word-search':       WordSearch,
   'catch-falling-fruit': CatchFallingFruit,
@@ -107,6 +108,8 @@ const urlCallbackUrl  = params.get('callbackUrl')  ?? undefined;
 const urlAccessToken  = params.get('access_token') ?? undefined;
 const urlTotalScore   = params.get('total_score');
 const urlLangCode     = params.get('langCode')     ?? 'en';
+const urlMode         = params.get('mode') === 'mobile' ? 'mobile' : 'web';
+const showBackButtons = urlMode === 'web';
 
 // Persist total_score from URL into localStorage on every load (if provided)
 if (urlTotalScore !== null && !isNaN(Number(urlTotalScore))) {
@@ -331,7 +334,7 @@ export function App() {
               saveScore(selectedGame, pct, result.durationSeconds ?? null, urlMemberId, result.difficulty ?? null);
               sendCallback(selectedGame, result);
             }}
-            onBack={() => setSelectedGame(null)}
+            onBack={showBackButtons ? () => setSelectedGame(null) : undefined}
           />
         </div>
       </GameContext.Provider>
@@ -344,13 +347,16 @@ export function App() {
     const previewScores = getAllScores(urlMemberId);
     return (
       <div className={styles.dailyWrapper}>
-        <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Back">‹ <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+        {showBackButtons && (
+          <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+        )}
         <div className={styles.dailyPreview}>
           <h2 className={styles.dailyPreviewTitle}>{t.app.todaysChallenge}</h2>
           <p className={styles.dailyPreviewSub}>{t.app.playTheseGames}</p>
           <div className={styles.dailyPreviewGrid}>
             {games.map((game, i) => (
               <div key={`${game.id}-${i}`} className={styles.gameCard} style={{ cursor: 'default' }}>
+                <span className={styles.gameDomain}>{game.domain}</span>
                 <div className={styles.gameIconBox} aria-hidden="true">
                   {getGameImage(game.id)
                     ? <img src={getGameImage(game.id)} alt="" className={styles.gameIconImg} />
@@ -363,9 +369,7 @@ export function App() {
                       <svg className={styles.playedCheck} width="18" height="18" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Played"><g clipPath="url(#pc3)"><path d="M15 0C6.76113 0 0 6.76113 0 15C0 23.2389 6.76113 30 15 30C23.2389 30 30 23.2389 30 15C30 6.76113 23.2389 0 15 0ZM13.1847 21.8227L6.61605 15.2541L9.10172 12.7684L13.2997 16.9664L21.7274 9.30516L24.0929 11.9058L13.1847 21.8227Z" fill="#1CB37C"/></g><defs><clipPath id="pc3"><rect width="30" height="30" fill="white"/></clipPath></defs></svg>
                     )}
                   </h3>
-                  <p className={styles.gameCardDesc}>{game.description}</p>
                   <div className={styles.gameCardFooter}>
-                    <span className={styles.gameDomain}>{game.domain}</span>
                     <span className={styles.dailyGameNum}>{t.app.game} {i + 1}</span>
                   </div>
                 </div>
@@ -394,7 +398,7 @@ export function App() {
             memberId={urlMemberId}
             difficulty={selectedDifficulty}
             onComplete={handleDailyComplete}
-            onBack={returnToDailyChallenge}
+            onBack={showBackButtons ? returnToDailyChallenge : undefined}
           />
         </GameContext.Provider>
       </div>
@@ -409,7 +413,9 @@ export function App() {
 
     return (
       <div className={styles.dailyWrapper}>
-        <button className={styles.floatingBack} onClick={abortDailyChallenge} aria-label="Back">‹ <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+        {showBackButtons && (
+          <button className={styles.floatingBack} onClick={abortDailyChallenge} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+        )}
         <div className={styles.interResult}>
         <div className={styles.interProgress}>
           {games.map((g, i) => (
@@ -467,7 +473,9 @@ export function App() {
 
     return (
       <div className={styles.dailyWrapper}>
-        <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Back">‹ <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+        {showBackButtons && (
+          <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+        )}
         <div className={styles.dailyResult}>
         <div className={styles.resultTrophy}>{trophy}</div>
         <h2 className={styles.resultHeadline}>{t.app.challengeComplete}</h2>
@@ -519,7 +527,9 @@ export function App() {
 
     return (
       <div className={styles.dailyWrapper}>
-        <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Back">‹ <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+        {showBackButtons && (
+          <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+        )}
         <div className={styles.scoresView}>
         <div className={styles.scoresHeader}>
           <img
@@ -646,7 +656,9 @@ export function App() {
     const lobbyScores = getAllScores(urlMemberId);
     return (
       <div className={styles.dailyWrapper}>
-        <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Back">‹ <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+        {showBackButtons && (
+          <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+        )}
         <div className={styles.lobby}>
         <header className={styles.lobbyHeader}>
           <img
@@ -726,6 +738,7 @@ export function App() {
                   >
                     <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/></svg>
                   </span>
+                  <span className={styles.gameDomain}>{game.domain}</span>
                   <div className={styles.gameIconBox} aria-hidden="true">
                     {getGameImage(game.id)
                       ? <img src={getGameImage(game.id)} alt="" className={styles.gameIconImg} />
@@ -738,9 +751,7 @@ export function App() {
                         <svg className={styles.playedCheck} width="18" height="18" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Played"><g clipPath="url(#pc1)"><path d="M15 0C6.76113 0 0 6.76113 0 15C0 23.2389 6.76113 30 15 30C23.2389 30 30 23.2389 30 15C30 6.76113 23.2389 0 15 0ZM13.1847 21.8227L6.61605 15.2541L9.10172 12.7684L13.2997 16.9664L21.7274 9.30516L24.0929 11.9058L13.1847 21.8227Z" fill="#1CB37C"/></g><defs><clipPath id="pc1"><rect width="30" height="30" fill="white"/></clipPath></defs></svg>
                       )}
                     </h3>
-                    <p className={styles.gameCardDesc}>{game.description}</p>
-                    <div className={styles.gameCardFooter}>
-                      <span className={styles.gameDomain}>{game.domain}</span>
+                      <div className={styles.gameCardFooter}>
                       {game.beta && <span className={styles.betaBadge}>Beta</span>}
                       {game.comingSoon
                         ? <span className={styles.comingSoonBadge}>{t.app.comingSoon}</span>
@@ -782,6 +793,7 @@ export function App() {
                         : <path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z" fill="currentColor"/>}
                     </svg>
                   </span>
+                  <span className={styles.gameDomain}>{game.domain}</span>
                   <div className={styles.gameIconBox} aria-hidden="true">
                     {getGameImage(game.id)
                       ? <img src={getGameImage(game.id)} alt="" className={styles.gameIconImg} />
@@ -794,9 +806,7 @@ export function App() {
                         <svg className={styles.playedCheck} width="18" height="18" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Played"><g clipPath="url(#pc2)"><path d="M15 0C6.76113 0 0 6.76113 0 15C0 23.2389 6.76113 30 15 30C23.2389 30 30 23.2389 30 15C30 6.76113 23.2389 0 15 0ZM13.1847 21.8227L6.61605 15.2541L9.10172 12.7684L13.2997 16.9664L21.7274 9.30516L24.0929 11.9058L13.1847 21.8227Z" fill="#1CB37C"/></g><defs><clipPath id="pc2"><rect width="30" height="30" fill="white"/></clipPath></defs></svg>
                       )}
                     </h3>
-                    <p className={styles.gameCardDesc}>{game.description}</p>
-                    <div className={styles.gameCardFooter}>
-                      <span className={styles.gameDomain}>{game.domain}</span>
+                      <div className={styles.gameCardFooter}>
                       {game.beta && <span className={styles.betaBadge}>Beta</span>}
                       {game.comingSoon
                         ? <span className={styles.comingSoonBadge}>{t.app.comingSoon}</span>

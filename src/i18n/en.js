@@ -2,6 +2,7 @@
 export default {
   // ─── Shell UI ───
   shell: {
+    back: 'Back',
     howToPlay: 'How To Play',
     play: 'Play',
     playAgain: 'Play Again',
@@ -175,15 +176,6 @@ export default {
       description: 'Study a list, then recall as many words as you can.',
       instructions: 'You will see a list of words. Study them carefully! When the time is up, the words will disappear and you will type as many as you can remember. Spelling counts, but upper and lower case do not matter.',
       placeholder: 'Type a word and press Enter…',
-    },
-    'pattern-sequence': {
-      title: 'Pattern Sequence',
-      label: 'PATTERN SEQUENCE',
-      description: 'Watch and repeat a light-pad sequence.',
-      instructions: 'Watch the coloured pads light up in a sequence, then repeat the pattern by clicking the pads in the same order. The sequence grows longer each round!',
-      correctNextRound: '✓ Correct! Get ready for the next round…',
-      notQuite: 'Not quite — see your score below!',
-      completedAll: '🎉 You completed all rounds!',
     },
     'daily-arithmetic': {
       title: 'Daily Arithmetic',

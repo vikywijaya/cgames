@@ -108,6 +108,11 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
   const [hoverCell, setHoverCell] = useState(null);
   const [solved, setSolved] = useState(false);
   const [justPlaced, setJustPlaced] = useState(new Set());
+  // Drag-and-drop state. `drag` holds the floating ghost info while a piece is
+  // being dragged from the tray onto the board.
+  const [drag, setDrag] = useState(null); // { pieceIdx, x, y } | null
+  const boardRef = useRef(null);
+  const dragMovedRef = useRef(false);
   const advanceTimerRef = useRef(null);
   const stateRef = useRef({ score, round, rounds, gridSize, onComplete, reportScore, playSuccess });
   stateRef.current = { score, round, rounds, gridSize, onComplete, reportScore, playSuccess };
@@ -215,6 +220,43 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
     setHoverCell(null);
   }, [solved, puzzle, playClick]);
 
+  // Try to place piece `pieceIdx` anchored so its top-left lands at (r, c).
+  // Returns true if placed. Shared by tap-to-place and drag-and-drop.
+  const tryPlace = useCallback((pieceIdx, r, c) => {
+    if (solved || pieceIdx == null || piecesUsed.has(pieceIdx)) return false;
+    const piece = puzzle.pieces[pieceIdx];
+    if (!piece) return false;
+    const minR = Math.min(...piece.shape.map(([dr]) => dr));
+    const minC = Math.min(...piece.shape.map(([, dc]) => dc));
+
+    const cells = piece.shape.map(([dr, dc]) => [r + (dr - minR), c + (dc - minC)]);
+    const valid = cells.every(
+      ([cr, cc]) => cr >= 0 && cr < puzzle.gridSize && cc >= 0 && cc < puzzle.gridSize && boardState[cr][cc] === null
+    );
+
+    if (!valid) {
+      playFail();
+      return false;
+    }
+
+    playClick();
+    const newBoard = boardState.map(row => [...row]);
+    const placed = new Set();
+    cells.forEach(([cr, cc]) => {
+      newBoard[cr][cc] = pieceIdx;
+      placed.add(`${cr},${cc}`);
+    });
+    setBoardState(newBoard);
+    setJustPlaced(placed);
+    setPiecesUsed(prev => new Set([...prev, pieceIdx]));
+    setSelectedPiece(null);
+    setHoverCell(null);
+
+    // Clear animation after delay
+    setTimeout(() => setJustPlaced(new Set()), 300);
+    return true;
+  }, [solved, piecesUsed, puzzle, boardState, playClick, playFail]);
+
   const handleCellClick = useCallback((r, c) => {
     if (solved) return;
 
@@ -228,42 +270,71 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
     if (selectedPiece == null) return;
     if (state !== null) return;
 
-    const piece = puzzle.pieces[selectedPiece];
-    const minR = Math.min(...piece.shape.map(([dr]) => dr));
-    const minC = Math.min(...piece.shape.map(([, dc]) => dc));
+    tryPlace(selectedPiece, r, c);
+  }, [solved, selectedPiece, boardState, removePiece, tryPlace]);
 
-    const cells = piece.shape.map(([dr, dc]) => [r + (dr - minR), c + (dc - minC)]);
-    const valid = cells.every(
-      ([cr, cc]) => cr >= 0 && cr < puzzle.gridSize && cc >= 0 && cc < puzzle.gridSize && boardState[cr][cc] === null
-    );
+  // ── Drag-and-drop (pointer based, works for mouse + touch) ──────────
+  // Map a clientX/clientY to the board cell under the pointer, accounting for
+  // the piece's pointer-grab offset so the shape's top-left aligns naturally.
+  const cellFromPoint = useCallback((clientX, clientY) => {
+    const board = boardRef.current;
+    if (!board) return null;
+    const rect = board.getBoundingClientRect();
+    // 3px gap + 8px (space-2) padding — derive cell pitch from grid width.
+    const pad = 8;
+    const gap = 3;
+    const size = puzzle.gridSize;
+    const inner = rect.width - pad * 2;
+    const pitch = (inner + gap) / size; // cell + gap
+    const cx = clientX - rect.left - pad;
+    const cy = clientY - rect.top - pad;
+    if (cx < 0 || cy < 0) return null;
+    const c = Math.floor(cx / pitch);
+    const r = Math.floor(cy / pitch);
+    if (r < 0 || r >= size || c < 0 || c >= size) return null;
+    return [r, c];
+  }, [puzzle.gridSize]);
 
-    if (!valid) {
-      playFail();
-      return;
-    }
+  const updateDragHover = useCallback((clientX, clientY) => {
+    const cell = cellFromPoint(clientX, clientY);
+    setHoverCell(cell);
+  }, [cellFromPoint]);
 
-    playClick();
-    const newBoard = boardState.map(row => [...row]);
-    const placed = new Set();
-    cells.forEach(([cr, cc]) => {
-      newBoard[cr][cc] = selectedPiece;
-      placed.add(`${cr},${cc}`);
-    });
-    setBoardState(newBoard);
-    setJustPlaced(placed);
-    setPiecesUsed(prev => new Set([...prev, selectedPiece]));
-    setSelectedPiece(null);
-    setHoverCell(null);
-
-    // Clear animation after delay
-    setTimeout(() => setJustPlaced(new Set()), 300);
-  }, [solved, selectedPiece, puzzle, boardState, playClick, playFail, removePiece]);
-
-  const handlePieceClick = useCallback((idx) => {
+  const handlePiecePointerDown = useCallback((e, idx) => {
     if (solved || piecesUsed.has(idx)) return;
-    playClick();
-    setSelectedPiece(prev => prev === idx ? null : idx);
-  }, [solved, piecesUsed, playClick]);
+    // Only primary button / touch / pen
+    if (e.button != null && e.button !== 0) return;
+    e.preventDefault();
+    dragMovedRef.current = false;
+    setSelectedPiece(idx);
+    setDrag({ pieceIdx: idx, x: e.clientX, y: e.clientY });
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* noop */ }
+  }, [solved, piecesUsed]);
+
+  const handlePiecePointerMove = useCallback((e) => {
+    if (!drag) return;
+    e.preventDefault();
+    dragMovedRef.current = true;
+    setDrag(d => (d ? { ...d, x: e.clientX, y: e.clientY } : d));
+    updateDragHover(e.clientX, e.clientY);
+  }, [drag, updateDragHover]);
+
+  const endDrag = useCallback((e, idx) => {
+    if (!drag) return;
+    const cell = cellFromPoint(e.clientX, e.clientY);
+    const moved = dragMovedRef.current;
+    setDrag(null);
+    setHoverCell(null);
+    if (cell) {
+      // Anchor the piece's top-left at the hovered cell.
+      const placedOk = tryPlace(idx, cell[0], cell[1]);
+      if (placedOk) return;
+    }
+    // No placement: if it was a tap (no real drag), toggle selection like before.
+    if (!moved) {
+      setSelectedPiece(prev => (prev === idx ? null : idx));
+    }
+  }, [drag, cellFromPoint, tryPlace]);
 
   // Get the color for a filled cell
   const getCellColor = useCallback((r, c) => {
@@ -293,6 +364,7 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
 
       {/* Board */}
       <div
+        ref={boardRef}
         className={`${styles.board} ${solved ? styles.boardSolved : ''}`}
         style={{ gridTemplateColumns: `repeat(${puzzle.gridSize}, 40px)` }}
       >
@@ -367,11 +439,14 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
           return (
             <button
               key={idx}
-              className={cardClass}
-              onClick={() => handlePieceClick(idx)}
-              style={{ gridTemplateColumns: `repeat(${maxC}, 22px)`, gridTemplateRows: `repeat(${maxR}, 22px)` }}
+              className={`${cardClass} ${drag?.pieceIdx === idx ? styles.pieceDragging : ''}`}
+              onPointerDown={(e) => handlePiecePointerDown(e, idx)}
+              onPointerMove={handlePiecePointerMove}
+              onPointerUp={(e) => endDrag(e, idx)}
+              onPointerCancel={(e) => endDrag(e, idx)}
+              style={{ gridTemplateColumns: `repeat(${maxC}, 22px)`, gridTemplateRows: `repeat(${maxR}, 22px)`, touchAction: 'none' }}
               disabled={used || solved}
-              aria-label={`Piece ${idx + 1}${used ? ', placed' : selected ? ', selected' : ''}`}
+              aria-label={`Piece ${idx + 1}${used ? ', placed' : selected ? ', selected' : ''}. Drag onto the board to place.`}
               aria-pressed={selected}
             >
               {Array.from({ length: maxR }, (_, r) =>
@@ -390,6 +465,40 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
           );
         })}
       </div>
+
+      {/* Floating drag ghost following the pointer */}
+      {drag && (() => {
+        const piece = puzzle.pieces[drag.pieceIdx];
+        if (!piece) return null;
+        const maxR = Math.max(...piece.shape.map(([r]) => r)) + 1;
+        const maxC = Math.max(...piece.shape.map(([, c]) => c)) + 1;
+        const shapeSet = new Set(piece.shape.map(([r, c]) => `${r},${c}`));
+        return (
+          <div
+            className={styles.dragGhost}
+            style={{
+              left: drag.x,
+              top: drag.y,
+              gridTemplateColumns: `repeat(${maxC}, 40px)`,
+              gridTemplateRows: `repeat(${maxR}, 40px)`,
+            }}
+            aria-hidden="true"
+          >
+            {Array.from({ length: maxR }, (_, r) =>
+              Array.from({ length: maxC }, (_, c) => {
+                const filled = shapeSet.has(`${r},${c}`);
+                return (
+                  <div
+                    key={`${r}-${c}`}
+                    className={styles.dragGhostCell}
+                    style={filled ? { background: piece.color } : undefined}
+                  />
+                );
+              })
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }

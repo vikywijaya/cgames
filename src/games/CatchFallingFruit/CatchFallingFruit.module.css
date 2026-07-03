@@ -86,7 +86,6 @@
      The actual touch listeners are attached imperatively with { passive: false }
      so preventDefault() works and the page doesn't scroll during play. */
   touch-action: none;
-  cursor: none;
 
   background:
     radial-gradient(ellipse 60% 40% at 25% 30%, rgba(96, 165, 250, 0.12) 0%, transparent 70%),
@@ -195,12 +194,51 @@
   will-change: left;
 }
 
-/* ── Hint ─────────────────────────────────────────── */
-.hint {
+/* ── Control row: [◄] [slide track] [►] ───────────── */
+.controlRow {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+  width: 100%;
+  max-width: 560px;
+}
+
+/* Dedicated slide track — kept BELOW the play area so the finger
+   never covers falling items or the basket. */
+.controlTrack {
+  position: relative;
+  flex: 1;
+  height: 64px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.04) 0 2px, transparent 2px 28px),
+    linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-2, var(--color-surface)) 100%);
+  cursor: grab;
+  touch-action: none;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.controlTrack:active { cursor: grabbing; }
+
+.controlThumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.9rem;
+  line-height: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+  will-change: left;
+}
+
+.controlHint {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
-  text-align: center;
-  opacity: 0.7;
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 /* ── Info header — WordRecall style ── */

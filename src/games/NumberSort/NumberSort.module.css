@@ -50,13 +50,13 @@
   color: var(--color-text);
   cursor: pointer;
   position: relative;
-  transition: transform 80ms ease, border-color var(--transition-fast),
-    background var(--transition-fast);
+  transition: transform 60ms ease, border-color 60ms ease,
+    background 60ms ease, color 60ms ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  animation-delay: min(calc(var(--idx, 0) * 0.07s), 0.5s);
+  animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: min(calc(var(--idx, 0) * 0.04s), 0.2s);
 }
 .numBtn:hover:not(:disabled) {
   border-color: var(--color-primary);

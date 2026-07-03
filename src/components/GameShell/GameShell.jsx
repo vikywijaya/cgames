@@ -163,11 +163,11 @@ export function GameShell({
       <header className={styles.topBar}>
         <div className={styles.topBarLeft}>
           {onBack && (
-            <button className={styles.topBarBack} onClick={onBack} aria-label="Go back">
-              ‹
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            <button className={styles.topBarBack} onClick={onBack} aria-label={t.shell.back}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M15 18l-6-6 6-6"/>
               </svg>
+              <span className={styles.topBarBackLabel}>{t.shell.back}</span>
             </button>
           )}
         </div>

@@ -70,7 +70,7 @@ function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft, play
       setTimeout(() => {
         setSelected([]);
         setFeedback(null);
-      }, 700);
+      }, 350);
       return;
     }
 
@@ -83,7 +83,7 @@ function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft, play
       setScore(newScore);
       reportScore(newScore);
       setFeedback('correct');
-      setTimeout(() => nextRound(newScore), 700);
+      setTimeout(() => nextRound(newScore), 500);
     }
   }, [feedback, selected, numbers, score, reportScore, nextRound, playClick, playSuccess, playFail]);
 
@@ -112,7 +112,7 @@ function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft, play
 
           return (
             <button
-              key={i}
+              key={`${round}-${i}`}
               className={cls}
               style={{ '--idx': i }}
               onClick={() => handleTap(i)}

@@ -11,15 +11,24 @@ const DIFFICULTY_CONFIG = {
   hard:   { questions: 12, gridSize: 5, timeLimitSeconds: 90   },
 };
 
-// Pools of grouped emoji sets — each array has many similar items, one "odd" category
+// Pools of grouped emoji sets — each `group` is strictly ONE category and each
+// `odd` is strictly a DIFFERENT single category, so every puzzle has exactly one
+// defensible answer (the odd item belongs to a clearly different group).
 const SETS = [
-  { group: ['🍎','🍊','🍋','🍇','🍓','🍑','🍒','🍉','🥭','🍍'], odd: ['🥕','🥦','🧅','🫛','🥬'] },
-  { group: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯'], odd: ['🐟','🦈','🐬','🐙','🦞'] },
-  { group: ['🚗','🚕','🚙','🚌','🚎','🏎️','🚓','🚑','🚒','🛻'], odd: ['✈️','🚀','🚁','🛸','🛩️'] },
+  // Fruits  vs  vegetables
+  { group: ['🍎','🍊','🍋','🍇','🍓','🍑','🍒','🍉','🥭','🍍','🍌','🍐'], odd: ['🥕','🥦','🧅','🥬','🌽','🥒'] },
+  // Land mammals  vs  sea creatures
+  { group: ['🐶','🐱','🐭','🐹','🐰','🦊','🐻','🐼','🐨','🐯','🦁','🐮'], odd: ['🐟','🦈','🐬','🐙','🦞','🐠'] },
+  // Ground vehicles  vs  aircraft
+  { group: ['🚗','🚕','🚙','🚌','🚎','🚓','🚑','🚒','🛻','🚐','🚜','🚚'], odd: ['✈️','🚀','🚁','🛩️'] },
+  // Ball sports  vs  musical instruments
   { group: ['⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱'], odd: ['🎻','🥁','🎸','🎺','🎷'] },
-  { group: ['🌹','🌷','🌸','💐','🌺','🌻','🌼','🪷','🌝','🍀'], odd: ['🌊','⛰️','🌋','🏔️','🌪️'] },
-  { group: ['🍕','🍔','🌮','🌯','🥪','🥙','🧆','🥗','🍜','🍣'], odd: ['🎂','🍰','🍩','🍪','🧁'] },
-  { group: ['🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','🟤','🔶'], odd: ['🔷','🔸','🔹','🔺','🔻'] },
+  // Flowers  vs  weather symbols
+  { group: ['🌹','🌷','🌸','🌺','🌻','🌼','🌾','🌿','🍀','🌵'], odd: ['🌊','🌋','🌪️','⚡','🌈'] },
+  // Savoury food  vs  sweet desserts
+  { group: ['🍕','🍔','🌮','🌯','🥪','🥙','🧆','🥗','🍜','🍣','🌭','🍟'], odd: ['🎂','🍰','🍩','🍪','🧁','🍫'] },
+  // Faces  vs  hand gestures
+  { group: ['😀','😄','😁','😊','🙂','😉','😍','😎','🤗','😇','🥰','😋'], odd: ['👍','👏','👋','🙌','✌️','👌'] },
 ];
 
 function shuffle(arr) {
@@ -35,7 +44,13 @@ function buildQuestion(gridSize) {
   const set = SETS[Math.floor(Math.random() * SETS.length)];
   const total = gridSize * gridSize;
   const majorCount = total - 1;
-  const majors = shuffle(set.group).slice(0, majorCount);
+  // Fill all major cells from the group, repeating (reshuffled) if the grid is
+  // larger than the group so the grid is never left with empty cells.
+  const majors = [];
+  while (majors.length < majorCount) {
+    const batch = shuffle(set.group);
+    majors.push(...batch.slice(0, majorCount - majors.length));
+  }
   const oddItem = set.odd[Math.floor(Math.random() * set.odd.length)];
   const items = shuffle([...majors, oddItem]);
   const oddIndex = items.indexOf(oddItem);

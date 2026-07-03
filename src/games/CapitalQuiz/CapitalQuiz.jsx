@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
@@ -11,42 +11,45 @@ const DIFFICULTY_CONFIG = {
   hard:   { questions: 12, timeLimitSeconds: 90,   pool: 'hard'   },
 };
 
-// { country, capital, flag (country code for emoji) }
+// { country, capital, code (country code for flag emoji) }
+// Tiers are DISJOINT and ordered by familiarity of the country/capital:
+// easy = household-name capitals, medium = moderately known, hard =
+// less-familiar capitals.
 const EASY_DATA = [
   { country: 'France',        capital: 'Paris',         code: 'FR' },
   { country: 'Germany',       capital: 'Berlin',        code: 'DE' },
   { country: 'Japan',         capital: 'Tokyo',         code: 'JP' },
-  { country: 'Australia',     capital: 'Canberra',      code: 'AU' },
   { country: 'United States', capital: 'Washington DC', code: 'US' },
   { country: 'United Kingdom',capital: 'London',        code: 'GB' },
   { country: 'Italy',         capital: 'Rome',          code: 'IT' },
   { country: 'Spain',         capital: 'Madrid',        code: 'ES' },
-  { country: 'Canada',        capital: 'Ottawa',        code: 'CA' },
-  { country: 'Brazil',        capital: 'Brasília',      code: 'BR' },
   { country: 'China',         capital: 'Beijing',       code: 'CN' },
   { country: 'India',         capital: 'New Delhi',     code: 'IN' },
   { country: 'Mexico',        capital: 'Mexico City',   code: 'MX' },
   { country: 'Russia',        capital: 'Moscow',        code: 'RU' },
+  { country: 'Greece',        capital: 'Athens',        code: 'GR' },
 ];
 
 const MEDIUM_DATA = [
-  ...EASY_DATA,
+  { country: 'Australia',     capital: 'Canberra',      code: 'AU' },
+  { country: 'Canada',        capital: 'Ottawa',        code: 'CA' },
+  { country: 'Brazil',        capital: 'Brasília',      code: 'BR' },
   { country: 'South Korea',   capital: 'Seoul',         code: 'KR' },
   { country: 'Argentina',     capital: 'Buenos Aires',  code: 'AR' },
   { country: 'Egypt',         capital: 'Cairo',         code: 'EG' },
   { country: 'Turkey',        capital: 'Ankara',        code: 'TR' },
-  { country: 'South Africa',  capital: 'Pretoria',      code: 'ZA' },
   { country: 'Thailand',      capital: 'Bangkok',       code: 'TH' },
   { country: 'Sweden',        capital: 'Stockholm',     code: 'SE' },
   { country: 'Norway',        capital: 'Oslo',          code: 'NO' },
   { country: 'Netherlands',   capital: 'Amsterdam',     code: 'NL' },
-  { country: 'Switzerland',   capital: 'Bern',          code: 'CH' },
   { country: 'Portugal',      capital: 'Lisbon',        code: 'PT' },
-  { country: 'Greece',        capital: 'Athens',        code: 'GR' },
+  { country: 'Poland',        capital: 'Warsaw',        code: 'PL' },
+  { country: 'Indonesia',     capital: 'Jakarta',       code: 'ID' },
 ];
 
 const HARD_DATA = [
-  ...MEDIUM_DATA,
+  { country: 'Switzerland',   capital: 'Bern',          code: 'CH' },
+  { country: 'South Africa',  capital: 'Pretoria',      code: 'ZA' },
   { country: 'Pakistan',      capital: 'Islamabad',     code: 'PK' },
   { country: 'Bangladesh',    capital: 'Dhaka',         code: 'BD' },
   { country: 'Nigeria',       capital: 'Abuja',         code: 'NG' },
@@ -57,11 +60,12 @@ const HARD_DATA = [
   { country: 'Philippines',   capital: 'Manila',        code: 'PH' },
   { country: 'Vietnam',       capital: 'Hanoi',         code: 'VN' },
   { country: 'Ukraine',       capital: 'Kyiv',          code: 'UA' },
-  { country: 'Poland',        capital: 'Warsaw',        code: 'PL' },
   { country: 'Romania',       capital: 'Bucharest',     code: 'RO' },
   { country: 'Czech Republic',capital: 'Prague',        code: 'CZ' },
   { country: 'Hungary',       capital: 'Budapest',      code: 'HU' },
   { country: 'New Zealand',   capital: 'Wellington',    code: 'NZ' },
+  { country: 'Kazakhstan',    capital: 'Astana',        code: 'KZ' },
+  { country: 'Sri Lanka',     capital: 'Colombo',       code: 'LK' },
 ];
 
 const POOL_MAP = { easy: EASY_DATA, medium: MEDIUM_DATA, hard: HARD_DATA };
@@ -81,8 +85,8 @@ function shuffle(arr) {
   return a;
 }
 
-function buildQuestion(pool) {
-  const correct = pool[Math.floor(Math.random() * pool.length)];
+// Distractors come from the same tier so the options are plausible.
+function buildQuestion(correct, pool) {
   const distractors = shuffle(pool.filter(p => p.code !== correct.code)).slice(0, 3);
   const options = shuffle([correct, ...distractors]);
   return { correct, options };
@@ -93,11 +97,23 @@ function CapitalQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pla
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const pool   = POOL_MAP[config.pool];
 
+  // Pre-shuffled queue of distinct countries for this attempt, so no
+  // country repeats until the tier is exhausted.
+  const queueRef = useRef(shuffle(pool));
+  const cursorRef = useRef(0);
+  const nextCorrect = useCallback(() => {
+    if (cursorRef.current >= queueRef.current.length) {
+      queueRef.current = shuffle(pool);
+      cursorRef.current = 0;
+    }
+    return queueRef.current[cursorRef.current++];
+  }, [pool]);
+
   const [qIndex,   setQIndex]   = useState(0);
   const [score,    setScore]    = useState(0);
   const [feedback, setFeedback] = useState(null);
   const [chosen,   setChosen]   = useState(null);
-  const [question, setQuestion] = useState(() => buildQuestion(pool));
+  const [question, setQuestion] = useState(() => buildQuestion(nextCorrect(), pool));
 
   useEffect(() => {
     if (secondsLeft === 0) onComplete({ finalScore: score, maxScore: config.questions, completed: false });
@@ -112,8 +128,8 @@ function CapitalQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pla
     setQIndex(next);
     setFeedback(null);
     setChosen(null);
-    setQuestion(buildQuestion(pool));
-  }, [qIndex, config, pool, onComplete]);
+    setQuestion(buildQuestion(nextCorrect(), pool));
+  }, [qIndex, config, pool, nextCorrect, onComplete]);
 
   const handleChoice = useCallback((opt) => {
     if (feedback) return;

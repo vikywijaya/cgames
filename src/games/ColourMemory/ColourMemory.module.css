@@ -47,6 +47,27 @@
 .dotOk    { background: #4ade80; }
 .dotErr   { background: #f87171; }
 
+/* Pre-round countdown */
+@keyframes countdownPop {
+  0%   { opacity: 0; transform: scale(1.6); }
+  30%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0.6; transform: scale(0.9); }
+}
+.countdownOverlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 96px;
+}
+.countdownNum {
+  font-size: 4rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  animation: countdownPop 1s ease both;
+}
+
 /* Colour grid */
 .grid {
   display: grid;

@@ -113,16 +113,41 @@ function SnakeLiteGame({ difficulty, onComplete, reportScore, secondsLeft, playC
     return () => clearInterval(id);
   }, [dead, config.intervalMs, gridSize, finish, reportScore, playSuccess, playFail]);
 
+  // Lock body scroll while the game is mounted/playing so up/down swipes
+  // don't scroll the page instead of turning the snake.
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    const prevOverscroll = document.body.style.overscrollBehavior;
+    document.body.style.overflow = 'hidden';
+    document.body.style.overscrollBehavior = 'none';
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.style.overscrollBehavior = prevOverscroll;
+    };
+  }, []);
+
   // Touch swipe
   const touchStart = useRef(null);
+  const gridRef = useRef(null);
   const handleTouchStart = useCallback((e) => {
     touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }, []);
+  // Non-passive touchmove listener so we can preventDefault and stop the page
+  // from scrolling during a swipe. React's onTouchMove is passive by default.
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    const onMove = (e) => {
+      if (touchStart.current) e.preventDefault();
+    };
+    el.addEventListener('touchmove', onMove, { passive: false });
+    return () => el.removeEventListener('touchmove', onMove);
   }, []);
   const handleTouchEnd = useCallback((e) => {
     if (!touchStart.current) return;
     const dx = e.changedTouches[0].clientX - touchStart.current.x;
     const dy = e.changedTouches[0].clientY - touchStart.current.y;
-    if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+    if (Math.abs(dx) < 20 && Math.abs(dy) < 20) { touchStart.current = null; return; }
     let d;
     if (Math.abs(dx) > Math.abs(dy)) d = dx > 0 ? 'RIGHT' : 'LEFT';
     else                              d = dy > 0 ? 'DOWN'  : 'UP';
@@ -140,6 +165,7 @@ function SnakeLiteGame({ difficulty, onComplete, reportScore, secondsLeft, playC
       </div>
 
       <div
+        ref={gridRef}
         className={styles.grid}
         style={{ '--size': gridSize }}
         onTouchStart={handleTouchStart}

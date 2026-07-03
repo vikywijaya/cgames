@@ -11,7 +11,7 @@ export function useWordRecall(difficulty = 'easy') {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   const [wordList] = useState(() => sampleWords(difficulty, config.count));
-  const [phase, setPhase] = useState('study'); // 'study' | 'recall'
+  const [phase, setPhase] = useState('study'); // 'study' | 'recall' | 'review'
   const [recalled, setRecalled] = useState(new Set());
   const [inputValue, setInputValue] = useState('');
   const [lastResult, setLastResult] = useState(null); // 'found' | 'already' | 'notFound' | null
@@ -21,6 +21,10 @@ export function useWordRecall(difficulty = 'easy') {
 
   const enterRecall = useCallback(() => {
     setPhase('recall');
+  }, []);
+
+  const enterReview = useCallback(() => {
+    setPhase('review');
   }, []);
 
   const submitWord = useCallback(() => {
@@ -52,6 +56,7 @@ export function useWordRecall(difficulty = 'easy') {
     studySeconds,
     recallSeconds,
     enterRecall,
+    enterReview,
     submitWord,
     score: recalled.size,
     maxScore: wordList.length,

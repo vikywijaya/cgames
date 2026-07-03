@@ -1,6 +1,7 @@
 // Bahasa Indonesia
 export default {
   shell: {
+    back: 'Kembali',
     howToPlay: 'Cara Bermain',
     play: 'Main',
     playAgain: 'Main Lagi',
@@ -153,7 +154,6 @@ export default {
   games: {
     'memory-match': { title: 'Cocokkan Ingatan', label: 'COCOKKAN INGATAN', description: 'Balik kartu untuk temukan pasangan.', instructions: 'Balik kartu untuk temukan pasangan. Klik kartu untuk membukanya, lalu temukan pasangannya. Pasangan yang cocok tetap terbuka. Temukan semua pasangan untuk menang!' },
     'word-recall': { title: 'Ingat Kata', label: 'INGAT KATA', description: 'Pelajari daftar, lalu ingat kembali.', instructions: 'Anda akan melihat daftar kata. Pelajari dengan seksama! Ketika waktu habis, kata-kata akan hilang dan Anda harus mengetik sebanyak mungkin yang Anda ingat.', placeholder: 'Ketik kata dan tekan Enter…' },
-    'pattern-sequence': { title: 'Urutan Pola', label: 'URUTAN POLA', description: 'Perhatikan dan ulangi urutan cahaya.', instructions: 'Perhatikan tombol berwarna menyala berurutan, lalu ulangi pola dengan mengklik tombol dalam urutan yang sama.', correctNextRound: '✓ Benar! Bersiap untuk ronde berikutnya…', notQuite: 'Hampir — lihat skor Anda di bawah!', completedAll: '🎉 Anda telah menyelesaikan semua ronde!' },
     'daily-arithmetic': { title: 'Aritmatika Harian', label: 'TANTANGAN HARIAN', description: 'Selesaikan soal matematika sesuai kecepatan Anda.', instructions: 'Jawab setiap pertanyaan aritmatika dengan memilih jawaban yang benar. Santai saja — tidak ada batas waktu.' },
     'word-search': { title: 'Cari Kata', label: 'CARI KATA', description: 'Temukan kata tersembunyi di kotak huruf.', instructions: 'Temukan semua kata tersembunyi di kotak huruf. Klik huruf awal lalu klik huruf akhir.', clearSelection: 'Batalkan Pilihan' },
     'catch-falling-fruit': { title: 'Tangkap Buah', label: 'TANGKAP BUAH', description: 'Geser untuk tangkap buah jatuh ke keranjang.', instructions: 'Buah akan jatuh dari langit — tangkap di keranjang Anda! Sentuh: geser jari. Bom — kehilangan nyawa! Bintang — +3 bonus!' },

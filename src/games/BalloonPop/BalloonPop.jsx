@@ -7,9 +7,9 @@ import { useTranslation } from '../../i18n/useTranslation';
 
 // ── Config ─────────────────────────────────────────────────────────
 const DIFFICULTY_CONFIG = {
-  easy:   { riseSpeed: 1.2, spawnMs: 2200, timeLimitSeconds: null, lives: 5, maxBalloons: 6 },
-  medium: { riseSpeed: 2,   spawnMs: 1600, timeLimitSeconds: 120,  lives: 3, maxBalloons: 8 },
-  hard:   { riseSpeed: 3,   spawnMs: 1000, timeLimitSeconds: 90,   lives: 3, maxBalloons: 10 },
+  easy:   { riseSpeed: 1.2, spawnMs: 1500, timeLimitSeconds: 30,  lives: 5, maxBalloons: 6 },
+  medium: { riseSpeed: 2,   spawnMs: 1300, timeLimitSeconds: 60,  lives: 3, maxBalloons: 8 },
+  hard:   { riseSpeed: 3,   spawnMs: 1000, timeLimitSeconds: 90,  lives: 3, maxBalloons: 10 },
 };
 
 const BALLOON_COLORS = ['#f87171','#fb923c','#fbbf24','#34d399','#60a5fa','#a78bfa','#f472b6'];

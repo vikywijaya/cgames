@@ -6,9 +6,9 @@ import styles from './ColourMemory.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
 
 const DIFFICULTY_CONFIG = {
-  easy:   { rounds: 6,  startLen: 3, maxLen: 5,  showMs: 600, gapMs: 300 },
-  medium: { rounds: 8,  startLen: 4, maxLen: 7,  showMs: 500, gapMs: 250 },
-  hard:   { rounds: 10, startLen: 5, maxLen: 9,  showMs: 380, gapMs: 200 },
+  easy:   { rounds: 6,  seqLen: 4, showMs: 900, gapMs: 450 },
+  medium: { rounds: 8,  seqLen: 5, showMs: 850, gapMs: 400 },
+  hard:   { rounds: 10, seqLen: 6, showMs: 750, gapMs: 350 },
 };
 
 const COLOURS = [
@@ -24,26 +24,20 @@ function randomSeq(len) {
   return Array.from({ length: len }, () => COLOURS[Math.floor(Math.random() * COLOURS.length)].id);
 }
 
-// phase: 'showing' | 'recalling' | 'feedback'
+// phase: 'countdown' | 'showing' | 'recalling' | 'feedback'
 function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail, playReveal }) {
   const t = useTranslation();
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   const [round, setRound]         = useState(0);
   const [score, setScore]         = useState(0);
-  const [phase, setPhase]         = useState('showing');
-  const [seq, setSeq]             = useState(() => randomSeq(config.startLen));
+  const [phase, setPhase]         = useState('countdown');
+  const [seq, setSeq]             = useState(() => randomSeq(config.seqLen));
   const [highlighted, setHighlit] = useState(null); // colour id being shown
   const [input, setInput]         = useState([]);
   const [feedback, setFeedback]   = useState(null); // null | 'correct' | 'wrong'
-  const [ready, setReady]         = useState(false); // 1s delay after entry animation
+  const [countdown, setCountdown] = useState(3); // 3..2..1 before each sequence
   const doneRef = useRef(false);
-
-  // Wait 1s after mount before starting the first sequence
-  useEffect(() => {
-    const t = setTimeout(() => setReady(true), 1000);
-    return () => clearTimeout(t);
-  }, []);
 
   // Time-up
   useEffect(() => {
@@ -53,9 +47,17 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, pl
     }
   }, [secondsLeft, score, config.rounds, onComplete]);
 
+  // 3..2..1 countdown before each sequence
+  useEffect(() => {
+    if (phase !== 'countdown') return;
+    if (countdown <= 0) { setPhase('showing'); return; }
+    const id = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(id);
+  }, [phase, countdown]);
+
   // Play the sequence flash
   useEffect(() => {
-    if (phase !== 'showing' || !ready) return;
+    if (phase !== 'showing') return;
     let i = 0;
     let timeouts = [];
 
@@ -75,7 +77,22 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, pl
 
     const startDelay = setTimeout(() => flashNext(), 400);
     return () => { clearTimeout(startDelay); timeouts.forEach(clearTimeout); };
-  }, [phase, seq, config.showMs, config.gapMs, ready]);
+  }, [phase, seq, config.showMs, config.gapMs]);
+
+  const advanceRound = useCallback((scoreAfterRound) => {
+    const nextRound = round + 1;
+    if (nextRound >= config.rounds) {
+      doneRef.current = true;
+      onComplete({ finalScore: scoreAfterRound, maxScore: config.rounds, completed: true });
+      return;
+    }
+    setRound(nextRound);
+    setSeq(randomSeq(config.seqLen));
+    setInput([]);
+    setFeedback(null);
+    setCountdown(3);
+    setPhase('countdown');
+  }, [round, config.rounds, config.seqLen, onComplete]);
 
   const handleTap = useCallback((colourId) => {
     if (phase !== 'recalling' || doneRef.current) return;
@@ -83,32 +100,12 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, pl
     const newInput = [...input, colourId];
     setInput(newInput);
 
-    const pos = newInput.length - 1;
-    if (newInput[pos] !== seq[pos]) {
-      // Wrong
-      playFail();
-      setFeedback('wrong');
-      setPhase('feedback');
-      setTimeout(() => {
-        if (doneRef.current) return;
-        const nextRound = round + 1;
-        if (nextRound >= config.rounds) {
-          doneRef.current = true;
-          onComplete({ finalScore: score, maxScore: config.rounds, completed: true });
-          return;
-        }
-        setRound(nextRound);
-        const nextLen = Math.min(config.startLen + nextRound, config.maxLen);
-        setSeq(randomSeq(nextLen));
-        setInput([]);
-        setFeedback(null);
-        setPhase('showing');
-      }, 900);
-      return;
-    }
+    // Wait until the full sequence has been entered before judging.
+    if (newInput.length < seq.length) return;
 
-    if (newInput.length === seq.length) {
-      // Correct!
+    // Award a point only if the entire sequence is correct.
+    const allCorrect = newInput.every((c, i) => c === seq[i]);
+    if (allCorrect) {
       playSuccess();
       const newScore = score + 1;
       setScore(newScore);
@@ -117,21 +114,18 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, pl
       setPhase('feedback');
       setTimeout(() => {
         if (doneRef.current) return;
-        const nextRound = round + 1;
-        if (nextRound >= config.rounds) {
-          doneRef.current = true;
-          onComplete({ finalScore: newScore, maxScore: config.rounds, completed: true });
-          return;
-        }
-        setRound(nextRound);
-        const nextLen = Math.min(config.startLen + nextRound, config.maxLen);
-        setSeq(randomSeq(nextLen));
-        setInput([]);
-        setFeedback(null);
-        setPhase('showing');
+        advanceRound(newScore);
       }, 700);
+    } else {
+      playFail();
+      setFeedback('wrong');
+      setPhase('feedback');
+      setTimeout(() => {
+        if (doneRef.current) return;
+        advanceRound(score);
+      }, 900);
     }
-  }, [phase, input, seq, round, score, config, onComplete, reportScore, playClick, playSuccess, playFail]);
+  }, [phase, input, seq, score, advanceRound, reportScore, playClick, playSuccess, playFail]);
 
   const progressDots = seq.map((_, i) => (
     <span
@@ -146,7 +140,7 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, pl
         <div className={styles.infoHeaderText}>
           <span className={styles.infoHeaderLabel}>{t.games['colour-memory'].label}</span>
           <span className={styles.infoHeaderSub}>
-            {!ready ? t.common.getReady : phase === 'showing' ? t.common.watchSequence : phase === 'recalling' ? t.common.nowRepeat : feedback === 'correct' ? t.common.correct : t.common.wrong}
+            {phase === 'countdown' ? t.common.getReady : phase === 'showing' ? t.common.watchSequence : phase === 'recalling' ? t.common.nowRepeat : feedback === 'correct' ? t.common.correct : t.common.wrong}
           </span>
         </div>
         <div className={styles.infoBadge}>
@@ -156,6 +150,12 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, pl
       </div>
 
       <div className={styles.progress}>{progressDots}</div>
+
+      {phase === 'countdown' && (
+        <div className={styles.countdownOverlay} aria-live="assertive">
+          <span className={styles.countdownNum} key={countdown}>{countdown}</span>
+        </div>
+      )}
 
       <div className={styles.grid}>
         {COLOURS.map((c, i) => (
