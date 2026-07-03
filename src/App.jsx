@@ -40,7 +40,6 @@ import { saveScore, getAllScores, getFavorites, toggleFavorite, saveTotalScore, 
 import { GAME_GROUPS, buildDailyGames } from './shared/gameData';
 import { GameContext } from './context/GameContext';
 import translations from './i18n/index';
-import cognitiveGameTitle from './assets/cognitive-game-title.png';
 import './design/globals.css';
 import styles from './App.module.css';
 
@@ -532,51 +531,58 @@ export function App() {
         )}
         <div className={styles.scoresView}>
         <div className={styles.scoresHeader}>
-          <img
-            src={cognitiveGameTitle}
-            alt="Cognitive Games"
-            className={styles.scoresTitleImg}
-          />
           <p className={styles.scoresMeta}>{totalPlayed} / {translatedAllGames.length} {t.app.gamesPlayed}</p>
 
-          {/* ── Achievement Card ── */}
-          <div className={styles.achievementCard}>
-            <div className={styles.achievementTop}>
-              <span className={styles.achievementIcon}>{achievement.level.icon}</span>
-              <div className={styles.achievementInfo}>
-                <span className={styles.achievementName}>{achievement.level.name}</span>
-                <span className={styles.achievementDesc}>{achievement.level.desc}</span>
+          {/* ── Score Card — Option 1B: compact hero + white stat cards ── */}
+          <div className={styles.rankCard}>
+            <div className={styles.rankHero}>
+              <span className={styles.rankHeroBlob} aria-hidden="true" />
+              <div className={styles.rankHeroTop}>
+                <div className={styles.rankHeroLeft}>
+                  <span className={styles.rankAvatar} aria-hidden="true">{achievement.level.icon}</span>
+                  <div className={styles.rankHeroText}>
+                    <span className={styles.rankEyebrow}>{t.app.currentRank}</span>
+                    <span className={styles.rankName}>{achievement.level.name}</span>
+                  </div>
+                </div>
+                <div className={styles.rankPoints}>
+                  <span className={styles.rankPointsNum}>{achievement.score}</span>
+                  <span className={styles.rankPointsLabel}>{t.app.points}</span>
+                </div>
               </div>
-              <div className={styles.achievementScore}>
-                <span className={styles.achievementScoreNum}>{achievement.score}</span>
-                <span className={styles.achievementScoreLabel}>{t.app.totalScore}</span>
+              <div className={styles.rankProgress}>
+                <div className={styles.rankBarTrack}>
+                  <div className={styles.rankBarFill} style={{ width: `${achievement.progressPct}%` }} />
+                </div>
+                <div className={styles.rankProgressRow}>
+                  <span>
+                    {achievement.played > 0
+                      ? t.app.pctOfTheWay.replace('{pct}', achievement.progressPct)
+                      : t.app.playFirstGame}
+                  </span>
+                  {achievement.nextLevel && (
+                    <span>{t.app.next}: <strong>{achievement.nextLevel.name}</strong> {achievement.nextLevel.icon}</span>
+                  )}
+                </div>
               </div>
             </div>
-            <div className={styles.achievementStatsRow}>
-              <div className={styles.achievementStat}>
-                <span className={styles.achievementStatVal}>{achievement.played}</span>
-                <span className={styles.achievementStatLabel}>{t.app.gamesPlayed}</span>
+            <div className={styles.rankStats}>
+              <div className={styles.rankStat}>
+                <span className={`${styles.rankStatIcon} ${styles.rankStatIconGames}`} aria-hidden="true">🎮</span>
+                <span className={styles.rankStatVal}>{achievement.played}</span>
+                <span className={styles.rankStatLabel}>{t.app.statGamesPlayed}</span>
               </div>
-              <div className={styles.achievementStat}>
-                <span className={styles.achievementStatVal}>{achievement.avgBest}%</span>
-                <span className={styles.achievementStatLabel}>{t.app.avgBestScore}</span>
+              <div className={styles.rankStat}>
+                <span className={`${styles.rankStatIcon} ${styles.rankStatIconAvg}`} aria-hidden="true">🎯</span>
+                <span className={styles.rankStatVal}>{achievement.avgBest}%</span>
+                <span className={styles.rankStatLabel}>{t.app.statAvgBest}</span>
               </div>
-              <div className={styles.achievementStat}>
-                <span className={styles.achievementStatVal}>{achievement.totalPlays}</span>
-                <span className={styles.achievementStatLabel}>{t.app.totalSessions}</span>
+              <div className={styles.rankStat}>
+                <span className={`${styles.rankStatIcon} ${styles.rankStatIconSessions}`} aria-hidden="true">⚡</span>
+                <span className={styles.rankStatVal}>{achievement.totalPlays}</span>
+                <span className={styles.rankStatLabel}>{t.app.statSessions}</span>
               </div>
             </div>
-            <div className={styles.achievementProgressWrap}>
-              <div
-                className={styles.achievementProgressBar}
-                style={{ width: `${achievement.progressPct}%` }}
-              />
-            </div>
-            {achievement.nextLevel && (
-              <p className={styles.achievementNextLabel}>
-                {achievement.progressPct}% {t.app.to} <strong>{achievement.nextLevel.name}</strong> {achievement.nextLevel.icon}
-              </p>
-            )}
           </div>
         </div>
 
@@ -660,14 +666,6 @@ export function App() {
           <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         )}
         <div className={styles.lobby}>
-        <header className={styles.lobbyHeader}>
-          <img
-            src={cognitiveGameTitle}
-            alt="Cognitive Games"
-            className={styles.lobbyTitleImg}
-          />
-        </header>
-
         <div className={styles.categoryRow}>
           <select
             className={styles.categorySelect}
@@ -823,115 +821,141 @@ export function App() {
     );
   }
 
-  /* ── Home screen (default) ── */
+  /* ── Home screen (default) — Option 1A: Focus & Delight ── */
   const achievement = computeAchievement(getAllScores(urlMemberId), urlMemberId, achievementLevels);
+  const levelIndex  = achievementLevels.findIndex(l => l.nameKey === achievement.level.nameKey);
+  const totalLevels = achievementLevels.length;
 
   const getDaytimeGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return { text: t.app.goodMorning, emoji: '🌤️' };
-    if (hour < 17) return { text: t.app.goodAfternoon, emoji: '☀️' };
+    if (hour < 17) return { text: t.app.goodAfternoon, emoji: '🌤️' };
     if (hour < 21) return { text: t.app.goodEvening, emoji: '🌆' };
     return { text: t.app.goodNight, emoji: '🌙' };
   };
   const greeting = getDaytimeGreeting();
 
+  // Favorite games → shown in the "Your Favorites" row (max 3)
+  const favoriteGames = translatedAllGames.filter(g => favorites.has(g.id)).slice(0, 3);
+
   return (
     <div className={styles.homeWrapper}>
       <div className={styles.homeScreen}>
-        <div className={styles.homeHeader}>
-          <img
-            src={cognitiveGameTitle}
-            alt="CaritaHub Cognitive Games"
-            className={styles.homeTitle}
-          />
-          {/* Player Level Status */}
-          <div className={styles.levelCard}>
-            <div className={styles.levelCardTop}>
-              <div className={styles.levelCardLeft}>
-                <span className={styles.levelIcon}>{achievement.level.icon}</span>
-                <div className={styles.levelInfo}>
-                  <span className={styles.levelName}>{achievement.level.name}</span>
-                  <span className={styles.levelSubtitle}>{achievement.level.desc}</span>
+
+        {/* ── Greeting + level hero ── */}
+        <div className={styles.hero}>
+          <span className={styles.heroBlob1} aria-hidden="true" />
+          <span className={styles.heroBlob2} aria-hidden="true" />
+          <div className={styles.heroInner}>
+            <div className={styles.heroGreeting}>{greeting.text} {greeting.emoji}</div>
+            <div className={styles.heroRow}>
+              <div className={styles.heroIdentity}>
+                <div className={styles.heroAvatar} aria-hidden="true">{achievement.level.icon}</div>
+                <div className={styles.heroLevelText}>
+                  <div className={styles.heroLevelName}>{achievement.level.name}</div>
+                  <div className={styles.heroLevelSub}>
+                    {t.app.levelOf.replace('{current}', levelIndex + 1).replace('{total}', totalLevels)}
+                  </div>
                 </div>
               </div>
-              <div className={styles.levelScore}>
-                <span className={styles.levelScoreNum}>{achievement.score}</span>
-                <span className={styles.levelScoreLabel}>{t.app.score}</span>
+              <div className={styles.heroScore}>
+                <div className={styles.heroScoreNum}>{achievement.score}</div>
+                <div className={styles.heroScoreLabel}>{t.app.score.toUpperCase()}</div>
               </div>
             </div>
-            <div className={styles.levelBarTrack}>
-              <div
-                className={styles.levelBarFill}
-                style={{ width: `${achievement.progressPct}%` }}
-              />
+            <div className={styles.heroBarTrack}>
+              <div className={styles.heroBarFill} style={{ width: `${achievement.progressPct}%` }} />
             </div>
-            <div className={styles.levelBarFooter}>
-              <span className={styles.levelBarNextLabel}>
-                {achievement.nextLevel
-                  ? `${t.app.next}: ${achievement.nextLevel.name} ${achievement.nextLevel.icon}`
-                  : t.app.maxLevel}
-              </span>
-              <span className={styles.levelBarPct}>
-                {achievement.nextLevel ? `${achievement.progressPct}%` : '100%'}
-              </span>
+            <div className={styles.heroToNext}>
+              {achievement.nextLevel
+                ? <>{t.app.progressToNext.replace('{pct}', achievement.progressPct)} <strong>{achievement.nextLevel.name}</strong> {achievement.nextLevel.icon}</>
+                : t.app.maxLevel}
             </div>
           </div>
         </div>
 
-        <nav className={styles.homeMenu} aria-label="Main menu">
-
-          <button
-            className={`${styles.menuBtn} ${styles.menuBtnDaily}`}
-            onClick={startDailyChallenge}
-            aria-label="Start Daily Challenge"
-          >
-            <span className={styles.menuBtnIcon}>🧩</span>
-            <span className={styles.menuBtnBody}>
-              <span className={styles.menuBtnTitle}>{t.app.dailyChallenge}</span>
-              <span className={styles.menuBtnDesc}>
-                {t.app.dailyChallengeDesc}
+        {/* ── Daily Challenge focus card ── */}
+        <button className={styles.focusCard} onClick={startDailyChallenge} aria-label="Start Daily Challenge">
+          <span className={styles.focusBlob} aria-hidden="true" />
+          <span className={styles.focusInner}>
+            <span className={styles.focusHead}>
+              <span className={styles.focusIconBox} aria-hidden="true">🧩</span>
+              <span className={styles.focusHeadText}>
+                <span className={styles.focusTitle}>{t.app.dailyChallenge}</span>
+                <span className={styles.focusEyebrow}>{t.app.dailyChallengeCardDesc}</span>
               </span>
-              <span className={styles.menuBtnFooter}>
-                <span className={styles.menuBtnCta}>{t.app.start}</span>
+            </span>
+            <span className={styles.focusFooter}>
+              <span className={styles.focusPlayBtn}>{t.app.playNow} <span aria-hidden="true">›</span></span>
+            </span>
+          </span>
+        </button>
+
+        {/* ── Two secondary tiles ── */}
+        <div className={styles.tileRow}>
+          <button className={styles.tile} onClick={() => setView('games')} aria-label="Browse all cognitive games">
+            <span className={`${styles.tileIconBox} ${styles.tileIconGames}`} aria-hidden="true">🎮</span>
+            <span className={styles.tileText}>
+              <span className={styles.tileTitle}>{t.app.browseGames}</span>
+              <span className={styles.tileSub}>
+                {t.app.browseGamesShort.replace('{count}', translatedAllGames.length).replace('{categories}', translatedGroups.length)}
               </span>
             </span>
           </button>
-
-          <button
-            className={`${styles.menuBtn} ${styles.menuBtnGames}`}
-            onClick={() => setView('games')}
-            aria-label="Browse all cognitive games"
-          >
-            <span className={styles.menuBtnIcon}>🎮</span>
-            <span className={styles.menuBtnBody}>
-              <span className={styles.menuBtnTitle}>{t.app.browseGames}</span>
-              <span className={styles.menuBtnDesc}>
-                {t.app.browseGamesDesc.replace('{count}', translatedAllGames.length).replace('{categories}', translatedGroups.length)}
-              </span>
-              <span className={styles.menuBtnFooter}>
-                <span className={styles.menuBtnCta}>{t.app.browse}</span>
-              </span>
+          <button className={styles.tile} onClick={() => setView('scores')} aria-label="View your scores">
+            <span className={`${styles.tileIconBox} ${styles.tileIconScores}`} aria-hidden="true">🏆</span>
+            <span className={styles.tileText}>
+              <span className={styles.tileTitle}>{t.app.yourScores}</span>
+              <span className={styles.tileSub}>{t.app.scoresShort}</span>
             </span>
           </button>
+        </div>
 
-          <button
-            className={`${styles.menuBtn} ${styles.menuBtnScores}`}
-            onClick={() => setView('scores')}
-            aria-label="View your scores"
-          >
-            <span className={styles.menuBtnIcon}>🏆</span>
-            <span className={styles.menuBtnBody}>
-              <span className={styles.menuBtnTitle}>{t.app.scoreTitle}</span>
-              <span className={styles.menuBtnDesc}>
-                {t.app.scoreDesc}
+        {/* ── Your favorites ── */}
+        <div className={styles.favSection}>
+          <div className={styles.favHeader}>
+            <span className={styles.favHeaderLabel}>{t.app.yourFavorites}</span>
+            {favoriteGames.length > 0 && (
+              <button
+                className={styles.favSeeAll}
+                onClick={() => { setSelectedCategory('Favorites'); setView('games'); }}
+              >
+                {t.app.seeAll}
+              </button>
+            )}
+          </div>
+          {favoriteGames.length > 0 ? (
+            <div className={styles.favRow}>
+              {favoriteGames.map(game => (
+                <button
+                  key={game.id}
+                  className={styles.favItem}
+                  onClick={() => { lobbyScrollRef.current = window.scrollY; setSelectedGame(game.id); }}
+                  aria-label={`Play ${game.title}`}
+                >
+                  {getGameImage(game.id)
+                    ? <img src={getGameImage(game.id)} alt="" className={styles.favThumb} />
+                    : <span className={styles.favThumbEmoji} aria-hidden="true">{game.icon}</span>}
+                  <span className={styles.favName}>{game.title}</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <button
+              className={styles.favEmpty}
+              onClick={() => setView('games')}
+              aria-label={t.app.favoritesEmptyHomeCta}
+            >
+              <span className={styles.favEmptyIcon} aria-hidden="true">🤍</span>
+              <span className={styles.favEmptyText}>
+                <span className={styles.favEmptyTitle}>{t.app.favoritesEmptyHomeTitle}</span>
+                <span className={styles.favEmptyDesc}>{t.app.favoritesEmptyHomeDesc}</span>
               </span>
-              <span className={styles.menuBtnFooter}>
-                <span className={styles.menuBtnCta}>{t.app.view}</span>
-              </span>
-            </span>
-          </button>
+              <span className={styles.favEmptyArrow} aria-hidden="true">›</span>
+            </button>
+          )}
+        </div>
 
-        </nav>
       </div>
     </div>
   );

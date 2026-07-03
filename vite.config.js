@@ -5,6 +5,7 @@ import { devApiPlugin } from './vite-api-plugin.js';
 export default defineConfig({
   plugins: [react(), devApiPlugin()],
   base: '/',
+  server: { port: Number(process.env.PORT) || 5173 },
   test: {
     environment: 'jsdom',
     globals: true,
