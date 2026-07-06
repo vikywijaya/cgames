@@ -114,6 +114,16 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playBoing
     onComplete({ finalScore: scoreRef.current, maxScore: 30, completed: true });
   }, [onComplete]);
 
+  // Keep latest callbacks in refs so the popping-loop effect below doesn't
+  // need them as dependencies — onComplete (and therefore finish) gets a new
+  // identity on every parent tick (GameShell re-renders every second for the
+  // countdown), which would otherwise tear down and recreate the interval
+  // before it ever fires.
+  const finishRef   = useRef(finish);
+  finishRef.current = finish;
+  const playFailRef   = useRef(playFail);
+  playFailRef.current = playFail;
+
   // Time-up via secondsLeft
   useEffect(() => {
     if (secondsLeft === 0 && !doneRef.current) finish();
@@ -145,16 +155,16 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playBoing
         delete activeRef.current[idx];
         setActive({ ...activeRef.current });
         if (escapedType === 'mole') {
-          playFail();
+          playFailRef.current();
           livesRef.current -= 1;
           setLives(livesRef.current);
-          if (livesRef.current <= 0) finish();
+          if (livesRef.current <= 0) finishRef.current();
         }
       }, config.showMs);
     }, config.intervalMs);
 
     return () => clearInterval(timerRef.current);
-  }, [holes, config.showMs, config.intervalMs, useBombs, finish, playFail]);
+  }, [holes, config.showMs, config.intervalMs, useBombs]);
 
   const handleTap = useCallback((idx) => {
     if (doneRef.current) return;

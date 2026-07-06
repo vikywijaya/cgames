@@ -5,10 +5,13 @@ import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './StroopColour.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
 
+// congruentChance = probability the word matches its ink colour.
+// Kept low everywhere — the Stroop challenge comes from the word and ink
+// DIFFERING, so most rounds must be incongruent at every difficulty.
 const DIFFICULTY_CONFIG = {
-  easy:   { rounds: 10, match: true,  timeLimitSeconds: null },   // word matches ink colour
-  medium: { rounds: 14, match: false, timeLimitSeconds: 90  },    // mixed congruent + incongruent
-  hard:   { rounds: 18, match: false, timeLimitSeconds: 60  },    // mostly incongruent, faster pressure
+  easy:   { rounds: 10, congruentChance: 0.3,  timeLimitSeconds: null },  // no timer, relaxed pace
+  medium: { rounds: 14, congruentChance: 0.25, timeLimitSeconds: 90  },
+  hard:   { rounds: 18, congruentChance: 0.15, timeLimitSeconds: 60  },   // mostly incongruent, time pressure
 };
 
 // Palette chosen so every colour is clearly distinguishable from the others.
@@ -55,9 +58,9 @@ function StroopGame({ difficulty, onComplete, reportScore, secondsLeft, playClic
 
   const makeStimulus = useCallback(() => {
     const ink = COLOURS[Math.floor(Math.random() * COLOURS.length)];
-    // In easy mode always congruent; otherwise ~40% congruent
-    const forceCongruent = config.match || Math.random() < 0.4;
-    const wordColour = forceCongruent
+    // Mostly incongruent: the word usually names a DIFFERENT colour than the ink
+    const congruent = Math.random() < config.congruentChance;
+    const wordColour = congruent
       ? ink
       : COLOURS.filter(c => c.name !== ink.name)[Math.floor(Math.random() * (COLOURS.length - 1))];
 
@@ -74,7 +77,7 @@ function StroopGame({ difficulty, onComplete, reportScore, secondsLeft, playClic
       [opts[i], opts[j]] = [opts[j], opts[i]];
     }
     return { word: wordColour.name, inkHex: ink.hex, inkName: ink.name, options: opts };
-  }, [config.match]);
+  }, [config.congruentChance]);
 
   const nextRound = useCallback((currentRound) => {
     if (doneRef.current) return;
@@ -136,12 +139,11 @@ function StroopGame({ difficulty, onComplete, reportScore, secondsLeft, playClic
             <button
               key={opt.name}
               className={cls}
-              style={{ '--swatch': opt.hex, '--idx': i }}
+              style={{ '--idx': i }}
               onClick={() => handlePick(opt.name)}
               disabled={!!feedback}
               aria-label={opt.name}
             >
-              <span className={styles.swatch} style={{ background: opt.hex }} aria-hidden="true" />
               {opt.name}
             </button>
           );

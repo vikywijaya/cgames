@@ -85,6 +85,7 @@ export default {
     statSessions: 'Sesi',
     to: 'ke',
     best: 'Terbaik',
+    newTryIt: 'Baru — coba',
     plays: 'kali',
     noPlays: 'Belum dimainkan',
     newcomer: 'Pendatang Baru',

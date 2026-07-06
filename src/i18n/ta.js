@@ -85,6 +85,7 @@ export default {
     statSessions: 'அமர்வுகள்',
     to: 'க்கு',
     best: 'சிறந்த',
+    newTryIt: 'புதியது — முயற்சி செய்',
     plays: 'முறை',
     noPlays: 'இன்னும் விளையாடவில்லை',
     newcomer: 'புதியவர்',

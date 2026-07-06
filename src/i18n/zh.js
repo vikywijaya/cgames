@@ -85,6 +85,7 @@ export default {
     statSessions: '总次数',
     to: '到',
     best: '最佳',
+    newTryIt: '新游戏 — 试试看',
     plays: '次',
     noPlays: '尚未玩过',
     newcomer: '新手',

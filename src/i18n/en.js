@@ -91,6 +91,7 @@ export default {
     statSessions: 'Sessions',
     to: 'to',
     best: 'Best',
+    newTryIt: 'New — try it',
     plays: 'plays',
     noPlays: 'Not played yet',
     // Achievement levels

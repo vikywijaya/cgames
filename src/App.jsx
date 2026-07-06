@@ -594,58 +594,53 @@ export function App() {
             <div className={styles.scoreTable}>
               {group.games.map(game => {
                 const sc = allScores[game.id] || null;
+                const tierColor = sc == null ? null
+                  : sc.best >= 75 ? 'var(--color-success)'
+                  : sc.best >= 50 ? 'var(--color-warning)'
+                  :                 'var(--color-error)';
                 return (
                   <div key={game.id} className={styles.scoreRow}>
-                    <div className={styles.scoreRowIcon} aria-hidden="true">
+                    <div className={styles.scoreThumbWrap}>
                       {getGameImage(game.id)
-                        ? <img src={getGameImage(game.id)} alt="" className={styles.scoreRowIconImg} />
-                        : game.icon}
+                        ? <img src={getGameImage(game.id)} alt="" className={styles.scoreThumb} />
+                        : <span className={styles.scoreThumbEmoji} aria-hidden="true">{game.icon}</span>}
+                      {sc && (
+                        <span className={styles.scoreCheck} style={{ background: tierColor }} aria-label="Played">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7" /></svg>
+                        </span>
+                      )}
                     </div>
-                    <div className={styles.scoreRowInfo}>
-                      <span className={styles.scoreRowName}>{game.title}</span>
-                      <span className={styles.scoreRowDomain}>{game.domain}</span>
+                    <div className={styles.scoreBody}>
+                      <span className={styles.scoreName}>{game.title}</span>
+                      <span className={styles.scoreDomain}>{game.domain}</span>
                       {sc ? (
-                        <div className={styles.scoreRowStats}>
-                          <span className={styles.scoreBest}
-                            style={{ color: sc.best >= 75 ? 'var(--color-success)' : sc.best >= 50 ? 'var(--color-warning)' : 'var(--color-error)' }}>
-                            {t.app.bestScore}: {sc.best}
-                          </span>
-                          {(sc.bestTime != null || sc.lastTime != null) && (
-                            <span className={styles.scoreTime}>{t.app.bestTime}: {sc.bestTime ?? sc.lastTime}s</span>
-                          )}
-                          {(sc.bestDifficulty || sc.lastDifficulty) && (
-                            <span className={styles.scoreDifficulty}>
-                              {t.shell[sc.bestDifficulty || sc.lastDifficulty] || (sc.bestDifficulty || sc.lastDifficulty)}
-                            </span>
-                          )}
+                        <div className={styles.scoreBarRow}>
+                          <div className={styles.scoreBarTrack}>
+                            <div className={styles.scoreBarFill} style={{ width: `${sc.best}%`, background: tierColor }} />
+                          </div>
+                          <span className={styles.scoreBarPct} style={{ color: tierColor }}>{t.app.best} {sc.best}%</span>
                         </div>
                       ) : (
-                        <span className={styles.scoreUnplayed}>{t.app.noPlays}</span>
+                        <span className={styles.scoreNewPill}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z" /></svg>
+                          {t.app.newTryIt}
+                        </span>
                       )}
                     </div>
-                    <div className={styles.scoreRowActions}>
-                      {game.comingSoon ? (
-                        <span className={styles.comingSoonBadge}>{t.app.comingSoon}</span>
-                      ) : (
-                        <button
-                          className={styles.playBtnSm}
-                          onClick={() => { setView('games'); setSelectedGame(game.id); }}
-                          aria-label={`Play ${game.title}`}
-                        >
-                          <svg width="36" height="36" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <g clipPath="url(#clip0_score_play)">
-                              <path d="M57 28.5C57 44.2403 44.2403 57 28.5 57C12.7597 57 0 44.2403 0 28.5C0 12.7597 12.7597 0 28.5 0C44.2403 0 57 12.7597 57 28.5Z" fill="#3777FF"/>
-                              <path d="M40.1751 27.0179L24.1439 16.3304C23.5972 15.9665 22.8949 15.9325 22.3156 16.2422C21.7368 16.5522 21.375 17.1558 21.375 17.8125V39.1875C21.375 39.8442 21.7368 40.4478 22.3156 40.7578C22.8949 41.0675 23.5972 41.0335 24.1439 40.6696L40.1751 29.9821C40.6709 29.6515 40.9683 29.0953 40.9683 28.5C40.9683 27.9047 40.6709 27.3484 40.1751 27.0179Z" fill="white"/>
-                            </g>
-                            <defs>
-                              <clipPath id="clip0_score_play">
-                                <rect width="57" height="57" fill="white"/>
-                              </clipPath>
-                            </defs>
-                          </svg>
-                        </button>
-                      )}
-                    </div>
+                    {game.comingSoon ? (
+                      <span className={styles.comingSoonBadge}>{t.app.comingSoon}</span>
+                    ) : (
+                      <button
+                        className={styles.scorePlayBtn}
+                        onClick={() => { setView('games'); setSelectedGame(game.id); }}
+                        aria-label={`Play ${game.title}`}
+                      >
+                        <svg width="52" height="52" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M57 28.5C57 44.2403 44.2403 57 28.5 57C12.7597 57 0 44.2403 0 28.5C0 12.7597 12.7597 0 28.5 0C44.2403 0 57 12.7597 57 28.5Z" fill="#3777FF"/>
+                          <path d="M40.1751 27.0179L24.1439 16.3304C23.5972 15.9665 22.8949 15.9325 22.3156 16.2422C21.7368 16.5522 21.375 17.1558 21.375 17.8125V39.1875C21.375 39.8442 21.7368 40.4478 22.3156 40.7578C22.8949 41.0675 23.5972 41.0335 24.1439 40.6696L40.1751 29.9821C40.6709 29.6515 40.9683 29.0953 40.9683 28.5C40.9683 27.9047 40.6709 27.3484 40.1751 27.0179Z" fill="white"/>
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 );
               })}
@@ -842,6 +837,20 @@ export function App() {
     <div className={styles.homeWrapper}>
       <div className={styles.homeScreen}>
 
+        {/* ── Brand lockup (3A: icon badge + wordmark, horizontal) ── */}
+        <div className={styles.brandLockup}>
+          <div className={styles.brandBadge} aria-hidden="true">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9.5 2.5c-1.66 0-3 1.34-3 3v.17A3.5 3.5 0 0 0 4 9v.68A3.5 3.5 0 0 0 3 12.5c0 1.24.63 2.34 1.59 2.98A3 3 0 0 0 4.5 16.5 3.5 3.5 0 0 0 8 20c.35 0 .69-.05 1-.15V20a2.5 2.5 0 0 0 5 0V5.5a3 3 0 0 0-3-3h-1.5Z" fill="currentColor" opacity="0.9"/>
+              <path d="M14.5 2.5c1.66 0 3 1.34 3 3v.17A3.5 3.5 0 0 1 20 9v.68a3.5 3.5 0 0 1 1 2.82c0 1.24-.63 2.34-1.59 2.98.24.4.4.87.4 1.38.24 1.66-1.29 3.14-3 3.14-.35 0-.69-.05-1-.15V20a2.5 2.5 0 0 1-5 0V5.5a3 3 0 0 1 3-3H14.5Z" fill="currentColor"/>
+            </svg>
+          </div>
+          <div className={styles.brandText}>
+            <span className={styles.brandTitle}>Cognitive<span className={styles.brandTitleAccent}> Games</span></span>
+            <span className={styles.brandTagline}>Keep your mind sharp and healthy</span>
+          </div>
+        </div>
+
         {/* ── Greeting + level hero ── */}
         <div className={styles.hero}>
           <span className={styles.heroBlob1} aria-hidden="true" />
@@ -894,7 +903,22 @@ export function App() {
         {/* ── Two secondary tiles ── */}
         <div className={styles.tileRow}>
           <button className={styles.tile} onClick={() => setView('games')} aria-label="Browse all cognitive games">
-            <span className={`${styles.tileIconBox} ${styles.tileIconGames}`} aria-hidden="true">🎮</span>
+            <span className={`${styles.tileIconBox} ${styles.tileIconGames}`} aria-hidden="true">
+              <svg width="30" height="30" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="gamepadBody" x1="4" y1="12" x2="44" y2="38" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#5C90F5" />
+                    <stop offset="100%" stopColor="#2D5EC7" />
+                  </linearGradient>
+                </defs>
+                <path d="M13.5 13h21a8 8 0 0 1 7.86 6.56l2.3 12.6a5.2 5.2 0 0 1-9.4 4.06L32.2 32.6a3 3 0 0 0-2.46-1.3H18.26a3 3 0 0 0-2.46 1.3l-3.06 3.62a5.2 5.2 0 0 1-9.4-4.06l2.3-12.6A8 8 0 0 1 13.5 13Z" fill="url(#gamepadBody)"/>
+                <path d="M13.5 13h21a8 8 0 0 1 7.86 6.56l1.02 5.6c-3.02-3.86-8-6.66-13.88-6.66h-11c-5.88 0-10.86 2.8-13.88 6.66l1.02-5.6A8 8 0 0 1 13.5 13Z" fill="#fff" fillOpacity="0.16"/>
+                <rect x="12.5" y="20.5" width="3" height="9" rx="1.2" fill="#fff"/>
+                <rect x="9.5" y="23.5" width="9" height="3" rx="1.2" fill="#fff"/>
+                <circle cx="34" cy="21.5" r="2.6" fill="#FFD24A"/>
+                <circle cx="28.5" cy="27" r="2.6" fill="#E07820"/>
+              </svg>
+            </span>
             <span className={styles.tileText}>
               <span className={styles.tileTitle}>{t.app.browseGames}</span>
               <span className={styles.tileSub}>
