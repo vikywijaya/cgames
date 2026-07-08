@@ -72,9 +72,11 @@
   flex-shrink: 0;
 }
 
+@media (hover: hover) and (pointer: fine) {
 .ctrlBtn:hover:not(:disabled) {
   background: var(--color-secondary, #cfe2f3);
   border-color: var(--color-primary, #3A73D7);
+}
 }
 
 .ctrlBtn:disabled {

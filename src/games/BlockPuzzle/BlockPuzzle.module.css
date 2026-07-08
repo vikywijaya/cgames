@@ -68,9 +68,11 @@
   background: #e8edf4;
   border: 2px dashed #cbd5e1;
 }
+@media (hover: hover) and (pointer: fine) {
 .cellEmpty:hover {
   background: #dce3ee;
   transform: scale(1.05);
+}
 }
 
 .cellInactive {
@@ -83,9 +85,11 @@
   cursor: pointer;
   border: 2px solid rgba(0, 0, 0, 0.08);
 }
+@media (hover: hover) and (pointer: fine) {
 .cellFilled:hover {
   opacity: 0.75;
   transform: scale(1.05);
+}
 }
 
 .cellPreview {
@@ -110,10 +114,12 @@
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast);
 }
+@media (hover: hover) and (pointer: fine) {
 .clearBtn:hover {
   background: #fee2e2;
   color: #dc2626;
   border-color: #fca5a5;
+}
 }
 
 /* ── Pieces tray ── */
@@ -142,9 +148,11 @@
   vertical-align: top;
   align-content: start;
 }
+@media (hover: hover) and (pointer: fine) {
 .pieceCard:hover {
   transform: scale(1.08);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
 }
 
 .pieceSelected {

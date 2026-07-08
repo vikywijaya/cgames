@@ -155,9 +155,11 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
   -webkit-tap-highlight-color: transparent;
 }
+@media (hover: hover) and (pointer: fine) {
 .dpadBtn:hover {
   background: linear-gradient(180deg, #fff 0%, #e2e8f0 100%);
   transform: scale(1.08);
+}
 }
 .dpadBtn:active {
   transform: scale(0.95);
@@ -193,9 +195,11 @@
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast), transform 80ms ease;
 }
+@media (hover: hover) and (pointer: fine) {
 .actionBtn:hover:not(:disabled) {
   background: #edf2f7;
   transform: scale(1.04);
+}
 }
 .actionBtn:disabled {
   opacity: 0.4;

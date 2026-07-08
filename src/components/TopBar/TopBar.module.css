@@ -68,7 +68,9 @@
   border-radius: var(--radius-lg);
   transition: background-color var(--transition-fast);
 }
+@media (hover: hover) and (pointer: fine) {
 .topBarBack:hover { background-color: var(--color-primary-light); }
+}
 .topBarBack:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
 .topBarBack:active { background-color: var(--color-primary-light); }
 

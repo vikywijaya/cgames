@@ -77,7 +77,9 @@
   transition: background-color var(--transition-fast);
   white-space: nowrap;
 }
+@media (hover: hover) and (pointer: fine) {
 .topBarBack:hover { background-color: rgba(255,255,255,0.15); }
+}
 .topBarBack:focus-visible { outline: 3px solid rgba(255,255,255,0.6); outline-offset: 2px; }
 .topBarBackLabel { line-height: 1; }
 
@@ -98,7 +100,9 @@
   justify-content: center;
   transition: background-color var(--transition-fast);
 }
+@media (hover: hover) and (pointer: fine) {
 .helpBtn:hover { background-color: rgba(255,255,255,0.2); }
+}
 .helpBtn:focus-visible { outline: 3px solid rgba(255,255,255,0.6); outline-offset: 2px; }
 
 /* ── START / HOW TO PLAY SCREEN ─────────────────────── */
@@ -473,7 +477,9 @@
   justify-content: center;
   transition: background-color var(--transition-fast);
 }
+@media (hover: hover) and (pointer: fine) {
 .howToPlayCloseBtn:hover { background: rgba(61,114,232,0.22); }
+}
 
 .howToPlayOverlayBody {
   flex: 1;

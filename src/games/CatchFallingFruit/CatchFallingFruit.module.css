@@ -80,11 +80,17 @@
 }
 .sideBtnLeft  { border-radius: var(--radius-xl) var(--radius-md) var(--radius-md) var(--radius-xl); }
 .sideBtnRight { border-radius: var(--radius-md) var(--radius-xl) var(--radius-xl) var(--radius-md); }
-.sideBtn:hover,
 .sideBtn:active {
   color: var(--color-primary);
   border-color: var(--color-primary);
   background: rgba(245, 158, 11, 0.08);
+}
+@media (hover: hover) and (pointer: fine) {
+.sideBtn:hover {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: rgba(245, 158, 11, 0.08);
+}
 }
 
 /* ── Game area ────────────────────────────────────── */

@@ -45,7 +45,9 @@
   animation-delay: min(calc(var(--idx, 0) * 0.03s), 0.2s);
 }
 .choiceBtn:active:not(:disabled) { transform: scale(0.96); }
+@media (hover: hover) and (pointer: fine) {
 .choiceBtn:hover:not(:disabled) { box-shadow:0 8px 32px rgba(0, 0, 0, 0.13); background:rgba(245,158,11,0.06); }
+}
 .choiceEmoji { font-size:1.6rem; line-height:1; }
 .choiceName { font-size:0.72rem; font-weight:600; color:var(--color-text-muted); text-align:center; }
 .tick { position:absolute; top:4px; right:6px; font-size:0.9rem; color:var(--color-primary); font-weight:700; }
@@ -55,7 +57,9 @@
 .choiceMissed  { box-shadow:0 0 0 3px #fbbf24, 0 4px 20px rgba(0,0,0,0.08)!important; background:rgba(251,191,36,0.08)!important; }
 
 .submitBtn { height:48px; padding:0 var(--space-8); background:var(--color-primary); color:#0a0a0f; border:none; border-radius:var(--radius-full); font-size:var(--text-md); font-weight:700; font-family:var(--font-base); cursor:pointer; }
+@media (hover: hover) and (pointer: fine) {
 .submitBtn:hover { background:var(--color-primary-light); }
+}
 
 .feedbackOk  { font-size:var(--text-sm); font-weight:600; color:#4ade80; text-align:center; min-height: 1.4em; }
 .feedbackBad { font-size:var(--text-sm); font-weight:600; color:#f87171; text-align:center; min-height: 1.4em; }

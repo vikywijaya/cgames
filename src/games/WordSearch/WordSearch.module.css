@@ -94,7 +94,9 @@
   animation-delay: min(calc(var(--idx, 0) * 0.07s), 0.5s);
 }
 
+@media (hover: hover) and (pointer: fine) {
 .cell:hover { background-color: var(--color-surface-2); }
+}
 
 /* Cells that form a valid straight line from the chosen start — shown so users
    immediately see where they can end a selection. */

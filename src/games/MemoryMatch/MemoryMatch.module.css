@@ -183,8 +183,10 @@
 }
 
 /* Hover peek on unflipped cards */
+@media (hover: hover) and (pointer: fine) {
 .cardTile:not(.flipped):not(.matched):hover .cardInner {
   transform: rotateY(20deg) scale(1.05);
+}
 }
 
 .cardTile:focus-visible {

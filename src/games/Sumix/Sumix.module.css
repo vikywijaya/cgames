@@ -118,9 +118,11 @@
     background var(--transition-fast);
   flex-shrink: 0;
 }
+@media (hover: hover) and (pointer: fine) {
 .cell:hover:not(:disabled) {
   border-color: var(--color-primary);
   transform: scale(1.05);
+}
 }
 
 .cellActive {

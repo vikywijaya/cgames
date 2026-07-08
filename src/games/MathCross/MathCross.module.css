@@ -89,10 +89,12 @@
   transition: border-color var(--transition-fast), background var(--transition-fast),
     transform 80ms ease, box-shadow var(--transition-fast);
 }
+@media (hover: hover) and (pointer: fine) {
 .cellSlot:hover {
   border-color: var(--color-primary);
   background: #f0f4ff;
   transform: scale(1.06);
+}
 }
 .cellSlotSelected {
   border-color: var(--color-primary);
@@ -109,9 +111,11 @@
   cursor: pointer;
   font-size: var(--text-md);
 }
+@media (hover: hover) and (pointer: fine) {
 .cellFilled:hover {
   opacity: 0.8;
   transform: scale(1.06);
+}
 }
 
 /* Correct slot after solve — green */
@@ -158,10 +162,12 @@
     box-shadow var(--transition-fast), background var(--transition-fast);
   color: var(--color-text);
 }
+@media (hover: hover) and (pointer: fine) {
 .trayNum:hover:not(:disabled) {
   border-color: var(--color-primary);
   transform: scale(1.08);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
 }
 .trayNumSelected {
   border-color: var(--color-primary);

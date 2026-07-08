@@ -67,10 +67,12 @@
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast);
 }
+@media (hover: hover) and (pointer: fine) {
 .clearBtn:hover {
   background: #fee2e2;
   color: #dc2626;
   border-color: #fca5a5;
+}
 }
 
 /* ── Solved feedback ── */

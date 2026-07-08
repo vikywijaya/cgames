@@ -67,8 +67,10 @@
   border: 3px solid transparent;
   background: none;
 }
+@media (hover: hover) and (pointer: fine) {
 .rod:hover {
   background: rgba(0, 0, 0, 0.03);
+}
 }
 .rodSelected {
   background: rgba(17, 85, 204, 0.06);

@@ -96,10 +96,12 @@
   animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   animation-delay: min(calc(var(--idx, 0) * 0.07s), 0.5s);
 }
+@media (hover: hover) and (pointer: fine) {
 .optBtn:hover:not(:disabled) {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.13);
   background: rgba(245,158,11,0.06);
   transform: scale(1.03);
+}
 }
 .optBtn:disabled { cursor: default; }
 

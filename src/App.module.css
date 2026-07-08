@@ -29,7 +29,9 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   transition: border-color var(--transition-fast), color var(--transition-fast);
 }
+@media (hover: hover) and (pointer: fine) {
 .floatingBack:hover { border-color: var(--color-primary); color: var(--color-primary); }
+}
 .floatingBack:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 
 /* ── Shared back button ───────────────────────────────── */
@@ -50,7 +52,9 @@
   transition: border-color var(--transition-fast), color var(--transition-fast);
   align-self: flex-start;
 }
-.backBtn:hover  { border-color: var(--color-primary); color: var(--color-primary); }
+@media (hover: hover) and (pointer: fine) {
+.backBtn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+}
 .backBtn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 
 /* ── Shared primary / outline buttons ────────────────── */
@@ -67,7 +71,9 @@
   cursor: pointer;
   transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
-.primaryBtn:hover  { background-color: var(--color-primary-dk); transform: scale(1.02); }
+@media (hover: hover) and (pointer: fine) {
+.primaryBtn:hover { background-color: var(--color-primary-dk); transform: scale(1.02); }
+}
 .primaryBtn:active { transform: scale(0.98); }
 .primaryBtn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 
@@ -84,7 +90,9 @@
   cursor: pointer;
   transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
-.outlineBtn:hover  { background-color: var(--color-primary-light); transform: scale(1.02); }
+@media (hover: hover) and (pointer: fine) {
+.outlineBtn:hover { background-color: var(--color-primary-light); transform: scale(1.02); }
+}
 .outlineBtn:active { transform: scale(0.98); }
 .outlineBtn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 
@@ -232,7 +240,9 @@
   box-shadow: 0 10px 30px rgba(129, 84, 246, 0.34);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
+@media (hover: hover) and (pointer: fine) {
 .focusCard:hover { transform: translateY(-3px); box-shadow: 0 14px 36px rgba(129, 84, 246, 0.42); }
+}
 .focusCard:active { transform: translateY(0) scale(0.99); }
 .focusCard:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 .focusBlob {
@@ -328,7 +338,9 @@
   box-shadow: 0 2px 14px rgba(61, 114, 232, 0.08);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
 }
+@media (hover: hover) and (pointer: fine) {
 .tile:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(61, 114, 232, 0.16); }
+}
 .tile:active { transform: translateY(0) scale(0.99); }
 .tile:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 .tileIconBox {
@@ -420,7 +432,9 @@
   background: var(--color-primary-light);
   box-shadow: 0 2px 12px rgba(61, 114, 232, 0.12);
 }
+@media (hover: hover) and (pointer: fine) {
 .favItem:hover .favThumb { transform: translateY(-2px); }
+}
 .favName {
   font-size: 12.5px;
   font-weight: 600;
@@ -447,7 +461,9 @@
   box-shadow: 0 2px 14px rgba(61, 114, 232, 0.06);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
 }
+@media (hover: hover) and (pointer: fine) {
 .favEmpty:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(61, 114, 232, 0.14); border-color: var(--color-primary); }
+}
 .favEmpty:active { transform: translateY(0) scale(0.99); }
 .favEmpty:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 .favEmptyIcon {
@@ -943,7 +959,9 @@
   transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
   min-width: 0;
 }
+@media (hover: hover) and (pointer: fine) {
 .scoreRow:hover { box-shadow: 0 6px 22px rgba(61, 114, 232, 0.16); border-color: var(--color-primary); }
+}
 
 .scoreThumbWrap {
   position: relative;
@@ -1064,7 +1082,9 @@
   transition: transform var(--transition-fast);
 }
 .scorePlayBtn svg { width: 52px; height: 52px; display: block; }
-.scorePlayBtn:hover  { transform: scale(1.08); }
+@media (hover: hover) and (pointer: fine) {
+.scorePlayBtn:hover { transform: scale(1.08); }
+}
 .scorePlayBtn:active { transform: scale(0.95); }
 .scorePlayBtn:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; border-radius: 50%; }
 
@@ -1153,8 +1173,10 @@
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
+@media (hover: hover) and (pointer: fine) {
 .categoryTrigger:hover {
   border-color: var(--color-primary);
+}
 }
 
 .categoryTrigger:focus-visible {
@@ -1239,8 +1261,10 @@
   font-family: var(--font-base);
 }
 
+@media (hover: hover) and (pointer: fine) {
 .categoryOption:hover {
   background: #F4F6FB;
+}
 }
 
 .categoryOptionActive {
@@ -1451,12 +1475,19 @@
   font: inherit;
   color: inherit;
 }
-.gameCard:hover,
 .gameCard:focus-visible {
   transform: translateY(-2px) scale(1.015);
   border-color: var(--color-primary);
   box-shadow: 0 0 0 1px rgba(55, 119, 255, 0.4), 0 8px 24px rgba(55, 119, 255, 0.25);
   outline: none;
+}
+@media (hover: hover) and (pointer: fine) {
+.gameCard:hover {
+  transform: translateY(-2px) scale(1.015);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px rgba(55, 119, 255, 0.4), 0 8px 24px rgba(55, 119, 255, 0.25);
+  outline: none;
+}
 }
 .gameCard:active { transform: scale(0.98); }
 
@@ -1577,9 +1608,11 @@
   pointer-events: none;
   filter: grayscale(0.4);
 }
+@media (hover: hover) and (pointer: fine) {
 .gameCardDisabled:hover {
   box-shadow: var(--shadow-sm);
   transform: none;
+}
 }
 .comingSoonBadge {
   min-height: 40px;
@@ -1632,15 +1665,19 @@
   padding: 0;
   pointer-events: auto;
 }
+@media (hover: hover) and (pointer: fine) {
 .favBtn:hover {
   color: #e74c5e;
   transform: scale(1.15);
 }
+}
 .favBtnActive {
   color: #e74c5e;
 }
+@media (hover: hover) and (pointer: fine) {
 .favBtnActive:hover {
   color: #c0392b;
+}
 }
 
 /* ── Favorites empty state ── */

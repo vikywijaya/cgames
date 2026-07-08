@@ -98,8 +98,10 @@
   background: #dce6f5;
 }
 
+@media (hover: hover) and (pointer: fine) {
 .tilePipe:hover {
   background: #cdd8ed;
+}
 }
 
 .tilePipe:active {
@@ -118,9 +120,11 @@
   background: #dce6f5;
 }
 
+@media (hover: hover) and (pointer: fine) {
 .tileEndpoint:hover {
   background: #dce6f5;
   transform: none;
+}
 }
 
 /* Tap rotation flash */
