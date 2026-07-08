@@ -602,7 +602,6 @@ function SlitherEscapeGame({ difficulty, onComplete, reportScore, secondsLeft, p
 
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['slither-escape'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.level} {round + 1} {t.common.of} {rounds}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -611,6 +610,7 @@ function SlitherEscapeGame({ difficulty, onComplete, reportScore, secondsLeft, p
         </div>
       </div>
 
+      <div className={styles.playArea}>
       {/* Board */}
       <div className={`${styles.boardWrap} ${transitioning ? styles.boardOut : ''} ${solved ? styles.boardWin : ''}`}>
         <div
@@ -705,6 +705,7 @@ function SlitherEscapeGame({ difficulty, onComplete, reportScore, secondsLeft, p
       </div>
 
       <p className={styles.hint}>Drag a snake to slide it to its matching exit</p>
+      </div>
     </div>
   );
 }
@@ -732,6 +733,7 @@ export function SlitherEscape({ memberId, difficulty = 'easy', onComplete, callb
       instructions={t.games['slither-escape'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

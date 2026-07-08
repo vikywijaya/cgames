@@ -407,7 +407,6 @@ function PipeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick,
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['pipe-puzzle'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.puzzle} {round + 1} {t.common.of} {rounds}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -415,6 +414,7 @@ function PipeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick,
           <span className={styles.infoBadgeSub}>/ {rounds}</span>
         </div>
       </div>
+      <div className={styles.playArea}>
       {/* Color legend */}
       <div className={styles.legend}>
         {colorPairs.map(({ colorId }) => {
@@ -472,6 +472,7 @@ function PipeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick,
       </div>
 
       <p className={styles.hint}>Tap tiles to rotate • connect all coloured dots</p>
+      </div>
     </div>
   );
 }
@@ -528,6 +529,7 @@ export function PipePuzzle({
       instructions={instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

@@ -12,6 +12,19 @@
   gap: var(--space-3);
   width: 100%;
   padding: 0;
+
+  flex: 1;
+}
+
+/* Fills the space below the pinned info header and centers gameplay in it */
+.playArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  width: 100%;
 }
 
 .roundLabel { color: var(--color-text-muted); font-size: var(--text-sm); }
@@ -178,14 +191,18 @@
 
 /* ── Info header — WordRecall style ── */
 .infoHeader {
-  background: var(--color-primary);
-  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  border-radius: 0;
   padding: var(--space-4) var(--space-5);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  width: 100%;
+  width: calc(100% + var(--space-4) * 2);
+  margin: 0 calc(-1 * var(--space-4));
+  position: sticky;
+  top: 0;
+  z-index: 5;
 }
 
 .infoHeaderText {
@@ -194,22 +211,14 @@
   gap: 2px;
 }
 
-.infoHeaderLabel {
-  font-size: var(--text-xs);
-  font-weight: var(--font-weight-bold);
-  color: rgba(255,255,255,0.75);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
 .infoHeaderSub {
   font-size: var(--text-sm);
   font-weight: var(--font-weight-regular);
-  color: rgba(255,255,255,0.9);
+  color: var(--color-text-muted);
 }
 
 .infoBadge {
-  background: rgba(255,255,255,0.2);
+  background: var(--color-primary-light);
   border-radius: var(--radius-xl);
   padding: var(--space-2) var(--space-4);
   display: flex;
@@ -221,12 +230,12 @@
 .infoBadgeNum {
   font-size: var(--text-lg);
   font-weight: var(--font-weight-bold);
-  color: #ffffff;
+  color: var(--color-primary);
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
 .infoBadgeSub {
   font-size: var(--text-xs);
-  color: rgba(255,255,255,0.75);
+  color: var(--color-primary);
 }

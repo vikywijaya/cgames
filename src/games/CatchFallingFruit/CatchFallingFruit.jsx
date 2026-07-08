@@ -278,7 +278,6 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['catch-falling-fruit'].label}</span>
           <span className={styles.infoHeaderSub}>{displayLives} {t.common.livesRemaining}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -287,6 +286,7 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
         </div>
       </div>
 
+      <div className={styles.playArea}>
       {/* Play area — kept unobstructed; the basket is driven from the control track below */}
       <div className={styles.gameRow}>
         <div
@@ -363,6 +363,7 @@ function CatchGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
           tabIndex={-1}
         >›</button>
       </div>
+      </div>
     </div>
   );
 }
@@ -422,6 +423,7 @@ export function CatchFallingFruit({
       instructions={instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

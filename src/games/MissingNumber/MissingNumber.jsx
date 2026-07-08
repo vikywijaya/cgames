@@ -100,7 +100,6 @@ function MissingNumberGame({ difficulty, onComplete, reportScore, secondsLeft, p
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['missing-number'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -109,6 +108,7 @@ function MissingNumberGame({ difficulty, onComplete, reportScore, secondsLeft, p
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <p className={styles.prompt}>What number fills the blank?</p>
 
       <div className={styles.sequence}>
@@ -135,6 +135,7 @@ function MissingNumberGame({ difficulty, onComplete, reportScore, secondsLeft, p
       <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
         {feedback === 'correct' ? t.common.correct : feedback === 'wrong' ? `${t.games['missing-number'].wrongAnswer} ${puzzle.answer}` : '\u00A0'}
       </p>
+      </div>
     </div>
   );
 }
@@ -162,6 +163,7 @@ export function MissingNumber({ memberId, difficulty = 'easy', onComplete, callb
       instructions={t.games['missing-number'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

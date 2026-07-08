@@ -93,7 +93,6 @@ function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft, play
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['number-sort'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds} · {t.common.tapSmallestToLargest}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -102,6 +101,7 @@ function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft, play
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <div className={styles.grid}>
         {numbers.map((num, i) => {
           const tapOrder = selected.indexOf(i); // -1 if not yet tapped
@@ -135,6 +135,7 @@ function NumberSortGame({ difficulty, onComplete, reportScore, secondsLeft, play
       <p className={feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
         {feedback === 'wrong' ? 'Wrong order — try again!' : '\u00A0'}
       </p>
+      </div>
     </div>
   );
 }
@@ -162,6 +163,7 @@ export function NumberSort({ memberId, difficulty = 'easy', onComplete, callback
       instructions={t.games['number-sort'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

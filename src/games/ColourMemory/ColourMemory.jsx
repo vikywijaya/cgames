@@ -138,7 +138,6 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, pl
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['colour-memory'].label}</span>
           <span className={styles.infoHeaderSub}>
             {phase === 'countdown' ? t.common.getReady : phase === 'showing' ? t.common.watchSequence : phase === 'recalling' ? t.common.nowRepeat : feedback === 'correct' ? t.common.correct : t.common.wrong}
           </span>
@@ -149,27 +148,29 @@ function ColourMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, pl
         </div>
       </div>
 
-      <div className={styles.progress}>{progressDots}</div>
+      <div className={styles.playArea}>
+        <div className={styles.progress}>{progressDots}</div>
 
-      {phase === 'countdown' && (
-        <div className={styles.countdownOverlay} aria-live="assertive">
-          <span className={styles.countdownNum} key={countdown}>{countdown}</span>
+        {phase === 'countdown' && (
+          <div className={styles.countdownOverlay} aria-live="assertive">
+            <span className={styles.countdownNum} key={countdown}>{countdown}</span>
+          </div>
+        )}
+
+        <div className={styles.grid}>
+          {COLOURS.map((c, i) => (
+            <button
+              key={c.id}
+              className={`${styles.tile} ${highlighted === c.id ? styles.tileFlash : ''}`}
+              style={{ '--tcolor': c.bg, '--idx': i }}
+              onClick={() => handleTap(c.id)}
+              disabled={phase !== 'recalling'}
+              aria-label={c.label}
+            >
+              <span className={styles.tileLabel}>{c.label}</span>
+            </button>
+          ))}
         </div>
-      )}
-
-      <div className={styles.grid}>
-        {COLOURS.map((c, i) => (
-          <button
-            key={c.id}
-            className={`${styles.tile} ${highlighted === c.id ? styles.tileFlash : ''}`}
-            style={{ '--tcolor': c.bg, '--idx': i }}
-            onClick={() => handleTap(c.id)}
-            disabled={phase !== 'recalling'}
-            aria-label={c.label}
-          >
-            <span className={styles.tileLabel}>{c.label}</span>
-          </button>
-        ))}
       </div>
     </div>
   );
@@ -198,6 +199,7 @@ export function ColourMemory({ memberId, difficulty = 'easy', onComplete, callba
       instructions={t.games['colour-memory'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

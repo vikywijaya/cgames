@@ -83,7 +83,6 @@ function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft, pla
       {/* ── Info header — WordRecall style ── */}
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['memory-match'].label}</span>
           <span className={styles.infoHeaderSub}>
             {pairsLeft === 0 ? t.common.allPairsFound : `${pairsLeft} ${pairsLeft !== 1 ? t.common.pairsLeft : t.common.pairLeft}`}
           </span>
@@ -94,32 +93,34 @@ function MemoryMatchGame({ difficulty, onComplete, reportScore, secondsLeft, pla
         </div>
       </div>
 
-      {/* ── Match progress bar ── */}
-      <div className={styles.progressBar}>
-        <ProgressBar
-          value={matchCount}
-          max={maxMatches}
-          ariaLabel="Pairs matched"
-          colorVariant={matchCount === maxMatches ? 'success' : 'default'}
-        />
-      </div>
-
-      {/* ── Card grid ── */}
-      <div
-        className={styles.grid}
-        style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
-        role="grid"
-        aria-label="Memory card grid"
-      >
-        {cards.map((card, i) => (
-          <CardTile
-            key={card.id}
-            card={card}
-            state={cardState[i]}
-            onFlip={() => { playReveal(); flipCard(i); }}
-            index={i}
+      <div className={styles.playArea}>
+        {/* ── Match progress bar ── */}
+        <div className={styles.progressBar}>
+          <ProgressBar
+            value={matchCount}
+            max={maxMatches}
+            ariaLabel="Pairs matched"
+            colorVariant={matchCount === maxMatches ? 'success' : 'default'}
           />
-        ))}
+        </div>
+
+        {/* ── Card grid ── */}
+        <div
+          className={styles.grid}
+          style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+          role="grid"
+          aria-label="Memory card grid"
+        >
+          {cards.map((card, i) => (
+            <CardTile
+              key={card.id}
+              card={card}
+              state={cardState[i]}
+              onFlip={() => { playReveal(); flipCard(i); }}
+              index={i}
+            />
+          ))}
+        </div>
       </div>
 
     </div>
@@ -154,6 +155,7 @@ export function MemoryMatch({ memberId, difficulty = 'easy', onComplete, callbac
       instructions={t.games['memory-match'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireComplete}
       onBack={onBack}
     >

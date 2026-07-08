@@ -147,7 +147,6 @@ function CapitalQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pla
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['capital-quiz'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.question} {qIndex + 1} {t.common.of} {config.questions}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -156,34 +155,36 @@ function CapitalQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pla
         </div>
       </div>
 
-      <div className={styles.questionCard}>
-        <span className={styles.flagEmoji} role="img" aria-label={`Flag of ${question.correct.country}`}>
-          {flag(question.correct.code)}
-        </span>
-        <p className={styles.questionText}>
-          What is the capital of <strong>{question.correct.country}</strong>?
+      <div className={styles.playArea}>
+        <div className={styles.questionCard}>
+          <span className={styles.flagEmoji} role="img" aria-label={`Flag of ${question.correct.country}`}>
+            {flag(question.correct.code)}
+          </span>
+          <p className={styles.questionText}>
+            What is the capital of <strong>{question.correct.country}</strong>?
+          </p>
+        </div>
+
+        <div className={styles.options}>
+          {question.options.map((opt, i) => {
+            const isChosen  = chosen === opt.code;
+            const isCorrect = opt.code === question.correct.code;
+            let cls = styles.optBtn;
+            if (feedback && isChosen  && feedback === 'correct') cls = `${styles.optBtn} ${styles.optCorrect}`;
+            else if (feedback && isChosen && feedback === 'wrong')  cls = `${styles.optBtn} ${styles.optWrong}`;
+            else if (feedback && isCorrect) cls = `${styles.optBtn} ${styles.optCorrect}`;
+            return (
+              <button key={opt.code} className={cls} style={{ '--idx': i }} onClick={() => { playClick(); handleChoice(opt); }} disabled={!!feedback}>
+                {opt.capital}
+              </button>
+            );
+          })}
+        </div>
+
+        <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
+          {feedback === 'correct' ? t.common.correct : feedback ? `${t.games['capital-quiz'].wrongAnswer} ${question.correct.capital}` : '\u00A0'}
         </p>
       </div>
-
-      <div className={styles.options}>
-        {question.options.map((opt, i) => {
-          const isChosen  = chosen === opt.code;
-          const isCorrect = opt.code === question.correct.code;
-          let cls = styles.optBtn;
-          if (feedback && isChosen  && feedback === 'correct') cls = `${styles.optBtn} ${styles.optCorrect}`;
-          else if (feedback && isChosen && feedback === 'wrong')  cls = `${styles.optBtn} ${styles.optWrong}`;
-          else if (feedback && isCorrect) cls = `${styles.optBtn} ${styles.optCorrect}`;
-          return (
-            <button key={opt.code} className={cls} style={{ '--idx': i }} onClick={() => { playClick(); handleChoice(opt); }} disabled={!!feedback}>
-              {opt.capital}
-            </button>
-          );
-        })}
-      </div>
-
-      <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
-        {feedback === 'correct' ? t.common.correct : feedback ? `${t.games['capital-quiz'].wrongAnswer} ${question.correct.capital}` : '\u00A0'}
-      </p>
     </div>
   );
 }
@@ -210,6 +211,7 @@ export function CapitalQuiz({ memberId, difficulty = 'easy', onComplete, callbac
       instructions={t.games['capital-quiz'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

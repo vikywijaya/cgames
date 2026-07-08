@@ -159,7 +159,6 @@ function LumenoGame({ difficulty, onComplete, reportScore, playSuccess, playFail
     >
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['lumeno'].label}</span>
           <span className={styles.infoHeaderSub}>{movesLeft} {t.common.movesLeft}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -168,6 +167,7 @@ function LumenoGame({ difficulty, onComplete, reportScore, playSuccess, playFail
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <div className={styles.chainPill} style={{ opacity: path.length > 0 ? 1 : 0 }}>
         <span style={{ color: pathColor?.bg ?? 'inherit' }}>
           {path.length >= MIN_CHAIN
@@ -209,6 +209,7 @@ function LumenoGame({ difficulty, onComplete, reportScore, playSuccess, playFail
       </div>
 
       <p className={styles.hint}>Connect {MIN_CHAIN}+ same-colour orbs in any direction</p>
+      </div>
     </div>
   );
 }
@@ -237,6 +238,7 @@ export function Lumeno({ memberId, difficulty = 'easy', callbackUrl, onComplete,
       instructions={t.games['lumeno'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireComplete}
       onBack={onBack}
     >

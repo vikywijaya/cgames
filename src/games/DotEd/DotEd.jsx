@@ -611,7 +611,6 @@ function DotEdGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, 
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['dot-ed'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.level} {levelIdx + 1}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -619,6 +618,7 @@ function DotEdGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, 
           <span className={styles.infoBadgeSub}>/ {totalLevels}</span>
         </div>
       </div>
+      <div className={styles.playArea}>
       {/* Top controls */}
       <div className={styles.topBar}>
         <div className={styles.controls}>
@@ -707,6 +707,7 @@ function DotEdGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, 
           <FlyingCircle key={circle.id} {...circle} />
         ))}
       </div>
+      </div>
     </div>
   );
 }
@@ -736,6 +737,7 @@ export function DotEd({ memberId, difficulty = 'easy', onComplete, callbackUrl, 
       instructions={t.games['dot-ed'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireComplete}
       onBack={onBack}
     >

@@ -110,7 +110,6 @@ function SpotDifferenceGame({ difficulty, onComplete, reportScore, secondsLeft, 
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['spot-difference'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -119,6 +118,7 @@ function SpotDifferenceGame({ difficulty, onComplete, reportScore, secondsLeft, 
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <div className={styles.gridsRow}>
         {/* Left grid — reference */}
         <div className={styles.gridWrap}>
@@ -160,6 +160,7 @@ function SpotDifferenceGame({ difficulty, onComplete, reportScore, secondsLeft, 
       <p className={feedback === 'correct' ? styles.feedbackOk : styles.feedbackSlot}>
         {feedback === 'correct' ? t.common.allPairsFound : '\u00A0'}
       </p>
+      </div>
     </div>
   );
 }
@@ -186,6 +187,7 @@ export function SpotDifference({ memberId, difficulty = 'easy', onComplete, call
       instructions={t.games['spot-difference'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

@@ -156,7 +156,6 @@ function LandmarkQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pl
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['landmark-quiz'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -165,6 +164,7 @@ function LandmarkQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pl
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <div className={styles.questionCard}>
         <span className={styles.landmarkEmoji} aria-hidden="true">{q.emoji}</span>
         <p className={styles.landmarkName}>{q.name}</p>
@@ -187,6 +187,7 @@ function LandmarkQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pl
       <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
         {feedback === 'correct' ? t.common.correct : feedback === 'wrong' ? `${t.games['landmark-quiz'].wrongAnswer} ${q.country}` : '\u00A0'}
       </p>
+      </div>
     </div>
   );
 }
@@ -213,6 +214,7 @@ export function LandmarkQuiz({ memberId, difficulty = 'easy', onComplete, callba
       instructions={t.games['landmark-quiz'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

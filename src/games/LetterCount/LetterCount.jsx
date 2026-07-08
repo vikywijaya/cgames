@@ -109,7 +109,6 @@ function LetterCountGame({ difficulty, onComplete, reportScore, secondsLeft, pla
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['letter-count'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -118,6 +117,7 @@ function LetterCountGame({ difficulty, onComplete, reportScore, secondsLeft, pla
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <p className={styles.prompt}>
         How many times does <strong className={styles.targetLetter}>{puzzle.targetLetter}</strong> appear?
       </p>
@@ -146,6 +146,7 @@ function LetterCountGame({ difficulty, onComplete, reportScore, secondsLeft, pla
       <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
         {feedback === 'correct' ? `${t.common.correct} (${puzzle.answer}×)` : feedback === 'wrong' ? `${t.games['letter-count'].wrongAnswer} ${puzzle.answer} ${t.games['letter-count'].times}` : '\u00A0'}
       </p>
+      </div>
     </div>
   );
 }
@@ -172,6 +173,7 @@ export function LetterCount({ memberId, difficulty = 'easy', onComplete, callbac
       instructions={t.games['letter-count'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

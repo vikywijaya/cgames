@@ -152,16 +152,39 @@
   overflow: hidden;
 }
 
-.difficultyDot { font-size: 0.7em; flex-shrink: 0; line-height: 1; }
+.difficultyDot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 0;
+}
+
+.difficultyDot svg { display: block; }
 
 .difficultyOptionActive {
   background: var(--color-surface);
+  color: #fff;
   box-shadow: var(--shadow-sm);
 }
 
-.difficultyOption_easy.difficultyOptionActive   { color: var(--color-success); }
-.difficultyOption_medium.difficultyOptionActive { color: var(--color-warning); }
-.difficultyOption_hard.difficultyOptionActive   { color: var(--color-error); }
+.difficultyOption_easy.difficultyOptionActive {
+  background: linear-gradient(135deg, #2DAF7B 0%, #249A6A 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(45, 175, 123, 0.30);
+}
+
+.difficultyOption_medium.difficultyOptionActive {
+  background: linear-gradient(135deg, #E8963D 0%, #D6822A 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(232, 150, 61, 0.30);
+}
+
+.difficultyOption_hard.difficultyOptionActive {
+  background: linear-gradient(135deg, #E5555A 0%, #D03A2E 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(229, 85, 90, 0.30);
+}
 
 /* ── How To Play Card ───────────────────────────────── */
 .instructionsFrame {
@@ -291,7 +314,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   background: var(--color-surface);
   padding: var(--space-5) var(--space-4);
   box-sizing: border-box;
@@ -303,9 +326,18 @@
   width: 100%;
   max-width: 520px;
   flex-shrink: 0;
+  /* Fill remaining height so games can pin a header to the top and
+     center the play area in the space below (see ShoppingList). */
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .gameBodyLocked { pointer-events: none; user-select: none; }
+
+/* Opt-in (flushTop prop): no top padding so a game-rendered info header
+   can sit flush against the top bar (see ShoppingList). */
+.gameBodyFlush { padding-top: 0; }
 
 /* ── END SCREEN ─────────────────────────────────────── */
 .endScreen {

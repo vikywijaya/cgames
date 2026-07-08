@@ -574,7 +574,6 @@ function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
     >
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['sokoban'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.level} {levelIdx + 1} {t.common.of} {totalLevels} · {moves} {t.common.movesLeft}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -583,6 +582,7 @@ function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
         </div>
       </div>
 
+      <div className={styles.playArea}>
       {/* Grid */}
       <div
         className={`${styles.board} ${solved ? styles.boardSolved : ''}`}
@@ -649,6 +649,7 @@ function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
           {t.common.restart}
         </button>
       </div>
+      </div>
     </div>
   );
 }
@@ -677,6 +678,7 @@ export function Sokoban({ memberId, difficulty = 'easy', onComplete, callbackUrl
       instructions={t.games['sokoban'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireComplete}
       onBack={onBack}
       musicMuted={musicMuted}

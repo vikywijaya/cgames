@@ -170,7 +170,6 @@ function FlagQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['flag-quiz'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.question} {qIndex + 1} {t.common.of} {config.questions}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -179,6 +178,7 @@ function FlagQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
         </div>
       </div>
 
+      <div className={styles.playArea}>
       {/* Flag display */}
       <div className={styles.flagCard}>
         <span className={styles.flagEmoji} role="img" aria-label="Country flag">
@@ -214,6 +214,7 @@ function FlagQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
       <p className={feedback === 'correct' ? styles.feedbackCorrect : feedback === 'wrong' ? styles.feedbackWrong : styles.feedbackSlot}>
         {feedback === 'correct' ? t.common.correct : feedback ? `${t.games['flag-quiz'].wrongAnswer} ${question.correct.name}` : '\u00A0'}
       </p>
+      </div>
     </div>
   );
 }
@@ -242,6 +243,7 @@ export function FlagQuiz({ memberId, difficulty = 'easy', onComplete, callbackUr
       instructions={t.games['flag-quiz'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

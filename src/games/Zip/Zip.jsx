@@ -338,7 +338,6 @@ function ZipGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, pl
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['zip'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.level} {levelIdx + 1}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -346,6 +345,7 @@ function ZipGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, pl
           <span className={styles.infoBadgeSub}>/ {maxWaypoint}</span>
         </div>
       </div>
+      <div className={styles.playArea}>
       <div className={styles.topBar}>
         <button
           className={styles.ctrlBtn}
@@ -438,6 +438,7 @@ function ZipGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, pl
           ? 'Connect all cells — release to check!'
           : `${path.length} / ${totalCells} cells`}
       </p>
+      </div>
     </div>
   );
 }
@@ -467,6 +468,7 @@ export function Zip({ memberId, difficulty = 'easy', onComplete, callbackUrl, on
       instructions={t.games['zip'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireComplete}
       onBack={onBack}
     >

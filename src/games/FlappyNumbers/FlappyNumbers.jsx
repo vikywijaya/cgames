@@ -352,7 +352,6 @@ function FlappyNumbersGame({
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['flappy-numbers'].label}</span>
           <span className={styles.infoHeaderSub}>{hasColor ? t.common.matchNumberColor : t.common.tapOrSpaceToFlap}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -361,6 +360,7 @@ function FlappyNumbersGame({
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <div
         className={styles.area}
         style={{ width: GW, height: GH }}
@@ -460,6 +460,7 @@ function FlappyNumbersGame({
           </div>
         )}
       </div>
+      </div>
     </div>
   );
 }
@@ -495,6 +496,7 @@ export function FlappyNumbers({
       }
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireComplete}
       onBack={onBack}
       musicMuted={musicMuted}

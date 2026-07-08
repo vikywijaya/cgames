@@ -11,37 +11,79 @@ const DIFFICULTY_CONFIG = {
   hard:   { showMs: 800,  intervalMs: 750,  timeLimitSeconds: 60,  holes: 9 },
 };
 
-function MoleSVG() {
+function MoleSVG({ bonked = false }) {
+  if (bonked) {
+    return (
+      <svg viewBox="0 0 48 52" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
+        {/* Flattened body capsule */}
+        <path d="M8 52 L8 34 Q8 20 24 20 Q40 20 40 34 L40 52 Z" fill="#8a6a45" />
+        {/* Belly */}
+        <path d="M15 52 L15 40 Q15 32 24 32 Q33 32 33 40 L33 52 Z" fill="#c8a97e" />
+        {/* Ears squashed low */}
+        <circle cx="12" cy="22" r="4" fill="#8a6a45" />
+        <circle cx="36" cy="22" r="4" fill="#8a6a45" />
+        {/* Dizzy X eyes */}
+        <g stroke="#2b2018" strokeWidth="2" strokeLinecap="round">
+          <line x1="15" y1="28" x2="19" y2="32" />
+          <line x1="19" y1="28" x2="15" y2="32" />
+          <line x1="29" y1="28" x2="33" y2="32" />
+          <line x1="33" y1="28" x2="29" y2="32" />
+        </g>
+        {/* Snout + tongue out */}
+        <ellipse cx="24" cy="35" rx="6" ry="4" fill="#e8c39a" />
+        <ellipse cx="24" cy="33" rx="2.6" ry="1.8" fill="#e2707f" />
+        <path d="M22 37.5 Q24 39.5 26 37.5" stroke="#5a3d28" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+      </svg>
+    );
+  }
   return (
-    <svg viewBox="0 0 48 48" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-      {/* Body */}
-      <ellipse cx="24" cy="34" rx="13" ry="10" fill="#7B5E3A" />
-      {/* Head */}
-      <ellipse cx="24" cy="22" rx="12" ry="11" fill="#9B7653" />
+    <svg viewBox="0 0 48 52" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
+      {/* Body — rounded capsule rising out of the hole, no legs */}
+      <path d="M9 52 L9 24 Q9 6 24 6 Q39 6 39 24 L39 52 Z" fill="#8a6a45" />
+      {/* Side shading */}
+      <path d="M33 8.5 Q39 13 39 24 L39 52 L33 52 Z" fill="rgba(0,0,0,0.08)" />
+      {/* Belly */}
+      <path d="M16 52 L16 34 Q16 25 24 25 Q32 25 32 34 L32 52 Z" fill="#c8a97e" />
       {/* Ears */}
-      <ellipse cx="13" cy="16" rx="5" ry="4" fill="#9B7653" />
-      <ellipse cx="13" cy="16" rx="3" ry="2.5" fill="#D4956B" />
-      <ellipse cx="35" cy="16" rx="5" ry="4" fill="#9B7653" />
-      <ellipse cx="35" cy="16" rx="3" ry="2.5" fill="#D4956B" />
-      {/* Eyes */}
-      <circle cx="19" cy="21" r="3" fill="#1a1a1a" />
-      <circle cx="29" cy="21" r="3" fill="#1a1a1a" />
-      <circle cx="20" cy="20" r="1" fill="white" />
-      <circle cx="30" cy="20" r="1" fill="white" />
+      <circle cx="13" cy="12" r="4.2" fill="#8a6a45" />
+      <circle cx="13.5" cy="12.5" r="2.2" fill="#b98d64" />
+      <circle cx="35" cy="12" r="4.2" fill="#8a6a45" />
+      <circle cx="34.5" cy="12.5" r="2.2" fill="#b98d64" />
+      {/* Eyes — big and friendly */}
+      <circle cx="17.5" cy="18" r="3.4" fill="#2b2018" />
+      <circle cx="30.5" cy="18" r="3.4" fill="#2b2018" />
+      <circle cx="18.6" cy="16.8" r="1.2" fill="white" />
+      <circle cx="31.6" cy="16.8" r="1.2" fill="white" />
       {/* Snout */}
-      <ellipse cx="24" cy="27" rx="5" ry="3.5" fill="#D4956B" />
-      {/* Nose */}
-      <ellipse cx="24" cy="25.5" rx="2.5" ry="1.8" fill="#4a2020" />
+      <ellipse cx="24" cy="23.5" rx="6" ry="4.4" fill="#e8c39a" />
+      {/* Pink nose */}
+      <ellipse cx="24" cy="21.5" rx="2.8" ry="2" fill="#e2707f" />
+      <ellipse cx="23.2" cy="20.9" rx="0.9" ry="0.6" fill="#f4a9b4" />
       {/* Smile */}
-      <path d="M21 28.5 Q24 31 27 28.5" stroke="#4a2020" strokeWidth="1" fill="none" strokeLinecap="round" />
-      {/* Claws peeking */}
-      <line x1="13" y1="38" x2="11" y2="43" stroke="#7B5E3A" strokeWidth="2" strokeLinecap="round" />
-      <line x1="17" y1="40" x2="16" y2="45" stroke="#7B5E3A" strokeWidth="2" strokeLinecap="round" />
-      <line x1="31" y1="40" x2="32" y2="45" stroke="#7B5E3A" strokeWidth="2" strokeLinecap="round" />
-      <line x1="35" y1="38" x2="37" y2="43" stroke="#7B5E3A" strokeWidth="2" strokeLinecap="round" />
+      <path d="M21 25.5 Q24 28 27 25.5" stroke="#5a3d28" strokeWidth="1.3" fill="none" strokeLinecap="round" />
+      {/* Whiskers */}
+      <g stroke="#6f5233" strokeWidth="1" strokeLinecap="round" opacity="0.7">
+        <line x1="15" y1="22" x2="8.5" y2="20.5" />
+        <line x1="15" y1="24" x2="8.5" y2="24.5" />
+        <line x1="33" y1="22" x2="39.5" y2="20.5" />
+        <line x1="33" y1="24" x2="39.5" y2="24.5" />
+      </g>
+      {/* Paws gripping the edge */}
+      <ellipse cx="13.5" cy="47" rx="5" ry="4.5" fill="#a4805a" />
+      <ellipse cx="34.5" cy="47" rx="5" ry="4.5" fill="#a4805a" />
+      <g stroke="#6f5233" strokeWidth="1" strokeLinecap="round" opacity="0.7">
+        <line x1="11.5" y1="43.5" x2="11.5" y2="46" />
+        <line x1="14" y1="43" x2="14" y2="45.5" />
+        <line x1="32.5" y1="43" x2="32.5" y2="45.5" />
+        <line x1="35" y1="43.5" x2="35" y2="46" />
+      </g>
     </svg>
   );
 }
+
+MoleSVG.propTypes = {
+  bonked: PropTypes.bool,
+};
 
 function BombSVG() {
   return (
@@ -97,8 +139,11 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playBoing
   const useBombs = difficulty !== 'easy';
 
   const [active, setActive]       = useState({}); // { [index]: 'mole' | 'bomb' }
-  const [whacked, setWhacked]     = useState({}); // { [index]: true } — brief flash
+  const [whacked, setWhacked]     = useState({}); // { [index]: 'mole' | 'bomb' } — brief bonk/explosion
   const [hammer, setHammer]       = useState(null); // index of last tapped hole
+  const [popups, setPopups]       = useState([]);  // floating +1 markers [{ id, idx }]
+  const [shaking, setShaking]     = useState(false);
+  const popupIdRef = useRef(0);
   const [score, setScore]         = useState(0);
   const [lives, setLives]         = useState(3);
   const scoreRef  = useRef(0);
@@ -181,19 +226,26 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playBoing
       scoreRef.current += 1;
       setScore(scoreRef.current);
       reportScore(scoreRef.current);
-      // Brief whacked flash + hammer
-      setWhacked(prev => ({ ...prev, [idx]: true }));
+      // Bonked mole stays visible briefly + hammer + floating +1
+      const popupId = ++popupIdRef.current;
+      setPopups(prev => [...prev, { id: popupId, idx }]);
+      setWhacked(prev => ({ ...prev, [idx]: 'mole' }));
       setHammer(idx);
       setTimeout(() => {
         setWhacked(prev => { const n = { ...prev }; delete n[idx]; return n; });
         setHammer(null);
-      }, 350);
+      }, 450);
+      setTimeout(() => {
+        setPopups(prev => prev.filter(p => p.id !== popupId));
+      }, 800);
     } else {
-      // Bomb tapped — ends the game immediately
+      // Bomb tapped — explosion + shake, then game over
       playFail();
       livesRef.current = 0;
       setLives(0);
-      finish();
+      setWhacked(prev => ({ ...prev, [idx]: 'bomb' }));
+      setShaking(true);
+      setTimeout(() => finish(), 600);
     }
   }, [finish, reportScore, playBoing, playFail]);
 
@@ -201,8 +253,11 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playBoing
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['whack-a-mole'].label}</span>
-          <span className={styles.infoHeaderSub}>{lives} {t.common.livesRemaining}</span>
+          <span className={styles.livesRow} aria-label={`${lives} ${t.common.livesRemaining}`}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <span key={i} className={i < lives ? styles.heartFull : styles.heartEmpty} aria-hidden="true">❤️</span>
+            ))}
+          </span>
         </div>
         <div className={styles.infoBadge}>
           <span className={styles.infoBadgeNum}>{score}</span>
@@ -210,33 +265,48 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playBoing
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <div
-        className={styles.grid}
-        style={{ '--cols': Math.sqrt(holes) === 3 ? 3 : 3 }}
+        className={`${styles.grid} ${shaking ? styles.gridShake : ''}`}
         role="application"
         aria-label="Whack-a-mole grid"
       >
         {Array.from({ length: holes }).map((_, i) => {
           const type = active[i];
-          const isWhacked = whacked[i];
+          const whackType = whacked[i];
           const showHammer = hammer === i;
+          const hasPopup = popups.some(p => p.idx === i);
           return (
             <button
               key={i}
               style={{ '--idx': i }}
-              className={`${styles.hole} ${type ? styles.holeActive : ''} ${isWhacked ? styles.holeWhacked : ''}`}
+              className={`${styles.hole} ${type ? styles.holeActive : ''} ${whackType ? styles.holeWhacked : ''}`}
               onPointerDown={() => handleTap(i)}
               aria-label={type === 'mole' ? 'Whack the mole!' : type === 'bomb' ? 'Avoid the bomb!' : 'Empty hole'}
             >
-              {/* Dark oval hole */}
+              {/* Dirt rim behind the opening */}
+              <span className={styles.dirtRim} aria-hidden="true" />
+              {/* Dark oval opening */}
               <span className={styles.holeOpening} aria-hidden="true" />
-              {type && (
-                <span className={`${styles.creature} ${type === 'bomb' ? styles.creatureBomb : ''}`} aria-hidden="true">
-                  {type === 'mole' ? <MoleSVG /> : <BombSVG />}
-                </span>
+              {/* Clip window — mole rises out of the hole, lower body hidden inside it */}
+              <span className={styles.moleClip} aria-hidden="true">
+                {type && (
+                  <span className={`${styles.creature} ${type === 'bomb' ? styles.creatureBomb : ''}`}>
+                    {type === 'mole' ? <MoleSVG /> : <BombSVG />}
+                  </span>
+                )}
+                {/* Bonked mole stays flattened in the hole for a beat */}
+                {!type && whackType === 'mole' && (
+                  <span className={`${styles.creature} ${styles.creatureBonked}`}>
+                    <MoleSVG bonked />
+                  </span>
+                )}
+              </span>
+              {whackType === 'bomb' && (
+                <span className={styles.explosion} aria-hidden="true">💥</span>
               )}
-              {/* Grass lip in front */}
-              <span className={styles.mound} aria-hidden="true" />
+              {/* Front lip of the dirt rim, drawn over the mole's base */}
+              <span className={styles.dirtFront} aria-hidden="true" />
               {showHammer && (
                 <>
                   <span className={styles.hammerWrap} aria-hidden="true">
@@ -244,6 +314,9 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playBoing
                   </span>
                   <span className={styles.whackStars} aria-hidden="true">✦ ✦ ✦</span>
                 </>
+              )}
+              {hasPopup && (
+                <span className={styles.plusOne} aria-hidden="true">+1</span>
               )}
             </button>
           );
@@ -256,6 +329,7 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playBoing
       {!useBombs && (
         <p className={styles.hint}>Tap the moles as fast as you can!</p>
       )}
+      </div>
     </div>
   );
 }
@@ -286,6 +360,7 @@ export function WhackAMole({ memberId, difficulty = 'easy', onComplete, callback
         : `Tap the moles as fast as you can! Score as many as you can in ${config.timeLimitSeconds} seconds.`}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

@@ -157,7 +157,6 @@ function CurrencyQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pl
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['currency-quiz'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -166,29 +165,31 @@ function CurrencyQuizGame({ difficulty, onComplete, reportScore, secondsLeft, pl
         </div>
       </div>
 
-      <div className={styles.questionCard}>
-        <span className={styles.flagEmoji} aria-hidden="true">{q.flag}</span>
-        <p className={styles.questionText}>
-          What is the currency of <strong>{q.country}</strong>?
+      <div className={styles.playArea}>
+        <div className={styles.questionCard}>
+          <span className={styles.flagEmoji} aria-hidden="true">{q.flag}</span>
+          <p className={styles.questionText}>
+            What is the currency of <strong>{q.country}</strong>?
+          </p>
+        </div>
+
+        <div className={styles.options}>
+          {q.options.map((opt, i) => {
+            let cls = styles.optBtn;
+            if (feedback && opt === q.currency)          cls = `${styles.optBtn} ${styles.optCorrect}`;
+            else if (feedback === 'wrong' && opt === picked) cls = `${styles.optBtn} ${styles.optWrong}`;
+            return (
+              <button key={i} className={cls} style={{ '--idx': i }} onClick={() => handlePick(opt)} disabled={!!feedback} aria-label={opt}>
+                {opt}
+              </button>
+            );
+          })}
+        </div>
+
+        <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
+          {feedback === 'correct' ? t.common.correct : feedback === 'wrong' ? `${t.games['currency-quiz'].wrongAnswer} ${q.currency}` : '\u00A0'}
         </p>
       </div>
-
-      <div className={styles.options}>
-        {q.options.map((opt, i) => {
-          let cls = styles.optBtn;
-          if (feedback && opt === q.currency)          cls = `${styles.optBtn} ${styles.optCorrect}`;
-          else if (feedback === 'wrong' && opt === picked) cls = `${styles.optBtn} ${styles.optWrong}`;
-          return (
-            <button key={i} className={cls} style={{ '--idx': i }} onClick={() => handlePick(opt)} disabled={!!feedback} aria-label={opt}>
-              {opt}
-            </button>
-          );
-        })}
-      </div>
-
-      <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
-        {feedback === 'correct' ? t.common.correct : feedback === 'wrong' ? `${t.games['currency-quiz'].wrongAnswer} ${q.currency}` : '\u00A0'}
-      </p>
     </div>
   );
 }
@@ -215,6 +216,7 @@ export function CurrencyQuiz({ memberId, difficulty = 'easy', onComplete, callba
       instructions={t.games['currency-quiz'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

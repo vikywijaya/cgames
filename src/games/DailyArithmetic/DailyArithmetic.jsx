@@ -48,7 +48,6 @@ function ArithmeticGame({ difficulty, onComplete, reportScore, playClick, playSu
     <div className={styles.container}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['daily-arithmetic'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.question} {currentIndex + 1} {t.common.of} {totalQuestions}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -57,44 +56,46 @@ function ArithmeticGame({ difficulty, onComplete, reportScore, playClick, playSu
         </div>
       </div>
 
-      <div className={styles.questionCard}>
-        <p
-          className={styles.questionText}
-          aria-live="polite"
-          aria-label={`What is ${question.a} ${question.op} ${question.b}?`}
-        >
-          {question.a} {question.op} {question.b} = ?
+      <div className={styles.playArea}>
+        <div className={styles.questionCard}>
+          <p
+            className={styles.questionText}
+            aria-live="polite"
+            aria-label={`What is ${question.a} ${question.op} ${question.b}?`}
+          >
+            {question.a} {question.op} {question.b} = ?
+          </p>
+        </div>
+
+        <div className={styles.choicesGrid} role="group" aria-label="Answer choices">
+          {question.choices.map((choice) => {
+            const isSelected = selectedChoice === choice;
+            const choiceClass = isSelected
+              ? feedback === 'correct'
+                ? styles.choiceCorrect
+                : styles.choiceWrong
+              : feedback !== null && choice === question.answer
+              ? styles.choiceCorrect
+              : styles.choiceDefault;
+
+            return (
+              <button
+                key={choice}
+                className={`${styles.choiceBtn} ${choiceClass}`}
+                onClick={() => { playClick(); selectChoice(choice); }}
+                disabled={feedback !== null || done}
+                aria-pressed={isSelected}
+              >
+                {choice}
+              </button>
+            );
+          })}
+        </div>
+
+        <p className={styles.scoreDisplay}>
+          {t.shell.score}: <strong>{score}</strong> / {maxScore}
         </p>
       </div>
-
-      <div className={styles.choicesGrid} role="group" aria-label="Answer choices">
-        {question.choices.map((choice) => {
-          const isSelected = selectedChoice === choice;
-          const choiceClass = isSelected
-            ? feedback === 'correct'
-              ? styles.choiceCorrect
-              : styles.choiceWrong
-            : feedback !== null && choice === question.answer
-            ? styles.choiceCorrect
-            : styles.choiceDefault;
-
-          return (
-            <button
-              key={choice}
-              className={`${styles.choiceBtn} ${choiceClass}`}
-              onClick={() => { playClick(); selectChoice(choice); }}
-              disabled={feedback !== null || done}
-              aria-pressed={isSelected}
-            >
-              {choice}
-            </button>
-          );
-        })}
-      </div>
-
-      <p className={styles.scoreDisplay}>
-        {t.shell.score}: <strong>{score}</strong> / {maxScore}
-      </p>
     </div>
   );
 }
@@ -133,6 +134,7 @@ export function DailyArithmetic({
       instructions={t.games['daily-arithmetic'].instructions}
       difficulty={difficulty}
       timeLimits={{ easy: null, medium: null, hard: null }}
+      flushTop
       onGameComplete={fireComplete}
       onBack={onBack}
       musicMuted={musicMuted}

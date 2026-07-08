@@ -353,7 +353,6 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['block-puzzle'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.puzzle} {round + 1} {t.common.of} {rounds}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -362,6 +361,7 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
         </div>
       </div>
 
+      <div className={styles.playArea}>
       {/* Board */}
       <div
         ref={boardRef}
@@ -499,6 +499,7 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, pla
           </div>
         );
       })()}
+      </div>
     </div>
   );
 }
@@ -523,6 +524,7 @@ export function BlockPuzzle({ memberId, difficulty = 'easy', onComplete, callbac
       instructions={t.games['block-puzzle'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

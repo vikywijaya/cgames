@@ -135,7 +135,6 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, play
       <div className={styles.wrapper}>
         <div className={styles.infoHeader}>
           <div className={styles.infoHeaderText}>
-            <span className={styles.infoHeaderLabel}>{t.games['face-memory'].label}</span>
             <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
           </div>
           <div className={styles.infoBadge}>
@@ -143,14 +142,16 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, play
             <span className={styles.infoBadgeSub}>s</span>
           </div>
         </div>
-        <p className={styles.prompt}>Remember these people and their names!</p>
-        <div className={styles.faceGrid}>
-          {data.faces.map((f, i) => (
-            <div key={i} className={styles.faceCard}>
-              <img src={f.img} alt={f.name} className={styles.faceImg} />
-              <span className={styles.faceName}>{f.name}</span>
-            </div>
-          ))}
+        <div className={styles.playArea}>
+          <p className={styles.prompt}>Remember these people and their names!</p>
+          <div className={styles.faceGrid}>
+            {data.faces.map((f, i) => (
+              <div key={i} className={styles.faceCard}>
+                <img src={f.img} alt={f.name} className={styles.faceImg} />
+                <span className={styles.faceName}>{f.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -160,7 +161,6 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, play
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>FACE MEMORY</span>
           <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -168,6 +168,7 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, play
           <span className={styles.infoBadgeSub}>/ {config.rounds}</span>
         </div>
       </div>
+      <div className={styles.playArea}>
       <p className={styles.prompt}>What is this person's name?</p>
       <div className={styles.targetFace}>
         <img src={data.target.img} alt={data.target.name} className={styles.targetImg} />
@@ -183,6 +184,7 @@ function FaceMemoryGame({ difficulty, onComplete, reportScore, secondsLeft, play
       <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
         {feedback === 'correct' ? t.common.correct : feedback ? `${t.games['face-memory'].wrongAnswer} ${data.target.name}` : '\u00A0'}
       </p>
+      </div>
     </div>
   );
 }
@@ -198,7 +200,7 @@ export function FaceMemory({ memberId, difficulty = 'easy', onComplete, callback
   return (
     <GameShell gameId="face-memory" title={t.games['face-memory'].title}
       instructions={t.games['face-memory'].instructions}
-      difficulty={difficulty} timeLimits={TIME_LIMITS} onGameComplete={fireCallback}
+      difficulty={difficulty} timeLimits={TIME_LIMITS} flushTop onGameComplete={fireCallback}
       onBack={onBack} musicMuted={musicMuted} onToggleMusic={onToggleMusic}>
       {({ onComplete: sc, reportScore, secondsLeft, difficulty: diff, playClick, playSuccess, playFail }) => (
         <FaceMemoryGame difficulty={diff} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />

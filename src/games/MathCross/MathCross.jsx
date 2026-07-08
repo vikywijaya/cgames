@@ -451,7 +451,6 @@ function MathCrossGame({ difficulty, onComplete, reportScore, secondsLeft, playC
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['math-cross'].label}</span>
           <span className={styles.infoHeaderSub}>{hintText}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -460,6 +459,7 @@ function MathCrossGame({ difficulty, onComplete, reportScore, secondsLeft, playC
         </div>
       </div>
 
+      <div className={styles.playArea}>
       {/* Grid */}
       <div
         className={`${styles.grid} ${solved ? styles.gridSolved : ''}`}
@@ -542,6 +542,7 @@ function MathCrossGame({ difficulty, onComplete, reportScore, secondsLeft, playC
           );
         })}
       </div>
+      </div>
     </div>
   );
 }
@@ -567,6 +568,7 @@ export function MathCross({ memberId, difficulty = 'easy', onComplete, callbackU
       instructions={t.games['math-cross'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

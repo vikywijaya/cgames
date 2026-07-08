@@ -244,6 +244,26 @@ export function App() {
   const [selectedGame,       setSelectedGame]       = useState(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
   const [selectedCategory,   setSelectedCategory]   = useState('All');
+  const [categoryMenuOpen,   setCategoryMenuOpen]   = useState(false);
+  const categoryMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (!categoryMenuOpen) return;
+    const handleClickOutside = (e) => {
+      if (categoryMenuRef.current && !categoryMenuRef.current.contains(e.target)) {
+        setCategoryMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setCategoryMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [categoryMenuOpen]);
   // dailyChallenge: { games: Array, index: number, scores: { gameId: pct }, lastPct: number|null }
   const [dailyChallenge,     setDailyChallenge]     = useState(null);
 
@@ -345,7 +365,7 @@ export function App() {
     const { games } = dailyChallenge;
     const previewScores = getAllScores(urlMemberId);
     return (
-      <div className={styles.dailyWrapper}>
+      <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
         {showBackButtons && (
           <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         )}
@@ -411,7 +431,7 @@ export function App() {
     const isLast = index + 1 >= games.length;
 
     return (
-      <div className={styles.dailyWrapper}>
+      <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
         {showBackButtons && (
           <button className={styles.floatingBack} onClick={abortDailyChallenge} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         )}
@@ -471,7 +491,7 @@ export function App() {
     const trophy = avg >= 75 ? '🏆' : avg >= 50 ? '🌟' : '💪';
 
     return (
-      <div className={styles.dailyWrapper}>
+      <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
         {showBackButtons && (
           <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         )}
@@ -525,7 +545,7 @@ export function App() {
     const achievement = computeAchievement(allScores, urlMemberId, achievementLevels);
 
     return (
-      <div className={styles.dailyWrapper}>
+      <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
         {showBackButtons && (
           <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         )}
@@ -656,31 +676,65 @@ export function App() {
   if (view === 'games') {
     const lobbyScores = getAllScores(urlMemberId);
     return (
-      <div className={styles.dailyWrapper}>
+      <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
         {showBackButtons && (
           <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         )}
         <div className={styles.lobby}>
-        <div className={styles.categoryRow}>
-          <select
-            className={styles.categorySelect}
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            aria-label="Filter by category"
-          >
-            {['All', 'Favorites', ...translatedGroups.map(g => g.category)].map(cat => {
+        <div className={styles.categoryRow} ref={categoryMenuRef}>
+          {(() => {
+            const categories = ['All', 'Favorites', ...translatedGroups.map(g => g.category)];
+            const categoryInfo = (cat) => {
               const isFav = cat === 'Favorites';
               const group = translatedGroups.find(g => g.category === cat);
               const count = cat === 'All' ? translatedAllGames.length : isFav ? favorites.size : group?.games.length;
               const icon = isFav ? '❤️' : group ? group.icon : '📋';
               const displayName = cat === 'All' ? t.app.all : cat === 'Favorites' ? t.app.favorites : cat;
-              return (
-                <option key={cat} value={cat}>
-                  {icon} {displayName} ({count})
-                </option>
-              );
-            })}
-          </select>
+              return { icon, displayName, count };
+            };
+            const current = categoryInfo(selectedCategory);
+            return (
+              <div className={styles.categoryDropdown}>
+                <button
+                  type="button"
+                  className={styles.categoryTrigger}
+                  onClick={() => setCategoryMenuOpen(o => !o)}
+                  aria-haspopup="listbox"
+                  aria-expanded={categoryMenuOpen}
+                  aria-label="Filter by category"
+                >
+                  <span className={styles.categoryIconBadge} aria-hidden="true">{current.icon}</span>
+                  <span className={styles.categoryTriggerLabel}>{current.displayName}</span>
+                  <span className={styles.categoryCountBadge}>{current.count}</span>
+                  <svg className={`${styles.categoryCaret} ${categoryMenuOpen ? styles.categoryCaretOpen : ''}`} width="14" height="14" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
+                    <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/>
+                  </svg>
+                </button>
+                {categoryMenuOpen && (
+                  <ul className={styles.categoryMenu} role="listbox" aria-label="Filter by category">
+                    {categories.map(cat => {
+                      const info = categoryInfo(cat);
+                      return (
+                        <li key={cat} role="presentation">
+                          <button
+                            type="button"
+                            role="option"
+                            aria-selected={selectedCategory === cat}
+                            className={`${styles.categoryOption} ${selectedCategory === cat ? styles.categoryOptionActive : ''}`}
+                            onClick={() => { setSelectedCategory(cat); setCategoryMenuOpen(false); }}
+                          >
+                            <span className={styles.categoryIconBadge} aria-hidden="true">{info.icon}</span>
+                            <span className={styles.categoryTriggerLabel}>{info.displayName}</span>
+                            <span className={styles.categoryCountBadge}>{info.count}</span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         <div className={styles.difficultyRow} role="radiogroup" aria-label="Select difficulty">
@@ -696,8 +750,24 @@ export function App() {
                 checked={selectedDifficulty === level}
                 onChange={() => setSelectedDifficulty(level)}
               />
-              <span className={styles.difficultyDot} aria-hidden="true">
-                {level === 'easy' ? '🟢' : level === 'medium' ? '🟡' : '🔴'}
+              <span className={styles.difficultyIcon} aria-hidden="true">
+                {level === 'easy' && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 21V11" />
+                    <path d="M12 11c0-4.5 3.5-8 8-8 0 4.5-3.5 8-8 8Z" fill="currentColor" stroke="none" />
+                  </svg>
+                )}
+                {level === 'medium' && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2.5c3 3.5 5.5 6.8 5.5 10.2a5.5 5.5 0 1 1-11 0c0-3.4 2.5-6.7 5.5-10.2Z" />
+                  </svg>
+                )}
+                {level === 'hard' && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2c3.5 4 6.5 8 6.5 12a6.5 6.5 0 1 1-13 0c0-4 3-8 6.5-12Z" />
+                    <path d="M12 10c1.3 1.6 2.2 2.9 2.2 4.3a2.2 2.2 0 1 1-4.4 0c0-1.4.9-2.7 2.2-4.3Z" fill="#fff" fillOpacity="0.55" />
+                  </svg>
+                )}
               </span>
               {t.shell[level]}
             </label>
@@ -836,20 +906,6 @@ export function App() {
   return (
     <div className={styles.homeWrapper}>
       <div className={styles.homeScreen}>
-
-        {/* ── Brand lockup (3A: icon badge + wordmark, horizontal) ── */}
-        <div className={styles.brandLockup}>
-          <div className={styles.brandBadge} aria-hidden="true">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9.5 2.5c-1.66 0-3 1.34-3 3v.17A3.5 3.5 0 0 0 4 9v.68A3.5 3.5 0 0 0 3 12.5c0 1.24.63 2.34 1.59 2.98A3 3 0 0 0 4.5 16.5 3.5 3.5 0 0 0 8 20c.35 0 .69-.05 1-.15V20a2.5 2.5 0 0 0 5 0V5.5a3 3 0 0 0-3-3h-1.5Z" fill="currentColor" opacity="0.9"/>
-              <path d="M14.5 2.5c1.66 0 3 1.34 3 3v.17A3.5 3.5 0 0 1 20 9v.68a3.5 3.5 0 0 1 1 2.82c0 1.24-.63 2.34-1.59 2.98.24.4.4.87.4 1.38.24 1.66-1.29 3.14-3 3.14-.35 0-.69-.05-1-.15V20a2.5 2.5 0 0 1-5 0V5.5a3 3 0 0 1 3-3H14.5Z" fill="currentColor"/>
-            </svg>
-          </div>
-          <div className={styles.brandText}>
-            <span className={styles.brandTitle}>Cognitive<span className={styles.brandTitleAccent}> Games</span></span>
-            <span className={styles.brandTagline}>Keep your mind sharp and healthy</span>
-          </div>
-        </div>
 
         {/* ── Greeting + level hero ── */}
         <div className={styles.hero}>

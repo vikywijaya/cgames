@@ -96,7 +96,6 @@ function OddOneOutGame({ difficulty, onComplete, reportScore, secondsLeft, playC
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['odd-one-out'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.question} {qIndex + 1} {t.common.of} {config.questions}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -105,6 +104,7 @@ function OddOneOutGame({ difficulty, onComplete, reportScore, secondsLeft, playC
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <p className={styles.prompt}>Tap the one that doesn't belong</p>
 
       <div
@@ -137,6 +137,7 @@ function OddOneOutGame({ difficulty, onComplete, reportScore, secondsLeft, playC
       <p className={feedback ? (feedback.correct ? styles.feedbackOk : styles.feedbackBad) : styles.feedbackSlot}>
         {feedback ? (feedback.correct ? t.common.correct : t.games['odd-one-out'].wrongAnswer) : '\u00A0'}
       </p>
+      </div>
     </div>
   );
 }
@@ -163,6 +164,7 @@ export function OddOneOut({ memberId, difficulty = 'easy', onComplete, callbackU
       instructions={t.games['odd-one-out'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

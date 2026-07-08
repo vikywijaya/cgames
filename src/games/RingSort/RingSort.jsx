@@ -189,7 +189,6 @@ function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['ring-sort'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.puzzle} {round + 1} {t.common.of} {rounds}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -198,6 +197,7 @@ function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <div className={`${styles.rodsArea} ${solved ? styles.areasSolved : ''}`}>
         {rods.map((rod, rodIdx) => {
           const isSelected = selectedRod === rodIdx;
@@ -251,6 +251,7 @@ function RingSortGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
           );
         })}
       </div>
+      </div>
     </div>
   );
 }
@@ -277,6 +278,7 @@ export function RingSort({ memberId, difficulty = 'easy', onComplete, callbackUr
       instructions={t.games['ring-sort'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

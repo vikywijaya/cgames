@@ -215,7 +215,6 @@ function RightTimeGame({ difficulty, onComplete, reportScore, secondsLeft, playC
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['right-time'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.question} {qIndex + 1} {t.common.of} {config.questions}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -224,6 +223,7 @@ function RightTimeGame({ difficulty, onComplete, reportScore, secondsLeft, playC
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <div className={styles.clockWrap}>
         <ClockFace h={question.correct.h} m={question.correct.m} size={200} />
         <p className={styles.prompt}>What time does the clock show?</p>
@@ -256,6 +256,7 @@ function RightTimeGame({ difficulty, onComplete, reportScore, secondsLeft, playC
       <p className={feedback === 'correct' ? styles.feedbackCorrect : feedback === 'wrong' ? styles.feedbackWrong : styles.feedbackSlot}>
         {feedback === 'correct' ? t.common.correct : feedback ? `${t.games['right-time'].wrongAnswer} ${formatTime(question.correct)}` : '\u00A0'}
       </p>
+      </div>
     </div>
   );
 }
@@ -284,6 +285,7 @@ export function RightTime({ memberId, difficulty = 'easy', onComplete, callbackU
       instructions={t.games['right-time'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

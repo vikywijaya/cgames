@@ -103,7 +103,6 @@ function TileFlipGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['tile-flip'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -112,6 +111,7 @@ function TileFlipGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <div className={styles.grid} style={{ '--cols': config.gridSize }}>
         {Array.from({ length: total }, (_, i) => {
           const isLit     = lit.has(i);
@@ -144,6 +144,7 @@ function TileFlipGame({ difficulty, onComplete, reportScore, secondsLeft, playCl
         {phase === 'feedback'  && tapped.size === lit.size ? t.common.correct : ''}
         {phase === 'feedback'  && tapped.size  <  lit.size ? t.common.wrongTile : ''}
       </div>
+      </div>
     </div>
   );
 }
@@ -170,6 +171,7 @@ export function TileFlip({ memberId, difficulty = 'easy', onComplete, callbackUr
       instructions={t.games['tile-flip'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

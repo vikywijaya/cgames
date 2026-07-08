@@ -60,6 +60,17 @@ function WordSearchGame({ difficulty, onComplete, reportScore, playClick, playSu
 
   return (
     <div className={styles.container}>
+      <div className={styles.infoHeader}>
+        <div className={styles.infoHeaderText}>
+          <span className={styles.infoHeaderSub}>{score} {t.common.of} {maxScore} {t.common.found}</span>
+        </div>
+        <div className={styles.infoBadge}>
+          <span className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>/ {maxScore}</span>
+        </div>
+      </div>
+
+      <div className={styles.playArea}>
       {/* Word chips — horizontal row above grid */}
       <ul className={styles.wordChips} role="list" aria-live="polite" aria-label="Words to find">
         {words.map((word) => (
@@ -130,23 +141,13 @@ function WordSearchGame({ difficulty, onComplete, reportScore, playClick, playSu
         )}
       </div>
 
-      <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['word-search'].label}</span>
-          <span className={styles.infoHeaderSub}>{score} {t.common.of} {maxScore} {t.common.found}</span>
-        </div>
-        <div className={styles.infoBadge}>
-          <span className={styles.infoBadgeNum}>{score}</span>
-          <span className={styles.infoBadgeSub}>/ {maxScore}</span>
-        </div>
-      </div>
-
       <Button
         variant="secondary"
         onClick={() => onComplete({ finalScore: score, maxScore, completed: score === maxScore })}
       >
         Finish
       </Button>
+      </div>
     </div>
   );
 }
@@ -176,6 +177,7 @@ export function WordSearch({ memberId, difficulty = 'easy', onComplete, callback
       instructions={t.games['word-search'].instructions}
       difficulty={difficulty}
       timeLimits={{ easy: null, medium: null, hard: null }}
+      flushTop
       onGameComplete={fireComplete}
       onBack={onBack}
       musicMuted={musicMuted}

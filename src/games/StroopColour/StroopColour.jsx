@@ -112,7 +112,6 @@ function StroopGame({ difficulty, onComplete, reportScore, secondsLeft, playClic
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['stroop-colour'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -121,6 +120,7 @@ function StroopGame({ difficulty, onComplete, reportScore, secondsLeft, playClic
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <p className={styles.prompt}>Tap the <strong>INK colour</strong> of the word below:</p>
 
       <div className={styles.stimulusBox}>
@@ -153,6 +153,7 @@ function StroopGame({ difficulty, onComplete, reportScore, secondsLeft, playClic
       <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
         {feedback === 'correct' ? t.common.correct : feedback === 'wrong' ? t.games['stroop-colour'].wrongInk : '\u00A0'}
       </p>
+      </div>
     </div>
   );
 }
@@ -179,6 +180,7 @@ export function StroopColour({ memberId, difficulty = 'easy', onComplete, callba
       instructions={t.games['stroop-colour'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

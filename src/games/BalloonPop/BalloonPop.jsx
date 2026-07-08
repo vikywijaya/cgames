@@ -144,7 +144,6 @@ function BalloonGame({ difficulty, onComplete, reportScore, secondsLeft, playPop
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['balloon-pop'].label}</span>
           <span className={styles.infoHeaderSub}>{displayLives} {t.common.livesRemaining}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -153,38 +152,40 @@ function BalloonGame({ difficulty, onComplete, reportScore, secondsLeft, playPop
         </div>
       </div>
 
-      {/* Game area */}
-      <div
-        ref={areaRef}
-        className={styles.gameArea}
-        role="application"
-        aria-label="Balloon pop game — tap balloons to pop them"
-      >
-        {/* Balloons */}
-        {balloonsRef.current.map((b, i) => (
-          <button
-            key={b.id}
-            className={styles.balloon}
-            style={{ left: b.x, top: b.y, '--bcolor': b.color, '--idx': i }}
-            onPointerDown={(e) => handlePop(e, b)}
-            aria-label="Pop this balloon"
-          >
-            <BalloonSVG color={b.color} />
-          </button>
-        ))}
+      <div className={styles.playArea}>
+        {/* Game area */}
+        <div
+          ref={areaRef}
+          className={styles.gameArea}
+          role="application"
+          aria-label="Balloon pop game — tap balloons to pop them"
+        >
+          {/* Balloons */}
+          {balloonsRef.current.map((b, i) => (
+            <button
+              key={b.id}
+              className={styles.balloon}
+              style={{ left: b.x, top: b.y, '--bcolor': b.color, '--idx': i }}
+              onPointerDown={(e) => handlePop(e, b)}
+              aria-label="Pop this balloon"
+            >
+              <BalloonSVG color={b.color} />
+            </button>
+          ))}
 
-        {/* Pop flash effects */}
-        {popEffects.map(p => (
-          <div
-            key={p.id}
-            className={styles.popBurst}
-            style={{ left: p.x + BALLOON_W / 2, top: p.y + BALLOON_H / 2, '--bcolor': p.color }}
-            aria-hidden="true"
-          />
-        ))}
+          {/* Pop flash effects */}
+          {popEffects.map(p => (
+            <div
+              key={p.id}
+              className={styles.popBurst}
+              style={{ left: p.x + BALLOON_W / 2, top: p.y + BALLOON_H / 2, '--bcolor': p.color }}
+              aria-hidden="true"
+            />
+          ))}
+        </div>
+
+        <p className={styles.hint}>Tap the balloons before they float away!</p>
       </div>
-
-      <p className={styles.hint}>Tap the balloons before they float away!</p>
     </div>
   );
 }
@@ -229,6 +230,7 @@ export function BalloonPop({ memberId, difficulty = 'easy', onComplete, callback
       instructions={t.games['balloon-pop'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

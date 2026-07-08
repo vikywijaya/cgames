@@ -29,6 +29,7 @@ export function GameShell({
   timeLimitSeconds = null,
   timeLimits = null,
   hideDifficulty = false,
+  flushTop = false,
   children,
   onGameComplete,
   onBack,
@@ -201,7 +202,23 @@ export function GameShell({
                   aria-checked={localDifficulty === level}
                 >
                   <span className={styles.difficultyDot} aria-hidden="true">
-                    {level === 'easy' ? '🟢' : level === 'medium' ? '🟡' : '🔴'}
+                    {level === 'easy' && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 21V11" />
+                        <path d="M12 11c0-4.5 3.5-8 8-8 0 4.5-3.5 8-8 8Z" fill="currentColor" stroke="none" />
+                      </svg>
+                    )}
+                    {level === 'medium' && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2.5c3 3.5 5.5 6.8 5.5 10.2a5.5 5.5 0 1 1-11 0c0-3.4 2.5-6.7 5.5-10.2Z" />
+                      </svg>
+                    )}
+                    {level === 'hard' && (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2c3.5 4 6.5 8 6.5 12a6.5 6.5 0 1 1-13 0c0-4 3-8 6.5-12Z" />
+                        <path d="M12 10c1.3 1.6 2.2 2.9 2.2 4.3a2.2 2.2 0 1 1-4.4 0c0-1.4.9-2.7 2.2-4.3Z" fill="#fff" fillOpacity="0.55" />
+                      </svg>
+                    )}
                   </span>
                   {t.shell[level]}
                 </button>
@@ -239,7 +256,7 @@ export function GameShell({
               </div>
             </div>
           )}
-          <div className={`${styles.gameBody} ${animating ? styles.gameBodyLocked : ''}`}>
+          <div className={`${styles.gameBody} ${flushTop ? styles.gameBodyFlush : ''} ${animating ? styles.gameBodyLocked : ''}`}>
             <div key={gameKey}>
               {children({
                 difficulty: localDifficulty,
@@ -302,6 +319,7 @@ GameShell.propTypes = {
   timeLimits: PropTypes.object,
   children: PropTypes.func.isRequired,
   hideDifficulty: PropTypes.bool,
+  flushTop: PropTypes.bool,
   onGameComplete: PropTypes.func,
   onBack: PropTypes.func,
 };

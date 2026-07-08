@@ -89,7 +89,6 @@ function QuickMathsGame({ difficulty, onComplete, reportScore, secondsLeft, play
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['quick-maths'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -98,6 +97,7 @@ function QuickMathsGame({ difficulty, onComplete, reportScore, secondsLeft, play
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <div className={styles.questionCard}>
         <span className={styles.operand}>{q.a}</span>
         <span className={styles.operator}>{q.op}</span>
@@ -122,6 +122,7 @@ function QuickMathsGame({ difficulty, onComplete, reportScore, secondsLeft, play
       <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
         {feedback === 'correct' ? t.common.correct : feedback === 'wrong' ? `${t.games['quick-maths'].wrongAnswer} ${q.answer}` : '\u00A0'}
       </p>
+      </div>
     </div>
   );
 }
@@ -149,6 +150,7 @@ export function QuickMaths({ memberId, difficulty = 'easy', onComplete, callback
       instructions={t.games['quick-maths'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

@@ -158,7 +158,6 @@ function SumixGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['sumix'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.puzzle} {round + 1} {t.common.of} {rounds}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -167,6 +166,7 @@ function SumixGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <div className={`${styles.board} ${solved ? styles.boardSolved : ''}`}>
         {/* Column targets */}
         <div className={styles.colTargets}>
@@ -209,6 +209,7 @@ function SumixGame({ difficulty, onComplete, reportScore, secondsLeft, playClick
           ))}
         </div>
       </div>
+      </div>
     </div>
   );
 }
@@ -233,6 +234,7 @@ export function Sumix({ memberId, difficulty = 'easy', onComplete, callbackUrl, 
       instructions={t.games['sumix'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

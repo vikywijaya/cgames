@@ -315,7 +315,6 @@ function TangramGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>{t.games['tangram'].label}</span>
           <span className={styles.infoHeaderSub}>{t.common.puzzle} {round + 1} {t.common.of} {rounds}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -324,6 +323,7 @@ function TangramGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <svg
         ref={svgRef}
         className={styles.board}
@@ -447,6 +447,7 @@ function TangramGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
           Reset Pieces
         </button>
       )}
+      </div>
     </div>
   );
 }
@@ -471,6 +472,7 @@ export function Tangram({ memberId, difficulty = 'easy', onComplete, callbackUrl
       instructions={t.games['tangram'].instructions}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
+      flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}

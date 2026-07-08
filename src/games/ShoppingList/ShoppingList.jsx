@@ -114,7 +114,6 @@ function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft, pl
       <div className={styles.wrapper}>
         <div className={styles.infoHeader}>
           <div className={styles.infoHeaderText}>
-            <span className={styles.infoHeaderLabel}>{t.games['shopping-list'].label}</span>
             <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
           </div>
           <div className={styles.infoBadge}>
@@ -122,13 +121,15 @@ function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft, pl
             <span className={styles.infoBadgeSub}>s</span>
           </div>
         </div>
-        <p className={styles.prompt}>Remember these items!</p>
-        <div className={styles.studyList}>
-          {data.list.map((item, i) => (
-            <div key={i} className={styles.studyItem}>
-              <span>{item.emoji}</span> {item.name}
-            </div>
-          ))}
+        <div className={styles.playArea}>
+          <p className={styles.prompt}>Remember these items!</p>
+          <div className={styles.studyList}>
+            {data.list.map((item, i) => (
+              <div key={i} className={styles.studyItem}>
+                <span>{item.emoji}</span> {item.name}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -138,7 +139,6 @@ function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft, pl
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderLabel}>SHOPPING LIST</span>
           <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
         </div>
         <div className={styles.infoBadge}>
@@ -146,6 +146,7 @@ function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft, pl
           <span className={styles.infoBadgeSub}>ticked</span>
         </div>
       </div>
+      <div className={styles.playArea}>
       <p className={styles.prompt}>Tick everything that was on the list</p>
       <div className={styles.choiceGrid}>
         {data.choices.map((item, i) => {
@@ -170,6 +171,7 @@ function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft, pl
       <p className={result ? (result.roundScore > 0 ? styles.feedbackOk : styles.feedbackBad) : styles.feedbackSlot}>
         {result ? `${result.correct} correct · ${result.missed} missed · ${result.wrong} wrong` : '\u00A0'}
       </p>
+      </div>
     </div>
   );
 }
@@ -185,7 +187,7 @@ export function ShoppingList({ memberId, difficulty = 'easy', onComplete, callba
   return (
     <GameShell gameId="shopping-list" title={t.games['shopping-list'].title}
       instructions={t.games['shopping-list'].instructions}
-      difficulty={difficulty} timeLimits={TIME_LIMITS} onGameComplete={fireCallback}
+      difficulty={difficulty} timeLimits={TIME_LIMITS} flushTop onGameComplete={fireCallback}
       onBack={onBack} musicMuted={musicMuted} onToggleMusic={onToggleMusic}>
       {({ onComplete: sc, reportScore, secondsLeft, difficulty: diff, playClick, playSuccess, playFail }) => (
         <ShoppingListGame difficulty={diff} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
