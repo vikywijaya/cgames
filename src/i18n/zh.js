@@ -19,6 +19,7 @@ export default {
     secondsPlural: '秒',
     score: '得分',
     goBack: '返回',
+    backToGames: '返回游戏列表',
   },
   app: {
     categories: {

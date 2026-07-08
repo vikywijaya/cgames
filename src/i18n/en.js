@@ -20,6 +20,7 @@ export default {
     secondsPlural: 'seconds',
     score: 'Score',
     goBack: 'Go back',
+    backToGames: 'Back to Games',
   },
 
   // ─── App / Home ───

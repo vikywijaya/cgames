@@ -151,13 +151,15 @@ function computePct(result) {
 }
 
 
+// `min` gates on average best score (%), `minPlayed` gates on breadth (games played) so
+// a single lucky/high-scoring game can't vault a brand-new player straight to the top rank.
 const ACHIEVEMENT_LEVELS_BASE = [
-  { min: 0,  icon: '🌱', nameKey: 'newcomer',    descKey: 'newcomerDesc' },
-  { min: 10, icon: '🔭', nameKey: 'explorer',    descKey: 'explorerDesc' },
-  { min: 30, icon: '⚡', nameKey: 'challenger',  descKey: 'challengerDesc' },
-  { min: 50, icon: '🎯', nameKey: 'achiever',    descKey: 'achieverDesc' },
-  { min: 70, icon: '🏆', nameKey: 'champion',    descKey: 'championDesc' },
-  { min: 90, icon: '🧠', nameKey: 'brainMaster', descKey: 'brainMasterDesc' },
+  { min: 0,  minPlayed: 0,  icon: '🌱', nameKey: 'newcomer',    descKey: 'newcomerDesc' },
+  { min: 10, minPlayed: 3,  icon: '🔭', nameKey: 'explorer',    descKey: 'explorerDesc' },
+  { min: 30, minPlayed: 6,  icon: '⚡', nameKey: 'challenger',  descKey: 'challengerDesc' },
+  { min: 50, minPlayed: 10, icon: '🎯', nameKey: 'achiever',    descKey: 'achieverDesc' },
+  { min: 70, minPlayed: 15, icon: '🏆', nameKey: 'champion',    descKey: 'championDesc' },
+  { min: 90, minPlayed: 20, icon: '🧠', nameKey: 'brainMaster', descKey: 'brainMasterDesc' },
 ];
 
 function buildAchievementLevels(t) {
@@ -181,11 +183,16 @@ function computeAchievement(allScores, memberId, levels) {
   const storedTotal = getTotalScore(memberId);
   const score = storedTotal !== null ? storedTotal : avgBest;
 
-  const levelIdx  = ACHIEVEMENT_LEVELS.reduce((best, l, i) => avgBest >= l.min ? i : best, 0);
+  const levelIdx  = ACHIEVEMENT_LEVELS.reduce((best, l, i) => (avgBest >= l.min && played >= l.minPlayed) ? i : best, 0);
   const level     = ACHIEVEMENT_LEVELS[levelIdx];
   const nextLevel = ACHIEVEMENT_LEVELS[levelIdx + 1] ?? null;
   const progressPct = nextLevel
-    ? Math.round(((avgBest - level.min) / (nextLevel.min - level.min)) * 100)
+    ? Math.round(Math.max(0, Math.min(1, Math.min(
+        (avgBest - level.min) / (nextLevel.min - level.min),
+        nextLevel.minPlayed > level.minPlayed
+          ? (played - level.minPlayed) / (nextLevel.minPlayed - level.minPlayed)
+          : 1
+      ))) * 100)
     : 100;
 
   return { score, level, nextLevel, progressPct, played, avgBest, totalPlays };
@@ -411,7 +418,7 @@ export function App() {
 
     return (
       <div className={styles.gameWrapper}>
-        <GameContext.Provider value={{ hideDifficulty: true, langCode: urlLangCode }}>
+        <GameContext.Provider value={{ hideDifficulty: true, langCode: urlLangCode, isDailyChallenge: true }}>
           <GameComponent
             key={`daily-${game.id}-${index}`}
             memberId={urlMemberId}

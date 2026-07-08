@@ -19,6 +19,7 @@ export default {
     secondsPlural: 'வினாடிகள்',
     score: 'மதிப்பெண்',
     goBack: 'திரும்பு',
+    backToGames: 'விளையாட்டுகளுக்குத் திரும்பு',
   },
   app: {
     categories: {

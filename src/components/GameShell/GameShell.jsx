@@ -34,7 +34,7 @@ export function GameShell({
   onGameComplete,
   onBack,
 }) {
-  const { hideDifficulty: ctxHideDifficulty } = useGameContext();
+  const { hideDifficulty: ctxHideDifficulty, isDailyChallenge } = useGameContext();
   const t = useTranslation();
   const shouldHideDifficulty = hideDifficulty || ctxHideDifficulty;
   const [localDifficulty, setLocalDifficulty] = useState(difficulty);
@@ -302,6 +302,11 @@ export function GameShell({
             <Button size="large" onClick={handlePlayAgain} autoFocus>
               {t.shell.playAgain}
             </Button>
+            {!isDailyChallenge && onBack && (
+              <Button size="large" variant="secondary" onClick={onBack}>
+                {t.shell.backToGames}
+              </Button>
+            )}
           </div>
         </div>
       )}

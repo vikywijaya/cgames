@@ -19,6 +19,7 @@ export default {
     secondsPlural: 'saat',
     score: 'Skor',
     goBack: 'Kembali',
+    backToGames: 'Kembali ke Permainan',
   },
   app: {
     categories: {
