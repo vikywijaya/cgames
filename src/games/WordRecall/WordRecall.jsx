@@ -87,37 +87,39 @@ function WordRecallGame({ difficulty, onComplete, reportScore, playClick, playSu
       {/* ── STUDY PHASE ── */}
       {phase === 'study' && (
         <div className={styles.studyPhase}>
-          <div className={styles.studyHeader}>
-            <div className={styles.studyHeaderText}>
-              <span className={styles.studyHeaderLabel}>{t.common.studyPhase}</span>
-              <span className={styles.studyHeaderSub}>{t.common.memoriseWords}</span>
+          <div className={styles.infoHeader}>
+            <div className={styles.infoHeaderText}>
+              <span className={styles.infoHeaderLabel}>{t.common.studyPhase}</span>
+              <span className={styles.infoHeaderSub}>{t.common.memoriseWords}</span>
             </div>
-            <div className={styles.studyTimerBadge} aria-live="polite" aria-label={`${studyLeft} seconds remaining`}>
-              <span className={styles.studyTimerNum}>{studyLeft ?? studySeconds}</span>
-              <span className={styles.studyTimerUnit}>s</span>
+            <div className={styles.infoBadge} aria-live="polite" aria-label={`${studyLeft} seconds remaining`}>
+              <span className={styles.infoBadgeNum}>{studyLeft ?? studySeconds}</span>
+              <span className={styles.infoBadgeSub}>s</span>
             </div>
           </div>
 
-          <div className={styles.timerBar}>
-            <ProgressBar
-              value={studyLeft ?? studySeconds}
-              max={studySeconds}
-              ariaLabel="Study time remaining"
-              colorVariant={(studyLeft ?? studySeconds) <= 5 ? 'warning' : 'default'}
-            />
+          <div className={styles.playArea}>
+            <div className={styles.timerBar}>
+              <ProgressBar
+                value={studyLeft ?? studySeconds}
+                max={studySeconds}
+                ariaLabel="Study time remaining"
+                colorVariant={(studyLeft ?? studySeconds) <= 5 ? 'warning' : 'default'}
+              />
+            </div>
+
+            <ul className={styles.wordGrid} role="list" aria-label="Words to remember">
+              {wordList.map((word, i) => (
+                <li key={word} className={styles.wordChip} style={{ '--idx': i }} role="listitem">
+                  {word}
+                </li>
+              ))}
+            </ul>
+
+            <Button size="large" onClick={enterRecall} className={styles.readyBtn}>
+              {t.common.imReady}
+            </Button>
           </div>
-
-          <ul className={styles.wordGrid} role="list" aria-label="Words to remember">
-            {wordList.map((word, i) => (
-              <li key={word} className={styles.wordChip} style={{ '--idx': i }} role="listitem">
-                {word}
-              </li>
-            ))}
-          </ul>
-
-          <Button size="large" onClick={enterRecall} className={styles.readyBtn}>
-            {t.common.imReady}
-          </Button>
         </div>
       )}
 
@@ -125,61 +127,62 @@ function WordRecallGame({ difficulty, onComplete, reportScore, playClick, playSu
       {phase === 'recall' && (
         <div className={styles.recallPhase}>
 
-          <div className={styles.recallHeader}>
-            <div className={styles.recallScorePill} aria-live="polite" aria-atomic="true">
-              <span className={styles.recallScoreNum}>{recalled.size}</span>
-              <span className={styles.recallScoreMax}>/ {maxScore} {t.common.words}</span>
+          <div className={styles.infoHeader}>
+            <div className={styles.infoHeaderText} aria-live="polite" aria-atomic="true">
+              <span className={styles.infoHeaderSub}>{recalled.size} / {maxScore} {t.common.words}</span>
             </div>
-            <div className={`${styles.recallTimerPill} ${isUrgentRecall ? styles.recallTimerPillUrgent : ''}`}
+            <div className={`${styles.infoBadge} ${isUrgentRecall ? styles.infoBadgeUrgent : ''}`}
               role="timer" aria-live="off" aria-label={`${recallLeft} seconds remaining`}>
-              <span className={`${styles.recallTimerNum} ${isUrgentRecall ? styles.recallTimerNumUrgent : ''}`}>
-                {recallLeft ?? recallSeconds}s
+              <span className={`${styles.infoBadgeNum} ${isUrgentRecall ? styles.infoBadgeNumUrgent : ''}`}>
+                {recallLeft ?? recallSeconds}
               </span>
-              <span className={styles.recallTimerLabel}>left</span>
+              <span className={styles.infoBadgeSub}>s</span>
             </div>
           </div>
 
-          <div className={styles.inputCard}>
-            <div className={styles.inputRow}>
-              <input
-                ref={inputRef}
-                type="text"
-                className={styles.recallInput}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') { playClick(); submitWord(); } }}
-                placeholder={t.games['word-recall'].placeholder}
-                aria-label="Type a word you remember"
-                autoComplete="off"
-                autoCorrect="off"
-                spellCheck={false}
-              />
-              <Button size="large" onClick={() => { playClick(); submitWord(); }} disabled={!inputValue.trim()} className={styles.submitBtn}>
-                {t.common.submit}
-              </Button>
+          <div className={styles.playArea}>
+            <div className={styles.inputCard}>
+              <div className={styles.inputRow}>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  className={styles.recallInput}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { playClick(); submitWord(); } }}
+                  placeholder={t.games['word-recall'].placeholder}
+                  aria-label="Type a word you remember"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                />
+                <Button size="large" onClick={() => { playClick(); submitWord(); }} disabled={!inputValue.trim()} className={styles.submitBtn}>
+                  {t.common.submit}
+                </Button>
+              </div>
+              {lastResult && (
+                <div className={`${styles.feedbackRow} ${feedbackClass}`} aria-live="polite" aria-atomic="true">
+                  <span className={styles.feedbackDot} />
+                  <span className={styles.feedbackMsg}>{feedbackText}</span>
+                </div>
+              )}
             </div>
-            {lastResult && (
-              <div className={`${styles.feedbackRow} ${feedbackClass}`} aria-live="polite" aria-atomic="true">
-                <span className={styles.feedbackDot} />
-                <span className={styles.feedbackMsg}>{feedbackText}</span>
+
+            {recalled.size > 0 && (
+              <div className={styles.recalledSection}>
+                <span className={styles.recalledHeader}>{t.common.recalledSoFar}</span>
+                <ul className={styles.recalledGrid} role="list" aria-label="Words recalled so far">
+                  {[...recalled].map((word) => (
+                    <li key={word} className={styles.recalledWord}>{word}</li>
+                  ))}
+                </ul>
               </div>
             )}
+
+            <Button variant="secondary" onClick={enterReview} className={styles.finishBtn}>
+              {t.common.finish}
+            </Button>
           </div>
-
-          {recalled.size > 0 && (
-            <div className={styles.recalledSection}>
-              <span className={styles.recalledHeader}>{t.common.recalledSoFar}</span>
-              <ul className={styles.recalledGrid} role="list" aria-label="Words recalled so far">
-                {[...recalled].map((word) => (
-                  <li key={word} className={styles.recalledWord}>{word}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <Button variant="secondary" onClick={enterReview} className={styles.finishBtn}>
-            {t.common.finish}
-          </Button>
         </div>
       )}
 
@@ -244,6 +247,7 @@ export function WordRecall({ memberId, difficulty = 'easy', onComplete, callback
       onBack={onBack}
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
+      flushTop
     >
       {({ onComplete: shellComplete, reportScore, difficulty: diff, playClick, playSuccess, playFail }) => (
         <WordRecallGame difficulty={diff} onComplete={shellComplete} reportScore={reportScore} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
