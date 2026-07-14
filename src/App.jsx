@@ -38,6 +38,8 @@ import { Zip }            from './games/Zip/Zip';
 import { Sokoban }        from './games/Sokoban/Sokoban';
 import { saveScore, getAllScores, getFavorites, toggleFavorite, saveTotalScore, getTotalScore } from './utils/scoreStore';
 import { GAME_GROUPS, buildDailyGames } from './shared/gameData';
+import { MULTIPLAYER_GAMES } from './shared/multiplayerGames';
+import { MultiplayerGames } from './components/MultiplayerGames/MultiplayerGames';
 import { GameContext } from './context/GameContext';
 import translations from './i18n/index';
 import './design/globals.css';
@@ -246,7 +248,7 @@ export function App() {
   }));
   const translatedAllGames = translatedGroups.flatMap(g => g.games);
 
-  // view: 'home' | 'games' | 'scores' | 'daily' | 'daily-playing' | 'daily-inter' | 'daily-result'
+  // view: 'home' | 'games' | 'scores' | 'multiplayer' | 'daily' | 'daily-playing' | 'daily-inter' | 'daily-result'
   const [view,               setView]               = useState('home');
   const [selectedGame,       setSelectedGame]       = useState(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
@@ -679,6 +681,22 @@ export function App() {
     );
   }
 
+  if (view === 'multiplayer') {
+    const translatedMultiplayerGames = MULTIPLAYER_GAMES.map(game => ({
+      ...game,
+      title: t.games[game.id]?.title ?? game.id,
+      description: t.games[game.id]?.description ?? '',
+    }));
+    return (
+      <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
+        {showBackButtons && (
+          <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+        )}
+        <MultiplayerGames t={t} games={translatedMultiplayerGames} />
+      </div>
+    );
+  }
+
   /* ── Games lobby ── */
   if (view === 'games') {
     const lobbyScores = getAllScores(urlMemberId);
@@ -959,6 +977,23 @@ export function App() {
             </span>
             <span className={styles.focusFooter}>
               <span className={styles.focusPlayBtn}>{t.app.playNow} <span aria-hidden="true">›</span></span>
+            </span>
+          </span>
+        </button>
+
+        {/* ── Play with a Friend focus card ── */}
+        <button className={`${styles.focusCard} ${styles.multiplayerCard}`} onClick={() => setView('multiplayer')} aria-label="Play with a friend online">
+          <span className={styles.focusBlob} aria-hidden="true" />
+          <span className={styles.focusInner}>
+            <span className={styles.focusHead}>
+              <span className={styles.focusIconBox} aria-hidden="true">👥</span>
+              <span className={styles.focusHeadText}>
+                <span className={styles.focusTitle}>{t.app.playWithFriend}</span>
+                <span className={styles.focusEyebrow}>{t.app.playWithFriendDesc}</span>
+              </span>
+            </span>
+            <span className={styles.focusFooter}>
+              <span className={`${styles.focusPlayBtn} ${styles.multiplayerPlayBtn}`}>{t.app.playNow} <span aria-hidden="true">›</span></span>
             </span>
           </span>
         </button>

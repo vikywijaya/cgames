@@ -319,6 +319,15 @@
   font-weight: 800;
 }
 
+.multiplayerCard {
+  background: linear-gradient(135deg, #14b8a6 0%, #0d7d76 100%);
+  box-shadow: 0 10px 30px rgba(20, 184, 166, 0.34);
+}
+@media (hover: hover) and (pointer: fine) {
+.multiplayerCard:hover { box-shadow: 0 14px 36px rgba(20, 184, 166, 0.42); }
+}
+.multiplayerPlayBtn { color: #0d7d76; }
+
 /* ── Two secondary tiles ── */
 .tileRow {
   display: grid;
