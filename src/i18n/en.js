@@ -64,6 +64,12 @@ export default {
     favoritesEmptyHomeTitle: 'No favorites yet',
     favoritesEmptyHomeDesc: 'Tap the ♥ on any game to pin it here.',
     favoritesEmptyHomeCta: 'Browse games to add favorites',
+    playWithFriend: 'Play with a Friend',
+    playWithFriendDesc: '5 online 2-player games — chess, cards & more.',
+    multiplayerTitle: 'Play with a Friend',
+    multiplayerSubtitle: 'Tap a game to open it in a new tab, then create or join with a 6-character room code — no account needed.',
+    multiplayerExternalBadge: 'Opens in a new tab ↗',
+    multiplayerPlayers: '2 Players',
     // Daily challenge
     todaysChallenge: "Today's Challenge",
     playTheseGames: 'Play these 2 games and see how you score!',
@@ -427,5 +433,10 @@ export default {
       description: 'Push all the boxes onto the targets in this classic warehouse puzzle!',
       instructions: 'Push all the boxes onto the target spots. You can only push one box at a time — you can\'t pull! Use arrow keys, WASD, swipe, or the on-screen D-pad.',
     },
+    'mp-chess': { title: 'Chess', description: 'Classic chess against a friend — create a room and share the code.' },
+    'mp-xiangqi': { title: 'Xiangqi (Chinese Chess)', description: 'Traditional Chinese chess for two, played online.' },
+    'mp-gin-rummy': { title: 'Gin Rummy', description: 'Draw, discard, and knock in this classic 2-player card game.' },
+    'mp-crazy-eights': { title: 'Crazy Eights', description: 'Match suits or ranks, and play wild eights to win.' },
+    'mp-singapore-trivia': { title: 'Singapore Trivia', description: 'Race a friend to answer Singapore-themed quiz questions.' },
   },
 };
