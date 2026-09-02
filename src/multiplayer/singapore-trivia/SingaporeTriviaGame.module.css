@@ -1,0 +1,21 @@
+.game { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px; max-width: 520px; margin: 0 auto; }
+.panel { font-weight: 700; }
+.banner { background: #fff3cd; color: #664d03; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+.players { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; width: 100%; }
+.playerChip { padding: 6px 10px; border-radius: 6px; background: #f5f5f5; font-size: 0.9rem; }
+.progress { font-weight: 700; color: #666; }
+.question { width: 100%; text-align: center; }
+.questionText { font-size: 1.15rem; font-weight: 700; margin: 8px 0; }
+.timer { font-weight: 700; }
+.answeredCount { color: #666; font-size: 0.9rem; }
+.options { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.optionBtn { padding: 12px; border-radius: 8px; border: 2px solid #ccc; background: #fff; cursor: pointer; text-align: left; font-size: 1rem; }
+.optionBtn:disabled { cursor: not-allowed; }
+.optionLetter { font-weight: 700; margin-right: 6px; }
+.selected { border-color: #1155cc; background: #eaf1ff; }
+.correct { border-color: #1a6e1a; background: #e6f4ea; }
+.wrong { border-color: #c0392b; background: #fdecea; }
+.results { text-align: center; width: 100%; }
+.resultRow { padding: 6px 0; }
+.hostControls { display: flex; gap: 8px; }
+.actionBtn { padding: 10px 18px; border-radius: 8px; border: none; background: var(--color-primary, #1155cc); color: #fff; cursor: pointer; font-weight: 700; }
