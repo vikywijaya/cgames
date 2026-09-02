@@ -10,7 +10,7 @@ function getCoverImage(slug) {
   return coverImages[`../../assets/games/mp-${slug}.jpg`] ?? null;
 }
 
-export function MultiplayerGames({ t, games, memberId, callbackUrl, accessToken }) {
+export function MultiplayerGames({ t, games, memberId, callbackUrl, accessToken, inAppSlugs = [], onPlayInApp }) {
   return (
     <div className={appStyles.lobby}>
       <div className={styles.header}>
@@ -24,7 +24,13 @@ export function MultiplayerGames({ t, games, memberId, callbackUrl, accessToken 
           <button
             key={game.id}
             className={appStyles.gameCard}
-            onClick={() => { window.location.href = multiplayerGameUrl(game.slug, { memberId, callbackUrl, accessToken }); }}
+            onClick={() => {
+              if (inAppSlugs.includes(game.slug) && onPlayInApp) {
+                onPlayInApp(game.slug);
+              } else {
+                window.location.href = multiplayerGameUrl(game.slug, { memberId, callbackUrl, accessToken });
+              }
+            }}
             aria-label={`Play ${game.title}`}
           >
             <span className={appStyles.gameDomain}>{t.app.multiplayerPlayers}</span>
@@ -55,4 +61,6 @@ MultiplayerGames.propTypes = {
   memberId: PropTypes.string,
   callbackUrl: PropTypes.string,
   accessToken: PropTypes.string,
+  inAppSlugs: PropTypes.arrayOf(PropTypes.string),
+  onPlayInApp: PropTypes.func,
 };

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { MultiplayerGames } from './MultiplayerGames';
 import translations from '../../i18n/en';
 
@@ -61,5 +61,25 @@ describe('MultiplayerGames', () => {
     expect(url.searchParams.get('memberId')).toBe('m-42');
     expect(url.searchParams.get('callbackUrl')).toBe('https://host.example/callback');
     expect(url.searchParams.get('accessToken')).toBe('tok-123');
+  });
+
+  it('calls onPlayInApp instead of navigating for a game in inAppSlugs', () => {
+    const onPlayInApp = vi.fn();
+    render(
+      <MultiplayerGames t={translations} games={games} inAppSlugs={['chess']} onPlayInApp={onPlayInApp} />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Play Chess' }));
+    expect(onPlayInApp).toHaveBeenCalledWith('chess');
+    expect(window.location.href).toBe('');
+  });
+
+  it('still navigates for a game not in inAppSlugs even when onPlayInApp is provided', () => {
+    const onPlayInApp = vi.fn();
+    render(
+      <MultiplayerGames t={translations} games={games} inAppSlugs={['chess']} onPlayInApp={onPlayInApp} />
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Play Xiangqi' }));
+    expect(onPlayInApp).not.toHaveBeenCalled();
+    expect(window.location.href).toBe('http://localhost:3000/lobby.html?game=xiangqi');
   });
 });
