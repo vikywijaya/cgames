@@ -41,6 +41,7 @@ import { GAME_GROUPS, buildDailyGames } from './shared/gameData';
 import { MULTIPLAYER_GAMES } from './shared/multiplayerGames';
 import { MultiplayerGames } from './components/MultiplayerGames/MultiplayerGames';
 import { MultiplayerChessSession } from './multiplayer/chess/MultiplayerChessSession';
+import { MultiplayerXiangqiSession } from './multiplayer/xiangqi/MultiplayerXiangqiSession';
 import { GameContext } from './context/GameContext';
 import translations from './i18n/index';
 import './design/globals.css';
@@ -251,8 +252,9 @@ export function App() {
   }));
   const translatedAllGames = translatedGroups.flatMap(g => g.games);
 
-  // view: 'home' | 'games' | 'scores' | 'multiplayer' | 'mp-chess' | 'daily' | 'daily-playing' | 'daily-inter' | 'daily-result'
-  const [view,               setView]               = useState(() => (params.get('view') === 'mp-chess' ? 'mp-chess' : 'home'));
+  // view: 'home' | 'games' | 'scores' | 'multiplayer' | 'mp-chess' | 'mp-xiangqi' | 'daily' | 'daily-playing' | 'daily-inter' | 'daily-result'
+  const IN_APP_MULTIPLAYER_VIEWS = ['mp-chess', 'mp-xiangqi'];
+  const [view,               setView]               = useState(() => (IN_APP_MULTIPLAYER_VIEWS.includes(params.get('view')) ? params.get('view') : 'home'));
   const [selectedGame,       setSelectedGame]       = useState(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
   const [selectedCategory,   setSelectedCategory]   = useState('All');
@@ -701,7 +703,7 @@ export function App() {
           memberId={urlMemberId}
           callbackUrl={urlCallbackUrl}
           accessToken={urlAccessToken}
-          inAppSlugs={['chess']}
+          inAppSlugs={['chess', 'xiangqi']}
           onPlayInApp={(slug) => setView(`mp-${slug}`)}
         />
       </div>
@@ -715,6 +717,17 @@ export function App() {
           <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         )}
         <MultiplayerChessSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
+      </div>
+    );
+  }
+
+  if (view === 'mp-xiangqi') {
+    return (
+      <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
+        {showBackButtons && (
+          <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+        )}
+        <MultiplayerXiangqiSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
       </div>
     );
   }
