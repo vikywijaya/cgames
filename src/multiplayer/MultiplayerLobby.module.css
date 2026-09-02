@@ -1,0 +1,11 @@
+.lobby { max-width: 480px; margin: 0 auto; padding: 24px 16px; text-align: center; }
+.title { margin: 0 0 4px; }
+.subtitle { color: var(--color-text-muted, #666); margin: 0 0 20px; }
+.error { color: var(--color-danger, #c0392b); font-weight: 600; }
+.joinForm { display: flex; flex-direction: column; gap: 12px; }
+.joinForm input { padding: 10px 12px; font-size: 1rem; border: 1px solid #ccc; border-radius: 8px; }
+.primaryBtn { padding: 12px; font-size: 1rem; font-weight: 700; border: none; border-radius: 8px;
+  background: var(--color-primary, #1155cc); color: #fff; cursor: pointer; }
+.primaryBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+.waitingRoom { display: flex; flex-direction: column; gap: 8px; }
+.playerRow { padding: 8px; background: #f5f5f5; border-radius: 6px; }
