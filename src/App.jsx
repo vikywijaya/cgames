@@ -42,6 +42,9 @@ import { MULTIPLAYER_GAMES } from './shared/multiplayerGames';
 import { MultiplayerGames } from './components/MultiplayerGames/MultiplayerGames';
 import { MultiplayerChessSession } from './multiplayer/chess/MultiplayerChessSession';
 import { MultiplayerXiangqiSession } from './multiplayer/xiangqi/MultiplayerXiangqiSession';
+import { MultiplayerGinRummySession } from './multiplayer/gin-rummy/MultiplayerGinRummySession';
+import { MultiplayerCrazyEightsSession } from './multiplayer/crazy-eights/MultiplayerCrazyEightsSession';
+import { MultiplayerSingaporeTriviaSession } from './multiplayer/singapore-trivia/MultiplayerSingaporeTriviaSession';
 import { GameContext } from './context/GameContext';
 import translations from './i18n/index';
 import './design/globals.css';
@@ -253,7 +256,7 @@ export function App() {
   const translatedAllGames = translatedGroups.flatMap(g => g.games);
 
   // view: 'home' | 'games' | 'scores' | 'multiplayer' | 'mp-chess' | 'mp-xiangqi' | 'daily' | 'daily-playing' | 'daily-inter' | 'daily-result'
-  const IN_APP_MULTIPLAYER_VIEWS = ['mp-chess', 'mp-xiangqi'];
+  const IN_APP_MULTIPLAYER_VIEWS = ['mp-chess', 'mp-xiangqi', 'mp-gin-rummy', 'mp-crazy-eights', 'mp-singapore-trivia'];
   const [view,               setView]               = useState(() => (IN_APP_MULTIPLAYER_VIEWS.includes(params.get('view')) ? params.get('view') : 'home'));
   const [selectedGame,       setSelectedGame]       = useState(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
@@ -703,7 +706,7 @@ export function App() {
           memberId={urlMemberId}
           callbackUrl={urlCallbackUrl}
           accessToken={urlAccessToken}
-          inAppSlugs={['chess', 'xiangqi']}
+          inAppSlugs={['chess', 'xiangqi', 'gin-rummy', 'crazy-eights', 'singapore-trivia']}
           onPlayInApp={(slug) => setView(`mp-${slug}`)}
         />
       </div>
@@ -728,6 +731,39 @@ export function App() {
           <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         )}
         <MultiplayerXiangqiSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
+      </div>
+    );
+  }
+
+  if (view === 'mp-gin-rummy') {
+    return (
+      <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
+        {showBackButtons && (
+          <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+        )}
+        <MultiplayerGinRummySession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
+      </div>
+    );
+  }
+
+  if (view === 'mp-crazy-eights') {
+    return (
+      <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
+        {showBackButtons && (
+          <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+        )}
+        <MultiplayerCrazyEightsSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
+      </div>
+    );
+  }
+
+  if (view === 'mp-singapore-trivia') {
+    return (
+      <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
+        {showBackButtons && (
+          <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+        )}
+        <MultiplayerSingaporeTriviaSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
       </div>
     );
   }
