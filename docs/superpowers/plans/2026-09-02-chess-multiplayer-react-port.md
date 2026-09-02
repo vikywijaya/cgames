@@ -28,18 +28,18 @@
 **Interfaces:**
 - Produces: `socket.io-client`'s default export (`io`), importable as `import { io } from 'socket.io-client'` in later tasks.
 
-- [ ] **Step 1: Install the dependency**
+- [x] **Step 1: Install the dependency**
 
 ```bash
 npm install socket.io-client@^4.8.3
 ```
 
-- [ ] **Step 2: Verify it installed at the pinned major version**
+- [x] **Step 2: Verify it installed at the pinned major version**
 
 Run: `node -e "console.log(require('./node_modules/socket.io-client/package.json').version)"`
 Expected: prints a `4.8.x` version.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add package.json package-lock.json
@@ -57,7 +57,7 @@ git commit -m "Add socket.io-client dependency for in-app multiplayer"
 **Interfaces:**
 - Produces: `parseFenState(fen)`, `legalMovesFor(board, state, r, c)`, `isPawnPromotion(board, r, c, nr)` — same names and signatures as the existing `window.ChessMoves` global in `server/public/js/chess-moves.js`, exported instead of attached to `window`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // src/multiplayer/chess/chessMoves.test.js
@@ -89,12 +89,12 @@ describe('chessMoves', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run src/multiplayer/chess/chessMoves.test.js`
 Expected: FAIL — `Cannot find module './chessMoves'` (file doesn't exist yet).
 
-- [ ] **Step 3: Create the module by adapting the existing file**
+- [x] **Step 3: Create the module by adapting the existing file**
 
 Read `server/public/js/chess-moves.js` in full, copy its contents verbatim into the new file, and change only the final line:
 
@@ -115,12 +115,12 @@ Read `server/public/js/chess-moves.js` in full, copy its contents verbatim into 
 export { legalMovesFor, parseFenState, isPawnPromotion };
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run src/multiplayer/chess/chessMoves.test.js`
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/multiplayer/chess/chessMoves.js src/multiplayer/chess/chessMoves.test.js
@@ -139,7 +139,7 @@ git commit -m "Port chess move-legality logic into an ES module"
 - Consumes: `isPawnPromotion` from `./chessMoves` (Task 2) — the original `chess-board.js` calls the global `ChessMoves.isPawnPromotion(...)` directly inside `_handleClick`; this hidden dependency becomes an explicit import.
 - Produces: `ChessBoard` class with the same public interface as `server/public/js/chess-board.js`: `constructor(canvas, playerColor)`, `.onMove`, `.onPieceSelect`, `.onPromotionNeeded` (assignable callbacks), `.updateBoard(board, fenState, lastMove)`, `.resize()`, `.draw()`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Canvas drawing itself isn't meaningfully unit-testable (per the spec), but the coordinate-transform math is pure and worth locking down since it's easy to break silently when flipping the board for Black:
 
@@ -176,12 +176,12 @@ describe('ChessBoard coordinate transforms', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run src/multiplayer/chess/ChessBoardCanvas.test.js`
 Expected: FAIL — `Cannot find module './ChessBoardCanvas'`.
 
-- [ ] **Step 3: Create the module**
+- [x] **Step 3: Create the module**
 
 Read `server/public/js/chess-board.js` in full and adapt it: same class body, but replace the bare `ChessMoves.isPawnPromotion(...)` call inside `_handleClick` with the imported `isPawnPromotion`, and export the class instead of assigning to `window`.
 
@@ -217,12 +217,12 @@ export class ChessBoard {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run src/multiplayer/chess/ChessBoardCanvas.test.js`
 Expected: PASS (2 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/multiplayer/chess/ChessBoardCanvas.js src/multiplayer/chess/ChessBoardCanvas.test.js
@@ -259,7 +259,7 @@ git commit -m "Port chess canvas board renderer into an ES module"
   ```
   Later tasks (`MultiplayerLobby`, `ChessGame`) consume exactly this shape.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 // src/multiplayer/useMultiplayerSocket.test.js
@@ -391,12 +391,12 @@ describe('useMultiplayerSocket', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run src/multiplayer/useMultiplayerSocket.test.js`
 Expected: FAIL — `Cannot find module './useMultiplayerSocket'`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```js
 // src/multiplayer/useMultiplayerSocket.js
@@ -462,12 +462,12 @@ export function useMultiplayerSocket(gameSlug) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run src/multiplayer/useMultiplayerSocket.test.js`
 Expected: PASS (16 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/multiplayer/useMultiplayerSocket.js src/multiplayer/useMultiplayerSocket.test.js
@@ -487,7 +487,7 @@ git commit -m "Add useMultiplayerSocket hook for in-app realtime game sessions"
 - Consumes: the return shape of `useMultiplayerSocket` (Task 4) — passed in as props, not called internally, so this component stays testable without mocking sockets.
 - Produces: `<MultiplayerLobby gameMeta={{ title, subtitle, maxPlayers, hostColors }} status roomId myColor players errorMessage onCreateRoom={(name) => void} onJoinRoom={(name) => void} inviteRoomId={string|null} onStart={() => void} />`. Calls `onStart` when the host clicks "Start Game"; the parent (`MultiplayerChessSession`, Task 7) decides what "starting" means.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```jsx
 // src/multiplayer/MultiplayerLobby.test.jsx
@@ -568,12 +568,12 @@ describe('MultiplayerLobby', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run src/multiplayer/MultiplayerLobby.test.jsx`
 Expected: FAIL — `Cannot find module './MultiplayerLobby'`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```jsx
 // src/multiplayer/MultiplayerLobby.jsx
@@ -679,12 +679,12 @@ MultiplayerLobby.propTypes = {
 .playerRow { padding: 8px; background: #f5f5f5; border-radius: 6px; }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run src/multiplayer/MultiplayerLobby.test.jsx`
 Expected: PASS (6 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/multiplayer/MultiplayerLobby.jsx src/multiplayer/MultiplayerLobby.module.css src/multiplayer/MultiplayerLobby.test.jsx
@@ -704,7 +704,7 @@ git commit -m "Add generic MultiplayerLobby component"
 - Consumes: `ChessBoard` from `./ChessBoardCanvas` (Task 3), `legalMovesFor`/`parseFenState` from `./chessMoves` (Task 2), `saveScore` from `../../utils/scoreStore`, `buildPayload` from `../../utils/buildPayload`, and from `useMultiplayerSocket`'s return value (Task 4): `socketInstance`, `status`, `reconnectAttempt`, `disconnectedPlayerName`.
 - Produces: `<ChessGame myColor myName gameState lastGameOver socket status reconnectAttempt disconnectedPlayerName memberId callbackUrl accessToken />` where `socket` is the raw Socket.IO client instance (`socketInstance` from the hook — the one place the raw socket escapes the hook, since move-emission is Chess-specific and doesn't belong in the generic hook).
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 This test focuses on the score-reporting side effect (the actual new behavior this port introduces), not on canvas rendering:
 
@@ -818,12 +818,12 @@ describe('ChessGame connection banners', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run src/multiplayer/chess/ChessGame.test.jsx`
 Expected: FAIL — `Cannot find module './ChessGame'`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```jsx
 // src/multiplayer/chess/ChessGame.jsx
@@ -966,12 +966,12 @@ ChessGame.propTypes = {
 .resignBtn { padding: 8px 16px; border-radius: 8px; border: 1px solid #c0392b; color: #c0392b; background: #fff; cursor: pointer; }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run src/multiplayer/chess/ChessGame.test.jsx`
 Expected: PASS (8 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/multiplayer/chess/ChessGame.jsx src/multiplayer/chess/ChessGame.module.css src/multiplayer/chess/ChessGame.test.jsx
@@ -990,7 +990,7 @@ git commit -m "Add ChessGame component with direct scoreStore/buildPayload repor
 - Consumes: `useMultiplayerSocket` (Task 4), `MultiplayerLobby` (Task 5), `ChessGame` (Task 6).
 - Produces: `<MultiplayerChessSession memberId callbackUrl accessToken />` — the component `App.jsx` (Task 9) renders for `view === 'mp-chess'`. Reads `room`/`color`/`name` from the URL on mount (for refresh-restore) and writes them back via `history.replaceState` once known.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```jsx
 // src/multiplayer/chess/MultiplayerChessSession.test.jsx
@@ -1032,12 +1032,12 @@ describe('MultiplayerChessSession', () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run src/multiplayer/chess/MultiplayerChessSession.test.jsx`
 Expected: FAIL — `Cannot find module './MultiplayerChessSession'`.
 
-- [ ] **Step 3: Write the implementation**
+- [x] **Step 3: Write the implementation**
 
 ```jsx
 // src/multiplayer/chess/MultiplayerChessSession.jsx
@@ -1122,12 +1122,12 @@ MultiplayerChessSession.propTypes = {
 };
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run src/multiplayer/chess/MultiplayerChessSession.test.jsx`
 Expected: PASS (2 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/multiplayer/chess/MultiplayerChessSession.jsx src/multiplayer/chess/MultiplayerChessSession.test.jsx
@@ -1145,7 +1145,7 @@ git commit -m "Add MultiplayerChessSession tying lobby, game, and URL state toge
 **Interfaces:**
 - Produces: `<MultiplayerGames ... inAppSlugs={['chess']} onPlayInApp={(slug) => void} />` — when a clicked game's slug is in `inAppSlugs` and `onPlayInApp` is provided, call it instead of `window.location.href = multiplayerGameUrl(...)`. Games not in `inAppSlugs` keep today's hard-navigation behavior exactly.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Add to the existing test file. Its current import line is
 `import { describe, it, expect, beforeEach, afterEach } from 'vitest';` — change it to also
@@ -1180,12 +1180,12 @@ it('still navigates for a game not in inAppSlugs even when onPlayInApp is provid
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `npx vitest run src/components/MultiplayerGames/MultiplayerGames.test.jsx`
 Expected: FAIL — `onPlayInApp` never called; `TypeError` or assertion failure since the prop doesn't exist yet.
 
-- [ ] **Step 3: Update the implementation**
+- [x] **Step 3: Update the implementation**
 
 ```jsx
 // src/components/MultiplayerGames/MultiplayerGames.jsx
@@ -1222,12 +1222,12 @@ MultiplayerGames.propTypes = {
 };
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `npx vitest run src/components/MultiplayerGames/MultiplayerGames.test.jsx`
 Expected: PASS (all 7 tests — 5 existing + 2 new).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/components/MultiplayerGames/MultiplayerGames.jsx src/components/MultiplayerGames/MultiplayerGames.test.jsx
@@ -1244,14 +1244,14 @@ git commit -m "Let MultiplayerGames render opted-in games in-app instead of navi
 **Interfaces:**
 - Consumes: `MultiplayerChessSession` (Task 7), the updated `MultiplayerGames` (Task 8).
 
-- [ ] **Step 1: Add the import**
+- [x] **Step 1: Add the import**
 
 ```js
 // near the other component imports in src/App.jsx
 import { MultiplayerChessSession } from './multiplayer/chess/MultiplayerChessSession';
 ```
 
-- [ ] **Step 2: Hydrate the initial view from the URL (for refresh restore)**
+- [x] **Step 2: Hydrate the initial view from the URL (for refresh restore)**
 
 Find the `useState('home')` at line 254 and change it to read `?view=` on first render:
 
@@ -1259,7 +1259,7 @@ Find the `useState('home')` at line 254 and change it to read `?view=` on first 
 const [view, setView] = useState(() => (params.get('view') === 'mp-chess' ? 'mp-chess' : 'home'));
 ```
 
-- [ ] **Step 3: Add the `mp-chess` view branch**
+- [x] **Step 3: Add the `mp-chess` view branch**
 
 Add this alongside the existing `if (view === 'multiplayer') { ... }` block (around line 686):
 
@@ -1276,7 +1276,7 @@ if (view === 'mp-chess') {
 }
 ```
 
-- [ ] **Step 4: Pass the in-app opt-in to `MultiplayerGames`**
+- [x] **Step 4: Pass the in-app opt-in to `MultiplayerGames`**
 
 Update the existing render call (around line 697):
 
@@ -1292,16 +1292,16 @@ Update the existing render call (around line 697):
 />
 ```
 
-- [ ] **Step 5: Verify manually**
+- [x] **Step 5: Verify manually**
 
 Run: `npm run dev` (and `npm --prefix server run dev` in a second terminal). Open `http://localhost:5174`, click "Play with a Friend" → "Chess". Confirm the lobby renders inline (no navigation to `localhost:3000`) and the URL updates to include `?view=mp-chess&game=chess`.
 
-- [ ] **Step 6: Run the full test suite**
+- [x] **Step 6: Run the full test suite**
 
 Run: `npm test`
 Expected: all tests pass, including the new ones from Tasks 2–8.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/App.jsx
@@ -1314,7 +1314,7 @@ git commit -m "Wire Chess multiplayer session into App.jsx as an in-app view"
 
 **Files:** none (verification only).
 
-- [ ] **Step 1: Start both dev servers**
+- [x] **Step 1: Start both dev servers**
 
 ```bash
 npm run dev
@@ -1323,23 +1323,23 @@ npm run dev
 npm --prefix server run dev
 ```
 
-- [ ] **Step 2: Play a full match across two browser contexts**
+- [x] **Step 2: Play a full match across two browser contexts**
 
 Open the cgames SPA in two separate browser profiles/incognito windows (so each gets independent `localStorage`). In the first, go to "Play with a Friend" → Chess, enter a name, click "Create Game" — confirm the QR/room-code UI renders inline (no navigation away from `localhost:5174`). In the second, use the room code/QR URL to join. Confirm both windows show "Start Game" once connected, click it as host, and confirm both boards render and sync moves in real time.
 
-- [ ] **Step 3: Verify refresh-restore**
+- [x] **Step 3: Verify refresh-restore**
 
 Mid-match, refresh the tab that's mid-game. Confirm the URL contains `?view=mp-chess&room=...&color=...&name=...` and the session reconnects to the same room and board state rather than returning to the home screen.
 
-- [ ] **Step 4: Verify scoring**
+- [x] **Step 4: Verify scoring**
 
 Resign or play to checkmate. In the browser devtools console, run `localStorage.getItem('caritahub_scores:guest')` (or the relevant `memberId`) and confirm a `mp-chess` entry appears with the expected percentage. If launched with a `callbackUrl` query param, confirm (via the Network tab) a `POST` fires to that URL.
 
-- [ ] **Step 5: Verify the untouched vanilla path still works**
+- [x] **Step 5: Verify the untouched vanilla path still works**
 
 Open `http://localhost:3000/lobby.html?game=chess` directly (bypassing cgames) and confirm the original vanilla-JS Chess flow still works exactly as before — proving `server/public/` was never modified by this plan.
 
-- [ ] **Step 6: Run the non-regression suite**
+- [x] **Step 6: Run the non-regression suite**
 
 ```bash
 npm test
