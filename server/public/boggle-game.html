@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CaritaHub Boggle</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div class="header-inner">
+        <div class="header-nav"><a href="/" class="back-link">← All Games</a></div>
+        <h1>CaritaHub Boggle</h1>
+        <p class="subtitle" id="statusBar">Connecting…</p>
+      </div>
+    </header>
+
+    <main id="boggleApp">
+
+      <!-- Waiting overlay -->
+      <div id="waitingOverlay" class="overlay-card">
+        <p id="waitingMsg">Waiting for game to start…</p>
+      </div>
+
+      <!-- Game UI -->
+      <div id="gameUI" class="hidden">
+
+        <!-- Top bar: timer + player chips -->
+        <div class="boggle-topbar">
+          <div class="boggle-timer-wrap">
+            <div class="boggle-timer-label">Time Left</div>
+            <div id="boggleTimer" class="boggle-timer">1:00</div>
+          </div>
+          <div id="bogglePlayers" class="boggle-players"></div>
+        </div>
+
+        <!-- 4×4 board -->
+        <div class="boggle-board-wrap">
+          <div id="boggleBoard" class="boggle-board"></div>
+        </div>
+
+        <!-- ── Below-board panel ── -->
+        <div class="boggle-panel">
+
+          <!-- Word input -->
+          <input id="wordInput" class="boggle-word-input" type="text"
+            placeholder="Type or drag tiles…" maxlength="16"
+            autocomplete="off" autocorrect="off" autocapitalize="characters"
+            spellcheck="false" inputmode="text" aria-label="Word input" />
+
+          <!-- Action buttons -->
+          <div class="boggle-actions">
+            <button id="clearWordBtn" class="boggle-btn-clear" title="Clear">
+              <span>✕</span> Clear
+            </button>
+            <button id="submitWordBtn" class="boggle-btn-submit" title="Submit word (Enter)">
+              Submit ↵
+            </button>
+          </div>
+
+          <!-- Feedback toast -->
+          <div id="boggleFeedback" class="boggle-feedback" aria-live="polite" role="status"></div>
+
+          <!-- Found words -->
+          <div class="boggle-found-section">
+            <div class="boggle-found-header">
+              <span class="boggle-found-label">Your words</span>
+              <span id="boggleFoundScore" class="boggle-found-score">0 pts</span>
+            </div>
+            <div id="boggleFound" class="boggle-found"></div>
+          </div>
+
+        </div><!-- /boggle-panel -->
+
+        <!-- Host end-round button -->
+        <div id="endRoundWrap" class="boggle-end-wrap hidden">
+          <button id="endRoundBtn" class="boggle-btn-end">⏹ End Round Early</button>
+        </div>
+
+      </div><!-- /gameUI -->
+
+      <!-- Results overlay -->
+      <div id="resultsOverlay" class="overlay-card hidden">
+        <h2 id="resultsTitle">Round Over!</h2>
+        <div id="resultsBody" class="boggle-results"></div>
+        <div class="overlay-btns" style="margin-top:20px">
+          <button id="playAgainBtn" class="btn btn-success">Play Again</button>
+          <a href="/" class="btn btn-primary">Back to Games</a>
+        </div>
+      </div>
+
+      <!-- Reconnect overlay -->
+      <div id="reconnectOverlay" class="overlay-card hidden">
+        <p>Connection lost. Reconnecting…</p>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/boggle-game.js"></script>
+  <script src="/js/dev-test.js"></script>
+</body>
+</html>

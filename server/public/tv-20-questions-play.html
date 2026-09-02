@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>CaritaHub 20 Questions</title>
+  <link rel="stylesheet" href="/css/play-base.css" />
+  <style>
+    /* ── Playing Screen ── */
+    .playing-screen {
+      background: linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%);
+      color: #fff;
+      padding: 16px;
+      gap: 10px;
+    }
+
+    /* Top info */
+    .top-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .category-badge {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffd700;
+      background: rgba(255,215,0,0.15);
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 2px solid rgba(255,215,0,0.3);
+    }
+
+    .question-counter {
+      font-size: 16px;
+      font-weight: 600;
+      color: #aab;
+    }
+
+    /* Q&A History */
+    .qa-history {
+      flex: 1;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 0;
+    }
+
+    .qa-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 10px;
+      font-size: 15px;
+    }
+
+    .qa-item-text { flex: 1; font-size: 15px; }
+
+    .qa-item-badge {
+      font-size: 13px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .qa-item-badge.yes { background: rgba(78,204,163,0.25); color: #4ecca3; }
+    .qa-item-badge.no { background: rgba(231,76,60,0.25); color: #e74c3c; }
+    .qa-item-badge.unsure { background: rgba(170,170,187,0.2); color: #aab; }
+    .qa-item-badge.correct { background: rgba(255,215,0,0.3); color: #ffd700; }
+    .qa-item-badge.wrong-guess { background: rgba(231,76,60,0.2); color: #e74c3c; }
+
+    /* Input area */
+    .input-area {
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .text-input {
+      flex: 1;
+      min-width: 0;
+      font-size: 20px;
+      padding: 14px 16px;
+      border: 3px solid #4ecca3;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      outline: none;
+    }
+    .text-input::placeholder { color: #667; }
+    .text-input:focus { border-color: #ffd700; }
+
+    .mic-btn {
+      width: 56px;
+      min-height: 56px;
+      font-size: 28px;
+      border: 3px solid #4ecca3;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.08);
+      color: #4ecca3;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.2s, border-color 0.2s, transform 0.1s;
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .mic-btn:active { transform: scale(0.95); }
+    .mic-btn.listening {
+      background: rgba(231,76,60,0.25);
+      border-color: #e74c3c;
+      color: #e74c3c;
+      animation: micPulse 1s ease-in-out infinite;
+    }
+    .mic-btn.hidden { display: none; }
+
+    @keyframes micPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .ask-btn, .guess-btn {
+      flex: 1;
+      min-height: 56px;
+      font-size: 20px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-user-select: none;
+      user-select: none;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+    .ask-btn:active:not(:disabled), .guess-btn:active:not(:disabled) {
+      transform: scale(0.96);
+    }
+    .ask-btn:disabled, .guess-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .ask-btn {
+      background: #4ecca3;
+      color: #1a1a2e;
+    }
+
+    .guess-btn {
+      background: #ffd700;
+      color: #1a1a2e;
+    }
+
+    .cooldown-text {
+      font-size: 14px;
+      color: #ff9f43;
+      text-align: center;
+      min-height: 20px;
+      font-weight: 600;
+    }
+
+    .hint-text {
+      font-size: 13px;
+      color: #667;
+      text-align: center;
+    }
+
+    /* ── Game Over Screen ── */
+    .gameover-screen {
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      gap: 16px;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+    }
+
+    .gameover-emoji { font-size: 80px; }
+
+    .gameover-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #aab;
+    }
+
+    .gameover-answer {
+      font-size: 48px;
+      font-weight: 900;
+      color: #ffd700;
+      text-align: center;
+    }
+
+    .gameover-personal {
+      font-size: 28px;
+      font-weight: 800;
+      color: #4ecca3;
+      text-align: center;
+    }
+
+    .gameover-msg {
+      font-size: 20px;
+      font-weight: 600;
+      text-align: center;
+      max-width: 350px;
+    }
+
+    /* ── Reconnect ── */
+    .reconnect-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: #fff;
+      z-index: 100;
+    }
+
+    /* ── Confetti ── */
+    .confetti-container {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 99;
+      overflow: hidden;
+    }
+    .confetti-piece {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      top: -10px;
+      opacity: 0;
+      animation: confettiFall 3s ease-in forwards;
+    }
+    @keyframes confettiFall {
+      0% { opacity: 1; top: -10px; transform: rotate(0deg) scale(1); }
+      100% { opacity: 0; top: 110vh; transform: rotate(720deg) scale(0.5); }
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+      15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      75% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+<!-- Join Screen -->
+  <div id="joinScreen" class="screen join-screen active">
+    <div class="join-logo">❓</div>
+    <div class="join-title">20 Questions</div>
+    <div class="join-subtitle">Ask yes/no questions to guess the secret word!</div>
+    <input id="nameInput" class="join-input" type="text" placeholder="Your Name" maxlength="30" autocomplete="off" />
+    <button id="joinBtn" class="join-btn">Join Game</button>
+    <div id="joinError" class="join-error"></div>
+  </div>
+
+  <!-- Waiting Screen -->
+  <div id="waitingScreen" class="screen waiting-screen">
+    <div class="waiting-title">Waiting for game to start</div>
+    <div class="waiting-dots">...</div>
+    <div id="waitingName" class="waiting-name"></div>
+    <div class="waiting-players">
+      <div class="waiting-players-title">Players in game:</div>
+      <div id="waitingPlayerList"></div>
+    </div>
+  </div>
+
+  <!-- Playing Screen -->
+  <div id="playingScreen" class="screen playing-screen">
+
+    <div class="top-info">
+      <div id="mCategoryBadge" class="category-badge">Category: ???</div>
+      <div id="mQuestionCounter" class="question-counter">0 / 20</div>
+    </div>
+
+    <div id="qaHistory" class="qa-history"></div>
+
+    <div class="input-area">
+      <div class="input-row">
+        <input id="questionInput" class="text-input" type="text" placeholder="Type or tap mic to speak..." maxlength="200" autocomplete="off" />
+        <button id="micBtn" class="mic-btn hidden" aria-label="Voice input">&#127908;</button>
+      </div>
+      <div class="action-buttons">
+        <button id="askBtn" class="ask-btn">Ask Question</button>
+        <button id="guessBtn" class="guess-btn">Guess!</button>
+      </div>
+      <div id="cooldownText" class="cooldown-text"></div>
+      <div class="hint-text">Ask: "Is it alive?", "Can it fly?", "Is it in Asia?"</div>
+    </div>
+
+  </div>
+
+  <!-- Game Over Screen -->
+  <div id="gameoverScreen" class="screen gameover-screen">
+    <div class="gameover-emoji">&#10068;</div>
+    <div class="gameover-title">The answer was...</div>
+    <div id="mGameoverAnswer" class="gameover-answer"></div>
+    <div id="mGameoverPersonal" class="gameover-personal"></div>
+    <div id="mGameoverMsg" class="gameover-msg"></div>
+  </div>
+
+  <!-- Confetti Container -->
+  <div id="confettiContainer" class="confetti-container hidden"></div>
+
+  <!-- Reconnect Overlay -->
+  <div id="reconnectOverlay" class="reconnect-overlay hidden">
+    Connection lost. Reconnecting...
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/tv-20-questions-play.js"></script>
+  <script src="/js/dev-test.js"></script>
+  <script src="/js/game-rules.js"></script>
+</body>
+</html>

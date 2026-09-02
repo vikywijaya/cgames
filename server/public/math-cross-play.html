@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>CaritaHub Math Cross</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; min-height: 100dvh; overflow-x: hidden;
+      font-family: 'Lexend', -apple-system, sans-serif;
+      background: #0a0e1a; color: #fff;
+      -webkit-text-size-adjust: 100%;
+      touch-action: manipulation;
+    }
+
+    .screen { display: none; min-height: 100dvh; flex-direction: column; }
+    .screen.active { display: flex; }
+
+    /* ── Join ── */
+    .join-screen {
+      align-items: center; justify-content: center;
+      padding: 40px 24px; gap: 20px;
+      background: radial-gradient(ellipse at 50% 0%, #1a2a4a 0%, #0a0e1a 70%);
+    }
+    .join-logo { font-size: 64px; line-height: 1; }
+    .join-title { font-size: 32px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+    .join-subtitle { font-size: 15px; color: #6b7a9a; text-align: center; max-width: 300px; }
+    .join-input {
+      width: 100%; max-width: 360px;
+      font-size: 18px; font-family: 'Lexend', sans-serif; font-weight: 600;
+      padding: 16px 20px; border-radius: 14px;
+      border: 2px solid #1e2d4a; background: #111827;
+      color: #fff; outline: none; text-align: center;
+      transition: border-color 0.2s;
+    }
+    .join-input::placeholder { color: #3a4a6a; font-weight: 400; }
+    .join-input:focus { border-color: #3b82f6; }
+    .join-btn {
+      width: 100%; max-width: 360px;
+      font-size: 18px; font-family: 'Lexend', sans-serif; font-weight: 800;
+      padding: 18px; border-radius: 14px; border: none;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: #fff; cursor: pointer;
+      box-shadow: 0 8px 24px rgba(59,130,246,0.35);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .join-btn:active { transform: scale(0.97); box-shadow: 0 4px 12px rgba(59,130,246,0.25); }
+    .join-error { font-size: 14px; color: #f87171; text-align: center; min-height: 20px; }
+
+    /* ── Waiting ── */
+    .waiting-screen {
+      align-items: center; justify-content: center; gap: 20px;
+      background: radial-gradient(ellipse at 50% 0%, #1a2a4a 0%, #0a0e1a 70%);
+    }
+    .waiting-icon { font-size: 64px; animation: float 2s ease-in-out infinite; }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-10px); }
+    }
+    .waiting-title { font-size: 24px; font-weight: 800; color: #fff; }
+    .waiting-name  { font-size: 17px; color: #3b82f6; font-weight: 700; }
+    .waiting-sub   { font-size: 14px; color: #4b5a7a; }
+    .waiting-dots  {
+      display: flex; gap: 8px;
+    }
+    .waiting-dots span {
+      width: 10px; height: 10px; border-radius: 50%; background: #3b82f6;
+      animation: dotPulse 1.2s ease-in-out infinite;
+    }
+    .waiting-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .waiting-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotPulse { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
+
+    /* ── Playing ── */
+    .playing-screen {
+      background: #0a0e1a;
+      padding: 0;
+      gap: 0;
+      align-items: stretch;
+    }
+
+    /* Top bar */
+    .play-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+    }
+    .play-topbar-title {
+      font-size: 16px; font-weight: 800; color: #fff;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .play-topbar-title span { font-size: 20px; }
+    .play-round-badge {
+      font-size: 12px; font-weight: 700;
+      background: rgba(59,130,246,0.15);
+      color: #60a5fa; border-radius: 20px;
+      padding: 4px 10px;
+    }
+    .play-hint {
+      font-size: 13px; font-weight: 600; color: #60a5fa;
+      text-align: center;
+    }
+
+    /* Race bar */
+    .race-section {
+      padding: 10px 16px 6px;
+      flex-shrink: 0;
+    }
+    .race-label {
+      font-size: 11px; font-weight: 700; color: #4b5a7a;
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .race-bar {
+      display: flex; gap: 8px; overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+    .race-bar::-webkit-scrollbar { display: none; }
+    .race-card {
+      flex-shrink: 0;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      background: #111827; border-radius: 10px;
+      padding: 8px 12px; min-width: 60px;
+      border: 2px solid transparent;
+      transition: border-color 0.2s;
+    }
+    .race-card.me { border-color: #3b82f6; }
+    .race-card.solved { border-color: #22c55e; background: rgba(34,197,94,0.08); }
+    .race-card-slots {
+      font-size: 17px; font-weight: 900; color: #fff;
+    }
+    .race-card.solved .race-card-slots { color: #22c55e; }
+    .race-card.me:not(.solved) .race-card-slots { color: #60a5fa; }
+    .race-card-name {
+      font-size: 11px; font-weight: 600; color: #4b5a7a;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 56px;
+    }
+    .race-card.me .race-card-name { color: #93c5fd; }
+
+    /* Divider */
+    .section-divider {
+      height: 1px; background: rgba(255,255,255,0.05);
+      margin: 0 16px;
+    }
+
+    /* Puzzle area */
+    .puzzle-section {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px;
+      overflow: hidden;
+    }
+    .puzzle-grid {
+      display: inline-grid;
+      gap: 5px;
+    }
+
+    .cell {
+      width: 54px; height: 54px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 19px; font-weight: 800; border-radius: 10px;
+      font-family: 'Lexend', sans-serif;
+    }
+    .cell-blank { background: transparent; }
+    .cell-given {
+      background: #1e2d4a; color: #93c5fd;
+      border: 2px solid #1e3560;
+      font-weight: 900;
+    }
+    .cell-op {
+      background: transparent; color: #4b5a7a;
+      font-size: 22px; font-weight: 700;
+    }
+    .cell-slot {
+      background: #111827;
+      border: 2px dashed #1e2d4a;
+      color: transparent;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    }
+    .cell-slot:active { transform: scale(0.92); }
+    .cell-slot.selected {
+      border-color: #3b82f6; border-style: solid;
+      background: rgba(59,130,246,0.12);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+    }
+    .cell-filled {
+      background: #1e3a6a; border: 2px solid #3b82f6;
+      color: #93c5fd; cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .cell-filled:active { transform: scale(0.92); }
+    .cell-filled.selected {
+      background: rgba(59,130,246,0.2);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.3);
+    }
+    .cell-correct {
+      background: rgba(34,197,94,0.12);
+      border: 2px solid #22c55e;
+      color: #4ade80;
+    }
+
+    /* Tray section */
+    .tray-section {
+      flex-shrink: 0;
+      padding: 12px 16px 20px;
+      background: rgba(255,255,255,0.02);
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .tray-label {
+      font-size: 11px; font-weight: 700; color: #4b5a7a;
+      text-transform: uppercase; letter-spacing: 1px;
+      text-align: center; margin-bottom: 10px;
+    }
+    .tray {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+    }
+    .tray-num {
+      width: 58px; height: 58px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 900;
+      font-family: 'Lexend', sans-serif;
+      background: #111827;
+      border: 2px solid #1e2d4a;
+      border-radius: 12px; cursor: pointer; color: #e2e8f0;
+      transition: border-color 0.15s, background 0.15s, transform 0.1s, box-shadow 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tray-num:active:not(.used) { transform: scale(0.9); }
+    .tray-num.selected {
+      border-color: #3b82f6;
+      background: rgba(59,130,246,0.15);
+      color: #60a5fa;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.25);
+    }
+    .tray-num.used {
+      opacity: 0.15;
+      pointer-events: none;
+      border-color: #111827;
+    }
+
+    /* Solved overlay */
+    .solved-overlay {
+      position: fixed; inset: 0;
+      background: rgba(10,14,26,0.93);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 16px; z-index: 50;
+      animation: fadeIn 0.35s ease;
+    }
+    .solved-overlay.hidden { display: none; }
+    @keyframes fadeIn { from{opacity:0;transform:scale(0.97)} to{opacity:1;transform:scale(1)} }
+    .solved-emoji { font-size: 80px; }
+    .solved-title { font-size: 44px; font-weight: 900; color: #fbbf24; }
+    .solved-sub   { font-size: 17px; color: #6b7a9a; text-align: center; }
+
+    /* ── Game Over ── */
+    .gameover-screen {
+      align-items: center; justify-content: center;
+      padding: 40px 24px; gap: 16px;
+      background: radial-gradient(ellipse at 50% 0%, #1a2a4a 0%, #0a0e1a 70%);
+    }
+    .gameover-emoji  { font-size: 80px; }
+    .gameover-title  { font-size: 42px; font-weight: 900; color: #fbbf24; text-align: center; letter-spacing: -1px; }
+    .gameover-personal { font-size: 26px; font-weight: 800; color: #60a5fa; text-align: center; }
+    .gameover-msg    { font-size: 16px; font-weight: 500; color: #4b5a7a; text-align: center; max-width: 320px; }
+
+    /* ── Reconnect ── */
+    .reconnect-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.88);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 600; color: #93c5fd; z-index: 100;
+    }
+    .reconnect-overlay.hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Join ── -->
+  <div id="joinScreen" class="screen join-screen active">
+    <div class="join-logo">🧮</div>
+    <div class="join-title">Math Cross</div>
+    <div class="join-subtitle">Race to solve the puzzle first!</div>
+    <input id="nameInput" class="join-input" type="text" placeholder="Enter your name" maxlength="30" autocomplete="off" />
+    <button id="joinBtn" class="join-btn">Join Game</button>
+    <div id="joinError" class="join-error"></div>
+  </div>
+
+  <!-- ── Waiting ── -->
+  <div id="waitingScreen" class="screen waiting-screen">
+    <div class="waiting-icon">🧮</div>
+    <div class="waiting-title">You're in!</div>
+    <div id="waitingName" class="waiting-name"></div>
+    <div class="waiting-dots">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="waiting-sub">Waiting for host to start…</div>
+  </div>
+
+  <!-- ── Playing ── -->
+  <div id="playingScreen" class="screen playing-screen">
+
+    <!-- Top bar -->
+    <div class="play-topbar">
+      <div class="play-topbar-title"><span>🧮</span> Math Cross</div>
+      <div id="roundBadge" class="play-round-badge">Round 1</div>
+    </div>
+
+    <!-- Hint -->
+    <div id="gameHint" class="play-hint" style="padding:8px 16px 4px;"></div>
+
+    <!-- Race bar -->
+    <div class="race-section">
+      <div class="race-label">Race</div>
+      <div id="raceBar" class="race-bar"></div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Puzzle -->
+    <div class="puzzle-section">
+      <div id="puzzleGrid" class="puzzle-grid"></div>
+    </div>
+
+    <!-- Tray -->
+    <div class="tray-section">
+      <div class="tray-label">Tap a number, then a slot</div>
+      <div id="tray" class="tray"></div>
+    </div>
+
+    <!-- Solved overlay -->
+    <div id="solvedOverlay" class="solved-overlay hidden">
+      <div class="solved-emoji">🎉</div>
+      <div class="solved-title">Solved!</div>
+      <div class="solved-sub">Waiting for results…</div>
+    </div>
+  </div>
+
+  <!-- ── Game Over ── -->
+  <div id="gameoverScreen" class="screen gameover-screen">
+    <div id="gameoverEmoji" class="gameover-emoji">🏆</div>
+    <div id="gameoverTitle" class="gameover-title">Game Over</div>
+    <div id="gameoverPersonal" class="gameover-personal"></div>
+    <div id="gameoverMsg" class="gameover-msg"></div>
+  </div>
+
+  <!-- ── Reconnect ── -->
+  <div id="reconnectOverlay" class="reconnect-overlay hidden">
+    Reconnecting…
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/math-cross-play.js"></script>
+  <script src="/js/dev-test.js"></script>
+  <script src="/js/game-rules.js"></script>
+</body>
+</html>

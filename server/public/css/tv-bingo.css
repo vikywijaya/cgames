@@ -1,0 +1,415 @@
+/* ── TV Bingo — game-specific styles (lobby chrome inherited from tv-base.css) ── */
+
+/* ── Playing Phase ── */
+/* Playing phase inherits nav bar from tv-base.css */
+
+.tv-playing-count {
+  font-size: 1.8vw;
+  color: #aab;
+}
+
+/* Override tv-base body padding — generous breathing room */
+.tv-playing .tv-playing-body {
+  padding: 2.5vh 3vw 2vh;
+  gap: 2vh;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Main content: hero left + board right ── */
+.tv-playing-main {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 3vw;
+  width: 100%;
+}
+
+/* ── Left hero panel ── */
+/* Width = 2 cells + 1 gap so it visually aligns with the board */
+.tv-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2vh;
+  flex-shrink: 0;
+  width: calc(var(--cell) * 2 + var(--gap));
+  overflow: hidden;
+}
+
+.tv-number-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  overflow: hidden;
+}
+
+.tv-number-label {
+  font-size: 1.1vw;
+  color: #aab;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.4vh;
+}
+
+/* Letter badge (B / I / N / G / O) */
+.tv-number-letter {
+  font-size: calc(var(--cell) * 0.7);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  text-align: center;
+  width: 100%;
+}
+.tv-number-letter.col-B { color: #60a5fa; }
+.tv-number-letter.col-I { color: #f87171; }
+.tv-number-letter.col-N { color: #4ade80; }
+.tv-number-letter.col-G { color: #c084fc; }
+.tv-number-letter.col-O { color: #fb923c; }
+
+/* The actual number — big but contained */
+.tv-number-value {
+  font-size: calc(var(--cell) * 1.4);
+  font-weight: 900;
+  line-height: 1.0;
+  color: #ffd700;
+  text-shadow: 0 2px 20px rgba(255,215,0,0.35);
+  transition: transform 0.3s;
+  white-space: nowrap;
+  text-align: center;
+  width: 100%;
+}
+
+.tv-number-value.pop {
+  animation: tvPop 0.5s ease-out;
+}
+
+@keyframes tvPop {
+  0%   { transform: scale(0.5); opacity: 0; }
+  60%  { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ── Countdown Ring ── */
+.tv-countdown-wrap {
+  position: relative;
+  width: 10vw;
+  height: 10vw;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.tv-countdown-wrap:hover { transform: scale(1.05); }
+.tv-countdown-wrap:active { transform: scale(0.95); }
+
+.tv-countdown-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.tv-countdown-track {
+  fill: none;
+  stroke: rgba(255,255,255,0.1);
+  stroke-width: 6;
+}
+
+.tv-countdown-progress {
+  fill: none;
+  stroke: #4ecca3;
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear;
+}
+
+.tv-countdown-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.8vw;
+  font-weight: 800;
+  color: #fff;
+}
+
+.tv-countdown-sub {
+  position: absolute;
+  bottom: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.9vw;
+  color: #aab;
+}
+
+.tv-countdown-hint {
+  position: absolute;
+  bottom: -2vw;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.85vw;
+  color: #667;
+  white-space: nowrap;
+}
+
+/* ── Board wrapper: two halves side by side ── */
+/* Cell size derived from available space:
+   100vw - 6vw padding - 14vw hero - 3vw gap - 2vw half-gap = 75vw for 10 cols
+   Each cell = (75vw - 9×0.5vw) / 10 ≈ 6.98vw → use 6.5vw for safe padding */
+:root { --cell: min(6.5vw, 7.5vh); --gap: 0.5vw; }
+
+.tv-board-area {
+  display: flex;
+  flex-direction: row;
+  gap: 2vw;
+  align-items: flex-start;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tv-board-half {
+  display: flex;
+  gap: var(--gap);
+  align-items: flex-start;
+}
+
+.tv-board-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+/* Header — square */
+.tv-board-col-header {
+  width: var(--cell);
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--cell) * 0.44);
+  font-weight: 900;
+  border-radius: calc(var(--cell) * 0.1);
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.tv-board-col-header.col-B { background: #1155cc; }
+.tv-board-col-header.col-I { background: #c0392b; }
+.tv-board-col-header.col-N { background: #1a6e1a; }
+.tv-board-col-header.col-G { background: #7d3c98; }
+.tv-board-col-header.col-O { background: #b7600a; }
+
+/* Number cell — square, font scales with cell */
+.tv-board-num {
+  width: var(--cell);
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--cell) * 0.38);
+  font-weight: 700;
+  border-radius: calc(var(--cell) * 0.09);
+  color: rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.05);
+  transition: background 0.25s, color 0.25s, transform 0.2s;
+  flex-shrink: 0;
+}
+
+.tv-board-num.called {
+  color: #fff;
+  font-weight: 900;
+}
+.tv-board-num.called.col-B { background: #1155cc; box-shadow: inset 0 1px 0 rgba(255,255,255,0.15); }
+.tv-board-num.called.col-I { background: #c0392b; box-shadow: inset 0 1px 0 rgba(255,255,255,0.15); }
+.tv-board-num.called.col-N { background: #1a6e1a; box-shadow: inset 0 1px 0 rgba(255,255,255,0.15); }
+.tv-board-num.called.col-G { background: #7d3c98; box-shadow: inset 0 1px 0 rgba(255,255,255,0.15); }
+.tv-board-num.called.col-O { background: #b7600a; box-shadow: inset 0 1px 0 rgba(255,255,255,0.15); }
+
+.tv-board-num.last-called {
+  outline: 3px solid #ffd700;
+  outline-offset: -2px;
+  transform: scale(1.08);
+  z-index: 1;
+  box-shadow: 0 0 12px rgba(255,215,0,0.45) !important;
+}
+
+/* ── Players Strip ── */
+.tv-players-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2vw;
+  padding: 1vh 0;
+  flex-shrink: 0;
+  justify-content: center;
+}
+
+.tv-player-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.6vw;
+  font-size: 1.6vw;
+  font-weight: 600;
+  padding: 0.6vh 1.2vw;
+  background: rgba(255,255,255,0.08);
+  border-radius: 0.8vw;
+  border-left: 0.4vw solid #4ecca3;
+}
+
+.tv-player-chip.winner {
+  background: rgba(255,215,0,0.2);
+  border-left-color: #ffd700;
+  animation: tvWinnerChipPulse 1s ease-in-out infinite;
+}
+
+@keyframes tvWinnerChipPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,0,0.4); }
+  50% { box-shadow: 0 0 12px 4px rgba(255,215,0,0.3); }
+}
+
+.tv-player-name {
+  font-weight: 700;
+}
+
+.tv-player-progress {
+  font-size: 1.2vw;
+  color: #aab;
+  font-weight: 400;
+  margin-left: 0.5vw;
+}
+
+.tv-player-bingo {
+  color: #ffd700;
+  font-weight: 800;
+  margin-left: 0.5vw;
+  animation: tvBingoFlash 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes tvBingoFlash {
+  0% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+/* ── Game Over Phase ── */
+.tv-gameover {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3vh;
+}
+
+.tv-gameover-emoji {
+  font-size: 12vw;
+  animation: tvBounce 1s ease-in-out infinite alternate;
+}
+
+@keyframes tvBounce {
+  0%   { transform: scale(1); }
+  100% { transform: scale(1.1); }
+}
+
+.tv-gameover-title {
+  font-size: 10vw;
+  font-weight: 900;
+  color: #ffd700;
+  text-shadow: 0 4px 30px rgba(255,215,0,0.5);
+}
+
+.tv-gameover-winner {
+  font-size: 4vw;
+  font-weight: 700;
+}
+
+.tv-gameover-btns {
+  display: flex;
+  gap: 2vw;
+  margin-top: 2vh;
+}
+
+.tv-gameover-btn {
+  font-size: 2.5vw;
+  font-weight: 800;
+  padding: 2vh 4vw;
+  border: none;
+  border-radius: 1.5vw;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+}
+
+.tv-btn-play-again {
+  background: #4ecca3;
+  color: #1a1a2e;
+}
+
+.tv-btn-back {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+
+/* ── Number call overlay — big center flash ── */
+.tv-call-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1vw;
+  background: rgba(0, 0, 0, 0.82);
+  z-index: 200;
+  pointer-events: none;
+}
+
+.tv-call-overlay.hidden { display: none; }
+
+.tv-call-overlay.fade-out {
+  animation: callOverlayFade 0.6s ease-out forwards;
+}
+
+@keyframes callOverlayFade {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.tv-call-overlay-letter {
+  font-size: 12vw;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  animation: callPop 0.35s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.tv-call-overlay-number {
+  font-size: 22vw;
+  font-weight: 900;
+  line-height: 0.9;
+  color: #fff;
+  text-shadow: 0 0 80px rgba(255,255,255,0.3);
+  animation: callPop 0.35s cubic-bezier(0.23, 1, 0.32, 1) 0.05s both;
+}
+
+@keyframes callPop {
+  0%   { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1);   opacity: 1; }
+}
+
+/* Letter colour per column */
+.tv-call-overlay-letter.col-B { color: #60a5fa; text-shadow: 0 0 60px rgba(37,99,235,0.7); }
+.tv-call-overlay-letter.col-I { color: #f87171; text-shadow: 0 0 60px rgba(220,38,38,0.7); }
+.tv-call-overlay-letter.col-N { color: #4ade80; text-shadow: 0 0 60px rgba(22,163,74,0.7); }
+.tv-call-overlay-letter.col-G { color: #c084fc; text-shadow: 0 0 60px rgba(147,51,234,0.7); }
+.tv-call-overlay-letter.col-O { color: #fb923c; text-shadow: 0 0 60px rgba(234,88,12,0.7); }
+
+/* ── Winner name highlight ── */
+.tv-gameover-winner-name {
+  font-size: 6vw;
+  font-weight: 900;
+  color: #4ecca3;
+  text-shadow: 0 4px 20px rgba(78,204,163,0.5);
+  animation: tvWinnerPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes tvWinnerPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}

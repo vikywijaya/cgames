@@ -1,0 +1,213 @@
+/* ── TV missing number — game-specific styles (lobby chrome inherited from tv-base.css) ── */
+
+/* ── TV Missing Number — game-specific styles only (chrome from tv-base.css) ── */
+
+/* Playing phase background */
+.tv-playing {
+  background: linear-gradient(180deg, #1a2a3a 0%, #0e1a26 60%, #141414 100%);
+}
+
+.tv-playing .tv-playing-body {
+  justify-content: center;
+  gap: 24px;
+  padding: 20px 32px;
+  overflow: hidden;
+}
+
+/* Phase label colour */
+.tv-phase-label {
+  color: #4ecca3;
+  text-shadow: 0 2px 12px rgba(78,204,163,0.3);
+}
+
+/* Sequence row */
+.tv-sequence-display {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 18px;
+  justify-content: center;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  max-width: 1200px;
+}
+
+.tv-seq-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #2a4a6e 0%, #1a3050 100%);
+  border: 3px solid #3a5a8e;
+  border-radius: 22px;
+  width: clamp(110px, 11vw, 150px);
+  height: clamp(110px, 11vw, 150px);
+  font-size: clamp(40px, 4.5vw, 56px);
+  font-weight: 900;
+  color: #eef6ff;
+  font-variant-numeric: tabular-nums;
+  box-shadow:
+    0 8px 24px rgba(0,0,0,0.4),
+    inset 0 -6px 0 rgba(0,0,0,0.25),
+    inset 0 4px 0 rgba(255,255,255,0.08);
+  animation: tileIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+.tv-seq-num:nth-child(1) { animation-delay: 0.05s; }
+.tv-seq-num:nth-child(2) { animation-delay: 0.10s; }
+.tv-seq-num:nth-child(3) { animation-delay: 0.15s; }
+.tv-seq-num:nth-child(4) { animation-delay: 0.20s; }
+.tv-seq-num:nth-child(5) { animation-delay: 0.25s; }
+.tv-seq-num:nth-child(6) { animation-delay: 0.30s; }
+.tv-seq-num:nth-child(7) { animation-delay: 0.35s; }
+
+@keyframes tileIn {
+  0%   { opacity: 0; transform: translateY(-30px) scale(0.6); }
+  100% { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+.tv-seq-blank {
+  background: linear-gradient(180deg, #2a3f1f 0%, #1a2e10 100%);
+  border: 4px dashed #4ecca3;
+  color: #4ecca3;
+  font-size: clamp(54px, 6vw, 72px);
+  animation: tileIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards, blankPulse 1.6s ease-in-out infinite 0.6s;
+  box-shadow: 0 0 0 0 rgba(78,204,163,0.4), 0 8px 24px rgba(0,0,0,0.4);
+}
+
+@keyframes blankPulse {
+  0%, 100% {
+    border-color: #4ecca3;
+    color: #4ecca3;
+    box-shadow: 0 0 0 0 rgba(78,204,163,0.5), 0 8px 24px rgba(0,0,0,0.4);
+  }
+  50% {
+    border-color: #ffd700;
+    color: #ffd700;
+    box-shadow: 0 0 0 12px rgba(255,215,0,0), 0 8px 24px rgba(0,0,0,0.4);
+  }
+}
+
+/* Option tiles — anti-cheat, hidden by default; revealed on round over */
+.tv-option-tiles {
+  display: none;
+  gap: 18px;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tv-option-tiles.show { display: flex; }
+
+.tv-option-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.05);
+  border: 3px solid rgba(255,255,255,0.1);
+  border-radius: 18px;
+  width: 142px;
+  height: 90px;
+  font-size: 40px;
+  font-weight: 900;
+  color: #aab;
+  font-variant-numeric: tabular-nums;
+  transition: background 0.3s, border-color 0.3s, color 0.3s, transform 0.3s;
+}
+
+.tv-option-tile.tile-correct {
+  border-color: #4ecca3;
+  background: linear-gradient(180deg, #2da880 0%, #1a7050 100%);
+  color: #fff;
+  transform: scale(1.08);
+  box-shadow: 0 0 0 4px rgba(78,204,163,0.3), 0 8px 24px rgba(78,204,163,0.4);
+}
+
+/* Player progress boards */
+.tv-player-boards {
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  flex-shrink: 0;
+  align-items: flex-start;
+  width: 100%;
+  flex-wrap: wrap;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.tv-player-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 2px solid rgba(255,255,255,0.1);
+  border-radius: 18px;
+  padding: 16px 14px;
+  min-width: 170px;
+  flex: 1;
+  max-width: 220px;
+  position: relative;
+  transition: transform 240ms cubic-bezier(0.23,1,0.32,1), border-color 240ms ease, background 240ms ease;
+}
+
+.tv-player-board.board-answered {
+  border-color: #4ecca3;
+  background: rgba(78,204,163,0.12);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(78,204,163,0.25);
+}
+
+.tv-player-board.board-winner {
+  border-color: #ffd700;
+  background: linear-gradient(180deg, rgba(255,215,0,0.18) 0%, rgba(255,184,77,0.1) 100%);
+  box-shadow: 0 0 0 3px rgba(255,215,0,0.3), 0 12px 36px rgba(255,215,0,0.4);
+  animation: winnerPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes winnerPulse {
+  0%, 100% { transform: translateY(-4px) scale(1); }
+  50%      { transform: translateY(-6px) scale(1.02); }
+}
+
+.tv-player-board-crown {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 36px;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+  animation: crownBob 1.2s ease-in-out infinite;
+}
+
+@keyframes crownBob {
+  0%, 100% { transform: translateX(-50%) translateY(0)    rotate(-4deg); }
+  50%      { transform: translateX(-50%) translateY(-4px) rotate(4deg); }
+}
+
+.tv-player-board-name { font-size: 18px; font-weight: 700; color: #fff; text-align: center; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tv-player-score { font-size: 18px; font-weight: 800; color: #ffd700; }
+.tv-player-status { font-size: 15px; color: #c9d4e0; display: flex; align-items: center; gap: 6px; }
+
+.tv-waiting-dot {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: #4ecca3;
+  animation: waitPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes waitPulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50%       { opacity: 1;   transform: scale(1.2); }
+}
+
+/* Round / Game Over accent colours */
+.tv-roundover { background: linear-gradient(135deg, #1a2a3a 0%, #141414 100%); }
+.tv-roundover-title { color: #4ecca3; text-shadow: 0 2px 16px rgba(78,204,163,0.4); }
+.tv-roundover-countdown { color: #c9d4e0; }
+
+.tv-gameover { background: linear-gradient(135deg, #1a2a3a 0%, #141414 100%); }
+.tv-gameover-title { color: #ffd700; text-shadow: 0 2px 16px rgba(255,215,0,0.5); }
+.tv-gameover-winner-name { color: #4ecca3; }
+.tv-gameover-winner { color: #c9d4e0; }
+.tv-btn-play-again { background: #4ecca3; color: #0d2a1e; }

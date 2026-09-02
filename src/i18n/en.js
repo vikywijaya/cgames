@@ -67,8 +67,7 @@ export default {
     playWithFriend: 'Play with a Friend',
     playWithFriendDesc: '5 online 2-player games — chess, cards & more.',
     multiplayerTitle: 'Play with a Friend',
-    multiplayerSubtitle: 'Tap a game to open it in a new tab, then create or join with a 6-character room code — no account needed.',
-    multiplayerExternalBadge: 'Opens in a new tab ↗',
+    multiplayerSubtitle: 'Tap a game to create or join with a 6-character room code — no account needed.',
     multiplayerPlayers: '2 Players',
     // Daily challenge
     todaysChallenge: "Today's Challenge",

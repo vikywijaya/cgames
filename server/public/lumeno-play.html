@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>CaritaHub Lumeno</title>
+  <link rel="stylesheet" href="/css/lumeno-play.css" />
+</head>
+<body>
+<!-- ── Join ── -->
+  <div id="joinScreen" class="screen join-screen active">
+    <div class="join-title">🔮 Lumeno</div>
+    <div class="join-subtitle">Connect colorful orbs!</div>
+    <input id="nameInput" class="join-input" type="text" placeholder="Your name" maxlength="30" autocomplete="off" />
+    <button id="joinBtn" class="join-btn">Join Game</button>
+    <div id="joinError" class="join-error"></div>
+  </div>
+
+  <!-- ── Waiting ── -->
+  <div id="waitingScreen" class="screen waiting-screen">
+    <div class="waiting-dots">🔮</div>
+    <div class="waiting-title">You're in!</div>
+    <div id="waitingName" class="waiting-name"></div>
+    <div class="waiting-sub">Waiting for the host to start...</div>
+  </div>
+
+  <!-- ── Playing ── -->
+  <div id="playingScreen" class="screen playing-screen">
+    <div class="game-header">
+      <div class="game-title">Lumeno</div>
+      <div id="gameHint" class="game-hint">Drag to connect orbs</div>
+    </div>
+
+    <div class="game-stats">
+      <div class="stat-box">
+        <div class="stat-label">Moves</div>
+        <div id="movesLeft" class="stat-value">--</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Score</div>
+        <div id="scoreDisplay" class="stat-value">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Total</div>
+        <div id="sessionScore" class="stat-value">0</div>
+      </div>
+    </div>
+
+    <!-- Chain indicator -->
+    <div id="chainIndicator" class="chain-indicator hidden">
+      <span id="chainLength">0</span> orbs = <span id="chainPoints">0</span> pts
+    </div>
+
+    <!-- Orb grid -->
+    <div class="orb-grid-wrapper">
+      <div id="orbGrid" class="orb-grid"></div>
+    </div>
+
+    <!-- Finished overlay -->
+    <div id="solvedOverlay" class="solved-overlay hidden">
+      <div class="solved-emoji">✨</div>
+      <div class="solved-title">No moves left!</div>
+      <div class="solved-sub">Waiting for other players to finish...</div>
+      <div class="solved-dots">...</div>
+    </div>
+  </div>
+
+  <!-- ── Game Over ── -->
+  <div id="gameoverScreen" class="screen gameover-screen">
+    <div id="gameoverEmoji" class="gameover-emoji">🏆</div>
+    <div id="gameoverTitle" class="gameover-title">Game Over</div>
+    <div id="gameoverPersonal" class="gameover-personal"></div>
+    <div id="gameoverMsg" class="gameover-msg"></div>
+  </div>
+
+  <!-- ── Reconnect ── -->
+  <div id="reconnectOverlay" class="reconnect-overlay hidden">
+    Connection lost. Reconnecting...
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/sfx.js"></script>
+  <script src="/js/lumeno-play.js"></script>
+  <script src="/js/dev-test.js"></script>
+  <script src="/js/game-rules.js"></script>
+</body>
+</html>

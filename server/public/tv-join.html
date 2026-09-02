@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>CaritaHub — Join Game</title>
+  <link rel="stylesheet" href="/css/play-base.css" />
+</head>
+<body>
+  <!-- Join Screen -->
+  <div id="joinScreen" class="screen join-screen active">
+    <div id="joinLogo" class="join-logo">🎮</div>
+    <div id="joinTitle" class="join-title">CaritaHub Game</div>
+    <div id="joinSubtitle" class="join-subtitle">Enter your name to join</div>
+    <input id="nameInput" class="join-input" type="text" placeholder="Your Name" maxlength="30" autocomplete="off" />
+    <button id="joinBtn" class="join-btn">Join Game</button>
+    <div id="joinError" class="join-error"></div>
+  </div>
+
+  <!-- Waiting Screen -->
+  <div id="waitingScreen" class="screen waiting-screen">
+    <div class="wait-badge">⏳</div>
+    <div class="waiting-title">You're in!</div>
+    <div id="waitingName" class="waiting-name"></div>
+    <div class="waiting-sub">Waiting for the host to start the game…</div>
+    <div class="waiting-dots">●●●</div>
+    <div class="waiting-players">
+      <div class="waiting-players-title">Players in game:</div>
+      <div id="waitingPlayerList"></div>
+    </div>
+  </div>
+
+  <!-- Reconnect Overlay -->
+  <div id="reconnectOverlay" class="reconnect-overlay hidden">Reconnecting…</div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/tv-join.js"></script>
+</body>
+</html>

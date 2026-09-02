@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>CaritaHub Taboo</title>
+  <link rel="stylesheet" href="/css/play-base.css" />
+  <style>
+    /* ── Playing ── */
+    .playing-screen {
+      background: linear-gradient(180deg, #1a1a2e 0%, #0f3460 100%);
+      color: #fff; padding: 16px; gap: 10px;
+    }
+
+    .top-info {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; max-width: 400px; margin: 0 auto;
+    }
+    .round-badge {
+      font-size: 16px; font-weight: 700; color: #ffd700;
+      background: rgba(255,215,0,0.15); padding: 6px 14px; border-radius: 8px;
+      border: 2px solid rgba(255,215,0,0.3);
+    }
+    .score-badge {
+      font-size: 16px; font-weight: 700; color: #4ecca3;
+    }
+
+    /* Player identity + scoreboard */
+    .player-identity {
+      width: 100%; max-width: 400px; margin: 0 auto;
+      background: rgba(255,215,0,0.08); border: 1.5px solid rgba(255,215,0,0.25);
+      border-radius: 10px; padding: 8px 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .player-identity-dot {
+      width: 10px; height: 10px; border-radius: 50%; background: #ffd700; flex-shrink: 0;
+    }
+    .player-identity-label {
+      font-size: 13px; color: rgba(255,255,255,0.5); font-weight: 600;
+    }
+    .player-identity-name {
+      font-size: 16px; font-weight: 800; color: #ffd700;
+    }
+
+    .scoreboard-strip {
+      width: 100%; max-width: 400px; margin: 0 auto;
+      display: flex; gap: 8px; overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .scoreboard-strip::-webkit-scrollbar { display: none; }
+    .score-card {
+      flex: 1; min-width: 70px;
+      display: flex; flex-direction: column; align-items: center; gap: 2px;
+      background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.08);
+      border-radius: 10px; padding: 8px 10px;
+      transition: border-color 0.2s;
+    }
+    .score-card.me {
+      background: rgba(255,215,0,0.1); border-color: rgba(255,215,0,0.4);
+    }
+    .score-card-name {
+      font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.5);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 72px;
+    }
+    .score-card.me .score-card-name { color: #ffd700; }
+    .score-card-pts {
+      font-size: 22px; font-weight: 900; color: #fff;
+    }
+    .score-card.me .score-card-pts { color: #ffd700; }
+    .score-card-you {
+      font-size: 10px; font-weight: 700; color: #ffd700;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+
+    /* Clue display */
+    .clue-display {
+      width: 100%; max-width: 400px; margin: 0 auto;
+      background: rgba(255,255,255,0.06); border-radius: 12px; padding: 16px;
+      text-align: center;
+    }
+    .clue-label { font-size: 14px; color: #4ecca3; font-weight: 700; margin-bottom: 8px; }
+    .clue-body {
+      font-size: 22px; font-weight: 600; line-height: 1.4;
+      min-height: 60px; display: flex; align-items: center; justify-content: center;
+    }
+    .clue-loading { color: #667; font-style: italic; animation: dotPulse 1.5s ease-in-out infinite; }
+
+    /* Taboo words (shown on phone too for fun) */
+    .taboo-words {
+      display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
+      width: 100%; max-width: 400px; margin: 0 auto;
+    }
+    .taboo-word-chip {
+      font-size: 13px; font-weight: 700; padding: 4px 10px;
+      background: rgba(231,76,60,0.15); color: #e74c3c;
+      border: 1px solid rgba(231,76,60,0.3); border-radius: 6px;
+      text-decoration: line-through;
+    }
+
+    /* Guess history */
+    .guess-history {
+      flex: 1; width: 100%; max-width: 400px; margin: 0 auto;
+      overflow-y: auto; display: flex; flex-direction: column; gap: 4px; min-height: 0;
+    }
+    .guess-item {
+      font-size: 15px; padding: 6px 10px; border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+    }
+    .guess-item.correct { background: rgba(78,204,163,0.2); color: #4ecca3; font-weight: 700; }
+    .guess-item.wrong { color: #889; }
+    .guess-item.mine { border-left: 3px solid #ffd700; }
+
+    /* Input area */
+    .input-area {
+      width: 100%; max-width: 400px; margin: 0 auto;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .input-row { display: flex; gap: 8px; }
+    .guess-input {
+      flex: 1; min-width: 0; font-size: 22px; padding: 14px 16px;
+      border: 3px solid #4ecca3; border-radius: 12px;
+      background: rgba(255,255,255,0.1); color: #fff; outline: none;
+    }
+    .guess-input::placeholder { color: #667; }
+    .guess-input:focus { border-color: #ffd700; }
+    .guess-btn {
+      min-width: 80px; font-size: 20px; font-weight: 700;
+      background: #ffd700; color: #1a1a2e; border: none; border-radius: 12px;
+      cursor: pointer; padding: 14px;
+    }
+    .guess-btn:active:not(:disabled) { transform: scale(0.96); }
+    .guess-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .hint-text { font-size: 13px; color: #667; text-align: center; }
+
+    /* Revealed keyword */
+    .reveal-keyword {
+      font-size: 36px; font-weight: 900; color: #ffd700; text-align: center;
+      padding: 12px; display: none;
+    }
+
+    /* ── Game Over ── */
+    .gameover-screen {
+      align-items: center; justify-content: center; padding: 40px 24px; gap: 16px;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff;
+    }
+    .gameover-emoji { font-size: 80px; }
+    .gameover-title { font-size: 28px; font-weight: 800; color: #ffd700; text-align: center; }
+    .gameover-personal { font-size: 24px; font-weight: 700; color: #4ecca3; text-align: center; }
+    .gameover-msg { font-size: 18px; text-align: center; max-width: 350px; }
+
+    /* Feedback toast */
+    .toast {
+      position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+      padding: 12px 24px; border-radius: 12px; font-size: 18px; font-weight: 700;
+      z-index: 50; animation: fadeInOut 2s ease forwards; pointer-events: none;
+    }
+    .toast.correct { background: #4ecca3; color: #1a1a2e; }
+    .toast.wrong { background: rgba(231,76,60,0.9); color: #fff; }
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+      15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      75% { opacity: 1; }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+    }
+
+    .reconnect-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; color: #fff; z-index: 100;
+    }
+    .confetti-container { position: fixed; inset: 0; pointer-events: none; z-index: 99; overflow: hidden; }
+    .confetti-piece {
+      position: absolute; width: 10px; height: 10px; top: -10px; opacity: 0;
+      animation: confettiFall 3s ease-in forwards;
+    }
+    @keyframes confettiFall {
+      0% { opacity: 1; top: -10px; transform: rotate(0deg) scale(1); }
+      100% { opacity: 0; top: 110vh; transform: rotate(720deg) scale(0.5); }
+    }
+  </style>
+</head>
+<body>
+<!-- Join Screen -->
+  <div id="joinScreen" class="screen join-screen active">
+    <div class="join-logo">🚫</div>
+    <div class="join-title">Taboo</div>
+    <div class="join-subtitle">Describe the word without saying the taboo words!</div>
+    <input id="nameInput" class="join-input" type="text" placeholder="Your Name" maxlength="30" autocomplete="off" />
+    <button id="joinBtn" class="join-btn">Join Game</button>
+    <div id="joinError" class="join-error"></div>
+  </div>
+
+  <!-- Waiting Screen -->
+  <div id="waitingScreen" class="screen waiting-screen">
+    <div class="waiting-title">Waiting for game to start</div>
+    <div class="waiting-dots">...</div>
+    <div id="waitingName" class="waiting-name"></div>
+  </div>
+
+  <!-- Playing Screen -->
+  <div id="playingScreen" class="screen playing-screen">
+    <div class="top-info">
+      <div id="mRoundBadge" class="round-badge">Round 1/10</div>
+      <div id="mScoreBadge" class="score-badge">Score: 0</div>
+    </div>
+
+    <!-- Who you are -->
+    <div id="playerIdentity" class="player-identity">
+      <div class="player-identity-dot"></div>
+      <div>
+        <div class="player-identity-label">You are playing as</div>
+        <div id="playerIdentityName" class="player-identity-name">—</div>
+      </div>
+    </div>
+
+    <!-- All players scoreboard -->
+    <div id="scoreboardStrip" class="scoreboard-strip"></div>
+
+    <div id="clueDisplay" class="clue-display">
+      <div class="clue-label">AI Says:</div>
+      <div id="clueBody" class="clue-body">
+        <span class="clue-loading">Waiting for clue...</span>
+      </div>
+    </div>
+
+    <div id="tabooWords" class="taboo-words"></div>
+
+    <div id="guessHistory" class="guess-history"></div>
+
+    <div id="revealKeyword" class="reveal-keyword"></div>
+
+    <div class="input-area">
+      <div class="input-row">
+        <input id="guessInput" class="guess-input" type="text" placeholder="Type your guess..." maxlength="100" autocomplete="off" />
+        <button id="guessBtn" class="guess-btn">Guess</button>
+      </div>
+      <div class="hint-text">Guess the word the AI is describing!</div>
+    </div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div id="gameoverScreen" class="screen gameover-screen">
+    <div class="gameover-emoji">&#127942;</div>
+    <div id="mGameoverTitle" class="gameover-title"></div>
+    <div id="mGameoverPersonal" class="gameover-personal"></div>
+    <div id="mGameoverMsg" class="gameover-msg"></div>
+  </div>
+
+  <!-- Confetti Container -->
+  <div id="confettiContainer" class="confetti-container hidden"></div>
+
+  <!-- Reconnect Overlay -->
+  <div id="reconnectOverlay" class="reconnect-overlay hidden">
+    Connection lost. Reconnecting...
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/tv-taboo-play.js"></script>
+  <script src="/js/dev-test.js"></script>
+  <script src="/js/game-rules.js"></script>
+</body>
+</html>

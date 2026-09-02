@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="format-detection" content="telephone=no" />
+  <title>CaritaHub Pipe Puzzle</title>
+  <link rel="stylesheet" href="/css/pipe-puzzle-play.css" />
+</head>
+<body>
+<!-- ── Join ── -->
+  <div id="joinScreen" class="screen join-screen active">
+    <div class="join-title">🔧 Pipe Puzzle</div>
+    <div class="join-subtitle">Rotate tiles to connect all the pipes!</div>
+    <input id="nameInput" class="join-input" type="text" placeholder="Your name" maxlength="30" autocomplete="off" />
+    <button id="joinBtn" class="join-btn">Join Game</button>
+    <div id="joinError" class="join-error"></div>
+  </div>
+
+  <!-- ── Waiting ── -->
+  <div id="waitingScreen" class="screen waiting-screen">
+    <div class="waiting-dots">🔧</div>
+    <div class="waiting-title">You're in!</div>
+    <div id="waitingName" class="waiting-name"></div>
+    <div class="waiting-sub">Waiting for the host to start...</div>
+  </div>
+
+  <!-- ── Playing ── -->
+  <div id="playingScreen" class="screen playing-screen">
+    <div class="game-header">
+      <div class="game-title">Pipe Puzzle</div>
+      <div id="gameHint" class="game-hint">Tap tiles to rotate!</div>
+    </div>
+
+    <!-- Color pair progress dots -->
+    <div id="colorDots" class="color-dots"></div>
+
+    <!-- Pipe grid -->
+    <div class="grid-wrapper">
+      <div id="pipeGrid" class="pipe-grid"></div>
+    </div>
+
+    <!-- Solved overlay -->
+    <div id="solvedOverlay" class="solved-overlay hidden">
+      <div class="solved-emoji">🎉</div>
+      <div class="solved-title">All pipes connected!</div>
+      <div class="solved-sub">Waiting for results...</div>
+    </div>
+  </div>
+
+  <!-- ── Game Over ── -->
+  <div id="gameoverScreen" class="screen gameover-screen">
+    <div id="gameoverEmoji" class="gameover-emoji">🏆</div>
+    <div id="gameoverTitle" class="gameover-title">Game Over</div>
+    <div id="gameoverPersonal" class="gameover-personal"></div>
+    <div id="gameoverMsg" class="gameover-msg"></div>
+  </div>
+
+  <!-- ── Reconnect ── -->
+  <div id="reconnectOverlay" class="reconnect-overlay hidden">
+    Connection lost. Reconnecting...
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/pipe-puzzle-play.js"></script>
+  <script src="/js/dev-test.js"></script>
+  <script src="/js/game-rules.js"></script>
+</body>
+</html>

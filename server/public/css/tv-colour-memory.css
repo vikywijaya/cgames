@@ -1,0 +1,79 @@
+/* ── TV colour memory — game-specific styles (lobby chrome inherited from tv-base.css) ── */
+
+/* ── TV Colour Memory ── */
+
+/* Colour grid on TV */
+.tv-colour-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+  flex-shrink: 0;
+}
+
+.tv-colour-tile {
+  aspect-ratio: 1;
+  border-radius: var(--radius-lg);
+  border: 4px solid var(--border);
+  transition: transform 0.12s cubic-bezier(0.23,1,0.32,1), filter 0.12s, box-shadow 0.15s, opacity 0.1s;
+  opacity: 0.3;
+  box-shadow: var(--shadow-sm);
+}
+
+.tv-colour-tile.flashing {
+  opacity: 1;
+  transform: scale(1.1);
+  filter: brightness(1.15) saturate(1.2);
+  box-shadow: 0 0 40px var(--tile-color), 0 0 80px var(--tile-color);
+  border-color: rgba(255,255,255,0.6);
+}
+
+.tv-colour-tile.lit { opacity: 0.9; }
+
+.tv-colour-tile[data-color="red"]    { background: #ef4444; --tile-color: #ef4444; }
+.tv-colour-tile[data-color="blue"]   { background: #3b82f6; --tile-color: #3b82f6; }
+.tv-colour-tile[data-color="green"]  { background: #22c55e; --tile-color: #22c55e; }
+.tv-colour-tile[data-color="yellow"] { background: #eab308; --tile-color: #eab308; }
+.tv-colour-tile[data-color="purple"] { background: #a855f7; --tile-color: #a855f7; }
+.tv-colour-tile[data-color="orange"] { background: #f97316; --tile-color: #f97316; }
+
+.tv-sequence-counter {
+  font-size: var(--tv-label);
+  color: var(--text-muted);
+  text-align: center;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+/* Player progress during recall */
+.tv-player-boards {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex: 1;
+  align-items: flex-start;
+  overflow: hidden;
+}
+
+.tv-player-board {
+  max-width: 200px;
+  min-width: 150px;
+  flex: 1;
+}
+
+.tv-tap-dot {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--border);
+}
+.tv-tap-dot.tapped-correct { background: var(--success); }
+.tv-tap-dot.tapped-wrong   { background: var(--danger); }
+
+.tv-player-taps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}

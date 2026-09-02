@@ -1,0 +1,143 @@
+/* ── TV lumeno — game-specific styles (lobby chrome inherited from tv-base.css) ── */
+
+/* ── TV Lumeno — game-specific styles only (lobby inherited from tv-base.css) ── */
+
+/* ── Playing Phase ── */
+
+/* ── Main game area: player boards ── */
+.tv-playing-main {
+  flex: 1;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* ── Player board card ── */
+.tv-player-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  max-width: 320px;
+  background: rgba(255,255,255,0.07);
+  border: 2px solid #1e3050;
+  border-radius: 16px;
+  padding: 16px 12px;
+  transition: border-color 0.3s, background 0.3s;
+}
+
+.tv-player-board.finished {
+  border-color: #22c55e;
+  background: rgba(45,175,123,0.12);
+}
+
+.tv-player-board-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.badge-finished {
+  font-size: 12px;
+  background: #22c55e;
+  color: #0d1b2a;
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-weight: 800;
+}
+
+.tv-player-score {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffd700;
+  text-align: center;
+}
+
+.tv-player-moves {
+  font-size: 13px;
+  color: #aab;
+  text-align: center;
+}
+
+.tv-session-score {
+  font-size: 14px;
+  color: #4ecca3;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* ── Orb grid on TV ── */
+.tv-orb-grid {
+  display: grid;
+  gap: 3px;
+}
+
+.tv-orb {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* Orb colors */
+.tv-orb-red    { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.5); }
+.tv-orb-blue   { background: #3b82f6; box-shadow: 0 0 6px rgba(59,130,246,0.5); }
+.tv-orb-green  { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.5); }
+.tv-orb-yellow { background: #eab308; box-shadow: 0 0 6px rgba(234,179,8,0.5); }
+.tv-orb-purple { background: #a855f7; box-shadow: 0 0 6px rgba(168,85,247,0.5); }
+
+/* ── Race leaderboard strip ── */
+.tv-race-strip {
+  display: flex;
+  gap: 16px;
+  padding: 12px 0;
+  justify-content: center;
+  flex-shrink: 0;
+  border-top: 1px solid #1e3050;
+}
+
+.tv-race-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 90px;
+  background: rgba(255,255,255,0.07);
+  border: 2px solid #1e3050;
+  border-radius: 10px;
+  padding: 8px 14px;
+}
+
+.tv-race-player.finished {
+  border-color: #22c55e;
+}
+
+.tv-race-player-score {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.tv-race-player.finished .tv-race-player-score {
+  color: #22c55e;
+}
+
+.tv-race-player-name {
+  font-size: 13px;
+  color: #aab;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+}
+
+.hidden { display: none !important; }

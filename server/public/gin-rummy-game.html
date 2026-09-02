@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gin Rummy</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <a href="/" class="back-home-btn floating" aria-label="Back" title="Back" onclick="event.preventDefault(); if (window.history.length > 1) { window.history.back(); } else { window.close(); }"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></a>
+  <div id="ginApp">
+
+    <!-- Player info row -->
+    <div class="cdi-players" id="ginPlayers"></div>
+
+    <!-- Status bar -->
+    <div id="statusBar">Loading game…</div>
+
+    <!-- Discard / Draw area -->
+    <div id="ginTable">
+      <span id="ginTableLabel">Table</span>
+      <div class="gin-piles">
+        <div class="gin-pile" id="drawPile">
+          <div class="card-tile card-back" id="drawPileCard">
+            <span class="card-tile-rank">?</span>
+            <span class="card-tile-suit">Draw</span>
+          </div>
+          <span class="gin-pile-label" id="drawCount">Draw (26)</span>
+        </div>
+        <div class="gin-pile" id="discardPile">
+          <div class="card-tile" id="discardTopCard"></div>
+          <span class="gin-pile-label">Discard</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- My hand label -->
+    <p class="hand-label">Your Hand</p>
+
+    <!-- My hand -->
+    <div id="myHand"></div>
+
+    <!-- Actions -->
+    <div class="cdi-actions" id="actionBar">
+      <button id="drawDeckBtn"    class="btn btn-primary"   disabled>Draw from Deck</button>
+      <button id="drawDiscardBtn" class="btn btn-primary"   disabled>Take Discard</button>
+      <button id="discardBtn"     class="btn btn-secondary" disabled>Discard Selected</button>
+      <button id="knockBtn"       class="btn btn-success"   disabled>Knock</button>
+    </div>
+
+    <!-- Knock response panel (for opponent to lay off cards) -->
+    <div id="knockPanel" class="hidden">
+      <p id="knockInfo"></p>
+      <div id="knockerMelds"></div>
+      <div class="cdi-actions">
+        <button id="layoffBtn"  class="btn btn-primary"   disabled>Lay Off Selected</button>
+        <button id="doneBtn"    class="btn btn-success">Done</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Game over overlay -->
+  <div id="gameOverOverlay" class="overlay hidden">
+    <div class="overlay-box">
+      <h2 id="gameOverTitle">Game Over</h2>
+      <p  id="gameOverMsg"></p>
+      <div class="overlay-btns">
+        <button id="playAgainBtn" class="btn btn-success">Play Again</button>
+        <button id="backLobbyBtn" class="btn btn-primary">Back to Lobby</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reconnecting overlay -->
+  <div id="reconnectOverlay" class="overlay">
+    <div class="overlay-box">
+      <div class="spinner"></div>
+      <h2>Reconnecting…</h2>
+      <p id="reconnectMsg">Please wait.</p>
+      <a id="backLobbyLink" href="/" class="btn btn-secondary hidden">Back to Lobby</a>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/mp-report-result.js"></script>
+  <script src="/js/gin-rummy-game.js"></script>
+  <script src="/js/dev-test.js"></script>
+</body>
+</html>

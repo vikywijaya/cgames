@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CaritaHub — Frog Drop</title>
+  <link rel="stylesheet" href="/css/tv-base.css" />
+  <link rel="stylesheet" href="/css/tv-frog-drop.css" />
+</head>
+<body>
+
+  <!-- ── Lobby Phase ── -->
+  <div id="lobbyPhase" class="tv-phase tv-lobby active">
+    <div class="tv-lobby-titlebar">
+      <div class="tv-lobby-icon" style="font-size:48px;line-height:1;">🐸</div>
+      <div class="tv-lobby-title">Frog Drop</div>
+    </div>
+    <div class="tv-lobby-subtitle">Scan the QR code to join the merge puzzle!</div>
+    <div class="tv-lobby-body">
+      <div class="tv-qr-section">
+        <div class="tv-qr-box">
+          <div id="qrcode"></div>
+        </div>
+        <div class="tv-qr-instruction">Scan with your phone camera</div>
+        <div id="joinUrl" class="tv-qr-url"></div>
+
+        <!-- Collaboration credit (Frog Drop only) -->
+        <div class="fd-collab" aria-label="Collaboration with Crest Secondary">
+          <div class="fd-collab-label">Collaboration with</div>
+          <img class="fd-collab-logo" src="/img/crest-logo.svg" alt="Crest Secondary"
+               onerror="this.onerror=null; this.src='/img/crest-logo.png';" />
+        </div>
+
+        <a href="/tv.html" class="tv-back-btn">Back to Games</a>
+      </div>
+      <div class="tv-player-section">
+        <div class="tv-player-section-title">Players Joined</div>
+        <div id="lobbyPlayerList" class="tv-player-list">
+          <div class="tv-player-empty">Waiting for players...</div>
+        </div>
+        <button id="startBtn" class="tv-start-btn" disabled>Start 90s Round</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Playing Phase — leaderboard + big timer ── -->
+  <div id="playingPhase" class="tv-phase tv-playing">
+    <div class="tv-playing-header">
+      <a href="/tv.html" class="tv-nav-back">Back</a>
+      <div class="tv-playing-title">🐸 Frog Drop — Leaderboard</div>
+      <div class="tv-playing-mode">90s round</div>
+    </div>
+    <div class="tv-playing-body">
+      <div class="fd-timer-wrap">
+        <div class="fd-timer-label">Time Left</div>
+        <div id="fdTimer" class="fd-timer-value">90</div>
+      </div>
+      <div id="fdLeaderboard" class="fd-leaderboard"></div>
+    </div>
+  </div>
+
+  <!-- ── Game Over Phase ── -->
+  <div id="gameoverPhase" class="tv-phase tv-gameover">
+    <!-- Hero banner -->
+    <div class="go-hero">
+      <div class="go-banner">
+        <span class="go-banner-emoji" aria-hidden="true">🏆</span>
+        <span class="go-banner-text">Time's Up!</span>
+      </div>
+      <div class="go-winner-card" id="goWinnerCard">
+        <div class="go-winner-avatar" id="goWinnerAvatar">?</div>
+        <div class="go-winner-meta">
+          <div class="go-winner-eyebrow">🥇 Champion</div>
+          <div class="go-winner-name" id="gameoverWinnerName"></div>
+          <div class="go-winner-score">
+            <span id="goWinnerScore" class="go-winner-score-num tabular">0</span>
+            <span class="go-winner-score-unit">points</span>
+          </div>
+        </div>
+        <div class="go-winner-burst" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+        </div>
+      </div>
+      <div id="gameoverWinner" class="go-subtext"></div>
+    </div>
+
+    <!-- Podium for top-3 -->
+    <div id="goPodium" class="go-podium" aria-label="Top 3 players"></div>
+
+    <!-- Full ranked list (4th place onwards) -->
+    <div id="gameoverRankings" class="tv-gameover-rankings"></div>
+
+    <div class="tv-gameover-btns">
+      <button id="playAgainBtn" class="tv-gameover-btn tv-btn-play-again">
+        <span class="go-btn-icon" aria-hidden="true">▶</span>Play Again
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Pre-round countdown overlay ── -->
+  <div id="fdCountdown" class="fd-countdown hidden" aria-hidden="true">
+    <div class="fd-countdown-ring">
+      <span id="fdCountdownNum" class="fd-countdown-num">3</span>
+    </div>
+    <div class="fd-countdown-label">Get ready…</div>
+  </div>
+
+  <div id="confettiContainer" class="tv-confetti-container hidden"></div>
+
+  <div id="reconnectOverlay" class="tv-reconnect hidden">
+    Connection lost. Reconnecting...
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="/js/frog-drop-shared.js"></script>
+  <script src="/js/frog-drop-sfx.js"></script>
+  <script src="/js/tv-frog-drop.js"></script>
+</body>
+</html>

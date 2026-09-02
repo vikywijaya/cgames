@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Sumix</title>
+  <link rel="stylesheet" href="/css/play-base.css" />
+  <style>
+    /* ── Playing Screen ── */
+    .play-header { font-size: 18px; font-weight: 700; color: #4ecca3; margin-bottom: 4px; }
+    .play-progress { font-size: 15px; color: #94a3b8; margin-bottom: 12px; }
+    .play-hint { font-size: 13px; color: #64748b; margin-bottom: 8px; }
+
+    .grid-wrap { display: flex; justify-content: center; }
+
+    .grid-table { border-collapse: collapse; }
+    .grid-table td {
+      text-align: center; font-weight: 700;
+      position: relative;
+    }
+
+    /* Number cells */
+    .grid-cell {
+      width: 64px; height: 64px;
+      font-size: 26px;
+      background: #1e293b; color: #556;
+      border: 3px solid #334155;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .grid-cell.active {
+      background: #1e40af; color: #fff;
+      border-color: #3b82f6;
+      box-shadow: 0 0 8px rgba(59,130,246,0.4);
+    }
+    .grid-cell.row-correct.active,
+    .grid-cell.col-correct.active {
+      background: #166534; border-color: #22c55e;
+      box-shadow: 0 0 8px rgba(34,197,94,0.3);
+    }
+    .grid-cell.both-correct.active {
+      background: #166534; border-color: #4ecca3;
+      box-shadow: 0 0 12px rgba(78,204,163,0.4);
+    }
+
+    /* Target cells (top & left) */
+    .target-row-cell, .target-col-cell {
+      width: 48px; height: 48px;
+      font-size: 20px; font-weight: 800;
+      color: #ffd700;
+      background: transparent;
+      border: none;
+    }
+    .target-row-cell.correct, .target-col-cell.correct {
+      color: #4ecca3;
+    }
+
+    /* Sum cells (bottom & right — show current sum) */
+    .row-sum-cell, .col-sum-cell {
+      width: 48px; height: 48px;
+      font-size: 18px; font-weight: 700;
+      color: #64748b;
+      background: transparent;
+      border: none;
+    }
+    .row-sum-cell.correct, .col-sum-cell.correct { color: #4ecca3; }
+    .row-sum-cell.over, .col-sum-cell.over { color: #ef4444; }
+
+    /* Corner cells */
+    .corner-cell {
+      width: 48px; height: 48px;
+      border: none;
+      background: transparent;
+    }
+
+    /* ── Game Over Screen ── */
+    .gameover-emoji { font-size: 64px; margin-top: 40px; }
+    .gameover-title { font-size: 32px; font-weight: 900; margin: 16px 0; }
+    .gameover-title.won { color: #ffd700; }
+    .gameover-title.lost { color: #94a3b8; }
+    .gameover-reason { font-size: 18px; color: #94a3b8; text-align: center; }
+  </style>
+</head>
+<body>
+<!-- ── Join Screen ── -->
+  <div id="joinScreen" class="screen active">
+    <div class="join-logo">➕</div>
+    <div class="join-title">Sumix</div>
+    <div class="join-subtitle">Tap numbers so each row &amp; column hits the target sum!</div>
+    <input id="nameInput" class="join-input" type="text" placeholder="Your name" maxlength="20" autocomplete="off" />
+    <button id="joinBtn" class="join-btn" disabled>Join Game</button>
+  </div>
+
+  <!-- ── Waiting Screen ── -->
+  <div id="waitingScreen" class="screen">
+    <div class="join-title">Sumix</div>
+    <div class="waiting-text">Waiting for host to start...</div>
+    <div id="waitingPlayers" class="waiting-players"></div>
+  </div>
+
+  <!-- ── Playing Screen ── -->
+  <div id="playingScreen" class="screen">
+    <div id="playHeader" class="play-header">Sumix</div>
+    <div id="playProgress" class="play-progress">0 / 6 sums correct</div>
+    <div class="play-hint">Tap numbers to toggle on/off</div>
+    <div class="grid-wrap">
+      <table id="gridTable" class="grid-table"></table>
+    </div>
+  </div>
+
+  <!-- ── Game Over Screen ── -->
+  <div id="gameoverScreen" class="screen">
+    <div id="goEmoji" class="gameover-emoji">🧩</div>
+    <div id="goTitle" class="gameover-title">Game Over</div>
+    <div id="goReason" class="gameover-reason"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/tv-sumix-play.js"></script>
+  <script src="/js/dev-test.js"></script>
+  <script src="/js/game-rules.js"></script>
+</body>
+</html>

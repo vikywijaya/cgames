@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Word Recall</title>
+  <link rel="stylesheet" href="/css/play-base.css" />
+  <style>
+    :root {
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+      --accent: #10b981;
+      --accent-dark: #059669;
+      --bg: #0d1b2a;
+      --surface: #16213e;
+      --border: #1e3050;
+      --text: #eee;
+      --muted: #94a3b8;
+    }
+
+    /* ── Playing ── */
+    .playing-screen { justify-content: flex-start; padding: 0; gap: 0; }
+
+    .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .top-label { font-size: 12px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    .top-value { font-size: 22px; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; }
+
+    /* Watch TV message */
+    .watch-tv { position: absolute; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 10; animation: overlayIn 250ms var(--ease-out); }
+    .watch-tv.hidden { display: none !important; }
+    .watch-tv-emoji { font-size: 64px; animation: bounce 1.2s var(--ease-in-out) infinite; }
+    @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+    @keyframes overlayIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+    .watch-tv-text { font-size: 24px; font-weight: 800; color: var(--accent); text-align: center; }
+    .watch-tv-sub  { font-size: 17px; color: var(--muted); text-align: center; }
+
+    /* Recall area */
+    .recall-area { flex: 1; display: flex; flex-direction: column; align-items: center; width: 100%; padding: 16px 20px; gap: 12px; overflow-y: auto; }
+
+    .input-row { display: flex; gap: 10px; width: 100%; max-width: 380px; flex-shrink: 0; }
+    .word-input { flex: 1; padding: 16px 18px; font-size: 22px; border: 2px solid var(--border); border-radius: 14px; background: var(--surface); color: #fff; outline: none; transition: border-color 200ms var(--ease-out); }
+    .word-input:focus { border-color: var(--accent); }
+    .submit-btn { padding: 16px 24px; font-size: 20px; font-weight: 800; border: none; border-radius: 14px; background: var(--accent); color: #0d1b2a; cursor: pointer; transition: transform 120ms var(--ease-out); min-width: 80px; }
+    .submit-btn:active:not(:disabled) { transform: scale(0.95); }
+    .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Feedback */
+    .feedback { width: 100%; max-width: 380px; text-align: center; font-size: 18px; font-weight: 700; min-height: 28px; padding: 4px 8px; flex-shrink: 0; transition: opacity 200ms; }
+    .feedback.success { color: var(--accent); }
+    .feedback.already { color: #eab308; }
+    .feedback.wrong   { color: #f87171; }
+
+    /* Recalled words list */
+    .recalled-title { font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+    .recalled-list { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; width: 100%; max-width: 380px; }
+    .recalled-chip { padding: 8px 16px; font-size: 18px; font-weight: 600; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); border-radius: 10px; color: var(--accent); text-transform: capitalize; animation: chipIn 200ms var(--ease-out); }
+    @keyframes chipIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+
+    /* All done overlay */
+    .all-done-overlay { display: none; position: absolute; inset: 0; background: rgba(13,27,42,0.93); flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 10; }
+    .all-done-overlay.show { display: flex; }
+    .all-done-emoji { font-size: 72px; animation: pop 400ms cubic-bezier(.34,1.56,.64,1); }
+    .all-done-title { font-size: 36px; font-weight: 900; color: var(--accent); }
+    .all-done-sub { font-size: 20px; color: var(--muted); text-align: center; }
+    @keyframes pop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    /* ── Gameover ── */
+    .gameover-screen { background: radial-gradient(ellipse at center, #0f2a1f 0%, var(--bg) 70%); }
+    .go-trophy   { font-size: 80px; animation: pop 500ms cubic-bezier(.34,1.56,.64,1); }
+    .go-title    { font-size: 38px; font-weight: 900; color: #ffd700; }
+    .go-score    { font-size: 48px; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; }
+    .go-personal { font-size: 20px; color: var(--muted); text-align: center; line-height: 1.5; }
+    .play-again  { padding: 18px 44px; font-size: 20px; font-weight: 800; border: 2px solid var(--accent); border-radius: 14px; background: transparent; color: var(--accent); cursor: pointer; margin-top: 12px; transition: transform 150ms var(--ease-out), background-color 150ms var(--ease-out); min-height: 56px; }
+    .play-again:active { transform: scale(0.96); background-color: rgba(16,185,129,0.1); }
+
+    /* Reconnect */
+    .reconnect { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); align-items: center; justify-content: center; flex-direction: column; font-size: 20px; color: #fff; z-index: 99; gap: 12px; }
+    .reconnect.show { display: flex; }
+    .reconnect-spin { font-size: 36px; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .waiting-anim, .watch-tv-emoji { animation: none; }
+      .reconnect-spin { animation-duration: 3s; }
+      .all-done-overlay, .watch-tv { animation-duration: 0ms; }
+      .all-done-emoji, .go-trophy { animation: fadeOnly 200ms ease; }
+      .join-btn, .submit-btn, .play-again { transition-property: background-color; transition-duration: 120ms; }
+      @keyframes fadeOnly { from { opacity: 0; } to { opacity: 1; } }
+    }
+  </style>
+</head>
+<body>
+<!-- Join -->
+<div id="joinScreen" class="screen active">
+  <div class="join-logo">🧠</div>
+  <div class="join-title">Word Recall</div>
+  <div class="join-sub">Study words on the TV, then type them from memory!</div>
+  <input id="nameInput" class="name-input" type="text" placeholder="Your name" maxlength="20" autocomplete="off" />
+  <button id="joinBtn" class="join-btn">Join Game</button>
+  <div id="joinError" class="error-msg" role="alert" aria-live="polite"></div>
+</div>
+
+<!-- Waiting -->
+<div id="waitingScreen" class="screen">
+  <div class="waiting-anim">🧠</div>
+  <div class="waiting-title">You're in!</div>
+  <div class="waiting-name" id="waitingName"></div>
+  <div class="waiting-sub">Waiting for the host to start...</div>
+</div>
+
+<!-- Playing -->
+<div id="playingScreen" class="screen playing-screen" style="position:relative;">
+
+  <div class="top-bar">
+    <div>
+      <div class="top-label">Score</div>
+      <div class="top-value" id="myScore">0 pts</div>
+    </div>
+    <div style="text-align:center">
+      <div class="top-label">Recalled</div>
+      <div class="top-value" id="myRecalled">0/0</div>
+    </div>
+    <div style="text-align:right">
+      <div class="top-label">Round</div>
+      <div class="top-value" id="roundInfo">1/3</div>
+    </div>
+  </div>
+
+  <div class="recall-area" id="recallArea">
+    <div class="input-row">
+      <input id="wordInput" class="word-input" type="text" placeholder="Type a word..." maxlength="30" autocomplete="off" autocapitalize="none" />
+      <button id="submitBtn" class="submit-btn">Go</button>
+    </div>
+    <div id="feedback" class="feedback"></div>
+    <div class="recalled-title" id="recalledTitle">Words recalled</div>
+    <div id="recalledList" class="recalled-list"></div>
+  </div>
+
+  <!-- Watch TV overlay (study phase) -->
+  <div id="watchTv" class="watch-tv">
+    <div class="watch-tv-emoji">📺</div>
+    <div class="watch-tv-text" id="watchTvText">Watch the TV screen!</div>
+    <div class="watch-tv-sub" id="watchTvSub">Study the words carefully</div>
+  </div>
+
+  <!-- All done overlay -->
+  <div id="allDoneOverlay" class="all-done-overlay">
+    <div class="all-done-emoji">🎉</div>
+    <div class="all-done-title">All words recalled!</div>
+    <div class="all-done-sub">Waiting for the round to end...</div>
+  </div>
+
+</div>
+
+<!-- Game Over -->
+<div id="gameoverScreen" class="screen gameover-screen">
+  <div id="goTrophy" class="go-trophy">🧠</div>
+  <div id="goTitle"  class="go-title">Game Over!</div>
+  <div id="goScore"  class="go-score"></div>
+  <div id="goPersonal" class="go-personal"></div>
+</div>
+
+<div id="reconnectOverlay" class="reconnect">
+  <div class="reconnect-spin">🔄</div>
+  <div>Reconnecting...</div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/sfx.js"></script>
+<script src="/js/word-recall-play.js"></script>
+  <script src="/js/game-rules.js"></script>
+</body>
+</html>

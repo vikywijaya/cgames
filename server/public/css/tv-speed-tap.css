@@ -1,0 +1,93 @@
+/* ── TV speed tap — game-specific styles (lobby chrome inherited from tv-base.css) ── */
+
+/* ── TV Speed Tap ── */
+
+/* Target display */
+.tv-target-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 40px;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 3px solid var(--primary);
+  min-width: 340px;
+  box-shadow: var(--shadow-md);
+}
+
+.tv-target-label {
+  font-size: var(--tv-body);
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.tv-target-emoji {
+  font-size: 110px;
+  line-height: 1.1;
+  transition: transform 300ms cubic-bezier(0.23,1,0.32,1), opacity 200ms ease;
+}
+
+/* Buildup: question mark pulsing */
+.tv-target-emoji.buildup {
+  animation: targetPulse 0.7s ease-in-out infinite;
+  opacity: 0.6;
+}
+
+@keyframes targetPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Reveal: pop in with scale */
+.tv-target-emoji.reveal {
+  animation: targetReveal 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  opacity: 1;
+}
+
+@keyframes targetReveal {
+  0% { transform: scale(0.3); opacity: 0; }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.tv-target-timer {
+  font-size: var(--tv-label);
+  font-weight: 700;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.tv-target-timer.urgent { color: var(--danger); }
+
+.tv-question-progress {
+  font-size: var(--tv-label);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Score chips with answered state */
+.tv-score-chip.answered { border-color: var(--accent); background: var(--accent-light); }
+.tv-score-chip.correct  { border-color: var(--success); background: var(--success-light); }
+.tv-score-chip.wrong    { border-color: var(--danger); background: var(--danger-light); }
+
+.tv-score-correct { font-size: var(--tv-small); color: var(--text-muted); margin-top: 2px; }
+
+/* Ready countdown overlay */
+.tv-ready-overlay {
+  position: absolute; inset: 0; z-index: 20;
+  background: rgba(10,10,10,0.9);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+  border-radius: var(--radius-lg);
+}
+.tv-ready-overlay.hidden { display: none !important; }
+.tv-ready-number {
+  font-size: 180px; font-weight: 900; color: #fbbf24;
+  animation: tvReadyPop 0.5s cubic-bezier(0.34,1.56,0.64,1);
+}
+.tv-ready-text {
+  font-size: 36px; font-weight: 700; color: rgba(255,255,255,0.6);
+  letter-spacing: 3px; text-transform: uppercase;
+}
+@keyframes tvReadyPop { 0% { transform: scale(2.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }

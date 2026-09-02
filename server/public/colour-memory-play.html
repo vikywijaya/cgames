@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Colour Memory</title>
+  <link rel="stylesheet" href="/css/play-base.css" />
+  <style>
+    /* Playing */
+    .playing-screen { justify-content: flex-start; padding-top: 20px; gap: 12px; }
+    .game-hint { font-size: 20px; font-weight: 700; color: #4ecca3; text-align: center; min-height: 28px; }
+    .round-info { font-size: 15px; color: #aab; text-align: center; }
+
+    /* Watch TV message */
+    .watch-tv-msg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+    .watch-tv-emoji { font-size: 80px; }
+    .watch-tv-text { font-size: 28px; font-weight: 800; color: #fff; text-align: center; }
+
+    /* Colour grid */
+    .colour-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 340px; }
+    .colour-btn {
+      aspect-ratio: 1;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: transform 0.08s, filter 0.08s;
+      opacity: 0.9;
+      min-height: 90px;
+    }
+    .colour-btn:active { transform: scale(0.93); filter: brightness(1.4); }
+    .colour-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .colour-btn[data-color="red"]    { background: #ef4444; }
+    .colour-btn[data-color="blue"]   { background: #3b82f6; }
+    .colour-btn[data-color="green"]  { background: #22c55e; }
+    .colour-btn[data-color="yellow"] { background: #eab308; }
+    .colour-btn[data-color="purple"] { background: #a855f7; }
+    .colour-btn[data-color="orange"] { background: #f97316; }
+
+    /* Progress dots */
+    .progress-dots { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .pdot { width: 18px; height: 18px; border-radius: 50%; background: #334; }
+    .pdot.correct { background: #4ecca3; }
+    .pdot.wrong   { background: #ef4444; }
+
+    /* Solved overlay */
+    .solved-overlay { display: none; position: fixed; inset: 0; background: rgba(13,27,42,0.93); flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 10; }
+    .solved-overlay.show { display: flex; }
+    .solved-emoji { font-size: 72px; }
+    .solved-title { font-size: 36px; font-weight: 900; color: #4ecca3; }
+    .solved-sub { font-size: 20px; color: #aab; text-align: center; }
+
+    /* Gameover */
+    .gameover-emoji { font-size: 72px; }
+    .gameover-title { font-size: 36px; font-weight: 900; color: #ffd700; }
+    .gameover-personal { font-size: 22px; color: #4ecca3; text-align: center; }
+    .gameover-msg { font-size: 18px; color: #aab; text-align: center; }
+
+    .reconnect-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; font-size: 22px; color: #fff; z-index: 50; text-align: center; padding: 20px; }
+    .reconnect-overlay.show { display: flex; }
+  </style>
+</head>
+<body>
+<div id="joinScreen" class="screen active">
+    <div class="join-title">🎨 Colour Memory</div>
+    <div class="join-sub">Watch the TV screen and remember the sequence!</div>
+    <input id="nameInput" class="name-input" type="text" placeholder="Your name" maxlength="20" autocomplete="off" />
+    <button id="joinBtn" class="join-btn">Join Game</button>
+    <div id="joinError" class="error-msg"></div>
+  </div>
+
+  <div id="waitingScreen" class="screen">
+    <div class="waiting-emoji">⏳</div>
+    <div class="waiting-title">You're in!</div>
+    <div class="waiting-sub">Waiting for the host to start...<br><strong id="waitingName"></strong></div>
+  </div>
+
+  <div id="playingScreen" class="screen playing-screen">
+    <div id="roundInfo" class="round-info"></div>
+    <div id="gameHint" class="game-hint">Get ready!</div>
+
+    <!-- Watch TV phase -->
+    <div id="watchTvMsg" class="watch-tv-msg">
+      <div class="watch-tv-emoji">📺</div>
+      <div class="watch-tv-text">Watch the TV screen!</div>
+    </div>
+
+    <!-- Recall phase -->
+    <div id="recallSection" class="hidden" style="display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;">
+      <div id="progressDots" class="progress-dots"></div>
+      <div class="colour-grid" id="colourGrid">
+        <button class="colour-btn" data-color="red"    data-idx="0">​</button>
+        <button class="colour-btn" data-color="blue"   data-idx="1">​</button>
+        <button class="colour-btn" data-color="green"  data-idx="2">​</button>
+        <button class="colour-btn" data-color="yellow" data-idx="3">​</button>
+        <button class="colour-btn" data-color="purple" data-idx="4">​</button>
+        <button class="colour-btn" data-color="orange" data-idx="5">​</button>
+      </div>
+    </div>
+
+    <!-- Solved overlay -->
+    <div id="solvedOverlay" class="solved-overlay">
+      <div class="solved-emoji">✅</div>
+      <div class="solved-title">Sequence complete!</div>
+      <div class="solved-sub">Waiting for others...</div>
+    </div>
+  </div>
+
+  <div id="gameoverScreen" class="screen">
+    <div id="gameoverEmoji" class="gameover-emoji">🏆</div>
+    <div id="gameoverTitle" class="gameover-title">Game Over!</div>
+    <div id="gameoverPersonal" class="gameover-personal"></div>
+    <div id="gameoverMsg" class="gameover-msg"></div>
+  </div>
+
+  <div id="reconnectOverlay" class="reconnect-overlay">Connection lost. Reconnecting...</div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/sfx.js"></script>
+  <script src="/js/colour-memory-play.js"></script>
+  <script src="/js/game-rules.js"></script>
+</body>
+</html>

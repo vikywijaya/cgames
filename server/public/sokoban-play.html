@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Sokoban 📦</title>
+  <link rel="stylesheet" href="/css/play-base.css" />
+  <style>
+    :root {
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    }
+
+    /* ── Playing ── */
+    .playing-screen { justify-content: flex-start; padding: 0; gap: 0; }
+
+    .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; background: #0f172a; border-bottom: 1px solid #334155; flex-shrink: 0; }
+    .top-label { font-size: 12px; color: #f59e0b; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+    .top-value { font-size: 22px; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; }
+
+    /* Board */
+    .board-area { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; overflow: hidden; background: #1a1a2e; position: relative; }
+    .sk-board { display: inline-grid; gap: 0; }
+    .sk-cell { display: flex; align-items: center; justify-content: center; position: relative; }
+
+    /* Tile backgrounds — enhanced with depth */
+    .t-wall    { background: linear-gradient(135deg, #4b5563, #374151); }
+    .t-floor   { background: #1e293b; }
+    .t-outside { background: transparent; }
+    .t-goal    { background: #1e293b; }
+    .t-box     { background: linear-gradient(135deg, #a3622a, #92400e); border-radius: 3px; }
+    .t-box-ok  { background: linear-gradient(135deg, #22714a, #14532d); border-radius: 3px; }
+    .t-player  { background: #1e293b; }
+
+    /* Wall texture */
+    .t-wall::after { content: ''; position: absolute; inset: 1px; border-radius: 2px; background: linear-gradient(180deg, rgba(255,255,255,0.08), transparent); }
+
+    /* D-pad — custom easing, GPU-friendly (transform only) */
+    .dpad-wrap { width: 100%; padding: 12px 0 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; background: #0f172a; border-top: 1px solid #334155; }
+    .dpad-row  { display: flex; gap: 8px; align-items: center; }
+    .dpad-btn  { width: 72px; height: 72px; background: #1e293b; border: 2px solid #475569; border-radius: 16px; font-size: 28px; color: #e2e8f0; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent; transition: transform 120ms var(--ease-out), background-color 120ms var(--ease-out); touch-action: manipulation; }
+    .dpad-btn:active:not(:disabled) { background-color: #475569; transform: scale(0.95); }
+    .dpad-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .dpad-center { width: 72px; height: 72px; }
+    .action-row { display: flex; gap: 12px; margin-top: 6px; }
+    .action-btn { padding: 14px 22px; min-height: 48px; background: #1e293b; border: 2px solid #475569; border-radius: 12px; font-size: 16px; font-weight: 600; color: #cbd5e1; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform 120ms var(--ease-out), background-color 120ms var(--ease-out); touch-action: manipulation; display: flex; align-items: center; gap: 6px; }
+    .action-btn:active:not(:disabled) { background-color: #475569; transform: scale(0.96); }
+    .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Feedback */
+    .feedback { width: 100%; text-align: center; font-size: 18px; font-weight: 700; min-height: 24px; padding: 4px 8px; flex-shrink: 0; }
+
+    /* Solved overlay — GPU-composited entry */
+    .solved-overlay { position: absolute; inset: 0; background: rgba(20,83,45,0.94); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; z-index: 5; will-change: opacity; animation: overlayIn 250ms var(--ease-out); }
+    .solved-overlay.hidden { display: none !important; }
+    .solved-big { font-size: 60px; animation: pop 400ms cubic-bezier(.34,1.56,.64,1); }
+    .solved-txt { font-size: 24px; font-weight: 800; color: #4ade80; }
+    .solved-sub { font-size: 17px; color: #86efac; }
+
+    /* Watch TV overlay (between rounds) */
+    .watch-tv { position: absolute; inset: 0; background: #1a1a2e; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 10; will-change: opacity; animation: overlayIn 250ms var(--ease-out); }
+    .watch-tv.hidden { display: none !important; }
+    .watch-tv-emoji { font-size: 64px; animation: bounce 1.2s var(--ease-in-out) infinite; }
+    @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+    @keyframes overlayIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+    .watch-tv-text { font-size: 24px; font-weight: 800; color: #fbbf24; text-align: center; }
+    .watch-tv-sub  { font-size: 17px; color: #94a3b8; text-align: center; }
+
+    /* Gameover */
+    .gameover-screen { background: radial-gradient(ellipse at center, #1e3a1e 0%, #1a1a2e 70%); }
+    .go-trophy   { font-size: 80px; animation: pop 500ms cubic-bezier(.34,1.56,.64,1); }
+    @keyframes pop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .go-title    { font-size: 38px; font-weight: 900; color: #fbbf24; }
+    .go-score    { font-size: 48px; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; }
+    .go-personal { font-size: 20px; color: #94a3b8; text-align: center; line-height: 1.5; }
+    .play-again  { padding: 18px 44px; font-size: 20px; font-weight: 800; border: 2px solid #f59e0b; border-radius: 14px; background: transparent; color: #fbbf24; cursor: pointer; margin-top: 12px; transition: transform 150ms var(--ease-out), background-color 150ms var(--ease-out); min-height: 56px; }
+    .play-again:active { transform: scale(0.96); background-color: rgba(245,158,11,0.1); }
+
+    /* Reconnect */
+    .reconnect { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); align-items: center; justify-content: center; flex-direction: column; font-size: 20px; color: #fff; z-index: 99; gap: 12px; }
+    .reconnect.show { display: flex; }
+    .reconnect-spin { font-size: 36px; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hidden { display: none !important; }
+
+    /* Reduced motion — keep opacity transitions, remove transform-based motion */
+    @media (prefers-reduced-motion: reduce) {
+      .waiting-anim, .watch-tv-emoji { animation: none; }
+      .reconnect-spin { animation-duration: 3s; }
+      .solved-overlay, .watch-tv { animation-duration: 0ms; }
+      .solved-big, .go-trophy { animation: fadeOnly 200ms ease; }
+      .dpad-btn, .action-btn, .join-btn, .play-again { transition-property: background-color; transition-duration: 120ms; }
+      @keyframes fadeOnly { from { opacity: 0; } to { opacity: 1; } }
+    }
+  </style>
+</head>
+<body>
+<!-- Join -->
+<div id="joinScreen" class="screen active">
+  <div class="join-logo">📦</div>
+  <div class="join-title">Sokoban</div>
+  <div class="join-sub">Push all boxes onto the targets — race to solve it first!</div>
+  <input id="nameInput" class="name-input" type="text" placeholder="Your name" maxlength="20" autocomplete="off" />
+  <button id="joinBtn" class="join-btn">Join Game</button>
+  <div id="joinError" class="error-msg" role="alert" aria-live="polite"></div>
+</div>
+
+<!-- Waiting -->
+<div id="waitingScreen" class="screen">
+  <div class="waiting-anim">📦</div>
+  <div class="waiting-title">You're in!</div>
+  <div class="waiting-name" id="waitingName"></div>
+  <div class="waiting-sub">Waiting for the host to start…</div>
+</div>
+
+<!-- Playing -->
+<div id="playingScreen" class="screen playing-screen" style="position:relative;">
+
+  <div class="top-bar">
+    <div>
+      <div class="top-label">Score</div>
+      <div class="top-value" id="myScore">0 pts</div>
+    </div>
+    <div style="text-align:center">
+      <div class="top-label">Moves</div>
+      <div class="top-value" id="myMoves">0</div>
+    </div>
+    <div style="text-align:right">
+      <div class="top-label">Round</div>
+      <div class="top-value" id="roundInfo">1/3</div>
+    </div>
+  </div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="board-area" id="boardArea">
+    <div id="skBoard" class="sk-board"></div>
+    <div id="solvedOverlay" class="solved-overlay hidden">
+      <div class="solved-big">✅</div>
+      <div class="solved-txt">Level Solved!</div>
+      <div class="solved-sub" id="solvedSub">Waiting for others…</div>
+    </div>
+  </div>
+
+  <div class="dpad-wrap">
+    <div class="dpad-row">
+      <button class="dpad-btn" id="btnUp" aria-label="Move up">▲</button>
+    </div>
+    <div class="dpad-row">
+      <button class="dpad-btn" id="btnLeft" aria-label="Move left">◀</button>
+      <div class="dpad-center"></div>
+      <button class="dpad-btn" id="btnRight" aria-label="Move right">▶</button>
+    </div>
+    <div class="dpad-row">
+      <button class="dpad-btn" id="btnDown" aria-label="Move down">▼</button>
+    </div>
+    <div class="action-row">
+      <button class="action-btn" id="btnUndo" aria-label="Undo last move">↩ Undo</button>
+      <button class="action-btn" id="btnRestart" aria-label="Restart level">🔄 Restart</button>
+    </div>
+  </div>
+
+  <!-- Between-round overlay -->
+  <div id="watchTv" class="watch-tv hidden">
+    <div class="watch-tv-emoji">📦</div>
+    <div class="watch-tv-text" id="watchTvText">Round done!</div>
+    <div class="watch-tv-sub" id="watchTvSub"></div>
+  </div>
+
+</div>
+
+<!-- Game Over -->
+<div id="gameoverScreen" class="screen gameover-screen">
+  <div id="goTrophy" class="go-trophy">📦</div>
+  <div id="goTitle"  class="go-title">Game Over!</div>
+  <div id="goScore"  class="go-score"></div>
+  <div id="goPersonal" class="go-personal"></div>
+</div>
+
+<div id="reconnectOverlay" class="reconnect">
+  <div class="reconnect-spin">🔄</div>
+  <div>Reconnecting…</div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/sfx.js"></script>
+<script src="/js/sokoban-play.js"></script>
+  <script src="/js/game-rules.js"></script>
+</body>
+</html>

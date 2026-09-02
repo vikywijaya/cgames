@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CaritaHub Bingo</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div class="header-inner">
+        <div class="header-nav"><a href="/" class="back-link">← All Games</a></div>
+        <h1>CaritaHub Bingo</h1>
+        <p class="subtitle" id="statusBar">Connecting…</p>
+      </div>
+    </header>
+
+    <main id="bingoApp">
+
+      <!-- Waiting overlay -->
+      <div id="waitingOverlay" class="overlay-card">
+        <p id="waitingMsg">Waiting for game to start…</p>
+      </div>
+
+      <!-- Game UI (hidden until started) -->
+      <div id="gameUI" class="hidden">
+
+        <!-- Players row -->
+        <div id="bingoPlayers" class="bingo-players"></div>
+
+        <!-- ── Hero: last called number ── -->
+        <div class="bingo-hero-wrap">
+          <div class="bingo-last-number-wrap">
+            <div class="bingo-last-label">Last Called</div>
+            <div id="lastCalled" class="bingo-last-number">—</div>
+          </div>
+          <div class="bingo-count-wrap">
+            <div class="bingo-count-label">Called</div>
+            <div id="calledCount" class="bingo-count-num">0 <span class="bingo-count-of">/ 75</span></div>
+          </div>
+        </div>
+
+        <!-- ── Called balls strip ── -->
+        <div class="bingo-balls-section">
+          <div class="bingo-balls-header">
+            <span class="bingo-col-label" style="color:#1155cc">B</span>
+            <span class="bingo-col-label" style="color:#c0392b">I</span>
+            <span class="bingo-col-label" style="color:#1a6e1a">N</span>
+            <span class="bingo-col-label" style="color:#7d3c98">G</span>
+            <span class="bingo-col-label" style="color:#b7600a">O</span>
+          </div>
+          <div id="calledBalls" class="bingo-balls"></div>
+        </div>
+
+        <!-- ── Bingo Card ── -->
+        <div class="bingo-card-wrap">
+          <div id="myBingoCard" class="bingo-card"></div>
+        </div>
+
+        <!-- ── Caller controls (host only, shown below card) ── -->
+        <div id="callerPanel" class="bingo-caller-panel hidden">
+          <button id="callBtn" class="bingo-call-btn">
+            <span class="bingo-call-icon">🎱</span>
+            <span class="bingo-call-text">Call Next Number</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Game over overlay -->
+      <div id="gameOverOverlay" class="overlay-card hidden">
+        <div class="bingo-winner-badge">🎉</div>
+        <h2 id="gameOverTitle">BINGO!</h2>
+        <p id="gameOverMsg"></p>
+        <div class="overlay-btns" style="margin-top:20px">
+          <button id="playAgainBtn" class="btn btn-success">Play Again</button>
+          <a href="/" class="btn btn-primary">Back to Games</a>
+        </div>
+      </div>
+
+      <!-- Reconnect overlay -->
+      <div id="reconnectOverlay" class="overlay-card hidden">
+        <p>Connection lost. Reconnecting…</p>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/bingo-game.js"></script>
+  <script src="/js/dev-test.js"></script>
+</body>
+</html>

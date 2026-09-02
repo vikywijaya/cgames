@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crazy Eights</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <a href="/" class="back-home-btn floating" aria-label="Back" title="Back" onclick="event.preventDefault(); if (window.history.length > 1) { window.history.back(); } else { window.close(); }"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></a>
+  <div id="c8App">
+
+    <!-- Player info row -->
+    <div class="cdi-players" id="c8Players"></div>
+
+    <!-- Status bar -->
+    <div id="statusBar">Loading game…</div>
+
+    <!-- Table: discard pile + draw pile -->
+    <div id="c8Table">
+      <span id="c8TableLabel">Table</span>
+      <div class="gin-piles">
+        <div class="gin-pile" id="drawPile">
+          <div class="card-tile card-back" id="drawPileCard">
+            <span class="card-tile-rank">?</span>
+            <span class="card-tile-suit">Draw</span>
+          </div>
+          <span class="gin-pile-label" id="drawCount">Draw</span>
+        </div>
+        <div class="gin-pile" id="discardPile">
+          <div class="card-tile" id="discardTopCard"></div>
+          <span class="gin-pile-label">Discard</span>
+        </div>
+      </div>
+      <div id="currentSuitBadge" class="combo-type-badge hidden"></div>
+    </div>
+
+    <!-- My hand label -->
+    <p class="hand-label">Your Hand</p>
+
+    <!-- My hand -->
+    <div id="myHand"></div>
+
+    <!-- Actions -->
+    <div class="cdi-actions">
+      <button id="playBtn"  class="btn btn-primary"   disabled>Play Selected</button>
+      <button id="drawBtn"  class="btn btn-secondary"  disabled>Draw Card</button>
+      <button id="passBtn"  class="btn btn-secondary"  disabled>Pass</button>
+    </div>
+
+    <!-- Suit chooser (when playing an 8) -->
+    <div id="suitChooser" class="overlay hidden">
+      <div class="overlay-box">
+        <h2>Choose a Suit</h2>
+        <div class="suit-buttons">
+          <button class="btn suit-btn" data-suit="D" style="color:#d32f2f">♦ Diamonds</button>
+          <button class="btn suit-btn" data-suit="C" style="color:#333">♣ Clubs</button>
+          <button class="btn suit-btn" data-suit="H" style="color:#d32f2f">♥ Hearts</button>
+          <button class="btn suit-btn" data-suit="S" style="color:#333">♠ Spades</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Game over overlay -->
+  <div id="gameOverOverlay" class="overlay hidden">
+    <div class="overlay-box">
+      <h2 id="gameOverTitle">Game Over</h2>
+      <p  id="gameOverMsg"></p>
+      <div class="overlay-btns">
+        <button id="playAgainBtn" class="btn btn-success">Play Again</button>
+        <button id="backLobbyBtn" class="btn btn-primary">Back to Lobby</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reconnecting overlay -->
+  <div id="reconnectOverlay" class="overlay">
+    <div class="overlay-box">
+      <div class="spinner"></div>
+      <h2>Reconnecting…</h2>
+      <p id="reconnectMsg">Please wait.</p>
+      <a id="backLobbyLink" href="/" class="btn btn-secondary hidden">Back to Lobby</a>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/mp-report-result.js"></script>
+  <script src="/js/crazy-eights-game.js"></script>
+  <script src="/js/dev-test.js"></script>
+</body>
+</html>

@@ -1,0 +1,807 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   CaritaHub TV Base Design System
+   Brand: Lexend font · Dark #141414 background · Blue primary #3D72E8
+   Optimised for 1920×1080 HD Smart TVs + D-pad remote navigation
+
+   ── SCREEN LAYOUT RULES ──────────────────────────────────────────────────
+
+   Every TV game screen MUST follow this phase structure:
+
+   <div class="tv-phase tv-lobby active">     ← Lobby (QR + players + start)
+   <div class="tv-phase tv-playing">          ← Playing (header + scoreboard + game)
+   <div class="tv-phase tv-roundover">        ← Round over (scores + countdown)
+   <div class="tv-phase tv-gameover">         ← Game over (winner + final scores)
+
+   ── PLAYING PHASE LAYOUT ─────────────────────────────────────────────────
+
+   The playing phase uses this vertical stack:
+
+   ┌─────────────────────────────────────────────────┐
+   │ .tv-playing-header                              │
+   │   ├─ .tv-playing-title    (left: game name)     │
+   │   └─ .tv-playing-meta     (right: round X of Y) │
+   ├─────────────────────────────────────────────────┤
+   │ .tv-scoreboard            (center: score chips)  │
+   │   └─ .tv-score-chip × N                         │
+   ├─────────────────────────────────────────────────┤
+   │ .tv-phase-label           (center: status text)  │
+   ├─────────────────────────────────────────────────┤
+   │ .tv-boards-wrap           (flex:1, game content) │
+   │   └─ .tv-boards-grid / custom game area         │
+   └─────────────────────────────────────────────────┘
+
+   ── NAMING CONVENTIONS ───────────────────────────────────────────────────
+
+   • Phase containers:  .tv-phase  .tv-lobby  .tv-playing  .tv-roundover  .tv-gameover
+   • Header:            .tv-playing-header  .tv-playing-title  .tv-playing-meta
+   • Scores:            .tv-scoreboard  .tv-score-chip  .tv-score-name  .tv-score-pts
+   • Status:            .tv-phase-label
+   • Player boards:     .tv-boards-wrap  .tv-boards-grid  .tv-player-board
+   • Board state:       .board-done  .board-finished  .board-failed
+   • Lobby:             .tv-lobby-title  .tv-lobby-subtitle  .tv-lobby-body
+   • QR:                .tv-qr-section  .tv-qr-box  .tv-qr-instruction  .tv-qr-url
+   • Players:           .tv-player-section  .tv-player-list  .tv-player-item  .tv-player-dot
+   • Buttons:           .tv-start-btn  .tv-diff-btn  .tv-btn-play-again
+   • Difficulty:        .tv-difficulty-btns  .tv-diff-btn  .tv-diff-btn.active
+
+   ── CUSTOM GAME CSS ──────────────────────────────────────────────────────
+
+   Per-game CSS files (e.g. tv-pattern-sequence.css) should:
+   1. NOT re-import tv-base.css (HTML already links it)
+   2. NOT redefine .tv-phase / .tv-playing / .tv-scoreboard
+   3. Only add game-specific styles (pads, grids, card faces etc.)
+   4. Use var(--primary), var(--bg), var(--surface) etc. for colors
+
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Brand Colors */
+  --primary:       #3D72E8;
+  --primary-dark:  #2D5EC7;
+  --primary-light: rgba(61,114,232,0.18);
+  --success:       #2DAF7B;
+  --success-light: rgba(45,175,123,0.15);
+  --danger:        #E84B3D;
+  --danger-light:  rgba(232,75,61,0.15);
+  --accent:        #E07820;
+  --accent-light:  rgba(224,120,32,0.15);
+  --purple:        #7B5EA7;
+  --purple-light:  rgba(123,94,167,0.15);
+  --teal:          #1A9FAF;
+  --teal-light:    rgba(26,159,175,0.15);
+
+  /* Neutrals (dark mode) */
+  --text:          #FFFFFF;
+  --text-muted:    rgba(255,255,255,0.55);
+  --bg:            #141414;
+  --card-bg:       #1F1F1F;
+  --surface:       rgba(255,255,255,0.07);
+  --border:        rgba(255,255,255,0.12);
+  --white:         #FFFFFF;
+
+  /* TV-scale sizes — responsive, tuned for 720p–4K */
+  --tv-title:      clamp(28px, 3.5vw, 52px);
+  --tv-heading:    clamp(22px, 2.8vw, 40px);
+  --tv-body:       clamp(14px, 1.6vw, 22px);
+  --tv-label:      clamp(12px, 1.2vw, 18px);
+  --tv-small:      clamp(11px, 1vw, 15px);
+
+  /* Shadows (blue-tinted) */
+  --shadow-sm:     0 2px 10px rgba(61,114,232,0.08);
+  --shadow-md:     0 4px 18px rgba(61,114,232,0.12);
+  --shadow-lg:     0 6px 24px rgba(61,114,232,0.16);
+
+  /* Border radius */
+  --radius-sm:     6px;
+  --radius-md:     10px;
+  --radius-lg:     14px;
+  --radius-pill:   50px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  font-family: 'Lexend', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: var(--text);
+  overflow: hidden;
+}
+
+/* ── Phase visibility ── */
+.tv-phase { display: none; }
+.tv-phase.active { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+.hidden { display: none !important; }
+
+/* ── Logo (fixed top-left, visible on lobby only) ── */
+.tv-logo {
+  position: fixed;
+  top: 20px;
+  left: 24px;
+  z-index: 100;
+  opacity: 0.85;
+  transition: opacity 200ms ease-out;
+}
+
+/* ── Back button — inline in QR section, hidden during gameplay ── */
+.tv-back-btn {
+  background: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.18);
+  border-radius: var(--radius-md);
+  color: rgba(255,255,255,0.7);
+  font-size: var(--tv-small);
+  font-weight: 600;
+  font-family: 'Lexend', -apple-system, sans-serif;
+  text-decoration: none;
+  padding: 8px 24px;
+  display: inline-block;
+  transition: background 160ms ease-out, border-color 160ms ease-out;
+  margin-top: 8px;
+}
+.tv-back-btn:hover,
+.tv-back-btn:focus { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.3); outline: none; color: #fff; }
+
+/* ── Shared screen layout ── */
+.tv-lobby, .tv-gameover, .tv-roundover {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: clamp(8px, 1.5vh, 20px);
+  text-align: center;
+  padding: clamp(12px, 2vh, 24px) clamp(12px, 2vw, 24px);
+}
+
+/* ── Lobby ── */
+.tv-lobby {
+  background: transparent;
+}
+
+.tv-lobby-title {
+  font-size: var(--tv-title);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+  color: var(--text);
+}
+
+/* Title row — game cover icon + title side by side */
+.tv-lobby-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 1.4vw, 22px);
+}
+
+.tv-lobby-icon {
+  width: clamp(48px, 4.5vw, 78px);
+  height: clamp(48px, 4.5vw, 78px);
+  border-radius: clamp(12px, 1vw, 18px);
+  object-fit: cover;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.tv-lobby-subtitle {
+  font-size: var(--tv-body);
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.tv-lobby-body {
+  display: flex;
+  gap: clamp(20px, 4vw, 56px);
+  align-items: flex-start;
+}
+
+/* QR section */
+.tv-qr-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.tv-qr-box {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  padding: clamp(6px, 1vw, 10px);
+  box-shadow: var(--shadow-md);
+  border: 2px solid var(--border);
+  max-width: 100%;
+}
+/* QR code: scale proportionally, never stretch */
+.tv-qr-box canvas,
+.tv-qr-box img {
+  display: block;
+  width: clamp(120px, 14vw, 200px) !important;
+  height: clamp(120px, 14vw, 200px) !important;
+}
+
+.tv-qr-instruction {
+  font-size: var(--tv-small);
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.tv-qr-lottie {
+  width: clamp(180px, 22vw, 350px);
+  height: clamp(100px, 13vw, 200px);
+}
+
+.tv-qr-url {
+  font-size: 12px;
+  color: var(--primary);
+  word-break: break-all;
+  max-width: 280px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* Player list */
+.tv-player-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(6px, 1vh, 10px);
+  min-width: clamp(140px, 15vw, 220px);
+}
+
+.tv-player-section-title {
+  font-size: var(--tv-label);
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.tv-player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 40px;
+}
+
+.tv-player-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--tv-small);
+  font-weight: 600;
+  color: var(--text);
+  background: rgba(61,114,232,0.12);
+  border: 1px solid rgba(61,114,232,0.25);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+}
+
+.tv-player-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--primary);
+  flex-shrink: 0;
+}
+
+.tv-player-empty {
+  font-size: var(--tv-small);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Difficulty buttons */
+.tv-difficulty-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.tv-diff-btn {
+  padding: 8px 20px;
+  font-size: var(--tv-small);
+  font-weight: 600;
+  font-family: 'Lexend', sans-serif;
+  border: 2px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.7);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.tv-diff-btn:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(61,114,232,0.3);
+}
+
+.tv-diff-btn.active {
+  border-color: var(--primary);
+  background: rgba(61,114,232,0.2);
+  color: #8AB4FF;
+}
+
+/* Start button */
+.tv-start-btn {
+  margin-top: clamp(4px, 0.8vh, 10px);
+  padding: clamp(8px, 1.2vh, 14px) clamp(20px, 3vw, 40px);
+  font-size: clamp(14px, 1.6vw, 22px);
+  font-weight: 700;
+  font-family: 'Lexend', sans-serif;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: var(--white);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: transform 160ms ease-out, box-shadow 160ms ease-out;
+}
+
+.tv-start-btn:hover,
+.tv-start-btn:focus {
+  background: var(--primary-dark);
+  box-shadow: var(--shadow-lg);
+  outline: none;
+}
+
+.tv-start-btn:active {
+  transform: scale(0.97);
+}
+
+.tv-start-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Game Nav Bar (shared across playing/roundover/gameover) ── */
+.tv-nav {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 24px;
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 16px;
+}
+
+.tv-nav-back {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-sm);
+  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Lexend', sans-serif;
+  text-decoration: none;
+  padding: 5px 14px;
+  transition: background 150ms ease-out;
+  flex-shrink: 0;
+}
+.tv-nav-back:hover,
+.tv-nav-back:focus { background: rgba(255,255,255,0.14); color: #fff; outline: none; }
+
+.tv-nav-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+}
+
+.tv-nav-info {
+  font-size: var(--tv-small);
+  color: var(--text-muted);
+  font-weight: 500;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ── Playing phase ── */
+.tv-playing {
+  flex-direction: column;
+  height: 100vh;
+  padding: 0;
+  gap: 0;
+  background: var(--bg);
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+/* Unified nav bar for all game screens */
+.tv-playing-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 24px;
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 16px;
+}
+
+.tv-playing-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+}
+
+.tv-playing-meta {
+  font-size: var(--tv-small);
+  color: var(--text-muted);
+  font-weight: 500;
+  text-align: right;
+}
+
+/* Game content area below nav — centers content vertically */
+.tv-playing-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 24px;
+  overflow: hidden;
+}
+
+/* Scoreboard */
+.tv-scoreboard {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tv-score-chip {
+  background: rgba(255,255,255,0.06);
+  border-radius: var(--radius-sm);
+  padding: 6px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 90px;
+  border: 1px solid var(--border);
+}
+
+.tv-score-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tv-score-pts {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* Phase label */
+.tv-phase-label {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--primary);
+  text-align: center;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+/* Player boards */
+.tv-boards-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 4px 12px;
+  overflow: hidden;
+}
+
+.tv-boards-grid {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+}
+
+.tv-player-board {
+  background: rgba(255,255,255,0.06);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border: 2px solid var(--border);
+  transition: border-color 0.25s ease-out;
+}
+
+.tv-player-board.board-done,
+.tv-player-board.board-finished {
+  border-color: var(--success);
+  background: var(--success-light);
+}
+
+.tv-player-board.board-failed {
+  border-color: var(--danger);
+  background: var(--danger-light);
+}
+
+.tv-board-name,
+.tv-player-board-name {
+  font-size: var(--tv-small);
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+}
+
+.tv-board-progress,
+.tv-player-score {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* ── Round Over ── */
+.tv-roundover {
+  background: var(--bg);
+}
+
+.tv-roundover-emoji { font-size: 64px; }
+
+.tv-roundover-title {
+  font-size: var(--tv-heading);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.tv-roundover-scores {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 320px;
+}
+
+.tv-round-score-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.06);
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  font-size: var(--tv-body);
+  border: 1px solid var(--border);
+}
+
+.tv-round-score-medal { font-size: 24px; min-width: 32px; }
+
+.tv-round-score-name {
+  flex: 1;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tv-round-score-pts {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 22px;
+}
+
+.tv-roundover-countdown {
+  font-size: var(--tv-body);
+  color: var(--text-muted);
+}
+
+/* ── Game Over ── */
+.tv-gameover {
+  background: var(--bg);
+}
+
+.tv-gameover-emoji { font-size: 72px; }
+
+.tv-gameover-title {
+  font-size: var(--tv-title);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, #3D72E8, #8AB4FF, #3D72E8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tv-gameover-winner {
+  font-size: var(--tv-body);
+  color: var(--text-muted);
+}
+
+.tv-gameover-winner-name {
+  font-size: var(--tv-heading);
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.tv-gameover-scores {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 300px;
+  margin-top: 6px;
+}
+
+.tv-final-score-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--tv-label);
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.06);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.tv-gameover-btns { margin-top: 10px; }
+
+.tv-btn-play-again {
+  padding: 12px 36px;
+  font-size: var(--tv-label);
+  font-weight: 700;
+  font-family: 'Lexend', sans-serif;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: var(--white);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: transform 160ms ease-out;
+}
+
+.tv-btn-play-again:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(61,114,232,0.4);
+}
+.tv-btn-play-again:active { transform: scale(0.97); }
+
+/* ── Badge ── */
+.badge-solved {
+  font-size: var(--tv-small);
+  background: var(--success);
+  color: var(--white);
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+  font-weight: 700;
+}
+
+/* ── Reconnect overlay ── */
+.tv-reconnect {
+  position: fixed;
+  inset: 0;
+  background: rgba(20,20,20,0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--text);
+  z-index: 100;
+  font-weight: 600;
+}
+
+/* ── Confetti ── */
+.tv-confetti-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99;
+  overflow: hidden;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  top: -12px;
+  opacity: 0;
+  animation: confettiFall 3.5s ease-in forwards;
+}
+
+@keyframes confettiFall {
+  0%   { opacity: 1; top: -12px; transform: rotate(0deg) scale(1); }
+  100% { opacity: 0; top: 110vh; transform: rotate(720deg) scale(0.5); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ALIASES — map legacy per-game class names to standard rules
+   Games that predate tv-base.css used custom names (.lobby-title,
+   .playing-header, .scoreboard, etc.). These aliases ensure they
+   inherit the correct layout without rewriting HTML.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Lobby aliases */
+.lobby-title  { font-size: var(--tv-title); font-weight: 800; letter-spacing: 0.02em; text-transform: capitalize; color: var(--text); }
+.lobby-sub    { font-size: var(--tv-body); color: var(--text-muted); font-weight: 400; }
+.lobby-body   { display: flex; gap: clamp(20px, 4vw, 56px); align-items: flex-start; justify-content: center; width: 100%; max-width: 1000px; margin-top: clamp(10px, 2vh, 24px); }
+
+/* Playing header aliases */
+.playing-header { display: flex; align-items: center; width: 100%; padding: 10px 24px; background: rgba(255,255,255,0.04); border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 16px; }
+.playing-title  { font-size: 20px; font-weight: 700; color: var(--text); flex: 1; }
+.playing-meta   { font-size: var(--tv-small); color: var(--text-muted); font-weight: 500; text-align: right; }
+.playing-meta   { font-size: var(--tv-body); color: var(--text-muted); font-weight: 500; }
+
+/* Scoreboard aliases */
+.scoreboard     { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; flex-shrink: 0; padding: 6px 24px; }
+.score-chip     { background: var(--surface); border-radius: var(--radius-sm); padding: 6px 16px; display: flex; flex-direction: column; align-items: center; min-width: 90px; border: 1px solid var(--border); }
+.score-name     { font-size: 13px; font-weight: 600; color: var(--text); }
+.score-pts      { font-size: 22px; font-weight: 700; color: var(--primary); }
+
+/* Player chip aliases (lobby player list) */
+.player-section { display: flex; flex-direction: column; align-items: center; gap: 10px; min-width: 220px; }
+.player-list    { display: flex; flex-direction: column; gap: 6px; min-height: 40px; }
+.player-chip    { display: flex; align-items: center; gap: 10px; font-size: var(--tv-small); font-weight: 600; color: var(--text); background: rgba(61,114,232,0.12); border: 1px solid rgba(61,114,232,0.25); border-radius: var(--radius-sm); padding: 7px 12px; }
+.player-dot     { width: 10px; height: 10px; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
+.player-empty   { font-size: var(--tv-small); color: var(--text-muted); font-style: italic; }
+
+/* QR aliases */
+.qr-section     { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.qr-box         { background: #fff; border-radius: var(--radius-md); padding: 10px; box-shadow: var(--shadow-md); border: 2px solid var(--border); }
+.qr-label       { font-size: var(--tv-small); color: var(--text-muted); }
+.qr-url         { font-size: 12px; color: var(--primary); word-break: break-all; max-width: 220px; text-align: center; }
+
+/* Start button aliases */
+.start-btn      { margin-top: clamp(4px, 0.8vh, 10px); padding: clamp(8px, 1.2vh, 14px) clamp(20px, 3vw, 40px); font-size: clamp(14px, 1.6vw, 22px); font-weight: 700; font-family: 'Lexend', sans-serif; border: none; border-radius: var(--radius-md); background: var(--primary); color: var(--white); cursor: pointer; box-shadow: var(--shadow-md); transition: transform 160ms ease-out; }
+.start-btn:active:not(:disabled) { transform: scale(0.97); }
+.start-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.start-error    { color: var(--danger); font-size: var(--tv-small); min-height: 20px; }
+
+/* Play Again button aliases */
+.play-again-btn { margin-top: 10px; padding: 12px 36px; font-size: var(--tv-label); font-weight: 700; font-family: 'Lexend', sans-serif; border: none; border-radius: var(--radius-md); background: var(--primary); color: var(--white); cursor: pointer; box-shadow: var(--shadow-md); transition: transform 160ms ease-out; }
+.play-again-btn:active { transform: scale(0.97); }
+
+/* Round over aliases */
+.roundover-wrap    { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.roundover-emoji   { font-size: 64px; }
+.roundover-title   { font-size: var(--tv-heading); font-weight: 700; color: var(--text); }
+.roundover-results { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+.roundover-next    { font-size: var(--tv-label); color: var(--text-muted); }
+.result-card       { background: var(--surface); border-radius: var(--radius-md); padding: 14px 24px; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 140px; border: 1px solid var(--border); }
+.result-pos        { font-size: 32px; }
+.result-name       { font-size: var(--tv-label); font-weight: 700; color: var(--text); }
+.result-pts        { font-size: var(--tv-small); color: var(--primary); font-weight: 600; }
+
+/* Game over aliases */
+.gameover-wrap     { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+.gameover-trophy   { font-size: 64px; }
+.gameover-title    { font-size: var(--tv-title); font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; background: linear-gradient(90deg, #3D72E8, #8AB4FF, #3D72E8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.gameover-winner   { font-size: var(--tv-heading); font-weight: 700; color: var(--primary); }
+.gameover-final    { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+.final-card        { background: var(--surface); border-radius: var(--radius-md); padding: 14px 24px; text-align: center; min-width: 140px; border: 1px solid var(--border); }
+.final-name        { font-size: var(--tv-label); font-weight: 600; color: var(--text); }
+.final-score       { font-size: 32px; font-weight: 700; color: var(--primary); }
+
+/* Player board aliases */
+.player-board      { background: var(--surface); border-radius: var(--radius-sm); padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; border: 2px solid var(--border); transition: border-color 0.25s ease-out; }
+.player-board.solved { border-color: var(--success); background: var(--success-light); }
+.player-name       { font-size: var(--tv-small); font-weight: 700; color: var(--text); text-align: center; }
+.player-moves      { font-size: 13px; color: var(--text-muted); }
+
+/* Boards layout aliases */
+.boards-wrap       { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; padding: 4px 12px; overflow: hidden; }
+.boards-grid       { display: grid; gap: 12px; width: 100%; align-items: start; justify-items: center; }
+
+/* ── Timer bar (shared component) ── */
+.tv-timer-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.tv-timer-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--primary);
+  transition: width 1s linear;
+}
+.tv-timer-fill.warning { background: var(--accent); }
+.tv-timer-fill.danger  { background: var(--danger); }

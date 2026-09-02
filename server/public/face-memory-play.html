@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Face Memory</title>
+  <link rel="stylesheet" href="/css/play-base.css" />
+  <style>
+    :root {
+      --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+      --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+      --accent: #4ecca3;
+      --accent-dim: rgba(78,204,163,0.15);
+      --bg: #0d1b2a;
+      --card: #16213e;
+      --border: #1e3050;
+      --text: #eee;
+      --text-muted: #8899aa;
+      --correct: #4ecca3;
+      --correct-bg: #1a3a2a;
+      --wrong: #ef4444;
+      --wrong-bg: #2a1a1a;
+      --gold: #ffd700;
+    }
+
+    /* ── Playing ── */
+    .playing-screen { justify-content: flex-start; padding: 20px 20px 24px; gap: 14px; }
+    .round-info { font-size: 16px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; }
+    .game-hint { font-size: 18px; font-weight: 700; color: var(--accent); text-align: center; min-height: 26px; }
+
+    /* Study phase on phone */
+    .study-msg { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+    .study-emoji { font-size: 64px; animation: bounce 1.2s var(--ease-in-out) infinite; }
+    @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    .study-text { font-size: 26px; font-weight: 800; color: #fff; text-align: center; }
+    .study-sub { font-size: 17px; color: var(--text-muted); text-align: center; line-height: 1.5; }
+
+    /* Recall phase */
+    .recall-section { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 100%; animation: fadeSlideIn 250ms var(--ease-out); }
+    @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .face-question { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .face-img-big { width: 128px; height: 128px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); background: var(--card); transition: border-color 200ms var(--ease-out); }
+    .face-question-label { font-size: 22px; font-weight: 700; color: #fff; }
+
+    .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 360px; }
+    .option-btn {
+      padding: 16px 12px; font-size: 18px; font-weight: 700;
+      border: 2px solid var(--border); border-radius: 14px;
+      background: var(--card); color: var(--text); cursor: pointer;
+      min-height: 60px; display: flex; align-items: center; justify-content: center;
+      transition: transform 120ms var(--ease-out), background-color 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out);
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    }
+    .option-btn:active:not(:disabled) { transform: scale(0.96); }
+    .option-btn:disabled { opacity: 0.42; cursor: not-allowed; }
+    .option-btn.correct { background: var(--correct-bg); border-color: var(--correct); color: var(--correct); }
+    .option-btn.wrong   { background: var(--wrong-bg); border-color: var(--wrong); color: var(--wrong); }
+    .option-btn.selected { background: var(--card); border-color: var(--accent); }
+
+    .score-display { font-size: 20px; font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; }
+
+    /* ── Gameover ── */
+    .gameover-screen { background: radial-gradient(ellipse at center, #0d2b3a 0%, var(--bg) 70%); }
+    .gameover-emoji { font-size: 80px; animation: pop 500ms cubic-bezier(.34,1.56,.64,1); }
+    @keyframes pop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .gameover-title { font-size: 38px; font-weight: 900; color: var(--gold); }
+    .gameover-score { font-size: 48px; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; }
+    .gameover-personal { font-size: 22px; color: var(--accent); text-align: center; line-height: 1.5; }
+    .gameover-msg { font-size: 18px; color: var(--text-muted); text-align: center; }
+    .play-again { padding: 18px 44px; font-size: 20px; font-weight: 800; border: 2px solid var(--accent); border-radius: 14px; background: transparent; color: var(--accent); cursor: pointer; margin-top: 8px; transition: transform 150ms var(--ease-out), background-color 150ms var(--ease-out); min-height: 56px; }
+    .play-again:active { transform: scale(0.96); background-color: var(--accent-dim); }
+
+    /* ── Reconnect ── */
+    .reconnect-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88); align-items: center; justify-content: center; flex-direction: column; font-size: 20px; color: #fff; z-index: 50; text-align: center; padding: 20px; gap: 12px; }
+    .reconnect-overlay.show { display: flex; }
+    .reconnect-spin { font-size: 36px; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      .waiting-emoji, .study-emoji { animation: none; }
+      .reconnect-spin { animation-duration: 3s; }
+      .recall-section { animation: none; }
+      .gameover-emoji { animation: fadeOnly 200ms ease; }
+      .option-btn, .join-btn, .play-again { transition-property: background-color, border-color, color; transition-duration: 120ms; }
+      @keyframes fadeOnly { from { opacity: 0; } to { opacity: 1; } }
+    }
+  </style>
+</head>
+<body>
+<!-- Join -->
+  <div id="joinScreen" class="screen active">
+    <div class="join-title">🧠 Face Memory</div>
+    <div class="join-sub">Memorise the faces on the TV, then name them!</div>
+    <input id="nameInput" class="name-input" type="text" placeholder="Your name" maxlength="20" autocomplete="off" />
+    <button id="joinBtn" class="join-btn">Join Game</button>
+    <div id="joinError" class="error-msg" role="alert" aria-live="polite"></div>
+  </div>
+
+  <!-- Waiting -->
+  <div id="waitingScreen" class="screen">
+    <div class="waiting-emoji">⏳</div>
+    <div class="waiting-title">You're in!</div>
+    <div id="waitingName" class="waiting-name"></div>
+    <div class="waiting-sub">Waiting for the host to start…</div>
+  </div>
+
+  <!-- Playing -->
+  <div id="playingScreen" class="screen playing-screen">
+    <div id="roundInfo" class="round-info"></div>
+    <div id="gameHint" class="game-hint"></div>
+
+    <!-- Study phase -->
+    <div id="studyMsg" class="study-msg">
+      <div class="study-emoji">📺</div>
+      <div class="study-text">Watch the TV!</div>
+      <div class="study-sub">Memorise the faces and their names</div>
+    </div>
+
+    <!-- Recall phase -->
+    <div id="recallSection" class="recall-section" style="display:none;">
+      <div id="scoreDisplay" class="score-display"></div>
+      <div class="face-question">
+        <img id="faceImgBig" class="face-img-big" src="" alt="Who is this person?" />
+        <div class="face-question-label">Who is this?</div>
+      </div>
+      <div id="optionsGrid" class="options-grid" role="group" aria-label="Name choices"></div>
+    </div>
+  </div>
+
+  <!-- Game Over -->
+  <div id="gameoverScreen" class="screen gameover-screen">
+    <div id="gameoverEmoji" class="gameover-emoji">🏆</div>
+    <div id="gameoverTitle" class="gameover-title">Game Over!</div>
+    <div id="gameoverScore" class="gameover-score"></div>
+    <div id="gameoverPersonal" class="gameover-personal"></div>
+    <div id="gameoverMsg" class="gameover-msg"></div>
+  </div>
+
+  <div id="reconnectOverlay" class="reconnect-overlay">
+    <div class="reconnect-spin">🔄</div>
+    <div>Reconnecting…</div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/sfx.js"></script>
+  <script src="/js/face-memory-play.js"></script>
+  <script src="/js/game-rules.js"></script>
+</body>
+</html>

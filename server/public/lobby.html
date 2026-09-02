@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CaritaHub Games — Lobby</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div class="header-inner">
+        <div class="header-nav"><a href="/" class="back-home-btn" aria-label="Back" title="Back" onclick="event.preventDefault(); if (window.history.length > 1) { window.history.back(); } else { window.close(); }"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></a></div>
+        <h1 id="gameTitle">CaritaHub Games</h1>
+        <p class="subtitle" id="gameSubtitle">Multiplayer</p>
+      </div>
+    </header>
+
+    <main id="lobby">
+      <div class="card lobby-banner-card">
+        <div class="lobby-banner">
+          <img id="gameBanner" src="" alt="" />
+        </div>
+        <label for="playerName" class="label-lg">Your Name</label>
+        <input id="playerName" type="text" placeholder="Enter your name" maxlength="30" autocomplete="off" />
+
+        <button id="createBtn" class="btn btn-primary">Create Game</button>
+
+        <div id="statusMsg" class="status-msg" aria-live="polite"></div>
+      </div>
+
+      <!-- QR Panel — shown after creating a room -->
+      <div id="qrPanel" class="card hidden">
+        <p class="label-lg">Share this QR code with your opponent</p>
+        <div id="qrcode"></div>
+        <p id="joinLink" class="join-link"></p>
+        <div id="playerList" class="player-list"></div>
+        <button id="startBtn" class="btn btn-success hidden">Start Game</button>
+      </div>
+    </main>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="/js/lobby.js"></script>
+  <script src="/js/dev-test.js"></script>
+</body>
+</html>

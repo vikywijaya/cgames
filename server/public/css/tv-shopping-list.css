@@ -1,0 +1,78 @@
+/* ── TV shopping list — game-specific styles (lobby chrome inherited from tv-base.css) ── */
+
+/* ── TV Shopping List ── */
+
+/* Countdown */
+.tv-countdown {
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--primary);
+  text-align: center;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.tv-countdown.urgent { color: var(--danger); animation: pulse 0.5s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+
+/* Shopping list grid on TV */
+.tv-shopping-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  overflow: hidden;
+  padding: 8px;
+}
+
+.tv-shopping-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-md);
+  padding: 18px 22px;
+  min-width: 130px;
+  max-width: 170px;
+  flex: 1 1 130px;
+  box-shadow: var(--shadow-sm);
+}
+
+.tv-shopping-emoji { font-size: 36px; }
+.tv-shopping-name { font-size: var(--tv-label); font-weight: 700; color: var(--text); text-align: center; }
+
+/* Player boards during recall */
+.tv-player-boards {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex: 1;
+  align-items: flex-start;
+  overflow: hidden;
+}
+
+.tv-player-board {
+  min-width: 150px;
+  max-width: 200px;
+  flex: 1;
+}
+
+.tv-player-board.board-submitted { border-color: var(--accent); background: var(--accent-light); }
+
+.tv-player-status { font-size: var(--tv-small); color: var(--text-muted); text-align: center; }
+.tv-player-status.submitted { color: var(--accent); font-weight: 700; }
+
+.tv-player-result { font-size: var(--tv-small); color: var(--text-muted); text-align: center; line-height: 1.5; }
+
+.badge-submitted {
+  font-size: var(--tv-small);
+  background: var(--accent);
+  color: var(--white);
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  font-weight: 700;
+}

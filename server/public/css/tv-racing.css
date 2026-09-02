@@ -1,0 +1,151 @@
+/* ── TV racing — game-specific styles (lobby chrome inherited from tv-base.css) ── */
+
+/* ── TV RC Racing — extends tv-base.css ── */
+
+/* ── Racing phase ── */
+.race-playing {
+  padding: 0 !important;
+  gap: 0 !important;
+  height: 100vh;
+  position: relative;
+  background: #141414;
+}
+
+#raceCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── Countdown overlay ── */
+.countdown-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 50;
+  pointer-events: none;
+}
+
+.countdown-number {
+  font-size: 160px;
+  font-weight: 700;
+  font-family: 'Lexend', sans-serif;
+  color: #fff;
+  text-shadow:
+    0 0 40px rgba(61,114,232,0.5),
+    0 0 80px rgba(61,114,232,0.25),
+    0 3px 0 rgba(0,0,0,0.35);
+  animation: countPulse 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.countdown-number.go {
+  color: #2DAF7B;
+  text-shadow:
+    0 0 40px rgba(45,175,123,0.5),
+    0 0 80px rgba(45,175,123,0.25),
+    0 3px 0 rgba(0,0,0,0.35);
+}
+
+@keyframes countPulse {
+  0%   { transform: scale(0.3); opacity: 0; }
+  50%  { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ── Leaderboard ── */
+.race-leaderboard {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  min-width: 170px;
+  font-family: 'Lexend', sans-serif;
+  z-index: 10;
+}
+
+.lb-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 13px;
+}
+
+.lb-pos {
+  width: 24px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.lb-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.lb-name {
+  flex: 1;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.lb-lap {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.race-lap-info {
+  position: absolute;
+  top: 12px;
+  left: 64px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-size: var(--tv-small);
+  font-weight: 700;
+  font-family: 'Lexend', sans-serif;
+  color: var(--text);
+  z-index: 10;
+}
+
+/* ── Game over results ── */
+.race-result-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.06);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  font-size: var(--tv-body);
+}
+
+.race-result-pos {
+  width: 32px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--accent);
+}
+
+.race-result-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.race-result-name {
+  flex: 1;
+  font-weight: 600;
+  color: var(--text);
+}

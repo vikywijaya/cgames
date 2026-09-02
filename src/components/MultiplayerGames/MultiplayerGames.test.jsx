@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MultiplayerGames } from './MultiplayerGames';
 import translations from '../../i18n/en';
 
@@ -9,8 +9,15 @@ const games = [
 ];
 
 describe('MultiplayerGames', () => {
+  const originalLocation = window.location;
+
   beforeEach(() => {
-    vi.spyOn(window, 'open').mockImplementation(() => {});
+    delete window.location;
+    window.location = { href: '' };
+  });
+
+  afterEach(() => {
+    window.location = originalLocation;
   });
 
   it('renders the header title and subtitle', () => {
@@ -19,30 +26,40 @@ describe('MultiplayerGames', () => {
     expect(screen.getByText(translations.app.multiplayerSubtitle)).toBeInTheDocument();
   });
 
-  it('renders a card for every game with its translated title and description', () => {
+  it('renders a card for every game with its translated title', () => {
     render(<MultiplayerGames t={translations} games={games} />);
     expect(screen.getByRole('button', { name: 'Play Chess' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Play Xiangqi' })).toBeInTheDocument();
-    expect(screen.getByText('Classic chess against a friend.')).toBeInTheDocument();
+    expect(screen.getByText('Chess')).toBeInTheDocument();
+    expect(screen.getByText('Xiangqi')).toBeInTheDocument();
   });
 
-  it('opens the correct room-lobby URL in a new tab when a card is clicked', () => {
+  it('navigates to the correct room-lobby URL in the same tab when a card is clicked', () => {
     render(<MultiplayerGames t={translations} games={games} />);
     fireEvent.click(screen.getByRole('button', { name: 'Play Chess' }));
-    expect(window.open).toHaveBeenCalledWith(
-      'https://caritahub-games.fly.dev/lobby.html?game=chess',
-      '_blank',
-      'noopener,noreferrer',
-    );
+    expect(window.location.href).toBe('http://localhost:3000/lobby.html?game=chess');
   });
 
-  it('opens a different game\'s URL for a different card', () => {
+  it('navigates to a different game\'s URL for a different card', () => {
     render(<MultiplayerGames t={translations} games={games} />);
     fireEvent.click(screen.getByRole('button', { name: 'Play Xiangqi' }));
-    expect(window.open).toHaveBeenCalledWith(
-      'https://caritahub-games.fly.dev/lobby.html?game=xiangqi',
-      '_blank',
-      'noopener,noreferrer',
+    expect(window.location.href).toBe('http://localhost:3000/lobby.html?game=xiangqi');
+  });
+
+  it('threads memberId, callbackUrl, and accessToken into the room-lobby URL when provided', () => {
+    render(
+      <MultiplayerGames
+        t={translations}
+        games={games}
+        memberId="m-42"
+        callbackUrl="https://host.example/callback"
+        accessToken="tok-123"
+      />
     );
+    fireEvent.click(screen.getByRole('button', { name: 'Play Chess' }));
+    const url = new URL(window.location.href);
+    expect(url.searchParams.get('memberId')).toBe('m-42');
+    expect(url.searchParams.get('callbackUrl')).toBe('https://host.example/callback');
+    expect(url.searchParams.get('accessToken')).toBe('tok-123');
   });
 });

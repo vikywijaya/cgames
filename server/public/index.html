@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CaritaHub Games</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="app" class="games-lobby">
+    <header>
+      <h1>CaritaHub Games</h1>
+      <p class="subtitle">Choose a game to play with friends</p>
+    </header>
+
+    <main>
+      <p class="section-title">Available Now</p>
+
+      <!-- ── Category Filter ── -->
+      <div class="category-filter">
+        <button class="cat-btn active" data-cat="all">All</button>
+        <button class="cat-btn" data-cat="board">Board</button>
+        <button class="cat-btn" data-cat="card">Card</button>
+        <button class="cat-btn" data-cat="word">Word & Trivia</button>
+        <button class="cat-btn" data-cat="party">Party & Action</button>
+        <button class="cat-btn" data-cat="crest">Crest</button>
+        <button class="cat-btn" data-cat="tv">Smart TV</button>
+      </div>
+
+      <div class="games-grid" id="gamesGrid">
+
+        <!-- Smart TV Hub banner — spans full grid width -->
+        <a class="game-card tv-hub-banner" href="/tv" data-cat="tv" style="grid-column: 1 / -1; display: flex; align-items: center; gap: 24px; background: linear-gradient(135deg, #1a1a2e, #0f3460); border: 2px solid #4ecca3; border-radius: 16px; padding: 20px 28px; text-decoration: none;">
+          <div style="font-size: 3rem; line-height: 1;">📺</div>
+          <div>
+            <div style="font-size: 1.3rem; font-weight: 800; color: #fff;">Smart TV Games</div>
+            <div style="font-size: 0.95rem; color: #aab; margin-top: 4px;">Host on the big screen — players join by scanning QR code on their phones</div>
+            <div style="margin-top: 8px;"><span style="background: rgba(78,204,163,0.2); color: #4ecca3; font-size: 0.85rem; padding: 3px 10px; border-radius: 12px; font-weight: 600;">Open TV Hub →</span></div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/lobby.html?game=xiangqi" data-cat="board">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-xiangqi.jpg" alt="Xiangqi board" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">象棋 Xiangqi</div>
+            <div class="game-card-subtitle">Chinese Chess — 2 players</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">2 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/lobby.html?game=chess" data-cat="board">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-chess.jpg" alt="Chess board" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">Western Chess</div>
+            <div class="game-card-subtitle">Chess — 2 players</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">2 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/lobby.html?game=ludo" data-cat="board">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-ludo.jpg" alt="Ludo board" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">飞行棋 Ludo</div>
+            <div class="game-card-subtitle">Pan-ASEAN classic — roll, race, capture!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">2–4 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/lobby.html?game=chordaidi" data-cat="card">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-chordaidi.jpg" alt="Chor Dai Di cards" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">大老二 Chor Dai Di</div>
+            <div class="game-card-subtitle">Big Two — 4 players</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">4 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/lobby.html?game=gin-rummy" data-cat="card">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-gin-rummy.jpg" alt="Gin Rummy cards" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">Gin Rummy</div>
+            <div class="game-card-subtitle">Classic card game — draw, meld, knock!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">2 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/lobby.html?game=hearts" data-cat="card">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-hearts.jpg" alt="Hearts cards" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">Hearts</div>
+            <div class="game-card-subtitle">Avoid hearts and the Queen of Spades!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">4 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/lobby.html?game=crazy-eights" data-cat="card">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-crazy-eights.jpg" alt="Crazy Eights cards" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">Crazy Eights</div>
+            <div class="game-card-subtitle">Match suit or rank — 8s are wild!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">2–4 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/lobby.html?game=boggle" data-cat="word">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-boggle.jpg" alt="Boggle tiles" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">Boggle</div>
+            <div class="game-card-subtitle">Word hunt — 1-min round</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">2–4 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/lobby.html?game=singapore-trivia" data-cat="word">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-singapore-trivia.jpg" alt="Singapore skyline" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">Singapore Trivia</div>
+            <div class="game-card-subtitle">SG quiz with old building images</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">2–6 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/lobby.html?game=bingo" data-cat="party">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-bingo.jpg" alt="Bingo card" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">Bingo</div>
+            <div class="game-card-subtitle">2–8 players, caller mode</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">2–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/lobby.html?game=spot-the-difference" data-cat="party">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-spot-the-difference.jpg" alt="Spot the Difference" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">Spot the Difference</div>
+            <div class="game-card-subtitle">Singapore scenes — find all 5 differences!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–6 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/lobby.html?game=rhythm-tap" data-cat="party">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-rhythm-tap.jpg" alt="Rhythm Tap" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">Rhythm Tap</div>
+            <div class="game-card-subtitle">Beat tap game — 4 lanes, visual beats</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–6 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-higher-lower" data-cat="card tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-higher-lower.jpg" alt="Higher or Lower cards" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Higher or Lower</div>
+            <div class="game-card-subtitle">Smart TV card game — predict the next card!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-boggle" data-cat="word tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-boggle.jpg" alt="TV Boggle letter tiles" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Boggle</div>
+            <div class="game-card-subtitle">Smart TV word hunt — type words on your phone!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-bingo" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-bingo.jpg" alt="TV Bingo board" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Bingo</div>
+            <div class="game-card-subtitle">Smart TV hosted — seniors scan QR to play</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-20-questions" data-cat="word tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-20-questions.jpg" alt="20 Questions" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV 20 Questions</div>
+            <div class="game-card-subtitle">Smart TV guessing game — ask yes/no questions!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1-8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-maze" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-maze.jpg" alt="Maze Runner" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Maze Runner</div>
+            <div class="game-card-subtitle">Smart TV maze — navigate with your phone!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-wordle" data-cat="word tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-wordle.jpg" alt="Wordle Race" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Wordle Race</div>
+            <div class="game-card-subtitle">Smart TV word race — first to solve wins!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-racing" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-racing.jpg" alt="RC Racing" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV RC Racing</div>
+            <div class="game-card-subtitle">Smart TV racing — steer with your phone!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-sumix" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-sumix.jpg" alt="Sumix number puzzle" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Sumix</div>
+            <div class="game-card-subtitle">Smart TV number puzzle — race to solve!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-frog-drop" data-cat="crest tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-frog-drop.jpg" alt="Frog Drop puzzle" onerror="this.parentElement.style.background='linear-gradient(135deg,#0d4a3a,#1a2f4a)';this.parentElement.innerHTML='<div style=&quot;font-size:64px;display:flex;align-items:center;justify-content:center;height:100%;&quot;>🐸</div>'" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Frog Drop</div>
+            <div class="game-card-subtitle">Drop frogs, merge matches — highest score wins!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-math-cross" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-math-cross.jpg" alt="Math Cross puzzle" onerror="this.parentElement.style.background='linear-gradient(135deg,#1a2f4a,#0d4a3a)';this.remove()" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Math Cross</div>
+            <div class="game-card-subtitle">Race to solve math puzzles first!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-taboo" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-taboo.jpg" alt="Taboo word guessing game" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Taboo</div>
+            <div class="game-card-subtitle">AI describes, you guess — don't say the taboo words!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-pipe-puzzle" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img" style="background:linear-gradient(135deg,#1a3a4a,#0d3a2a)">
+            <img src="/img/banner-tv-pipe-puzzle.jpg" alt="Pipe Puzzle" onerror="this.remove()" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Pipe Puzzle</div>
+            <div class="game-card-subtitle">Rotate tiles to connect the pipes — race your friends!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-lumeno" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img" style="background:linear-gradient(135deg,#2a1a4a,#1a0d3a)">
+            <img src="/img/banner-tv-lumeno.jpg" alt="Lumeno colour game" onerror="this.remove()" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Lumeno</div>
+            <div class="game-card-subtitle">Match the colour pattern — tap fast on your phone!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-colour-memory" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img" style="background:linear-gradient(135deg,#3a1a1a,#1a3a1a)">
+            <img src="/img/banner-tv-colour-memory.jpg" alt="Colour Memory" onerror="this.remove()" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Colour Memory</div>
+            <div class="game-card-subtitle">Watch the colour sequence on TV — tap it back!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-daily-arithmetic" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-daily-arithmetic.jpg" alt="Daily Arithmetic" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Daily Arithmetic</div>
+            <div class="game-card-subtitle">Race to solve arithmetic — first correct answer wins!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-missing-number" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-missing-number.jpg" alt="Missing Number" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Missing Number</div>
+            <div class="game-card-subtitle">Find the missing number in the sequence!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-number-sort" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-number-sort.jpg" alt="Number Sort" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Number Sort</div>
+            <div class="game-card-subtitle">Tap numbers in ascending order — fastest wins!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-quick-maths" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-quick-maths.jpg" alt="Quick Maths" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Quick Maths ⚡</div>
+            <div class="game-card-subtitle">Speed arithmetic — answer before your opponents!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-sokoban" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-sokoban.jpg" alt="Sokoban" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Sokoban 📦</div>
+            <div class="game-card-subtitle">Race to push all boxes onto the targets — first to solve wins!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-ring-sort" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-ring-sort.jpg" alt="Ring Sort" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Ring Sort 💍</div>
+            <div class="game-card-subtitle">Sort the coloured rings by colour — race against the room!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-memory-match" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-memory-match.jpg" alt="Memory Match" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Memory Match 🃏</div>
+            <div class="game-card-subtitle">Flip cards to find matching pairs — fastest to clear wins!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-word-recall" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-word-recall.jpg" alt="Word Recall" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Word Recall 📝</div>
+            <div class="game-card-subtitle">Study words on TV, then type as many as you remember!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-shopping-list" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-shopping-list.jpg" alt="Shopping List" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Shopping List 🛒</div>
+            <div class="game-card-subtitle">Memorise the shopping list, then tick the right items!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-pattern-sequence" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-pattern-sequence.jpg" alt="Pattern Sequence" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Pattern Sequence 🎵</div>
+            <div class="game-card-subtitle">Watch the pattern flash, then repeat it on your phone!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-speed-tap" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-speed-tap.jpg" alt="Speed Tap" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Speed Tap ⚡</div>
+            <div class="game-card-subtitle">Find and tap the target emoji before time runs out!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-stroop-colour" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img">
+            <img src="/img/banner-tv-stroop-colour.jpg" alt="Stroop Colour" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Stroop Colour 🎨</div>
+            <div class="game-card-subtitle">Tap the INK colour, not the word — test your brain!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="/tv-face-memory" data-cat="party tv">
+          <div class="game-card-banner game-card-banner-img" style="background:linear-gradient(135deg,#1a2a3a,#2a1a3a)">
+            <img src="/img/banner-tv-face-memory.jpg" alt="Face Memory" onerror="this.remove()" />
+          </div>
+          <div class="game-card-body">
+            <div class="game-card-title">TV Face Memory</div>
+            <div class="game-card-subtitle">Memorise the faces on TV — name them on your phone!</div>
+            <div class="game-card-meta">
+              <span class="badge badge-ready">Ready to play</span>
+              <span class="badge">1–8 players</span>
+            </div>
+          </div>
+        </a>
+
+      </div>
+
+      <!-- ── Leaderboard ── -->
+      <p class="section-title">Leaderboard</p>
+      <div id="leaderboardPanel" class="leaderboard-panel">
+        <div class="lb-tabs">
+          <button class="lb-tab active" data-game="all">All Games</button>
+          <button class="lb-tab" data-game="xiangqi">象棋</button>
+          <button class="lb-tab" data-game="chess">Chess</button>
+          <button class="lb-tab" data-game="chordaidi">大老二</button>
+          <button class="lb-tab" data-game="gin-rummy">Gin Rummy</button>
+          <button class="lb-tab" data-game="hearts">Hearts</button>
+          <button class="lb-tab" data-game="crazy-eights">Crazy 8s</button>
+          <button class="lb-tab" data-game="ludo">Ludo</button>
+          <button class="lb-tab" data-game="tv-sumix">Sumix</button>
+          <button class="lb-tab" data-game="tv-taboo">Taboo</button>
+        </div>
+        <div id="lbBody" class="lb-body">
+          <p class="lb-empty">No games played yet.</p>
+        </div>
+      </div>
+
+    </main>
+  </div>
+  <script>
+  (function () {
+    'use strict';
+    let allData = {};
+    let activeGame = 'all';
+
+    const GAME_LABELS = { xiangqi: '象棋 Xiangqi', chess: 'Western Chess', chordaidi: '大老二 Chor Dai Di', 'gin-rummy': 'Gin Rummy', hearts: 'Hearts', 'crazy-eights': 'Crazy Eights', ludo: '飞行棋 Ludo', 'tv-sumix': 'Sumix', 'tv-taboo': 'Taboo' };
+    const RANK_CLASSES = ['lb-rank-gold', 'lb-rank-silver', 'lb-rank-bronze'];
+
+    function renderRows(entries) {
+      const body = document.getElementById('lbBody');
+      if (!entries || !entries.length) {
+        body.innerHTML = '<p class="lb-empty">No games played yet.</p>';
+        return;
+      }
+      body.innerHTML = entries.map((e, i) => {
+        const rankClass = i < 3 ? RANK_CLASSES[i] : '';
+        const rankSymbol = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}`;
+        return `<div class="lb-row">
+          <span class="lb-rank ${rankClass}">${rankSymbol}</span>
+          <span class="lb-name">${escHtml(e.name)}</span>
+          <span class="lb-wins">${e.wins} win${e.wins !== 1 ? 's' : ''}</span>
+        </div>`;
+      }).join('');
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function showTab(game) {
+      activeGame = game;
+      document.querySelectorAll('.lb-tab').forEach(t => t.classList.toggle('active', t.dataset.game === game));
+      if (game === 'all') {
+        // Aggregate across all game types
+        const agg = new Map();
+        for (const entries of Object.values(allData)) {
+          for (const e of entries) agg.set(e.name, (agg.get(e.name) || 0) + e.wins);
+        }
+        const sorted = Array.from(agg.entries()).map(([name, wins]) => ({ name, wins }))
+          .sort((a, b) => b.wins - a.wins).slice(0, 10);
+        renderRows(sorted);
+      } else {
+        renderRows(allData[game] || []);
+      }
+    }
+
+    async function fetchLeaderboard() {
+      try {
+        const res = await fetch('/api/leaderboard');
+        allData = await res.json();
+        showTab(activeGame);
+      } catch (_) { /* server not ready yet */ }
+    }
+
+    document.querySelectorAll('.lb-tab').forEach(btn => {
+      btn.addEventListener('click', () => showTab(btn.dataset.game));
+    });
+
+    fetchLeaderboard();
+    setInterval(fetchLeaderboard, 30_000); // refresh every 30s
+
+    // ── Category filter ──
+    document.querySelectorAll('.cat-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const cat = btn.dataset.cat;
+        document.querySelectorAll('#gamesGrid .game-card').forEach(card => {
+          const cats = (card.dataset.cat || '').split(' ');
+          card.style.display = (cat === 'all' || cats.includes(cat)) ? '' : 'none';
+        });
+      });
+    });
+  })();
+  </script>
+  <script src="/js/dev-test.js"></script>
+</body>
+</html>

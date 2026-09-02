@@ -1,0 +1,97 @@
+/* ── TV word recall — game-specific styles (lobby chrome inherited from tv-base.css) ── */
+
+/* ── TV Word Recall ── */
+
+/* Word grid during study */
+.tv-word-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  max-width: 942px;
+  width: 100%;
+  margin: 0 auto;
+  flex-shrink: 0;
+}
+
+.tv-word-chip {
+  padding: 14px 32px;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--white);
+  background: var(--primary);
+  border-radius: var(--radius-md);
+  letter-spacing: 0.5px;
+  text-transform: capitalize;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.18s cubic-bezier(0.23,1,0.32,1), opacity 0.25s;
+}
+
+.tv-word-chip.hidden-word {
+  opacity: 0;
+  transform: scale(0.88);
+}
+
+/* Countdown timer */
+.tv-countdown {
+  font-size: 80px;
+  font-weight: 700;
+  color: var(--primary);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.tv-countdown.urgent {
+  color: var(--danger);
+  animation: countdownPulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes countdownPulse {
+  from { transform: scale(1); }
+  to   { transform: scale(1.06); }
+}
+
+.tv-countdown-label {
+  font-size: var(--tv-label);
+  color: var(--text-muted);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Player boards during recall */
+.tv-player-boards {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex: 1;
+  align-items: flex-start;
+  overflow: hidden;
+}
+
+.tv-player-board {
+  min-width: 150px;
+  max-width: 200px;
+  flex: 1;
+}
+
+.tv-player-progress {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.tv-player-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tv-player-progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 4px;
+  transition: width 0.25s ease-out;
+}

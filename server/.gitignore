@@ -1,0 +1,8 @@
+node_modules/
+.env
+*.log
+.DS_Store
+
+# One-off generation scripts (may contain API keys in env)
+generate-banners.py
+generate-covers*

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0a1a" />
+  <title>Frog Drop</title>
+  <link rel="stylesheet" href="/css/play-base.css" />
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      height: 100%;
+      background: #0a0a1a;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      overscroll-behavior: none;
+      touch-action: manipulation;
+    }
+    body { display: flex; flex-direction: column; }
+
+    .screen { display: none; }
+    .screen.active { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+    /* ── Join / Waiting screens (use play-base) ── */
+    #joinScreen, #waitingScreen, #gameoverScreen {
+      align-items: center; justify-content: center; padding: 24px;
+    }
+
+    /* ── Playing screen (full-height phone layout) ── */
+    #playingScreen { padding: 0; }
+
+    /* Top bar — pinned, compact */
+    .top-bar {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      padding-top: max(8px, env(safe-area-inset-top));
+      background: linear-gradient(180deg, #16213e, #0f172a);
+      border-bottom: 1px solid #1e293b;
+    }
+    .top-bar .name {
+      font-size: 14px; font-weight: 700; color: #4ecca3;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .top-bar .timer {
+      font-size: 22px; font-weight: 900; color: #6dd3f5;
+      font-variant-numeric: tabular-nums;
+      padding: 2px 14px;
+      background: rgba(109,211,245,0.12);
+      border-radius: 999px;
+      min-width: 64px; text-align: center;
+    }
+    .top-bar .timer.urgent {
+      color: #fff;
+      background: #ef4444;
+      animation: pulse 0.6s ease-in-out infinite;
+    }
+    @keyframes pulse { 50% { transform: scale(1.06); } }
+    .top-bar .score {
+      font-size: 14px; font-weight: 700; color: #ffd700;
+      text-align: right; white-space: nowrap;
+    }
+    .top-bar .score b { font-size: 17px; }
+
+    /* Canvas area — fills available space */
+    .board-area {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 2px;
+    }
+    #phone-board-canvas {
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+      touch-action: none;
+      background: #0a0a1a;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    }
+
+    /* Reserve a small bottom inset since there's no action bar now */
+    .board-area { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+
+    /* ── Pre-round countdown overlay ── */
+    .pcd {
+      position: fixed; inset: 0;
+      z-index: 200;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 16px;
+      background: radial-gradient(circle at 50% 50%, rgba(10, 10, 26, 0.55), rgba(10, 10, 26, 0.85));
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      pointer-events: none;
+    }
+    .pcd.hidden { display: none; }
+    .pcd-ring {
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      background: radial-gradient(circle at 30% 28%, #fff, #fde047 60%, #f59e0b);
+      border: 6px solid #fff;
+      box-shadow: 0 16px 40px rgba(245, 158, 11, 0.55);
+    }
+    .pcd-num {
+      font-family: 'Fredoka', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: 140px;
+      line-height: 1;
+      color: #7c2d12;
+      text-shadow: 0 3px 0 rgba(255, 255, 255, 0.5);
+    }
+    .pcd-num.go {
+      font-size: 96px;
+      color: #be185d;
+    }
+    .pcd-label {
+      font-family: 'Fredoka', system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 22px;
+      color: #fff;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    }
+    .pcd-num.tick { animation: pcd-tick 0.9s cubic-bezier(.2, .9, .2, 1.1); }
+    @keyframes pcd-tick {
+      0%   { transform: scale(0.4); opacity: 0; }
+      35%  { transform: scale(1.15); opacity: 1; }
+      70%  { transform: scale(1); opacity: 1; }
+      100% { transform: scale(0.85); opacity: 0; }
+    }
+
+    /* ── Game-over (used full-height) ── */
+    #gameoverScreen { padding: 24px 16px; overflow-y: auto; }
+    .go-emoji { font-size: 72px; line-height: 1; margin-top: 20px; }
+    .go-title { font-size: 30px; font-weight: 900; color: #ffd700; margin: 12px 0 4px; text-align: center; }
+    .go-reason { font-size: 16px; color: #94a3b8; text-align: center; max-width: 320px; }
+    .go-rankings { width: 100%; max-width: 320px; margin-top: 18px; }
+    .go-rankings .row {
+      display: flex; justify-content: space-between;
+      padding: 10px 14px; margin-bottom: 6px;
+      background: #1e293b; border-radius: 10px;
+      font-size: 15px;
+    }
+    .go-rankings .row.first {
+      background: linear-gradient(90deg, #b45309, #78350f);
+      color: #ffd700; font-weight: 800;
+    }
+  </style>
+</head>
+<body>
+  <!-- Join screen -->
+  <div id="joinScreen" class="screen active">
+    <div class="join-logo" style="font-size:64px;">🐸</div>
+    <div class="join-title">Frog Drop</div>
+    <div class="join-subtitle">Drag frogs into columns. Stack matches to merge them!</div>
+    <input id="nameInput" class="join-input" type="text" placeholder="Your name" maxlength="20" autocomplete="off" />
+    <button id="joinBtn" class="join-btn" disabled>Join Game</button>
+  </div>
+
+  <!-- Waiting screen -->
+  <div id="waitingScreen" class="screen">
+    <div class="join-logo" style="font-size:56px;">🐸</div>
+    <div class="join-title">Frog Drop</div>
+    <div class="waiting-text">Waiting for host to start...</div>
+    <div id="waitingPlayers" class="waiting-players"></div>
+  </div>
+
+  <!-- Playing screen -->
+  <div id="playingScreen" class="screen">
+    <header class="top-bar">
+      <div class="name" id="displayName">Player</div>
+      <div class="timer" id="timerDisplay">90s</div>
+      <div class="score">Score <b id="scoreValue">0</b></div>
+    </header>
+
+    <div class="board-area">
+      <canvas id="phone-board-canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Game-over screen -->
+  <div id="gameoverScreen" class="screen">
+    <div class="go-emoji">🐸</div>
+    <div class="go-title">Time's Up!</div>
+    <div id="goReason" class="go-reason"></div>
+    <div id="goRankings" class="go-rankings"></div>
+  </div>
+
+  <!-- Pre-round countdown overlay (shown above any screen) -->
+  <div id="pcdOverlay" class="pcd hidden" aria-hidden="true">
+    <div class="pcd-ring"><span id="pcdNum" class="pcd-num">3</span></div>
+    <div class="pcd-label">Get ready…</div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/frog-drop-shared.js"></script>
+  <script src="/js/frog-drop-sfx.js"></script>
+  <script src="/js/tv-frog-drop-play.js"></script>
+</body>
+</html>

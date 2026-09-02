@@ -1,0 +1,251 @@
+/* ── TV 20 questions — game-specific styles (lobby chrome inherited from tv-base.css) ── */
+
+/* ── PLAYING PHASE ── */
+
+.tv-category-badge {
+  font-size: 2.2vw;
+  font-weight: 700;
+  color: #ffd700;
+  background: rgba(255,215,0,0.12);
+  padding: 0.5vh 2vw;
+  border-radius: 1vw;
+  border: 2px solid rgba(255,215,0,0.3);
+}
+
+.tv-question-count {
+  font-size: 1.8vw;
+  color: #aab;
+  font-weight: 600;
+}
+
+/* ── Q&A List ── */
+.tv-playing-main {
+  flex: 1;
+  overflow: hidden;
+  padding: 1vh 0;
+}
+
+.tv-qa-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1vh;
+  height: 100%;
+  overflow-y: auto;
+  padding: 0 1vw;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.2) transparent;
+}
+
+.tv-qa-list::-webkit-scrollbar { width: 8px; }
+.tv-qa-list::-webkit-scrollbar-track { background: transparent; }
+.tv-qa-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+.tv-qa-empty {
+  font-size: 2vw;
+  color: #667;
+  text-align: center;
+  margin-top: 10vh;
+  font-style: italic;
+}
+
+.tv-qa-item {
+  display: flex;
+  align-items: center;
+  gap: 1.2vw;
+  padding: 1vh 1.5vw;
+  background: rgba(255,255,255,0.06);
+  border-radius: 1vw;
+  animation: tvQaSlideIn 0.4s ease-out;
+}
+
+@keyframes tvQaSlideIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.tv-qa-number {
+  font-size: 1.4vw;
+  font-weight: 700;
+  color: #88a;
+  min-width: 3vw;
+  text-align: center;
+}
+
+.tv-qa-asker {
+  font-size: 1.3vw;
+  font-weight: 600;
+  color: #4ecca3;
+  min-width: 8vw;
+}
+
+.tv-qa-text {
+  flex: 1;
+  font-size: 1.8vw;
+  font-weight: 500;
+}
+
+.tv-qa-answer {
+  font-size: 1.6vw;
+  font-weight: 800;
+  padding: 0.4vh 1.2vw;
+  border-radius: 0.6vw;
+  min-width: 6vw;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.tv-qa-answer.yes {
+  background: rgba(78,204,163,0.25);
+  color: #4ecca3;
+  border: 2px solid rgba(78,204,163,0.5);
+}
+
+.tv-qa-answer.no {
+  background: rgba(231,76,60,0.25);
+  color: #e74c3c;
+  border: 2px solid rgba(231,76,60,0.5);
+}
+
+.tv-qa-answer.unsure {
+  background: rgba(170,170,187,0.2);
+  color: #aab;
+  border: 2px solid rgba(170,170,187,0.4);
+}
+
+.tv-qa-answer.correct {
+  background: rgba(255,215,0,0.3);
+  color: #ffd700;
+  border: 2px solid rgba(255,215,0,0.6);
+  animation: tvCorrectPulse 0.6s ease-out;
+}
+
+.tv-qa-answer.wrong-guess {
+  background: rgba(231,76,60,0.2);
+  color: #e74c3c;
+  border: 2px solid rgba(231,76,60,0.4);
+}
+
+@keyframes tvCorrectPulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* ── Footer: players + give up ── */
+.tv-playing-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1vh 1vw 0;
+  flex-shrink: 0;
+}
+
+.tv-players-strip {
+  display: flex;
+  gap: 1.5vw;
+  flex-wrap: wrap;
+}
+
+.tv-player-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.6vw;
+  font-size: 1.6vw;
+  font-weight: 600;
+  padding: 0.6vh 1.2vw;
+  background: rgba(255,255,255,0.08);
+  border-radius: 0.8vw;
+  border-left: 0.4vw solid #4ecca3;
+}
+
+.tv-player-name { font-weight: 700; }
+
+.tv-give-up-btn {
+  font-size: 1.4vw;
+  font-weight: 600;
+  padding: 0.8vh 2vw;
+  background: rgba(231,76,60,0.2);
+  color: #e74c3c;
+  border: 2px solid rgba(231,76,60,0.4);
+  border-radius: 0.8vw;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.tv-give-up-btn:hover {
+  background: rgba(231,76,60,0.4);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   GAME OVER PHASE
+   ══════════════════════════════════════════════════════════════════════════════ */
+.tv-gameover {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3vh;
+}
+
+.tv-gameover-emoji {
+  font-size: 10vw;
+  animation: tvBounce 1s ease-in-out infinite alternate;
+}
+
+@keyframes tvBounce {
+  0%   { transform: scale(1); }
+  100% { transform: scale(1.1); }
+}
+
+.tv-gameover-title {
+  font-size: 4vw;
+  font-weight: 700;
+  color: #aab;
+}
+
+.tv-gameover-answer {
+  font-size: 8vw;
+  font-weight: 900;
+  color: #ffd700;
+  text-shadow: 0 4px 30px rgba(255,215,0,0.5);
+  animation: tvAnswerReveal 1s ease-out;
+}
+
+@keyframes tvAnswerReveal {
+  0%   { opacity: 0; transform: scale(0.5); }
+  60%  { transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.tv-gameover-winner {
+  font-size: 4vw;
+  font-weight: 900;
+  color: #4ecca3;
+  text-shadow: 0 4px 20px rgba(78,204,163,0.5);
+}
+
+.tv-gameover-reason {
+  font-size: 2.5vw;
+  font-weight: 600;
+  color: #aab;
+}
+
+.tv-gameover-btns {
+  display: flex;
+  gap: 2vw;
+  margin-top: 2vh;
+}
+
+.tv-gameover-btn {
+  font-size: 2.5vw;
+  font-weight: 800;
+  padding: 2vh 4vw;
+  border: none;
+  border-radius: 1.5vw;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+}
+
+.tv-btn-play-again {
+  background: #4ecca3;
+  color: #1a1a2e;
+}
+

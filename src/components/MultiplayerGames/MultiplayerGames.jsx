@@ -3,7 +3,14 @@ import appStyles from '../../App.module.css';
 import styles from './MultiplayerGames.module.css';
 import { multiplayerGameUrl } from '../../shared/multiplayerGames';
 
-export function MultiplayerGames({ t, games }) {
+// Pre-generated square card covers (src/assets/games/mp-<slug>.jpg), same convention as
+// the single-player game cards in App.jsx.
+const coverImages = import.meta.glob('../../assets/games/mp-*.jpg', { eager: true, query: '?url', import: 'default' });
+function getCoverImage(slug) {
+  return coverImages[`../../assets/games/mp-${slug}.jpg`] ?? null;
+}
+
+export function MultiplayerGames({ t, games, memberId, callbackUrl, accessToken }) {
   return (
     <div className={appStyles.lobby}>
       <div className={styles.header}>
@@ -17,17 +24,17 @@ export function MultiplayerGames({ t, games }) {
           <button
             key={game.id}
             className={appStyles.gameCard}
-            onClick={() => window.open(multiplayerGameUrl(game.slug), '_blank', 'noopener,noreferrer')}
+            onClick={() => { window.location.href = multiplayerGameUrl(game.slug, { memberId, callbackUrl, accessToken }); }}
             aria-label={`Play ${game.title}`}
           >
             <span className={appStyles.gameDomain}>{t.app.multiplayerPlayers}</span>
-            <div className={appStyles.gameIconBox} aria-hidden="true">{game.icon}</div>
+            <div className={appStyles.gameIconBox} aria-hidden="true">
+              {getCoverImage(game.slug)
+                ? <img src={getCoverImage(game.slug)} alt="" className={appStyles.gameIconImg} />
+                : game.icon}
+            </div>
             <div className={appStyles.gameMeta}>
               <h3 className={appStyles.gameCardTitle}>{game.title}</h3>
-              <p className={styles.cardDescription}>{game.description}</p>
-              <div className={appStyles.gameCardFooter}>
-                <span className={styles.externalBadge}>{t.app.multiplayerExternalBadge}</span>
-              </div>
             </div>
           </button>
         ))}
@@ -45,4 +52,7 @@ MultiplayerGames.propTypes = {
     title: PropTypes.string.isRequired,
     description: PropTypes.string.isRequired,
   })).isRequired,
+  memberId: PropTypes.string,
+  callbackUrl: PropTypes.string,
+  accessToken: PropTypes.string,
 };

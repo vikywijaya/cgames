@@ -1,0 +1,269 @@
+/* ── TV Taboo — playing phase styles ── */
+
+.tv-round-badge {
+  font-size: 1.8vw; font-weight: 700; color: #4ecca3;
+  background: rgba(78,204,163,0.15); padding: 0.4vh 1.4vw; border-radius: 0.6vw;
+  border: 1px solid rgba(78,204,163,0.3);
+}
+
+/* Two-column layout: left=game content, right=scoreboard+log */
+.tv-playing-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 26vw;
+  gap: 2vw;
+  align-items: stretch;
+  min-height: 0;
+  padding: 0 2vw 1vh;
+}
+
+/* ── Left: taboo card + clue + reveal ── */
+.tv-card-area {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5vh;
+  min-height: 0;
+}
+
+/* Taboo words as chips in a band */
+.tv-taboo-card {
+  background: rgba(231,76,60,0.07);
+  border: 2px solid rgba(231,76,60,0.25);
+  border-radius: 1.2vw;
+  padding: 1.4vh 2vw;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8vh;
+}
+.tv-card-label {
+  font-size: 1.1vw; font-weight: 700; color: #e74c3c;
+  text-transform: uppercase; letter-spacing: 0.12em;
+}
+.tv-card-keyword {
+  font-size: 4.5vw; font-weight: 900; color: #ffd700;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 5.5vw;
+  text-shadow: 0 0 40px rgba(255,215,0,0.4);
+  animation: kwReveal 0.5s cubic-bezier(0.23,1,0.32,1);
+}
+@keyframes kwReveal {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.tv-card-keyword.hidden-word { color: #445; font-style: normal; font-size: 2.5vw; text-shadow: none; }
+
+.tv-taboo-list {
+  display: flex; flex-wrap: wrap; gap: 0.6vw;
+}
+.tv-taboo-word {
+  font-size: 1.5vw; font-weight: 700; padding: 0.3vh 1vw;
+  background: rgba(231,76,60,0.15); color: #e74c3c;
+  border: 1.5px solid rgba(231,76,60,0.35); border-radius: 0.4vw;
+  text-decoration: line-through;
+}
+
+/* Big clue display */
+.tv-clue-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.03);
+  border: 1.5px solid rgba(255,255,255,0.07);
+  border-radius: 1.4vw;
+  padding: 2.5vh 2.5vw;
+  text-align: center;
+  gap: 1vh;
+  min-height: 0;
+}
+.tv-clue-label {
+  font-size: 1.2vw; font-weight: 700; color: #4ecca3;
+  text-transform: uppercase; letter-spacing: 0.1em;
+}
+.tv-clue-text {
+  font-size: 2.6vw; font-weight: 600; color: #fff;
+  line-height: 1.45;
+  display: flex; align-items: center; justify-content: center;
+}
+.tv-clue-loading {
+  font-size: 2vw; color: #556; font-style: italic;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1; }
+}
+
+/* Reveal keyword overlay */
+#revealKeyword {
+  display: flex; align-items: center; justify-content: center;
+  gap: 1vw;
+  padding: 1.5vh 0;
+}
+.tv-reveal-label {
+  font-size: 1.4vw; color: #aab; font-weight: 600;
+}
+.tv-reveal-word {
+  font-size: 4vw; font-weight: 900; color: #ffd700;
+  text-shadow: 0 0 40px rgba(255,215,0,0.5);
+  animation: kwReveal 0.4s cubic-bezier(0.23,1,0.32,1);
+}
+
+/* ── Right: scoreboard + guess log ── */
+.tv-scoreboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5vh;
+  min-height: 0;
+}
+
+.tv-scoreboard-title {
+  font-size: 1.3vw; font-weight: 700; color: #778;
+  text-transform: uppercase; letter-spacing: 0.1em;
+}
+
+.tv-score-row {
+  display: flex;
+  align-items: center;
+  gap: 0.8vw;
+  padding: 1vh 1.2vw;
+  background: rgba(255,255,255,0.04);
+  border-radius: 0.8vw;
+  border-left: 4px solid transparent;
+  transition: background 0.3s, border-color 0.3s;
+}
+.tv-score-row.winner { background: rgba(255,215,0,0.12); border-left-color: #ffd700; }
+
+.tv-score-dot {
+  width: 1vw; height: 1vw; border-radius: 50%; flex-shrink: 0;
+}
+.tv-score-name { flex: 1; font-size: 1.6vw; font-weight: 700; }
+.tv-score-value {
+  font-size: 2.6vw; font-weight: 900; color: #ffd700;
+  min-width: 2.5vw; text-align: right;
+}
+
+/* ── Guess log ── */
+.tv-guess-log {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5vh;
+  min-height: 0;
+  overflow: hidden;
+}
+.tv-guess-log-title {
+  font-size: 1.1vw; font-weight: 700; color: #556;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  flex-shrink: 0;
+}
+.tv-guess-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.tv-guess-list::-webkit-scrollbar { display: none; }
+
+.tv-guess-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7vw;
+  padding: 0.6vh 0.9vw;
+  border-radius: 0.6vw;
+  background: rgba(255,255,255,0.03);
+  border-left: 3px solid transparent;
+  animation: guessSlide 0.3s cubic-bezier(0.23,1,0.32,1);
+  flex-shrink: 0;
+}
+@keyframes guessSlide {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.tv-guess-item.correct {
+  background: rgba(78,204,163,0.12);
+  border-left-color: #4ecca3;
+}
+.tv-guess-item.wrong {
+  background: rgba(255,255,255,0.03);
+  border-left-color: rgba(255,255,255,0.1);
+}
+.tv-guess-dot {
+  width: 0.7vw; height: 0.7vw; border-radius: 50%; flex-shrink: 0;
+}
+.tv-guess-who {
+  font-size: 1.2vw; font-weight: 800; flex-shrink: 0;
+}
+.tv-guess-text {
+  font-size: 1.3vw; font-weight: 500; color: #ccd;
+  flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tv-guess-item.correct .tv-guess-text { color: #4ecca3; font-weight: 700; }
+.tv-guess-mark {
+  font-size: 1.2vw; flex-shrink: 0;
+}
+
+/* Footer */
+.tv-playing-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2vw;
+  padding: 1vh 0 0.5vh;
+  flex-shrink: 0;
+}
+.tv-host-btn {
+  font-size: 1.6vw; font-weight: 700; padding: 0.8vh 2.2vw;
+  border: none; border-radius: 0.8vw; cursor: pointer;
+  transition: transform 0.15s;
+}
+.tv-host-btn:hover { transform: scale(1.05); }
+.tv-host-btn:active { transform: scale(0.97); }
+.tv-skip-btn { background: rgba(255,255,255,0.1); color: #aab; border: 1px solid rgba(255,255,255,0.12); }
+.tv-next-btn {
+  background: #4ecca3; color: #0f1c2e;
+  display: flex; align-items: center; gap: 0.6vw;
+}
+.tv-next-countdown {
+  font-size: 1.4vw; font-weight: 900;
+  background: rgba(0,0,0,0.2); border-radius: 0.4vw;
+  padding: 0.1vh 0.5vw;
+  min-width: 1.8vw; text-align: center;
+}
+
+/* ── Game Over ── */
+.tv-gameover {
+  background: #0d1117;
+  color: #fff;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5vh;
+  padding: 4vh;
+}
+.tv-gameover-emoji { font-size: 8vw; }
+.tv-gameover-title { font-size: 3.5vw; font-weight: 900; color: #ffd700; text-align: center; }
+.tv-gameover-winner { font-size: 2.4vw; font-weight: 700; color: #4ecca3; text-align: center; }
+.tv-gameover-scores {
+  display: flex; gap: 2vw; flex-wrap: wrap; justify-content: center;
+  margin: 1.5vh 0;
+}
+.tv-gameover-score-item {
+  padding: 1.5vh 2.5vw;
+  background: rgba(255,255,255,0.06);
+  border-radius: 1.2vw;
+  text-align: center;
+  border: 2px solid rgba(255,255,255,0.08);
+}
+.tv-gameover-score-name { color: #778; font-size: 1.4vw; font-weight: 600; margin-bottom: 0.3vh; }
+.tv-gameover-score-val { color: #ffd700; font-size: 3.2vw; font-weight: 900; }
+.tv-gameover-btns { display: flex; gap: 2vw; margin-top: 2vh; }
+.tv-gameover-btn {
+  font-size: 2vw; font-weight: 800; padding: 1.5vh 3vw;
+  border: none; border-radius: 1vw; cursor: pointer;
+  transition: transform 0.15s;
+}
+.tv-gameover-btn:hover { transform: scale(1.04); }
+.tv-btn-play-again { background: #4ecca3; color: #0f1c2e; }

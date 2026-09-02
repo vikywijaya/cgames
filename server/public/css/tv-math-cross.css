@@ -1,0 +1,150 @@
+/* ── TV math cross — game-specific styles (lobby chrome inherited from tv-base.css) ── */
+
+/* ── TV MathCross — game-specific styles only (chrome from tv-base.css) ── */
+
+/* Diff btn active colour override */
+.tv-diff-btn.active {
+  border-color: #4ecca3;
+  color: #4ecca3;
+  background: rgba(78,204,163,0.12);
+}
+/* ── Playing Phase ── */
+/* Main game area: puzzle boards */
+.tv-playing-main {
+  flex: 1;
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.tv-player-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  max-width: 342px;
+  background: #16213e;
+  border: 2px solid #1e3050;
+  border-radius: 16px;
+  padding: 16px 12px;
+  transition: border-color 0.3s;
+}
+
+.tv-player-board:has(.badge-solved) {
+  border-color: #4ecca3;
+  background: #0d2a1e;
+}
+
+.tv-player-board-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tv-player-board-name .badge-solved {
+  font-size: 14px;
+  background: #4ecca3;
+  color: #1a2f4a;
+  border-radius: 20px;
+  padding: 2px 10px;
+  font-weight: 800;
+}
+
+.tv-progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #1e3050;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tv-progress-fill {
+  height: 100%;
+  background: #4ecca3;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+/* Mini puzzle grid on TV */
+.tv-mini-grid {
+  display: inline-grid;
+  gap: 3px;
+}
+
+.tv-mini-cell {
+  width: 32px; height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 6px;
+}
+
+.tv-mini-blank   { background: transparent; }
+.tv-mini-given   { background: #e8edf4; color: #1a1a1a; border: 2px solid #b0bec5; }
+.tv-mini-op      { background: transparent; color: #8899aa; font-size: 18px; }
+.tv-mini-slot    { background: #16213e; border: 2px dashed #334; color: #556; }
+.tv-mini-filled  { background: #1a3a6a; border: 2px solid #60a5fa; color: #90c4ff; }
+.tv-mini-correct { background: #1a4a2a; border: 2px solid #4ade80; color: #86efac; }
+.tv-mini-winner  { background: #1a4a2a; border: 2px solid #ffd700; color: #ffd700; }
+
+/* Race leaderboard strip */
+.tv-race-strip {
+  display: flex;
+  gap: 16px;
+  padding: 12px 0;
+  justify-content: center;
+  flex-shrink: 0;
+  border-top: 1px solid #1e3050;
+}
+
+.tv-race-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 80px;
+}
+
+.tv-race-player-name {
+  font-size: 14px;
+  color: #aab;
+  font-weight: 600;
+  text-align: center;
+}
+
+.tv-race-player-slots {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.tv-race-player.solved .tv-race-player-slots {
+  color: #4ecca3;
+}
+
+/* Player score */
+.tv-player-score {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffd700;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+/* Round / Game Over accent colours */
+.tv-roundover-title { color: #4ecca3; }
+.tv-gameover-title  { color: #ffd700; letter-spacing: -2px; }
+.tv-gameover-winner-name { color: #4ecca3; }
+.tv-btn-play-again  { background: #4ecca3; color: #1a2f4a; }
+
+.tv-round-score-row {
+  background: #16213e;
+}

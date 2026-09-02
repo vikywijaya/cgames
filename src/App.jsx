@@ -101,7 +101,9 @@ const ALL_GAMES = GAME_GROUPS.flatMap(g => g.games);
 
 // Read URL params — support both ?gameId=x and path-based /x
 const params          = new URLSearchParams(window.location.search);
-const pathGameId      = window.location.pathname.replace(/^\//, '');
+// Production build is served under /games (see server/server.js) — strip that
+// mount prefix before treating the remainder as a path-based game id.
+const pathGameId      = window.location.pathname.replace(/^\/(games\/)?/, '');
 const urlGameId       = params.get('gameId') || (GAME_MAP[pathGameId] ? pathGameId : null);
 const urlMemberId     = params.get('memberId')     ?? 'guest';
 const urlDifficulty   = params.get('difficulty')   ?? 'easy';
@@ -692,7 +694,13 @@ export function App() {
         {showBackButtons && (
           <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         )}
-        <MultiplayerGames t={t} games={translatedMultiplayerGames} />
+        <MultiplayerGames
+          t={t}
+          games={translatedMultiplayerGames}
+          memberId={urlMemberId}
+          callbackUrl={urlCallbackUrl}
+          accessToken={urlAccessToken}
+        />
       </div>
     );
   }

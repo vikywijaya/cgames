@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>RC Racing — Controller</title>
+  <link rel="stylesheet" href="/css/play-base.css" />
+  <style>
+    /* ═══════════ RACING CONTROLLER ═══════════ */
+    #raceScreen {
+      padding: 0; flex-direction: column; background: #08080c; position: relative;
+    }
+
+    /* Lap / finish flash overlay */
+    #lapFlash {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.7);
+      background: rgba(0,0,0,0.82); color: #fff;
+      font-size: 32px; font-weight: 900; letter-spacing: 2px;
+      padding: 16px 32px; border-radius: 14px;
+      border: 2px solid rgba(255,255,255,0.2);
+      pointer-events: none; z-index: 20;
+      opacity: 0; transition: opacity 200ms, transform 200ms cubic-bezier(0.23,1,0.32,1);
+    }
+    #lapFlash.show {
+      opacity: 1; transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* ── HUD ── */
+    .race-hud {
+      width: 100%;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(180deg, rgba(10,10,15,0.95) 0%, rgba(10,10,15,0.8) 100%);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .hud-pos-box {
+      background: linear-gradient(135deg, #E07820, #d06810);
+      border-radius: 10px;
+      padding: 4px 14px;
+      min-width: 56px;
+      text-align: center;
+    }
+    .hud-position {
+      font-size: 22px; font-weight: 800; color: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .hud-center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .hud-speed-value {
+      font-size: 20px; font-weight: 800; color: #fff;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.5px;
+    }
+    .hud-speed-unit {
+      font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.35);
+      text-transform: uppercase; letter-spacing: 1.5px;
+    }
+
+    /* Speed bar */
+    .hud-speed-bar {
+      width: 100%;
+      max-width: 160px;
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .hud-speed-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, #2DAF7B, #E07820, #E84B3D);
+      transition: width 150ms ease-out;
+    }
+
+    .hud-lap-box {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 4px 12px;
+      text-align: center;
+    }
+    .hud-lap {
+      font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.6);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    /* ── Controls ── */
+    .controls-area {
+      flex: 1; display: flex; flex-direction: column; width: 100%;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    /* ── Steering row (left + right side by side) ── */
+    .steer-row {
+      flex: 1;
+      display: flex;
+      width: 100%;
+    }
+
+    .steer-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      overflow: hidden;
+      transition: background 80ms ease-out;
+    }
+
+    .steer-left {
+      background: linear-gradient(135deg, #0e1628 0%, #0a1020 100%);
+      border-right: 1px solid rgba(255,255,255,0.06);
+    }
+    .steer-right {
+      background: linear-gradient(225deg, #0e1628 0%, #0a1020 100%);
+    }
+
+    /* Press glow */
+    .steer-left.pressed {
+      background: linear-gradient(135deg, #1a3060 0%, #142850 100%);
+    }
+    .steer-right.pressed {
+      background: linear-gradient(225deg, #1a3060 0%, #142850 100%);
+    }
+    .steer-btn.pressed .steer-glow { opacity: 1; }
+
+    .steer-glow {
+      position: absolute;
+      width: 140px; height: 140px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(61,114,232,0.25) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 100ms ease-out;
+      pointer-events: none;
+    }
+
+    .steer-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .steer-arrow {
+      width: 56px; height: 56px;
+      opacity: 0.45;
+      transition: opacity 80ms ease-out;
+    }
+    .steer-btn.pressed .steer-arrow { opacity: 0.9; }
+
+    .steer-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      opacity: 0.2;
+      pointer-events: none;
+    }
+
+    /* ── Brake bar (bottom strip) ── */
+    .brake-bar {
+      width: 100%;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      background: linear-gradient(180deg, #1a0a0a 0%, #140808 100%);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      position: relative;
+      overflow: hidden;
+      transition: background 80ms ease-out;
+      flex-shrink: 0;
+    }
+    .brake-bar.pressed {
+      background: linear-gradient(180deg, #451515 0%, #351010 100%);
+    }
+    .brake-bar.pressed .brake-glow { opacity: 1; }
+
+    .brake-glow {
+      position: absolute;
+      width: 200px; height: 100px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(232,75,61,0.25) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 100ms ease-out;
+      pointer-events: none;
+    }
+
+    .brake-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .brake-icon {
+      width: 28px; height: 28px;
+      opacity: 0.5;
+      transition: opacity 80ms ease-out;
+    }
+    .brake-bar.pressed .brake-icon { opacity: 0.9; }
+    .brake-label {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: rgba(255,255,255,0.4);
+      pointer-events: none;
+    }
+
+    /* ═══════════ RESULT SCREEN ═══════════ */
+    #resultScreen { background: #0a0a0f; gap: 12px; }
+
+    .result-badge {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+    }
+    .result-badge.win {
+      background: linear-gradient(135deg, rgba(224,120,32,0.2), rgba(224,120,32,0.05));
+      border: 2px solid rgba(224,120,32,0.3);
+    }
+    .result-badge.lose {
+      background: rgba(255,255,255,0.04);
+      border: 2px solid rgba(255,255,255,0.08);
+    }
+    .result-badge svg { width: 36px; height: 36px; }
+
+    .result-title { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+    .result-position { font-size: 48px; font-weight: 800; color: #E07820; }
+    .result-msg { font-size: 16px; color: rgba(255,255,255,0.45); text-align: center; line-height: 1.5; }
+
+    .result-btn {
+      padding: 14px 40px; font-size: 16px; font-weight: 700;
+      border: none; border-radius: 14px;
+      background: linear-gradient(135deg, #3D72E8, #2D5EC7);
+      color: #fff; cursor: pointer; font-family: 'Lexend', sans-serif;
+      box-shadow: 0 4px 16px rgba(61,114,232,0.3);
+      transition: transform 160ms cubic-bezier(0.23,1,0.32,1);
+    }
+    .result-btn:active { transform: scale(0.97); }
+</style>
+</head>
+<body>
+<!-- ═══ Join ═══ -->
+  <div id="joinScreen" class="screen active">
+    <div class="join-hero">
+      <svg viewBox="0 0 24 24"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18 10l-2.7-3.4A2 2 0 0013.7 6H10l-3.3.5A2 2 0 005 8.4V10l-2.5 1.1C1.6 11.6 1 12.5 1 13.5V16c0 .6.4 1 1 1h2" /><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+    </div>
+    <div class="join-title">RC Racing</div>
+    <div class="join-sub">Enter your name to join the race</div>
+    <input id="nameInput" class="join-input" type="text" placeholder="Your name" maxlength="30" autocomplete="off" aria-label="Player name" />
+    <button id="joinBtn" class="join-btn">Join Race</button>
+    <div id="joinError" class="error-msg" role="alert"></div>
+  </div>
+
+  <!-- ═══ Waiting ═══ -->
+  <div id="waitScreen" class="screen">
+    <div class="wait-badge">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    </div>
+    <div class="wait-title">You're in!</div>
+    <div id="waitColor" class="wait-color"></div>
+    <div class="wait-sub">Waiting for host to start the race...</div>
+  </div>
+
+  <!-- ═══ Racing Controller ═══ -->
+  <div id="raceScreen" class="screen">
+    <div id="lapFlash"></div>
+    <!-- HUD -->
+    <div class="race-hud">
+      <div class="hud-pos-box">
+        <div class="hud-position" id="hudPosition">-</div>
+      </div>
+      <div class="hud-center">
+        <div>
+          <span class="hud-speed-value" id="hudSpeed">0</span>
+          <span class="hud-speed-unit">km/h</span>
+        </div>
+        <div class="hud-speed-bar">
+          <div class="hud-speed-fill" id="hudSpeedBar"></div>
+        </div>
+      </div>
+      <div class="hud-lap-box">
+        <div class="hud-lap" id="hudLap">LAP 0/3</div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-area">
+      <!-- Steering: left + right side by side -->
+      <div class="steer-row">
+        <button class="steer-btn steer-left" id="btnLeft" aria-label="Steer left">
+          <div class="steer-glow"></div>
+          <div class="steer-content">
+            <svg class="steer-arrow" viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M28 10L14 24l14 14"/>
+            </svg>
+            <div class="steer-label">Left</div>
+          </div>
+        </button>
+        <button class="steer-btn steer-right" id="btnRight" aria-label="Steer right">
+          <div class="steer-glow"></div>
+          <div class="steer-content">
+            <svg class="steer-arrow" viewBox="0 0 48 48" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 10l14 14-14 14"/>
+            </svg>
+            <div class="steer-label">Right</div>
+          </div>
+        </button>
+      </div>
+      <!-- Brake strip at bottom -->
+      <button class="brake-bar" id="btnBrake" aria-label="Brake">
+        <div class="brake-glow"></div>
+        <div class="brake-content">
+          <svg class="brake-icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14"/><path d="M5 12h14"/>
+          </svg>
+          <div class="brake-label">Brake</div>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ Result ═══ -->
+  <div id="resultScreen" class="screen">
+    <div class="result-badge" id="resultBadge">
+      <svg id="resultBadgeSvg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 9H4.5a2.5 2.5 0 010-5H6"/><path d="M18 9h1.5a2.5 2.5 0 000-5H18"/>
+        <path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20 7 22"/>
+        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20 17 22"/>
+        <path d="M18 2H6v7a6 6 0 0012 0V2z"/>
+      </svg>
+    </div>
+    <div class="result-title" id="resultTitle">Race Over!</div>
+    <div class="result-position" id="resultPosition"></div>
+    <div class="result-msg" id="resultMsg"></div>
+    <button class="result-btn" id="resultBackBtn">Back to Lobby</button>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/tv-racing-play.js"></script>
+  <script src="/js/dev-test.js"></script>
+  <script src="/js/game-rules.js"></script>
+</body>
+</html>

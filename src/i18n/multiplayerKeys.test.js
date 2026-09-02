@@ -4,7 +4,7 @@ import translations from './index';
 const APP_KEYS = [
   'playWithFriend', 'playWithFriendDesc',
   'multiplayerTitle', 'multiplayerSubtitle',
-  'multiplayerExternalBadge', 'multiplayerPlayers',
+  'multiplayerPlayers',
 ];
 
 const GAME_IDS = [

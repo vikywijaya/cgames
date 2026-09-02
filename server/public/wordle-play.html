@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Wordle Race</title>
+  <link rel="stylesheet" href="/css/play-base.css" />
+  <style>
+    /* ── Playing Screen layout ── */
+    #playing-screen {
+      justify-content: flex-start;
+      padding: 0;
+      gap: 0;
+    }
+
+    /* Top bar */
+    .wordle-topbar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      flex-shrink: 0;
+    }
+    .wordle-topbar-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .wordle-topbar-meta {
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      font-weight: 500;
+    }
+
+    /* Player info strip */
+    .wordle-info {
+      width: 100%;
+      display: flex;
+      gap: 8px;
+      padding: 8px 16px;
+      flex-shrink: 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .wordle-stat {
+      flex: 1;
+      min-width: 72px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 7px 10px;
+      text-align: center;
+    }
+    .wordle-stat-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.45);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .wordle-stat-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+    }
+    .wordle-stat-value.primary { color: var(--play-primary); }
+
+    /* Players row */
+    .wordle-players {
+      width: 100%;
+      display: flex;
+      gap: 6px;
+      padding: 0 16px 8px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    .wordle-player-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.7);
+    }
+    .wordle-player-chip.solved {
+      border-color: var(--play-success);
+      background: rgba(45,175,123,0.12);
+      color: var(--play-success);
+    }
+    .wordle-player-chip.failed {
+      border-color: rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.35);
+    }
+    .wordle-player-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    /* Grid area */
+    .wordle-grid-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 16px 8px;
+      overflow: hidden;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-rows: repeat(6, 1fr);
+      gap: 5px;
+    }
+    .grid-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 5px;
+    }
+    .cell {
+      width: 52px; height: 52px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: 700;
+      text-transform: uppercase;
+      background: #121213;
+      border: 2px solid #3a3a3c;
+      color: #fff;
+      border-radius: 4px;
+      transition: transform 0.15s ease-out;
+    }
+    .cell.filled { border-color: #565656; }
+    .cell.correct  { background-color: #538d4e !important; border-color: #538d4e !important; }
+    .cell.present  { background-color: #b59f3b !important; border-color: #b59f3b !important; }
+    .cell.absent   { background-color: #3a3a3c !important; border-color: #3a3a3c !important; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+      20%, 40%, 60%, 80% { transform: translateX(4px); }
+    }
+    .grid-row.shake { animation: shake 0.4s ease-in-out; }
+
+    /* Status */
+    #status-message {
+      min-height: 28px;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+      color: rgba(255,255,255,0.8);
+      padding: 0 16px;
+      flex-shrink: 0;
+    }
+
+    /* Keyboard */
+    .keyboard-wrap {
+      width: 100%;
+      padding: 0 8px 8px;
+      flex-shrink: 0;
+    }
+    .keyboard { display: flex; flex-direction: column; gap: 5px; width: 100%; max-width: 500px; margin: 0 auto; }
+    .keyboard-row { display: flex; gap: 4px; justify-content: center; }
+    .key {
+      min-height: 52px;
+      min-width: 30px;
+      padding: 0 6px;
+      border: none;
+      border-radius: 6px;
+      background: #818384;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'Lexend', sans-serif;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      text-transform: uppercase;
+      flex: 1;
+      -webkit-tap-highlight-color: transparent;
+      transition: background-color 0.2s, transform 0.1s ease-out;
+    }
+    .key.wide { flex: 1.5; font-size: 12px; }
+    .key:active { transform: scale(0.94); opacity: 0.8; }
+    .key.correct { background-color: #538d4e !important; }
+    .key.present { background-color: #b59f3b !important; }
+    .key.absent  { background-color: #3a3a3c !important; }
+
+    /* Game Over */
+    #gameover-screen { gap: 20px; text-align: center; padding: 32px 24px; }
+    .gameover-emoji-big { font-size: 64px; line-height: 1; }
+    #gameover-screen h1 { font-size: 28px; font-weight: 800; }
+    #gameover-message { font-size: 18px; color: rgba(255,255,255,0.7); line-height: 1.5; }
+    #winner-name { color: #538d4e; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+  <!-- Join Screen -->
+  <div id="join-screen" class="screen active">
+    <div class="join-logo">🟩</div>
+    <div class="join-title">Wordle Race</div>
+    <div class="join-subtitle">Guess the 5-letter word in 6 tries!</div>
+    <input id="nameInput" class="join-input" type="text" placeholder="Your name" maxlength="30" autocomplete="off" />
+    <button id="joinBtn" class="join-btn">Join Game</button>
+    <div id="joinError" class="join-error"></div>
+  </div>
+
+  <!-- Waiting Screen -->
+  <div id="waiting-screen" class="screen">
+    <div class="waiting-emoji">🟩</div>
+    <div class="waiting-title">You're in!</div>
+    <div id="waitingName" class="waiting-name"></div>
+    <div class="waiting-sub">Waiting for the host to start the game...</div>
+  </div>
+
+  <!-- Playing Screen -->
+  <div id="playing-screen" class="screen">
+    <div class="wordle-topbar">
+      <div class="wordle-topbar-title">🟩 Wordle Race</div>
+      <div id="wordleTopMeta" class="wordle-topbar-meta"></div>
+    </div>
+
+    <div class="wordle-info">
+      <div class="wordle-stat">
+        <div class="wordle-stat-label">Tries</div>
+        <div id="triesLeft" class="wordle-stat-value primary">6</div>
+      </div>
+      <div class="wordle-stat">
+        <div class="wordle-stat-label">Players</div>
+        <div id="playerCount" class="wordle-stat-value">--</div>
+      </div>
+      <div class="wordle-stat">
+        <div class="wordle-stat-label">Solved</div>
+        <div id="solvedCount" class="wordle-stat-value">0</div>
+      </div>
+    </div>
+
+    <div id="playerChips" class="wordle-players"></div>
+
+    <div class="wordle-grid-area">
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <div id="status-message"></div>
+
+    <div class="keyboard-wrap">
+      <div class="keyboard" id="keyboard"></div>
+    </div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div id="gameover-screen" class="screen">
+    <div class="gameover-emoji-big">🟩</div>
+    <h1>Game Over</h1>
+    <p id="gameover-message"></p>
+  </div>
+
+  <!-- Reconnect -->
+  <div id="reconnectOverlay" class="reconnect-overlay hidden">
+    Connection lost. Reconnecting...
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/wordle-play.js"></script>
+  <script src="/js/dev-test.js"></script>
+  <script src="/js/game-rules.js"></script>
+</body>
+</html>

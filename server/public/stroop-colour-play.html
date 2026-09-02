@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Stroop Colour</title>
+  <link rel="stylesheet" href="/css/play-base.css" />
+  <style>
+    /* Playing */
+    .playing-screen { justify-content: flex-start; padding-top: 16px; gap: 10px; }
+    .round-info { font-size: 15px; color: #aab; text-align: center; }
+    .game-instruction { font-size: 22px; font-weight: 800; color: #4ecca3; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* Stimulus on phone */
+    .phone-stimulus {
+      font-size: 56px;
+      font-weight: 900;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Colour option buttons */
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 100%;
+      max-width: 360px;
+    }
+
+    .colour-option {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 18px 12px;
+      min-height: 64px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      background: #16213e;
+      cursor: pointer;
+      font-size: 20px;
+      font-weight: 700;
+      color: #eee;
+      transition: transform 0.08s ease, border-color 0.15s ease;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .colour-option:active { transform: scale(0.95); }
+    .colour-option:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .colour-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 2px solid rgba(255,255,255,0.2);
+    }
+
+    .colour-option.correct-flash {
+      border-color: #4ade80;
+      background: rgba(74, 222, 128, 0.15);
+    }
+    .colour-option.wrong-flash {
+      border-color: #f87171;
+      background: rgba(248, 113, 113, 0.15);
+    }
+    .colour-option.show-correct {
+      border-color: #4ade80;
+      background: rgba(74, 222, 128, 0.1);
+    }
+
+    /* Score display */
+    .score-display {
+      font-size: 18px;
+      color: #ffd700;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    /* Feedback text */
+    .feedback-text {
+      font-size: 20px;
+      font-weight: 800;
+      min-height: 28px;
+      text-align: center;
+    }
+    .feedback-text.correct { color: #4ade80; }
+    .feedback-text.wrong { color: #f87171; }
+
+    /* Gameover */
+    .gameover-emoji { font-size: 72px; }
+    .gameover-title { font-size: 36px; font-weight: 900; color: #ffd700; }
+    .gameover-personal { font-size: 22px; color: #4ecca3; text-align: center; }
+    .gameover-msg { font-size: 18px; color: #aab; text-align: center; }
+
+    .reconnect-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); align-items: center; justify-content: center; font-size: 22px; color: #fff; z-index: 50; text-align: center; padding: 20px; }
+    .reconnect-overlay.show { display: flex; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .colour-option { transition: none; }
+    }
+  </style>
+</head>
+<body>
+<div id="joinScreen" class="screen active">
+    <div class="join-logo">🎨</div>
+    <div class="join-title">Stroop Colour</div>
+    <div class="join-sub">Tap the INK colour, not the word!</div>
+    <input id="nameInput" class="name-input" type="text" placeholder="Your name" maxlength="20" autocomplete="off" />
+    <button id="joinBtn" class="join-btn" aria-label="Join game">Join Game</button>
+    <div id="joinError" class="error-msg"></div>
+  </div>
+
+  <div id="waitingScreen" class="screen">
+    <div class="waiting-emoji">⏳</div>
+    <div class="waiting-title">You're in!</div>
+    <div class="waiting-sub">Waiting for the host to start...<br><strong id="waitingName"></strong></div>
+  </div>
+
+  <div id="playingScreen" class="screen playing-screen">
+    <div id="roundInfo" class="round-info"></div>
+    <div class="game-instruction">Ignore the word — tap the INK colour!</div>
+    <div id="phoneStimulus" class="phone-stimulus"></div>
+    <div id="feedbackText" class="feedback-text"></div>
+    <div id="optionsGrid" class="options-grid" aria-label="Colour options"></div>
+    <div id="scoreDisplay" class="score-display"></div>
+  </div>
+
+  <div id="gameoverScreen" class="screen">
+    <div id="gameoverEmoji" class="gameover-emoji">🏆</div>
+    <div id="gameoverTitle" class="gameover-title">Game Over!</div>
+    <div id="gameoverPersonal" class="gameover-personal"></div>
+    <div id="gameoverMsg" class="gameover-msg"></div>
+  </div>
+
+  <div id="reconnectOverlay" class="reconnect-overlay">Connection lost. Reconnecting...</div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/sfx.js"></script>
+  <script src="/js/stroop-colour-play.js"></script>
+  <script src="/js/game-rules.js"></script>
+</body>
+</html>
