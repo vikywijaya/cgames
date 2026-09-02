@@ -40,6 +40,7 @@ import { saveScore, getAllScores, getFavorites, toggleFavorite, saveTotalScore, 
 import { GAME_GROUPS, buildDailyGames } from './shared/gameData';
 import { MULTIPLAYER_GAMES } from './shared/multiplayerGames';
 import { MultiplayerGames } from './components/MultiplayerGames/MultiplayerGames';
+import { MultiplayerChessSession } from './multiplayer/chess/MultiplayerChessSession';
 import { GameContext } from './context/GameContext';
 import translations from './i18n/index';
 import './design/globals.css';
@@ -250,8 +251,8 @@ export function App() {
   }));
   const translatedAllGames = translatedGroups.flatMap(g => g.games);
 
-  // view: 'home' | 'games' | 'scores' | 'multiplayer' | 'daily' | 'daily-playing' | 'daily-inter' | 'daily-result'
-  const [view,               setView]               = useState('home');
+  // view: 'home' | 'games' | 'scores' | 'multiplayer' | 'mp-chess' | 'daily' | 'daily-playing' | 'daily-inter' | 'daily-result'
+  const [view,               setView]               = useState(() => (params.get('view') === 'mp-chess' ? 'mp-chess' : 'home'));
   const [selectedGame,       setSelectedGame]       = useState(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
   const [selectedCategory,   setSelectedCategory]   = useState('All');
@@ -700,7 +701,20 @@ export function App() {
           memberId={urlMemberId}
           callbackUrl={urlCallbackUrl}
           accessToken={urlAccessToken}
+          inAppSlugs={['chess']}
+          onPlayInApp={(slug) => setView(`mp-${slug}`)}
         />
+      </div>
+    );
+  }
+
+  if (view === 'mp-chess') {
+    return (
+      <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
+        {showBackButtons && (
+          <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+        )}
+        <MultiplayerChessSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
       </div>
     );
   }
