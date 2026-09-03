@@ -1,26 +1,21 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { ChessBoard } from './ChessBoardCanvas';
 import { legalMovesFor, parseFenState } from './chessMoves';
+import { useLocalChessMatch } from './useLocalChessMatch';
 import { saveScore } from '../../utils/scoreStore';
 import { buildPayload } from '../../utils/buildPayload';
+import { useTranslation } from '../../i18n/useTranslation';
 import styles from './ChessGame.module.css';
 
 const RESULT_PCT = { win: 100, draw: 50, loss: 0 };
 
-export function ChessGame({
-  myColor, myName, gameState, lastGameOver, socket, memberId, callbackUrl, accessToken,
-  status = 'connected', reconnectAttempt = 0, disconnectedPlayerName = null,
-}) {
+function ChessPane({ color, name, gameState, dispatch, rotated }) {
   const canvasRef = useRef(null);
   const boardRef = useRef(null);
-  const startedAtRef = useRef(null);
-  const reportedRef = useRef(false);
-  const [turnStatus, setTurnStatus] = useState('Your turn');
 
-  // Mount the canvas board once.
   useEffect(() => {
-    const board = new ChessBoard(canvasRef.current, myColor);
+    const board = new ChessBoard(canvasRef.current, color);
     board.onPieceSelect = ([r, c]) => {
       const parsed = boardRef.current?.fenState;
       const currentBoard = boardRef.current?.board;
@@ -28,96 +23,104 @@ export function ChessGame({
       const piece = currentBoard[r][c];
       if (!piece) return [];
       const pieceIsWhite = piece === piece.toUpperCase();
-      if ((myColor === 'white') !== pieceIsWhite) return [];
+      if ((color === 'white') !== pieceIsWhite) return [];
       return legalMovesFor(currentBoard, parsed, r, c);
     };
     board.onMove = (from, to, promotion) => {
-      socket.emit('make_move', { from, to, promotion: promotion || null });
+      dispatch('make_move', { from, to, promotion: promotion || null });
     };
     boardRef.current = board;
     const onResize = () => board.resize();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, [myColor, socket]);
+  }, [color, dispatch]);
 
-  // Apply each new game_started/game_state payload to the board.
   useEffect(() => {
     if (!gameState || !boardRef.current) return;
-    if (startedAtRef.current === null) startedAtRef.current = Date.now();
-
     const parsed = parseFenState(gameState.fen);
     boardRef.current.updateBoard(parsed.board, parsed, gameState.lastMove || null);
+  }, [gameState]);
 
-    const myTurn = (gameState.turn === 'w' && myColor === 'white') ||
-                   (gameState.turn === 'b' && myColor === 'black');
-    if (gameState.inCheck) setTurnStatus(myTurn ? 'You are in CHECK!' : 'Opponent is in CHECK!');
-    else setTurnStatus(myTurn ? 'Your turn' : "Opponent's turn");
-  }, [gameState, myColor]);
+  return (
+    <div className={`${styles.pane} ${rotated ? styles.paneRotated : ''}`}>
+      <div className={styles.panel}>{name} ({color})</div>
+      <canvas ref={canvasRef} className={styles.canvas} />
+    </div>
+  );
+}
+ChessPane.propTypes = {
+  color: PropTypes.oneOf(['white', 'black']).isRequired,
+  name: PropTypes.string.isRequired,
+  gameState: PropTypes.object,
+  dispatch: PropTypes.func.isRequired,
+  rotated: PropTypes.bool,
+};
 
-  // Report the result exactly once when the match ends.
+export function ChessGame({ memberId, callbackUrl, accessToken }) {
+  const t = useTranslation().multiplayer;
+  const { gameState, lastGameOver, players, dispatch } = useLocalChessMatch();
+  const startedAtRef = useRef(Date.now());
+  const reportedRef = useRef(false);
+
   useEffect(() => {
     if (!lastGameOver || reportedRef.current) return;
     reportedRef.current = true;
 
     const result = lastGameOver.winner === 'draw' ? 'draw'
-      : lastGameOver.winner === myColor ? 'win' : 'loss';
-    const durationSeconds = startedAtRef.current !== null
-      ? Math.round((Date.now() - startedAtRef.current) / 1000) : 0;
+      : lastGameOver.winner === 'white' ? 'win' : 'loss';
+    const durationSeconds = Math.round((Date.now() - startedAtRef.current) / 1000);
 
     saveScore('mp-chess', RESULT_PCT[result], durationSeconds, memberId, null);
 
-    if (!callbackUrl) return;
     const payload = buildPayload({
       memberId, gameId: 'mp-chess',
       score: RESULT_PCT[result], maxScore: 100,
       completed: true, durationSeconds,
     });
+    window.parent.postMessage({ type: 'GAME_COMPLETE', payload }, '*');
+
+    if (!callbackUrl) return;
     const headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
     if (accessToken) headers['Access-Token'] = accessToken;
     fetch(callbackUrl, { method: 'POST', headers, body: JSON.stringify(payload) })
       .catch(e => console.warn('[ChessGame] callback failed:', e));
-  }, [lastGameOver, myColor, memberId, callbackUrl, accessToken]);
+  }, [lastGameOver, memberId, callbackUrl, accessToken]);
+
+  const white = players.find(p => p.color === 'white');
+  const black = players.find(p => p.color === 'black');
+  const turnLabel = gameState.turn === 'w' ? white.name : black.name;
+  const turnStatus = gameState.inCheck
+    ? t.namedInCheck.replace('{name}', turnLabel)
+    : t.namedTurn.replace('{name}', turnLabel);
 
   return (
     <div className={styles.game}>
-      <div className={styles.panel}>{myName} ({myColor})</div>
+      <ChessPane color="black" name={black.name} gameState={gameState} dispatch={dispatch} rotated />
 
-      {status === 'disconnected' && (
-        <div className={styles.banner}>Reconnecting… (attempt {reconnectAttempt})</div>
-      )}
-      {disconnectedPlayerName && (
-        <div className={styles.banner}>{disconnectedPlayerName} disconnected. Waiting for reconnection…</div>
-      )}
+      <div className={styles.center}>
+        <div className={styles.status}>{turnStatus}</div>
+        {lastGameOver && (
+          <div className={styles.gameOver}>
+            <h3>
+              {lastGameOver.winner === 'draw' ? t.draw
+                : `${lastGameOver.winner === 'white' ? white.name : black.name} ${t.youWinSimple}`}
+            </h3>
+            <p>{lastGameOver.reason}</p>
+            <button className={styles.primaryBtn} onClick={() => dispatch('play_again')}>{t.playAgain}</button>
+          </div>
+        )}
+        {!lastGameOver && (
+          <button className={styles.resignBtn} onClick={() => dispatch('resign')}>{t.resign}</button>
+        )}
+      </div>
 
-      <div className={styles.status}>{turnStatus}</div>
-      <canvas ref={canvasRef} className={styles.canvas} />
-      {lastGameOver && (
-        <div className={styles.gameOver}>
-          <h3>
-            {lastGameOver.winner === 'draw' ? 'Draw!'
-              : lastGameOver.winner === myColor ? 'You Win!' : 'You Lose'}
-          </h3>
-          <p>{lastGameOver.reason}</p>
-          <button className={styles.primaryBtn} onClick={() => socket.emit('play_again')}>Play Again</button>
-        </div>
-      )}
-      {!lastGameOver && (
-        <button className={styles.resignBtn} onClick={() => socket.emit('resign')}>Resign</button>
-      )}
+      <ChessPane color="white" name={white.name} gameState={gameState} dispatch={dispatch} />
     </div>
   );
 }
 
 ChessGame.propTypes = {
-  myColor: PropTypes.oneOf(['white', 'black']).isRequired,
-  myName: PropTypes.string.isRequired,
-  gameState: PropTypes.object,
-  lastGameOver: PropTypes.object,
-  socket: PropTypes.shape({ emit: PropTypes.func.isRequired }).isRequired,
   memberId: PropTypes.string.isRequired,
   callbackUrl: PropTypes.string,
   accessToken: PropTypes.string,
-  status: PropTypes.string,
-  reconnectAttempt: PropTypes.number,
-  disconnectedPlayerName: PropTypes.string,
 };

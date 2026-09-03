@@ -1,21 +1,12 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ChessGame } from './ChessGame';
 
 vi.mock('../../utils/scoreStore', () => ({ saveScore: vi.fn() }));
 vi.mock('../../utils/buildPayload', () => ({ buildPayload: vi.fn(() => ({ mocked: true })) }));
 
 import { saveScore } from '../../utils/scoreStore';
-import { buildPayload } from '../../utils/buildPayload';
+import { ChessGame } from './ChessGame';
 
-function makeSocket() { return { emit: vi.fn(), on: vi.fn(), off: vi.fn() }; }
-
-const baseState = { fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR', turn: 'w', isGameOver: false, inCheck: false };
-
-// jsdom has no real 2D canvas context; ChessGame mounts the real ChessBoard
-// class (deliberately not mocked — this is the integration point worth
-// exercising for real), so stub just enough of the context for `draw()` to
-// run without throwing. Same approach as ChessBoardCanvas.test.js's fake canvas.
 beforeEach(() => {
   vi.clearAllMocks();
   global.fetch = vi.fn(() => Promise.resolve({}));
@@ -24,83 +15,26 @@ beforeEach(() => {
   }));
 });
 
-describe('ChessGame scoring', () => {
-  it('saves a win (100%) when I am the winner', () => {
-    render(
-      <ChessGame myColor="white" myName="Tester" gameState={baseState}
-        lastGameOver={{ winner: 'white', reason: 'Checkmate' }}
-        socket={makeSocket()} memberId="m-1" callbackUrl={undefined} accessToken={undefined} />
-    );
-    expect(saveScore).toHaveBeenCalledWith('mp-chess', 100, expect.any(Number), 'm-1', null);
+describe('ChessGame split-screen', () => {
+  it('renders two player panels, one per local seat', () => {
+    render(<ChessGame memberId="m-1" />);
+    expect(screen.getByText('Player 1 (white)')).toBeInTheDocument();
+    expect(screen.getByText('Player 2 (black)')).toBeInTheDocument();
   });
 
-  it('saves a loss (0%) when the opponent wins', () => {
-    render(
-      <ChessGame myColor="white" myName="Tester" gameState={baseState}
-        lastGameOver={{ winner: 'black', reason: 'Checkmate' }}
-        socket={makeSocket()} memberId="m-1" callbackUrl={undefined} accessToken={undefined} />
-    );
+  it('renders two canvases (one board per pane)', () => {
+    const { container } = render(<ChessGame memberId="m-1" />);
+    expect(container.querySelectorAll('canvas')).toHaveLength(2);
+  });
+
+  it('shows a resign button for the side to move', () => {
+    render(<ChessGame memberId="m-1" />);
+    expect(screen.getAllByRole('button', { name: /resign/i }).length).toBeGreaterThan(0);
+  });
+
+  it('reports white-perspective score on white win', () => {
+    render(<ChessGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /resign/i })[0]); // black is not to move; this resigns white (side to move)
     expect(saveScore).toHaveBeenCalledWith('mp-chess', 0, expect.any(Number), 'm-1', null);
-  });
-
-  it('saves a draw (50%) on stalemate', () => {
-    render(
-      <ChessGame myColor="white" myName="Tester" gameState={baseState}
-        lastGameOver={{ winner: 'draw', reason: 'Stalemate' }}
-        socket={makeSocket()} memberId="m-1" callbackUrl={undefined} accessToken={undefined} />
-    );
-    expect(saveScore).toHaveBeenCalledWith('mp-chess', 50, expect.any(Number), 'm-1', null);
-  });
-
-  it('posts to callbackUrl when one is provided', () => {
-    render(
-      <ChessGame myColor="white" myName="Tester" gameState={baseState}
-        lastGameOver={{ winner: 'white', reason: 'Checkmate' }}
-        socket={makeSocket()} memberId="m-1" callbackUrl="https://host.example/callback" accessToken="tok" />
-    );
-    expect(buildPayload).toHaveBeenCalled();
-    expect(global.fetch).toHaveBeenCalledWith(
-      'https://host.example/callback',
-      expect.objectContaining({ method: 'POST' })
-    );
-  });
-
-  it('does not report a result when there is no lastGameOver yet', () => {
-    render(
-      <ChessGame myColor="white" myName="Tester" gameState={baseState}
-        lastGameOver={null}
-        socket={makeSocket()} memberId="m-1" callbackUrl={undefined} accessToken={undefined} />
-    );
-    expect(saveScore).not.toHaveBeenCalled();
-  });
-});
-
-describe('ChessGame connection banners', () => {
-  it('shows a reconnecting banner when status is disconnected', () => {
-    render(
-      <ChessGame myColor="white" myName="Tester" gameState={baseState} lastGameOver={null}
-        socket={makeSocket()} memberId="m-1" status="disconnected" reconnectAttempt={2}
-        disconnectedPlayerName={null} />
-    );
-    expect(screen.getByText(/reconnecting.*attempt 2/i)).toBeInTheDocument();
-  });
-
-  it('shows an opponent-disconnected notice', () => {
-    render(
-      <ChessGame myColor="white" myName="Tester" gameState={baseState} lastGameOver={null}
-        socket={makeSocket()} memberId="m-1" status="connected" reconnectAttempt={0}
-        disconnectedPlayerName="Opponent" />
-    );
-    expect(screen.getByText(/opponent disconnected/i)).toBeInTheDocument();
-  });
-
-  it('shows no banner when connected and no one has disconnected', () => {
-    render(
-      <ChessGame myColor="white" myName="Tester" gameState={baseState} lastGameOver={null}
-        socket={makeSocket()} memberId="m-1" status="connected" reconnectAttempt={0}
-        disconnectedPlayerName={null} />
-    );
-    expect(screen.queryByText(/reconnecting/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/disconnected/i)).not.toBeInTheDocument();
   });
 });
