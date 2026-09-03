@@ -82,6 +82,7 @@ export function ChessGame({ memberId, callbackUrl, accessToken }) {
   const startedAtRef = useRef(Date.now());
   const reportedRef = useRef(false);
   const [maxBoardSize, setMaxBoardSize] = useState(computeMaxBoardSize);
+  const [confirmingReset, setConfirmingReset] = useState(false);
 
   useEffect(() => {
     const onResize = () => setMaxBoardSize(computeMaxBoardSize());
@@ -124,6 +125,13 @@ export function ChessGame({ memberId, callbackUrl, accessToken }) {
     ? t.namedInCheck.replace('{name}', turnLabel)
     : t.namedTurn.replace('{name}', turnLabel);
 
+  const handleConfirmReset = () => {
+    startedAtRef.current = Date.now();
+    reportedRef.current = false;
+    dispatch('play_again');
+    setConfirmingReset(false);
+  };
+
   return (
     <div className={styles.game}>
       <ChessPane color="black" name={black.name} gameState={gameState} dispatch={dispatch} maxSize={maxBoardSize} rotated />
@@ -140,8 +148,21 @@ export function ChessGame({ memberId, callbackUrl, accessToken }) {
             <button className={styles.primaryBtn} onClick={() => dispatch('play_again')}>{t.playAgain}</button>
           </div>
         )}
-        {!lastGameOver && (
-          <button className={styles.resignBtn} onClick={() => dispatch('resign')}>{t.resign}</button>
+        {!lastGameOver && confirmingReset && (
+          <div className={styles.gameOver}>
+            <h3>{t.resetConfirmTitle}</h3>
+            <p>{t.resetConfirmBody}</p>
+            <div className={styles.confirmActions}>
+              <button className={styles.primaryBtn} onClick={handleConfirmReset}>{t.resetConfirmYes}</button>
+              <button className={styles.resignBtn} onClick={() => setConfirmingReset(false)}>{t.resetConfirmCancel}</button>
+            </div>
+          </div>
+        )}
+        {!lastGameOver && !confirmingReset && (
+          <div className={styles.controls}>
+            <button className={styles.resignBtn} onClick={() => dispatch('resign')}>{t.resign}</button>
+            <button className={styles.resignBtn} onClick={() => setConfirmingReset(true)}>{t.resetGame}</button>
+          </div>
         )}
       </div>
 

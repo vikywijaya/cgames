@@ -461,6 +461,11 @@ export default {
     gameOver: 'Game Over',
     draw: 'Draw!',
     youWin: 'You Win! 🎉',
+    resetGame: 'Reset',
+    resetConfirmTitle: 'Reset this game?',
+    resetConfirmBody: 'The current game will end and both players will start over.',
+    resetConfirmYes: 'Yes, reset',
+    resetConfirmCancel: 'Cancel',
     // Chess / Xiangqi
     yourTurn: 'Your turn',
     opponentsTurn: "Opponent's turn",

@@ -38,3 +38,32 @@ describe('ChessGame split-screen', () => {
     expect(saveScore).toHaveBeenCalledWith('mp-chess', 0, expect.any(Number), 'm-1', null);
   });
 });
+
+describe('ChessGame reset', () => {
+  it('shows a reset button during an in-progress game', () => {
+    render(<ChessGame memberId="m-1" />);
+    expect(screen.getAllByRole('button', { name: /^reset$/i }).length).toBeGreaterThan(0);
+  });
+
+  it('does not reset immediately — asks for confirmation first', () => {
+    render(<ChessGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /^reset$/i })[0]);
+    expect(screen.getByText(/reset this game\?/i)).toBeInTheDocument();
+    expect(screen.getByText('Player 1 (white)')).toBeInTheDocument(); // board still mounted, unchanged
+  });
+
+  it('cancelling the confirmation leaves the game untouched', () => {
+    render(<ChessGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /^reset$/i })[0]);
+    fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+    expect(screen.queryByText(/reset this game\?/i)).not.toBeInTheDocument();
+  });
+
+  it('confirming the reset restarts the match', () => {
+    render(<ChessGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /^reset$/i })[0]);
+    fireEvent.click(screen.getByRole('button', { name: /yes, reset/i }));
+    expect(screen.queryByText(/reset this game\?/i)).not.toBeInTheDocument();
+    expect(screen.getByText("Player 1's turn")).toBeInTheDocument();
+  });
+});
