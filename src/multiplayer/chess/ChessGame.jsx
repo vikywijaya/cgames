@@ -15,7 +15,14 @@ function ChessPane({ color, name, gameState, dispatch, rotated }) {
   const boardRef = useRef(null);
 
   useEffect(() => {
-    const board = new ChessBoard(canvasRef.current, color);
+    // Always draw upright ('white' orientation) — the CSS 180° rotation on the
+    // black pane (via `rotated`) is the sole source of that pane's visual flip.
+    // Passing the actual seat color here would double-flip: ChessBoard's own
+    // internal `flipped` orientation plus the CSS transform would cancel out
+    // rendering but NOT click coordinates, since click hit-testing reflects
+    // the rotated element while ChessBoard's `_toBoard` assumes an unrotated,
+    // unflipped canvas — making every click land on the mirrored square.
+    const board = new ChessBoard(canvasRef.current, 'white');
     board.onPieceSelect = ([r, c]) => {
       const parsed = boardRef.current?.fenState;
       const currentBoard = boardRef.current?.board;
