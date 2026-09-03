@@ -13,11 +13,12 @@ const COLS = 9;
 const ROWS = 10;
 
 export class XiangqiBoard {
-  constructor(canvas, playerColor) {
+  constructor(canvas, playerColor, maxSize = 560) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.playerColor = playerColor; // 'red' | 'black' | 'spectator'
     this.flipped = playerColor === 'black'; // Black sees board flipped
+    this.maxSize = maxSize;
 
     this.selected = null;      // [row, col] of selected piece
     this.legalDots = [];       // [[row,col], ...]
@@ -38,10 +39,16 @@ export class XiangqiBoard {
   }
 
   _setupCanvas() {
-    const size = Math.min(window.innerWidth - 32, 560);
+    const size = Math.min(window.innerWidth - 32, this.maxSize);
     this.canvas.width = size;
     this.canvas.height = Math.round(size * 10 / 9);
     this._calcMetrics();
+  }
+
+  /** Update the size cap (e.g. on window resize) and redraw at the new size. */
+  setMaxSize(maxSize) {
+    this.maxSize = maxSize;
+    this.resize();
   }
 
   _calcMetrics() {
