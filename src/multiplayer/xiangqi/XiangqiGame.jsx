@@ -21,7 +21,7 @@ function computeMaxBoardSize() {
   // per-pane height budget.
   const perPaneHeightBudget = (window.innerHeight - RESERVED_VERTICAL_SPACE) / 2;
   const widthFromHeightBudget = perPaneHeightBudget * 9 / 10;
-  return Math.max(160, Math.min(560, widthFromHeightBudget));
+  return Math.max(140, Math.min(560, widthFromHeightBudget));
 }
 
 function XiangqiPane({ color, name, gameState, dispatch, rotated, maxSize }) {
