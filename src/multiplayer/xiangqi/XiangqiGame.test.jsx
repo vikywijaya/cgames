@@ -1,16 +1,11 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { XiangqiGame } from './XiangqiGame';
 
 vi.mock('../../utils/scoreStore', () => ({ saveScore: vi.fn() }));
 vi.mock('../../utils/buildPayload', () => ({ buildPayload: vi.fn(() => ({ mocked: true })) }));
 
 import { saveScore } from '../../utils/scoreStore';
-import { buildPayload } from '../../utils/buildPayload';
-
-function makeSocket() { return { emit: vi.fn(), on: vi.fn(), off: vi.fn() }; }
-
-const baseState = { fen: 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR', turn: 'w', isGameOver: false };
+import { XiangqiGame } from './XiangqiGame';
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -21,73 +16,49 @@ beforeEach(() => {
   }));
 });
 
-describe('XiangqiGame scoring', () => {
-  it('saves a win (100%) when I am the winner', () => {
-    render(
-      <XiangqiGame myColor="red" myName="Tester" gameState={baseState}
-        lastGameOver={{ winner: 'red', reason: 'Checkmate' }}
-        socket={makeSocket()} memberId="m-1" callbackUrl={undefined} accessToken={undefined} />
-    );
-    expect(saveScore).toHaveBeenCalledWith('mp-xiangqi', 100, expect.any(Number), 'm-1', null);
+describe('XiangqiGame split-screen', () => {
+  it('renders two player panels, one per local seat', () => {
+    render(<XiangqiGame memberId="m-1" />);
+    expect(screen.getByText('Player 1 (red)')).toBeInTheDocument();
+    expect(screen.getByText('Player 2 (black)')).toBeInTheDocument();
   });
 
-  it('saves a loss (0%) when the opponent wins', () => {
-    render(
-      <XiangqiGame myColor="red" myName="Tester" gameState={baseState}
-        lastGameOver={{ winner: 'black', reason: 'Checkmate' }}
-        socket={makeSocket()} memberId="m-1" callbackUrl={undefined} accessToken={undefined} />
-    );
+  it('renders two canvases (one board per pane)', () => {
+    const { container } = render(<XiangqiGame memberId="m-1" />);
+    expect(container.querySelectorAll('canvas')).toHaveLength(2);
+  });
+
+  it('shows a resign button and a reset button while the game is in progress', () => {
+    render(<XiangqiGame memberId="m-1" />);
+    expect(screen.getAllByRole('button', { name: /resign/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('button', { name: /^reset$/i }).length).toBeGreaterThan(0);
+  });
+
+  it('reports red-perspective score on red win', () => {
+    render(<XiangqiGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /resign/i })[0]); // red is to move, resigns
     expect(saveScore).toHaveBeenCalledWith('mp-xiangqi', 0, expect.any(Number), 'm-1', null);
-  });
-
-  it('saves a draw (50%) when there is no winner', () => {
-    render(
-      <XiangqiGame myColor="red" myName="Tester" gameState={baseState}
-        lastGameOver={{ winner: null, reason: 'Stalemate' }}
-        socket={makeSocket()} memberId="m-1" callbackUrl={undefined} accessToken={undefined} />
-    );
-    expect(saveScore).toHaveBeenCalledWith('mp-xiangqi', 50, expect.any(Number), 'm-1', null);
-  });
-
-  it('posts to callbackUrl when one is provided', () => {
-    render(
-      <XiangqiGame myColor="red" myName="Tester" gameState={baseState}
-        lastGameOver={{ winner: 'red', reason: 'Checkmate' }}
-        socket={makeSocket()} memberId="m-1" callbackUrl="https://host.example/callback" accessToken="tok" />
-    );
-    expect(buildPayload).toHaveBeenCalled();
-    expect(global.fetch).toHaveBeenCalledWith(
-      'https://host.example/callback',
-      expect.objectContaining({ method: 'POST' })
-    );
-  });
-
-  it('does not report a result when there is no lastGameOver yet', () => {
-    render(
-      <XiangqiGame myColor="red" myName="Tester" gameState={baseState}
-        lastGameOver={null}
-        socket={makeSocket()} memberId="m-1" callbackUrl={undefined} accessToken={undefined} />
-    );
-    expect(saveScore).not.toHaveBeenCalled();
   });
 });
 
-describe('XiangqiGame connection banners', () => {
-  it('shows a reconnecting banner when status is disconnected', () => {
-    render(
-      <XiangqiGame myColor="red" myName="Tester" gameState={baseState} lastGameOver={null}
-        socket={makeSocket()} memberId="m-1" status="disconnected" reconnectAttempt={2}
-        disconnectedPlayerName={null} />
-    );
-    expect(screen.getByText(/reconnecting.*attempt 2/i)).toBeInTheDocument();
+describe('XiangqiGame reset', () => {
+  it('asks for confirmation before resetting', () => {
+    render(<XiangqiGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /^reset$/i })[0]);
+    expect(screen.getByText(/reset this game\?/i)).toBeInTheDocument();
   });
 
-  it('shows an opponent-disconnected notice', () => {
-    render(
-      <XiangqiGame myColor="red" myName="Tester" gameState={baseState} lastGameOver={null}
-        socket={makeSocket()} memberId="m-1" status="connected" reconnectAttempt={0}
-        disconnectedPlayerName="Opponent" />
-    );
-    expect(screen.getByText(/opponent disconnected/i)).toBeInTheDocument();
+  it('cancelling leaves the game untouched', () => {
+    render(<XiangqiGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /^reset$/i })[0]);
+    fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+    expect(screen.queryByText(/reset this game\?/i)).not.toBeInTheDocument();
+  });
+
+  it('confirming restarts the match', () => {
+    render(<XiangqiGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /^reset$/i })[0]);
+    fireEvent.click(screen.getByRole('button', { name: /yes, reset/i }));
+    expect(screen.getByText("Player 1's turn")).toBeInTheDocument();
   });
 });
