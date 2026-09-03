@@ -14,11 +14,12 @@ const DARK_SQ  = '#b58863';
 const COLS = 8, ROWS = 8;
 
 export class ChessBoard {
-  constructor(canvas, playerColor) {
+  constructor(canvas, playerColor, maxSize = 560) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.playerColor = playerColor;
     this.flipped = playerColor === 'black';
+    this.maxSize = maxSize;
 
     this.selected = null;
     this.legalDots = [];
@@ -41,7 +42,7 @@ export class ChessBoard {
   }
 
   _setupCanvas() {
-    const size = Math.min(window.innerWidth - 32, 560);
+    const size = Math.min(window.innerWidth - 32, this.maxSize);
     this.canvas.width = size;
     this.canvas.height = size;
     this._calcMetrics();
@@ -50,6 +51,12 @@ export class ChessBoard {
   _calcMetrics() {
     this.cellSize = this.canvas.width / COLS;
     this.pieceFont = Math.round(this.cellSize * 0.74);
+  }
+
+  /** Update the size cap (e.g. on window resize) and redraw at the new size. */
+  setMaxSize(maxSize) {
+    this.maxSize = maxSize;
+    this.resize();
   }
 
   resize() { this._setupCanvas(); this.draw(); }

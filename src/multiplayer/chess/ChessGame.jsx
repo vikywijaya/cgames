@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { ChessBoard } from './ChessBoardCanvas';
 import { legalMovesFor, parseFenState } from './chessMoves';
@@ -10,7 +10,17 @@ import styles from './ChessGame.module.css';
 
 const RESULT_PCT = { win: 100, draw: 50, loss: 0 };
 
-function ChessPane({ color, name, gameState, dispatch, rotated }) {
+// Vertical space reserved for the two panel name labels and the middle
+// status/resign/game-over strip, so both boards fit on one screen without
+// scrolling — tuned to this layout's actual content, not a hard number.
+const RESERVED_VERTICAL_SPACE = 260;
+
+function computeMaxBoardSize() {
+  const perPaneHeightBudget = (window.innerHeight - RESERVED_VERTICAL_SPACE) / 2;
+  return Math.max(160, Math.min(560, perPaneHeightBudget));
+}
+
+function ChessPane({ color, name, gameState, dispatch, rotated, maxSize }) {
   const canvasRef = useRef(null);
   const boardRef = useRef(null);
 
@@ -22,7 +32,7 @@ function ChessPane({ color, name, gameState, dispatch, rotated }) {
     // rendering but NOT click coordinates, since click hit-testing reflects
     // the rotated element while ChessBoard's `_toBoard` assumes an unrotated,
     // unflipped canvas — making every click land on the mirrored square.
-    const board = new ChessBoard(canvasRef.current, 'white');
+    const board = new ChessBoard(canvasRef.current, 'white', maxSize);
     board.onPieceSelect = ([r, c]) => {
       const parsed = boardRef.current?.fenState;
       const currentBoard = boardRef.current?.board;
@@ -37,10 +47,12 @@ function ChessPane({ color, name, gameState, dispatch, rotated }) {
       dispatch('make_move', { from, to, promotion: promotion || null });
     };
     boardRef.current = board;
-    const onResize = () => board.resize();
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [color, dispatch]);
+
+  useEffect(() => {
+    boardRef.current?.setMaxSize(maxSize);
+  }, [maxSize]);
 
   useEffect(() => {
     if (!gameState || !boardRef.current) return;
@@ -61,6 +73,7 @@ ChessPane.propTypes = {
   gameState: PropTypes.object,
   dispatch: PropTypes.func.isRequired,
   rotated: PropTypes.bool,
+  maxSize: PropTypes.number.isRequired,
 };
 
 export function ChessGame({ memberId, callbackUrl, accessToken }) {
@@ -68,6 +81,17 @@ export function ChessGame({ memberId, callbackUrl, accessToken }) {
   const { gameState, lastGameOver, players, dispatch } = useLocalChessMatch();
   const startedAtRef = useRef(Date.now());
   const reportedRef = useRef(false);
+  const [maxBoardSize, setMaxBoardSize] = useState(computeMaxBoardSize);
+
+  useEffect(() => {
+    const onResize = () => setMaxBoardSize(computeMaxBoardSize());
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+    };
+  }, []);
 
   useEffect(() => {
     if (!lastGameOver || reportedRef.current) return;
@@ -102,7 +126,7 @@ export function ChessGame({ memberId, callbackUrl, accessToken }) {
 
   return (
     <div className={styles.game}>
-      <ChessPane color="black" name={black.name} gameState={gameState} dispatch={dispatch} rotated />
+      <ChessPane color="black" name={black.name} gameState={gameState} dispatch={dispatch} maxSize={maxBoardSize} rotated />
 
       <div className={styles.center}>
         <div className={styles.status}>{turnStatus}</div>
@@ -121,7 +145,7 @@ export function ChessGame({ memberId, callbackUrl, accessToken }) {
         )}
       </div>
 
-      <ChessPane color="white" name={white.name} gameState={gameState} dispatch={dispatch} />
+      <ChessPane color="white" name={white.name} gameState={gameState} dispatch={dispatch} maxSize={maxBoardSize} />
     </div>
   );
 }

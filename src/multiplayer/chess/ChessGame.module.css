@@ -1,9 +1,9 @@
-.game { display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding: 8px; }
-.pane { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.game { display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 4px; }
+.pane { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .paneRotated { transform: rotate(180deg); }
-.center { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 8px 0; }
-.panel { font-weight: 700; }
-.status { font-size: 1.1rem; }
+.center { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 4px 0; }
+.panel { font-weight: 700; font-size: 0.95rem; }
+.status { font-size: 1rem; }
 .canvas { max-width: 100%; touch-action: none; }
 .banner { background: #fff3cd; color: #664d03; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
 .gameOver { text-align: center; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
