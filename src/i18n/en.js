@@ -500,6 +500,7 @@ export default {
     play: 'Play',
     drawAction: 'Draw',
     pass: 'Pass',
+    namedTurnPlayDrawPass: "{name}'s turn — play a card, draw, or pass",
     // Singapore Trivia
     hostStartNext: 'Click "Next Question" when everyone is ready.',
     waitingForHost: 'Waiting for host to start the next question…',

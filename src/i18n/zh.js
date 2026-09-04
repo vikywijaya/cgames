@@ -280,6 +280,7 @@ export default {
     play: '出牌',
     drawAction: '抽牌',
     pass: '过牌',
+    namedTurnPlayDrawPass: '{name}的回合 — 出牌、抽牌或跳过',
     hostStartNext: '大家准备好后，点击"下一题"。',
     waitingForHost: '等待主持人开始下一题…',
     questionProgress: '第 {current} / {total} 题',

@@ -280,6 +280,7 @@ export default {
     play: 'Main',
     drawAction: 'Ambil',
     pass: 'Lepas',
+    namedTurnPlayDrawPass: 'Giliran {name} — main kad, ambil, atau langkau',
     hostStartNext: 'Klik "Soalan Seterusnya" apabila semua sedia.',
     waitingForHost: 'Menunggu hos memulakan soalan seterusnya…',
     questionProgress: 'S {current} / {total}',

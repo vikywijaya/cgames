@@ -280,6 +280,7 @@ export default {
     play: 'விளையாடு',
     drawAction: 'எடு',
     pass: 'தவிர்',
+    namedTurnPlayDrawPass: '{name} முறை — ஒரு அட்டையை விளையாடவும், எடுக்கவும் அல்லது தவிர்க்கவும்',
     hostStartNext: 'அனைவரும் தயாராக இருக்கும்போது "அடுத்த கேள்வி" என்பதைக் கிளிக் செய்யவும்.',
     waitingForHost: 'அடுத்த கேள்வியைத் தொடங்க புரவலனுக்காக காத்திருக்கிறது…',
     questionProgress: 'கே {current} / {total}',
