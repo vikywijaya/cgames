@@ -1,21 +1,24 @@
-.game { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px; max-width: 520px; margin: 0 auto; }
-.panel { font-weight: 700; }
-.banner { background: #fff3cd; color: #664d03; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
-.players { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; width: 100%; }
-.playerChip { padding: 6px 10px; border-radius: 6px; background: #f5f5f5; font-size: 0.9rem; }
-.progress { font-weight: 700; color: #666; }
-.question { width: 100%; text-align: center; }
-.questionText { font-size: 1.15rem; font-weight: 700; margin: 8px 0; }
-.timer { font-weight: 700; }
-.answeredCount { color: #666; font-size: 0.9rem; }
-.options { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
-.optionBtn { padding: 12px; border-radius: 8px; border: 2px solid #ccc; background: #fff; cursor: pointer; text-align: left; font-size: 1rem; }
-.optionBtn:disabled { cursor: not-allowed; }
-.optionLetter { font-weight: 700; margin-right: 6px; }
-.selected { border-color: #1155cc; background: #eaf1ff; }
-.correct { border-color: #1a6e1a; background: #e6f4ea; }
-.wrong { border-color: #c0392b; background: #fdecea; }
-.results { text-align: center; width: 100%; }
-.resultRow { padding: 6px 0; }
-.hostControls { display: flex; gap: 8px; }
-.actionBtn { padding: 10px 18px; border-radius: 8px; border: none; background: var(--color-primary, #1155cc); color: #fff; cursor: pointer; font-weight: 700; }
+.game { display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 4px; }
+.progress { font-size: 0.8rem; text-align: center; font-weight: 600; }
+.timer { font-size: 0.9rem; text-align: center; font-weight: 700; margin: 0; }
+.question { text-align: center; }
+.questionText { font-size: 0.85rem; font-weight: 600; margin: 2px 0; }
+.questionImage { max-width: 100%; max-height: 90px; object-fit: contain; border-radius: 6px; margin: 2px 0; }
+.answeredCount { font-size: 0.7rem; color: #666; margin: 0; }
+.hostControls { display: flex; justify-content: center; gap: 6px; }
+.actionBtn { padding: 5px 12px; border-radius: 6px; border: none; background: var(--color-primary, #1155cc); color: #fff; cursor: pointer; font-weight: 700; font-size: 0.8rem; }
+.panes { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+.pane { flex: 1 1 160px; min-width: 140px; display: flex; flex-direction: column; align-items: stretch; gap: 3px; border: 1px solid #eee; border-radius: 8px; padding: 4px; }
+.panel { font-weight: 700; font-size: 0.75rem; text-align: center; }
+.options { display: flex; flex-direction: column; gap: 3px; }
+.optionBtn { padding: 5px 6px; border-radius: 6px; border: 1px solid #ccc; background: #fff; cursor: pointer; text-align: left; font-size: 0.7rem; }
+.optionBtn:disabled { opacity: 0.7; cursor: not-allowed; }
+.optionBtn.selected { border-color: #1155cc; box-shadow: 0 0 0 2px rgba(17,85,204,0.3); }
+.optionBtn.correct { border-color: #2e7d32; background: #e8f5e9; }
+.optionBtn.wrong { border-color: #c0392b; background: #fdecea; }
+.waitingNote { font-size: 0.7rem; color: #666; font-style: italic; text-align: center; margin: 0; }
+.resignBtn { padding: 4px 12px; border-radius: 6px; border: 1px solid #c0392b; color: #c0392b; background: #fff; cursor: pointer; font-size: 0.75rem; align-self: center; }
+.primaryBtn { padding: 8px 18px; border-radius: 8px; border: none; background: var(--color-primary, #1155cc); color: #fff; cursor: pointer; font-weight: 700; }
+.confirmActions { display: flex; gap: 8px; justify-content: center; }
+.gameOver { text-align: center; background: #fff; border-radius: 12px; padding: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+.resultRow { font-size: 0.85rem; }

@@ -1,115 +1,85 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SingaporeTriviaGame } from './SingaporeTriviaGame';
+import { render, screen, fireEvent, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('../../utils/scoreStore', () => ({ saveScore: vi.fn() }));
 vi.mock('../../utils/buildPayload', () => ({ buildPayload: vi.fn(() => ({ mocked: true })) }));
 
 import { saveScore } from '../../utils/scoreStore';
-import { buildPayload } from '../../utils/buildPayload';
+import { SingaporeTriviaGame } from './SingaporeTriviaGame';
 
-function makeSocket() { return { emit: vi.fn(), on: vi.fn(), off: vi.fn() }; }
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.useFakeTimers();
+  global.fetch = vi.fn(() => Promise.resolve({}));
+});
 
-const questionState = {
-  gameType: 'singapore-trivia', isGameOver: false, phase: 'question',
-  questionIndex: 0, totalQuestions: 10, timeLeft: 15, answeredCount: 0, playerCount: 2,
-  players: [{ name: 'Tester', color: 'p1' }, { name: 'Opponent', color: 'p2' }],
-  scores: [0, 0], answers: [null, null],
-  currentQuestion: { text: 'What is the national flower of Singapore?', imageUrl: null,
-    options: ['Orchid', 'Rose', 'Tulip', 'Lily'], correctIndex: 0 },
-};
+afterEach(() => {
+  vi.useRealTimers();
+});
 
-beforeEach(() => { vi.clearAllMocks(); global.fetch = vi.fn(() => Promise.resolve({})); });
-
-describe('SingaporeTriviaGame rendering', () => {
-  it('shows the current question and its options', () => {
-    render(
-      <SingaporeTriviaGame myColor="p1" myName="Tester" gameState={questionState} lastGameOver={null}
-        socket={makeSocket()} memberId="m-1" />
-    );
-    expect(screen.getByText('What is the national flower of Singapore?')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Orchid/ })).toBeInTheDocument();
+describe('SingaporeTriviaGame split-screen', () => {
+  it('renders two player panels before any question has started', () => {
+    render(<SingaporeTriviaGame memberId="m-1" />);
+    expect(screen.getByText(/Player 1/)).toBeInTheDocument();
+    expect(screen.getByText(/Player 2/)).toBeInTheDocument();
   });
 
-  it('submits my answer when an option is clicked', () => {
-    const socket = makeSocket();
-    render(
-      <SingaporeTriviaGame myColor="p1" myName="Tester" gameState={questionState} lastGameOver={null}
-        socket={socket} memberId="m-1" />
-    );
-    fireEvent.click(screen.getByRole('button', { name: /Orchid/ }));
-    expect(socket.emit).toHaveBeenCalledWith('trivia_answer', { answerIndex: 0 });
+  it('shows a Next Question control while waiting, and starts a question when clicked', () => {
+    render(<SingaporeTriviaGame memberId="m-1" />);
+    fireEvent.click(screen.getByRole('button', { name: /next question/i }));
+    // Once a question has started, 8 answer option buttons exist (4 per pane).
+    const optionButtons = screen.getAllByRole('button').filter(b => /^[A-D]\)/.test(b.textContent || ''));
+    expect(optionButtons.length).toBe(8);
   });
 
-  it('locks all options after answering', () => {
-    const socket = makeSocket();
-    render(
-      <SingaporeTriviaGame myColor="p1" myName="Tester" gameState={questionState} lastGameOver={null}
-        socket={socket} memberId="m-1" />
-    );
-    fireEvent.click(screen.getByRole('button', { name: /Orchid/ }));
-    expect(screen.getByRole('button', { name: /Rose/ })).toBeDisabled();
+  it('answering on one pane does not reveal the other pane\'s pick or the correct answer', () => {
+    render(<SingaporeTriviaGame memberId="m-1" />);
+    fireEvent.click(screen.getByRole('button', { name: /next question/i }));
+    const optionButtons = screen.getAllByRole('button').filter(b => /^[A-D]\)/.test(b.textContent || ''));
+    fireEvent.click(optionButtons[0]); // seat 0's first option
+    // No green/red highlighting classes should exist yet — reveal hasn't happened.
+    expect(document.querySelector('[class*="correct"]')).toBeNull();
+    expect(document.querySelector('[class*="wrong"]')).toBeNull();
   });
 
-  it('shows host controls only for p1', () => {
-    render(
-      <SingaporeTriviaGame myColor="p1" myName="Tester" gameState={questionState} lastGameOver={null}
-        socket={makeSocket()} memberId="m-1" />
-    );
-    expect(screen.getByRole('button', { name: 'Reveal' })).toBeInTheDocument();
+  it('auto-reveals after 20 seconds', () => {
+    render(<SingaporeTriviaGame memberId="m-1" />);
+    fireEvent.click(screen.getByRole('button', { name: /next question/i }));
+    act(() => { vi.advanceTimersByTime(20_000); });
+    expect(document.querySelector('[class*="correct"]')).not.toBeNull();
   });
 
-  it('hides host controls for non-host players', () => {
-    render(
-      <SingaporeTriviaGame myColor="p2" myName="Opponent" gameState={questionState} lastGameOver={null}
-        socket={makeSocket()} memberId="m-1" />
-    );
-    expect(screen.queryByRole('button', { name: 'Reveal' })).not.toBeInTheDocument();
+  it('shows resign buttons for both panes and a reset button', () => {
+    render(<SingaporeTriviaGame memberId="m-1" />);
+    expect(screen.getAllByRole('button', { name: /resign/i })).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: /^reset$/i }).length).toBeGreaterThan(0);
+  });
+
+  it('reports a loss from Player 1\'s perspective when seat 0 resigns', () => {
+    render(<SingaporeTriviaGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /resign/i })[0]);
+    expect(saveScore).toHaveBeenCalledWith('mp-singapore-trivia', 0, expect.any(Number), 'm-1', null);
   });
 });
 
-describe('SingaporeTriviaGame scoring', () => {
-  const finishedState = { ...questionState, scores: [21, 15] };
-
-  it('saves a percentage based on my score out of totalQuestions*3', () => {
-    render(
-      <SingaporeTriviaGame myColor="p1" myName="Tester" gameState={finishedState}
-        lastGameOver={{ winner: 0, reason: null }}
-        socket={makeSocket()} memberId="m-1" callbackUrl={undefined} accessToken={undefined} />
-    );
-    // 21 / (10*3) = 70%
-    expect(saveScore).toHaveBeenCalledWith('mp-singapore-trivia', 70, expect.any(Number), 'm-1', null);
+describe('SingaporeTriviaGame reset', () => {
+  it('asks for confirmation before resetting', () => {
+    render(<SingaporeTriviaGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /^reset$/i })[0]);
+    expect(screen.getByText(/reset this game\?/i)).toBeInTheDocument();
   });
 
-  it('posts to callbackUrl with the raw score and maxScore', () => {
-    render(
-      <SingaporeTriviaGame myColor="p1" myName="Tester" gameState={finishedState}
-        lastGameOver={{ winner: 0, reason: null }}
-        socket={makeSocket()} memberId="m-1" callbackUrl="https://host.example/callback" accessToken="tok" />
-    );
-    expect(buildPayload).toHaveBeenCalledWith(expect.objectContaining({ score: 21, maxScore: 30 }));
-    expect(global.fetch).toHaveBeenCalledWith(
-      'https://host.example/callback',
-      expect.objectContaining({ method: 'POST' })
-    );
+  it('cancelling leaves the game untouched', () => {
+    render(<SingaporeTriviaGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /^reset$/i })[0]);
+    fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+    expect(screen.queryByText(/reset this game\?/i)).not.toBeInTheDocument();
   });
 
-  it('does not report a result when there is no lastGameOver yet', () => {
-    render(
-      <SingaporeTriviaGame myColor="p1" myName="Tester" gameState={finishedState} lastGameOver={null}
-        socket={makeSocket()} memberId="m-1" />
-    );
-    expect(saveScore).not.toHaveBeenCalled();
-  });
-});
-
-describe('SingaporeTriviaGame connection banners', () => {
-  it('shows a reconnecting banner when status is disconnected', () => {
-    render(
-      <SingaporeTriviaGame myColor="p1" myName="Tester" gameState={questionState} lastGameOver={null}
-        socket={makeSocket()} memberId="m-1" status="disconnected" reconnectAttempt={4}
-        disconnectedPlayerName={null} />
-    );
-    expect(screen.getByText(/reconnecting.*attempt 4/i)).toBeInTheDocument();
+  it('confirming restarts the match at the waiting phase', () => {
+    render(<SingaporeTriviaGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /^reset$/i })[0]);
+    fireEvent.click(screen.getByRole('button', { name: /yes, reset/i }));
+    expect(screen.getByRole('button', { name: /next question/i })).toBeInTheDocument();
   });
 });
