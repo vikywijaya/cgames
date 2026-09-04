@@ -105,7 +105,15 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
 
   const ranked = players
     .map((p, i) => ({ name: p.name, score: scores[i] || 0, seat: i }))
-    .sort((a, b) => b.score - a.score);
+    .sort((a, b) => {
+      // On a genuine score tie (e.g. a resign before any points were
+      // scored), fall back to whichever seat lastGameOver names as the
+      // winner, so the medal list never contradicts the trophy header.
+      if (b.score !== a.score) return b.score - a.score;
+      if (lastGameOver && a.seat === lastGameOver.winner) return -1;
+      if (lastGameOver && b.seat === lastGameOver.winner) return 1;
+      return 0;
+    });
 
   const handleConfirmReset = () => {
     startedAtRef.current = Date.now();
