@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { cardFromId, isRedCard, SUIT_GLYPHS } from '../cards';
+import { useLocalGinRummyMatch } from './useLocalGinRummyMatch';
 import { saveScore } from '../../utils/scoreStore';
 import { buildPayload } from '../../utils/buildPayload';
+import { useTranslation } from '../../i18n/useTranslation';
 import styles from './GinRummyGame.module.css';
 
-const SEAT_COLORS = ['p1', 'p2'];
 const RESULT_PCT = { win: 100, draw: 50, loss: 0 };
 
 function CardTile({ card, selected, disabled, onClick }) {
@@ -28,164 +29,192 @@ CardTile.propTypes = {
   onClick: PropTypes.func,
 };
 
-export function GinRummyGame({
-  myName, myColor, gameState, lastGameOver, socket, memberId, callbackUrl, accessToken,
-  status = 'connected', reconnectAttempt = 0, disconnectedPlayerName = null,
-}) {
-  const [selectedCardId, setSelectedCardId] = useState(null);
-  const startedAtRef = useRef(null);
-  const reportedRef = useRef(false);
+function CardBack() {
+  return <div className={`${styles.card} ${styles.back}`}>—</div>;
+}
 
-  useEffect(() => {
-    if (gameState && startedAtRef.current === null) startedAtRef.current = Date.now();
-  }, [gameState]);
+function GinRummyPane({ seat, name, gameState, dispatch, selectedCardId, setSelectedCardId, t }) {
+  const isActive = gameState.currentSeat === seat && !gameState.isGameOver;
+  const inKnockResponse = gameState.phase === 'knock_response';
+  const isKnocker = gameState.knocker === seat;
+  const hand = [...gameState.hands[seat]].sort((a, b) => a - b);
+  const handCount = hand.length;
+
+  const selectCard = (id) => {
+    if (!isActive) return;
+    setSelectedCardId(prev => (prev === id ? null : id));
+  };
+
+  return (
+    <div className={styles.pane}>
+      <div className={styles.panel}>{name} ({seat === 0 ? 'p1' : 'p2'})</div>
+      <div className={styles.hand}>
+        {isActive
+          ? hand.map(id => (
+              <CardTile
+                key={id}
+                card={cardFromId(id)}
+                selected={selectedCardId === id}
+                disabled={!isActive}
+                onClick={() => selectCard(id)}
+              />
+            ))
+          : Array.from({ length: handCount }, (_, i) => <CardBack key={i} />)}
+      </div>
+      {!isActive && (
+        <div className={styles.hidden}>{t.tapToRevealHand.replace('{name}', name)}</div>
+      )}
+      {isActive && inKnockResponse && !isKnocker && (
+        <div className={styles.actions}>
+          <p className={styles.deadwoodHint}>{t.deadwoodHint.replace('{n}', gameState.knockerDeadwoodPoints)}</p>
+          <button type="button" className={styles.actionBtn} disabled={selectedCardId === null}
+            onClick={() => { dispatch('layoff', { cardId: selectedCardId, meldIndex: 0 }); setSelectedCardId(null); }}>
+            {t.layOff}
+          </button>
+          <button type="button" className={styles.actionBtn}
+            onClick={() => dispatch('finish_layoff', {})}>
+            {t.done}
+          </button>
+        </div>
+      )}
+      {isActive && gameState.phase === 'discard' && (
+        <div className={styles.actions}>
+          <button type="button" className={styles.actionBtn}
+            disabled={selectedCardId === null}
+            onClick={() => { dispatch('discard', { cardId: selectedCardId }); setSelectedCardId(null); }}>
+            {t.discard}
+          </button>
+          <button type="button" className={styles.actionBtn}
+            onClick={() => { dispatch('knock', {}); setSelectedCardId(null); }}>
+            {t.knock}
+          </button>
+        </div>
+      )}
+      {isActive && (
+        <button type="button" className={styles.resignBtn} onClick={() => dispatch('resign', { seat })}>
+          {t.resign}
+        </button>
+      )}
+    </div>
+  );
+}
+GinRummyPane.propTypes = {
+  seat: PropTypes.oneOf([0, 1]).isRequired,
+  name: PropTypes.string.isRequired,
+  gameState: PropTypes.object.isRequired,
+  dispatch: PropTypes.func.isRequired,
+  selectedCardId: PropTypes.number,
+  setSelectedCardId: PropTypes.func.isRequired,
+  t: PropTypes.object.isRequired,
+};
+
+export function GinRummyGame({ memberId, callbackUrl, accessToken }) {
+  const t = useTranslation().multiplayer;
+  const { gameState, lastGameOver, players, dispatch } = useLocalGinRummyMatch();
+  const [selectedCardId, setSelectedCardId] = useState(null);
+  const startedAtRef = useRef(Date.now());
+  const reportedRef = useRef(false);
+  const [confirmingReset, setConfirmingReset] = useState(false);
 
   useEffect(() => {
     if (!lastGameOver || reportedRef.current) return;
     reportedRef.current = true;
 
-    const mySeat = SEAT_COLORS.indexOf(myColor);
-    const result = lastGameOver.winner === mySeat ? 'win'
-      : (lastGameOver.winner !== null && lastGameOver.winner !== undefined) ? 'loss' : 'draw';
-    const durationSeconds = startedAtRef.current !== null
-      ? Math.round((Date.now() - startedAtRef.current) / 1000) : 0;
+    const result = lastGameOver.winner === 0 ? 'win'
+      : (lastGameOver.winner === null || lastGameOver.winner === undefined) ? 'draw' : 'loss';
+    const durationSeconds = Math.round((Date.now() - startedAtRef.current) / 1000);
 
     saveScore('mp-gin-rummy', RESULT_PCT[result], durationSeconds, memberId, null);
 
-    if (!callbackUrl) return;
     const payload = buildPayload({
       memberId, gameId: 'mp-gin-rummy',
       score: RESULT_PCT[result], maxScore: 100,
       completed: true, durationSeconds,
     });
+    window.parent.postMessage({ type: 'GAME_COMPLETE', payload }, '*');
+
+    if (!callbackUrl) return;
     const headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
     if (accessToken) headers['Access-Token'] = accessToken;
     fetch(callbackUrl, { method: 'POST', headers, body: JSON.stringify(payload) })
       .catch(e => console.warn('[GinRummyGame] callback failed:', e));
-  }, [lastGameOver, myColor, memberId, callbackUrl, accessToken]);
+  }, [lastGameOver, memberId, callbackUrl, accessToken]);
 
-  if (!gameState) return null;
+  const p1 = players[0];
+  const p2 = players[1];
+  const currentName = gameState.currentSeat === 0 ? p1.name : p2.name;
 
-  const mySeat = SEAT_COLORS.indexOf(myColor);
-  const gameActive = !gameState.isGameOver;
-  const myTurn = gameState.currentSeat === mySeat && gameActive;
-  const phase = gameState.phase;
-  const sortedHand = [...(gameState.myHand || [])].sort((a, b) => a - b);
-  const discardTop = gameState.discardTop;
-
-  const currentPlayer = gameState.players?.[gameState.currentSeat];
   let statusText;
-  if (phase === 'draw') statusText = myTurn ? 'Your turn — draw a card' : `${currentPlayer?.name || 'Opponent'} is drawing…`;
-  else if (phase === 'discard') statusText = myTurn ? 'Discard a card or knock' : `${currentPlayer?.name || 'Opponent'} is choosing…`;
-  else if (phase === 'knock_response') statusText = myTurn ? 'Lay off cards on melds or click Done' : 'Opponent is laying off cards…';
+  if (gameState.phase === 'draw') statusText = t.namedTurnDraw.replace('{name}', currentName);
+  else if (gameState.phase === 'discard') statusText = t.namedDiscardOrKnock.replace('{name}', currentName);
+  else if (gameState.phase === 'knock_response') {
+    const layingOffName = gameState.currentSeat === 0 ? p1.name : p2.name;
+    statusText = t.namedLayOffOrDone.replace('{name}', layingOffName);
+  }
 
-  const selectCard = (id) => {
-    if (!myTurn || !gameActive) return;
-    setSelectedCardId(prev => (prev === id ? null : id));
+  const handleConfirmReset = () => {
+    startedAtRef.current = Date.now();
+    reportedRef.current = false;
+    setSelectedCardId(null);
+    dispatch('play_again', {});
+    setConfirmingReset(false);
   };
-
-  const inKnockResponse = phase === 'knock_response' && myTurn;
 
   return (
     <div className={styles.game}>
-      <div className={styles.panel}>{myName} ({myColor})</div>
+      <GinRummyPane seat={1} name={p2.name} gameState={gameState} dispatch={dispatch}
+        selectedCardId={selectedCardId} setSelectedCardId={setSelectedCardId} t={t} />
 
-      {status === 'disconnected' && (
-        <div className={styles.banner}>Reconnecting… (attempt {reconnectAttempt})</div>
-      )}
-      {disconnectedPlayerName && (
-        <div className={styles.banner}>{disconnectedPlayerName} disconnected. Waiting…</div>
-      )}
-
-      <div className={styles.status}>{statusText}</div>
-
-      <div className={styles.players}>
-        {(gameState.players || []).map((p, i) => (
-          <div key={i} className={`${styles.playerRow} ${gameState.currentSeat === i ? styles.active : ''}`}>
-            {p.name}{SEAT_COLORS[i] === myColor ? ' (you)' : ''} — {gameState.handCounts?.[i] ?? '?'} cards
-          </div>
-        ))}
-      </div>
-
-      <div className={styles.table}>
-        <button type="button" className={styles.deck} disabled={!myTurn || !gameActive || phase !== 'draw'}
-          onClick={() => socket.emit('gin_draw', { source: 'draw' })}>
-          Draw ({gameState.drawPileCount})
+      <div className={styles.center}>
+        <div className={styles.status}>{statusText}</div>
+        <button type="button" className={styles.deck} disabled={gameState.isGameOver || gameState.phase !== 'draw'}
+          onClick={() => dispatch('draw', { source: 'draw' })}>
+          {t.drawPile.replace('{n}', gameState.drawPileCount)}
         </button>
-        {discardTop === null || discardTop === undefined ? (
+        {gameState.discardTop === null || gameState.discardTop === undefined ? (
           <div className={`${styles.card} ${styles.back}`}>—</div>
         ) : (
           <CardTile
-            card={cardFromId(discardTop)}
-            disabled={!myTurn || !gameActive || phase !== 'draw'}
-            onClick={() => socket.emit('gin_draw', { source: 'discard' })}
+            card={cardFromId(gameState.discardTop)}
+            disabled={gameState.isGameOver || gameState.phase !== 'draw'}
+            onClick={() => dispatch('draw', { source: 'discard' })}
           />
+        )}
+
+        {lastGameOver && (
+          <div className={styles.gameOver}>
+            <h3>
+              {lastGameOver.winner === null || lastGameOver.winner === undefined
+                ? t.draw
+                : `${lastGameOver.winner === 0 ? p1.name : p2.name} ${t.youWinSimple}`}
+            </h3>
+            <p>{lastGameOver.reason}</p>
+            <button className={styles.primaryBtn} onClick={() => dispatch('play_again', {})}>{t.playAgain}</button>
+          </div>
+        )}
+        {!lastGameOver && confirmingReset && (
+          <div className={styles.gameOver}>
+            <h3>{t.resetConfirmTitle}</h3>
+            <p>{t.resetConfirmBody}</p>
+            <div className={styles.confirmActions}>
+              <button className={styles.primaryBtn} onClick={handleConfirmReset}>{t.resetConfirmYes}</button>
+              <button className={styles.resignBtn} onClick={() => setConfirmingReset(false)}>{t.resetConfirmCancel}</button>
+            </div>
+          </div>
+        )}
+        {!lastGameOver && !confirmingReset && (
+          <button type="button" className={styles.resignBtn} onClick={() => setConfirmingReset(true)}>{t.resetGame}</button>
         )}
       </div>
 
-      <div className={styles.hand}>
-        {sortedHand.map(id => (
-          <CardTile
-            key={id}
-            card={cardFromId(id)}
-            selected={selectedCardId === id}
-            disabled={!myTurn || !gameActive}
-            onClick={() => selectCard(id)}
-          />
-        ))}
-      </div>
-
-      {inKnockResponse ? (
-        <div className={styles.actions}>
-          <p>Deadwood: {gameState.knockerDeadwood}. Lay off cards on their melds.</p>
-          <button type="button" className={styles.actionBtn} disabled={selectedCardId === null}
-            onClick={() => { socket.emit('gin_layoff', { cardId: selectedCardId, meldIndex: 0 }); setSelectedCardId(null); }}>
-            Lay Off
-          </button>
-          <button type="button" className={styles.actionBtn}
-            onClick={() => socket.emit('gin_finish_layoff')}>
-            Done
-          </button>
-        </div>
-      ) : (
-        <div className={styles.actions}>
-          <button type="button" className={styles.actionBtn}
-            disabled={!myTurn || !gameActive || phase !== 'discard' || selectedCardId === null}
-            onClick={() => { socket.emit('gin_discard', { cardId: selectedCardId }); setSelectedCardId(null); }}>
-            Discard
-          </button>
-          <button type="button" className={styles.actionBtn}
-            disabled={!myTurn || !gameActive || phase !== 'discard'}
-            onClick={() => { socket.emit('gin_knock', { meldGroups: [] }); setSelectedCardId(null); }}>
-            Knock
-          </button>
-        </div>
-      )}
-
-      {lastGameOver && (
-        <div className={styles.gameOver}>
-          <h3>
-            {lastGameOver.winner === mySeat ? 'You Win! 🎉'
-              : (lastGameOver.winner !== null && lastGameOver.winner !== undefined) ? 'Game Over' : 'Draw!'}
-          </h3>
-          <p>{lastGameOver.reason}</p>
-          <button className={styles.actionBtn} onClick={() => socket.emit('play_again')}>Play Again</button>
-        </div>
-      )}
+      <GinRummyPane seat={0} name={p1.name} gameState={gameState} dispatch={dispatch}
+        selectedCardId={selectedCardId} setSelectedCardId={setSelectedCardId} t={t} />
     </div>
   );
 }
 
 GinRummyGame.propTypes = {
-  myName: PropTypes.string.isRequired,
-  myColor: PropTypes.oneOf(['p1', 'p2']).isRequired,
-  gameState: PropTypes.object,
-  lastGameOver: PropTypes.object,
-  socket: PropTypes.shape({ emit: PropTypes.func.isRequired }).isRequired,
   memberId: PropTypes.string.isRequired,
   callbackUrl: PropTypes.string,
   accessToken: PropTypes.string,
-  status: PropTypes.string,
-  reconnectAttempt: PropTypes.number,
-  disconnectedPlayerName: PropTypes.string,
 };

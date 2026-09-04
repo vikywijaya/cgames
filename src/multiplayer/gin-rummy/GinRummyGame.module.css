@@ -1,25 +1,28 @@
-.game { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px; max-width: 480px; margin: 0 auto; }
-.panel { font-weight: 700; }
-.status { font-size: 1.05rem; }
-.banner { background: #fff3cd; color: #664d03; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
-.players { display: flex; flex-direction: column; gap: 6px; width: 100%; }
-.playerRow { padding: 6px 10px; border-radius: 6px; background: #f5f5f5; }
-.playerRow.active { background: #e3edff; font-weight: 700; }
-.table { display: flex; align-items: center; gap: 16px; }
-.deck { padding: 10px 14px; border-radius: 8px; border: 1px solid #999; background: #f0f0f0; cursor: pointer; font-weight: 700; }
-.deck:disabled { opacity: 0.5; cursor: not-allowed; }
-.hand { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.game { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding: 6px; }
+.pane { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.panel { font-weight: 700; font-size: 0.95rem; }
+.center { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 4px 0; }
+.status { font-size: 0.95rem; text-align: center; }
+.hidden { font-size: 0.85rem; color: #666; font-style: italic; }
+.hand { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; max-width: 100%; }
 .card { display: flex; flex-direction: column; align-items: center; justify-content: center;
-  width: 52px; height: 72px; border-radius: 8px; border: 2px solid #ccc; background: #fff;
+  width: 40px; height: 56px; border-radius: 6px; border: 2px solid #ccc; background: #fff;
   font-weight: 700; cursor: pointer; }
 .card:disabled { opacity: 0.6; cursor: not-allowed; }
 .card.selected { border-color: #1155cc; box-shadow: 0 0 0 2px rgba(17,85,204,0.3); }
 .card.back { background: #ddd; color: #888; }
 .red { color: #c0392b; }
 .black { color: #1a1a1a; }
-.rank { font-size: 1.1rem; }
-.suit { font-size: 1rem; }
-.actions { display: flex; gap: 10px; }
-.actionBtn { padding: 10px 18px; border-radius: 8px; border: none; background: var(--color-primary, #1155cc); color: #fff; cursor: pointer; font-weight: 700; }
+.rank { font-size: 0.9rem; }
+.suit { font-size: 0.85rem; }
+.deck { padding: 6px 10px; border-radius: 8px; border: 1px solid #999; background: #f0f0f0; cursor: pointer; font-weight: 700; font-size: 0.85rem; }
+.deck:disabled { opacity: 0.5; cursor: not-allowed; }
+.deadwoodHint { font-size: 0.8rem; margin: 2px 0; }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.actionBtn { padding: 6px 12px; border-radius: 8px; border: none; background: var(--color-primary, #1155cc); color: #fff; cursor: pointer; font-weight: 700; font-size: 0.85rem; }
 .actionBtn:disabled { opacity: 0.5; cursor: not-allowed; }
-.gameOver { text-align: center; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+.primaryBtn { padding: 10px 20px; border-radius: 8px; border: none; background: var(--color-primary, #1155cc); color: #fff; cursor: pointer; font-weight: 700; }
+.resignBtn { padding: 6px 14px; border-radius: 8px; border: 1px solid #c0392b; color: #c0392b; background: #fff; cursor: pointer; font-size: 0.85rem; }
+.confirmActions { display: flex; gap: 8px; justify-content: center; }
+.banner { background: #fff3cd; color: #664d03; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+.gameOver { text-align: center; background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
