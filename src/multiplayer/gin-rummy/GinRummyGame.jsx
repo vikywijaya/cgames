@@ -33,7 +33,7 @@ function CardBack() {
   return <div className={`${styles.card} ${styles.back}`}>—</div>;
 }
 
-function GinRummyPane({ seat, name, gameState, dispatch, selectedCardId, setSelectedCardId, t }) {
+function GinRummyPane({ seat, name, activeName, gameState, dispatch, selectedCardId, setSelectedCardId, t }) {
   const isActive = gameState.currentSeat === seat && !gameState.isGameOver;
   const inKnockResponse = gameState.phase === 'knock_response';
   const isKnocker = gameState.knocker === seat;
@@ -62,7 +62,7 @@ function GinRummyPane({ seat, name, gameState, dispatch, selectedCardId, setSele
           : Array.from({ length: handCount }, (_, i) => <CardBack key={i} />)}
       </div>
       {!isActive && (
-        <div className={styles.hidden}>{t.tapToRevealHand.replace('{name}', name)}</div>
+        <div className={styles.hidden}>{t.tapToRevealHand.replace('{name}', activeName)}</div>
       )}
       {isActive && inKnockResponse && !isKnocker && (
         <div className={styles.actions}>
@@ -101,6 +101,7 @@ function GinRummyPane({ seat, name, gameState, dispatch, selectedCardId, setSele
 GinRummyPane.propTypes = {
   seat: PropTypes.oneOf([0, 1]).isRequired,
   name: PropTypes.string.isRequired,
+  activeName: PropTypes.string.isRequired,
   gameState: PropTypes.object.isRequired,
   dispatch: PropTypes.func.isRequired,
   selectedCardId: PropTypes.number,
@@ -162,7 +163,7 @@ export function GinRummyGame({ memberId, callbackUrl, accessToken }) {
 
   return (
     <div className={styles.game}>
-      <GinRummyPane seat={1} name={p2.name} gameState={gameState} dispatch={dispatch}
+      <GinRummyPane seat={1} name={p2.name} activeName={currentName} gameState={gameState} dispatch={dispatch}
         selectedCardId={selectedCardId} setSelectedCardId={setSelectedCardId} t={t} />
 
       <div className={styles.center}>
@@ -207,7 +208,7 @@ export function GinRummyGame({ memberId, callbackUrl, accessToken }) {
         )}
       </div>
 
-      <GinRummyPane seat={0} name={p1.name} gameState={gameState} dispatch={dispatch}
+      <GinRummyPane seat={0} name={p1.name} activeName={currentName} gameState={gameState} dispatch={dispatch}
         selectedCardId={selectedCardId} setSelectedCardId={setSelectedCardId} t={t} />
     </div>
   );
