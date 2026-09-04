@@ -9,6 +9,51 @@ import styles from './CrazyEightsGame.module.css';
 
 const RESULT_PCT = { win: 100, loss: 0 };
 
+// Same idea as Chess's computeMaxBoardSize: grow the UI to fill the
+// available viewport height instead of sitting small in a mostly-empty
+// page. There's no single "board" here, so scale card size/typography by a
+// factor derived from how much vertical room the whole layout (two panes'
+// wrapped hands, plus the shared center strip, all of which scale together
+// via the same --card-scale variable) actually needs to fill the screen.
+// These per-element "chrome" heights (everything in a pane besides the
+// hand grid itself) are measured from a real render at scale=1 — one
+// active pane (panel + action buttons + resign) and one inactive pane
+// (panel + hidden message), plus the shared center strip — rather than
+// guessed, since estimating a11y-rendered flex layouts by hand undershoots.
+const PAGE_CHROME_ABOVE_GAME = 60; // the host page's back/home button + spacing, above the game container
+const ACTIVE_PANE_CHROME = 90; // active pane's non-hand-grid height, unscaled (measured + margin)
+const INACTIVE_PANE_CHROME = 90; // inactive pane's non-hand-grid height, unscaled (measured + margin)
+const CENTER_HEIGHT = 180; // status/deck/discard/suit badge/reset strip, unscaled (measured + margin)
+const BASE_CARD_WIDTH = 32;
+const BASE_CARD_HEIGHT = 44;
+const BASE_GAP = 3;
+const MAX_HAND_SIZE = 5; // Crazy Eights hands are dealt at exactly 5 and rarely grow much before a play
+
+function computeCardScale() {
+  const availableHeight = Math.max(120, window.innerHeight - PAGE_CHROME_ABOVE_GAME - 15);
+  const availableWidth = Math.max(200, window.innerWidth - 16);
+
+  // Search scale candidates and keep the largest one whose full stacked
+  // layout (2 hands + center strip, all scaling together) still fits the
+  // viewport — accounts for cards wrapping to more rows as they grow,
+  // which a flat multiplier can't.
+  let best = 1;
+  for (let scale = 1; scale <= 3; scale += 0.01) {
+    const cardW = BASE_CARD_WIDTH * scale;
+    const cardH = BASE_CARD_HEIGHT * scale;
+    const gap = BASE_GAP * scale;
+    const perRow = Math.max(1, Math.floor((availableWidth + gap) / (cardW + gap)));
+    const rows = Math.ceil(MAX_HAND_SIZE / perRow);
+    const handHeight = rows * cardH + (rows - 1) * gap;
+    const activePaneHeight = handHeight + ACTIVE_PANE_CHROME * scale;
+    const inactivePaneHeight = handHeight + INACTIVE_PANE_CHROME * scale;
+    const totalHeight = activePaneHeight + inactivePaneHeight + CENTER_HEIGHT * scale;
+    if (totalHeight <= availableHeight) best = scale;
+    else break;
+  }
+  return Math.max(1, Math.min(2, best));
+}
+
 function CardTile({ card, selected, disabled, onClick }) {
   return (
     <button
@@ -142,6 +187,17 @@ export function CrazyEightsGame({ memberId, callbackUrl, accessToken }) {
   const startedAtRef = useRef(Date.now());
   const reportedRef = useRef(false);
   const [confirmingReset, setConfirmingReset] = useState(false);
+  const [cardScale, setCardScale] = useState(computeCardScale);
+
+  useEffect(() => {
+    const onResize = () => setCardScale(computeCardScale());
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+    };
+  }, []);
 
   useEffect(() => {
     if (!lastGameOver || reportedRef.current) return;
@@ -187,7 +243,7 @@ export function CrazyEightsGame({ memberId, callbackUrl, accessToken }) {
   };
 
   return (
-    <div className={styles.game}>
+    <div className={styles.game} style={{ '--card-scale': cardScale }}>
       <CrazyEightsPane seat={1} name={p2.name} activeName={currentName} {...paneProps} rotated />
 
       <div className={styles.center}>

@@ -9,6 +9,41 @@ import styles from './GinRummyGame.module.css';
 
 const RESULT_PCT = { win: 100, draw: 50, loss: 0 };
 
+// Same idea as Chess's computeMaxBoardSize: grow the UI to fill the
+// available viewport height instead of sitting small in a mostly-empty
+// page. There's no single "board" here, so scale card size/typography by a
+// factor derived from how much vertical room the hand area (which wraps
+// across multiple rows) actually needs to fill the screen.
+const RESERVED_VERTICAL_SPACE = 230; // shared center status/deck/discard/reset strip
+const PANE_CHROME_HEIGHT = 85; // panel label + action buttons + resign button, per pane, unscaled
+const BASE_CARD_WIDTH = 32;
+const BASE_CARD_HEIGHT = 44;
+const BASE_GAP = 3;
+const MAX_HAND_SIZE = 11; // 10 dealt + 1 drawn, worst case before a discard
+
+function computeCardScale() {
+  const perPaneHeightBudget = Math.max(60, (window.innerHeight - RESERVED_VERTICAL_SPACE) / 2);
+  const availableWidth = Math.max(200, window.innerWidth - 16);
+
+  // Search a small set of scale candidates and keep the largest one whose
+  // wrapped hand (at that scale), plus this pane's other chrome (which also
+  // scales), still fits the height budget — accounts for cards wrapping to
+  // more rows as they grow, which a flat multiplier can't.
+  let best = 1;
+  for (let scale = 1; scale <= 3; scale += 0.05) {
+    const cardW = BASE_CARD_WIDTH * scale;
+    const cardH = BASE_CARD_HEIGHT * scale;
+    const gap = BASE_GAP * scale;
+    const perRow = Math.max(1, Math.floor((availableWidth + gap) / (cardW + gap)));
+    const rows = Math.ceil(MAX_HAND_SIZE / perRow);
+    const handHeight = rows * cardH + (rows - 1) * gap;
+    const paneHeight = handHeight + PANE_CHROME_HEIGHT * scale;
+    if (paneHeight <= perPaneHeightBudget) best = scale;
+    else break;
+  }
+  return Math.max(1, Math.min(2, best));
+}
+
 function CardTile({ card, selected, disabled, onClick }) {
   return (
     <button
@@ -117,6 +152,17 @@ export function GinRummyGame({ memberId, callbackUrl, accessToken }) {
   const startedAtRef = useRef(Date.now());
   const reportedRef = useRef(false);
   const [confirmingReset, setConfirmingReset] = useState(false);
+  const [cardScale, setCardScale] = useState(computeCardScale);
+
+  useEffect(() => {
+    const onResize = () => setCardScale(computeCardScale());
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+    };
+  }, []);
 
   useEffect(() => {
     if (!lastGameOver || reportedRef.current) return;
@@ -163,7 +209,7 @@ export function GinRummyGame({ memberId, callbackUrl, accessToken }) {
   };
 
   return (
-    <div className={styles.game}>
+    <div className={styles.game} style={{ '--card-scale': cardScale }}>
       <GinRummyPane seat={1} name={p2.name} activeName={currentName} gameState={gameState} dispatch={dispatch}
         selectedCardId={selectedCardId} setSelectedCardId={setSelectedCardId} t={t} rotated />
 

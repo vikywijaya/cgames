@@ -8,6 +8,31 @@ import styles from './SingaporeTriviaGame.module.css';
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 
+// Same idea as Chess's computeMaxBoardSize: grow the UI to fill the
+// available viewport height instead of sitting small in a mostly-empty
+// page. There's no "board" or "cards" here — just 4 stacked option rows
+// per pane — so scale font-size/padding by a factor derived from how much
+// vertical room the two panes + shared question/timer/controls strip
+// actually need. Constants below are measured from a real render at
+// scale=1 (both panes always show all 4 options, so unlike the card games
+// there's no active/inactive asymmetry to model), including the host
+// page's back-button chrome above the game container.
+const PAGE_CHROME_ABOVE_GAME = 60;
+const PANE_HEIGHT = 155; // panel label + 4 option rows + resign, unscaled (measured + margin)
+const CENTER_HEIGHT = 165; // progress/timer/question/controls strip, unscaled (measured + margin)
+
+function computeCardScale() {
+  const availableHeight = Math.max(120, window.innerHeight - PAGE_CHROME_ABOVE_GAME - 15);
+
+  let best = 1;
+  for (let scale = 1; scale <= 3; scale += 0.02) {
+    const totalHeight = PANE_HEIGHT * scale * 2 + CENTER_HEIGHT * scale;
+    if (totalHeight <= availableHeight) best = scale;
+    else break;
+  }
+  return Math.max(1, Math.min(2, best));
+}
+
 function AnswerPane({ seat, name, gameState, dispatch, t, rotated }) {
   const myAnswer = gameState.answers[seat];
   const phase = gameState.phase;
@@ -74,6 +99,17 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
   const startedAtRef = useRef(Date.now());
   const reportedRef = useRef(false);
   const [confirmingReset, setConfirmingReset] = useState(false);
+  const [cardScale, setCardScale] = useState(computeCardScale);
+
+  useEffect(() => {
+    const onResize = () => setCardScale(computeCardScale());
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+    };
+  }, []);
 
   useEffect(() => {
     if (!lastGameOver || reportedRef.current) return;
@@ -124,7 +160,7 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
   };
 
   return (
-    <div className={styles.game}>
+    <div className={styles.game} style={{ '--card-scale': cardScale }}>
       <AnswerPane seat={1} name={p2.name} gameState={gameState} dispatch={dispatch} t={t} rotated />
 
       <div className={styles.center}>
