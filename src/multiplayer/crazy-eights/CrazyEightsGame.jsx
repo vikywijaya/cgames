@@ -35,7 +35,7 @@ function CardBack() {
 
 function CrazyEightsPane({
   seat, name, activeName, gameState, dispatch, t,
-  selectedCardId, setSelectedCardId, pendingEightCardId, setPendingEightCardId,
+  selectedCardId, setSelectedCardId, pendingEightCardId, setPendingEightCardId, rotated,
 }) {
   const isActive = gameState.currentSeat === seat && !gameState.isGameOver;
   const hand = [...gameState.hands[seat]].sort((a, b) => a - b);
@@ -66,7 +66,7 @@ function CrazyEightsPane({
   };
 
   return (
-    <div className={styles.pane}>
+    <div className={`${styles.pane} ${rotated ? styles.paneRotated : ''}`}>
       <div className={styles.panel}>{name} ({seat === 0 ? 'p1' : 'p2'})</div>
       <div className={styles.hand}>
         {isActive
@@ -131,6 +131,7 @@ CrazyEightsPane.propTypes = {
   setSelectedCardId: PropTypes.func.isRequired,
   pendingEightCardId: PropTypes.number,
   setPendingEightCardId: PropTypes.func.isRequired,
+  rotated: PropTypes.bool,
 };
 
 export function CrazyEightsGame({ memberId, callbackUrl, accessToken }) {
@@ -187,7 +188,7 @@ export function CrazyEightsGame({ memberId, callbackUrl, accessToken }) {
 
   return (
     <div className={styles.game}>
-      <CrazyEightsPane seat={1} name={p2.name} activeName={currentName} {...paneProps} />
+      <CrazyEightsPane seat={1} name={p2.name} activeName={currentName} {...paneProps} rotated />
 
       <div className={styles.center}>
         <div className={styles.status}>{statusText}</div>

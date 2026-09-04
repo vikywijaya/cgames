@@ -33,7 +33,7 @@ function CardBack() {
   return <div className={`${styles.card} ${styles.back}`}>—</div>;
 }
 
-function GinRummyPane({ seat, name, activeName, gameState, dispatch, selectedCardId, setSelectedCardId, t }) {
+function GinRummyPane({ seat, name, activeName, gameState, dispatch, selectedCardId, setSelectedCardId, t, rotated }) {
   const isActive = gameState.currentSeat === seat && !gameState.isGameOver;
   const inKnockResponse = gameState.phase === 'knock_response';
   const isKnocker = gameState.knocker === seat;
@@ -46,7 +46,7 @@ function GinRummyPane({ seat, name, activeName, gameState, dispatch, selectedCar
   };
 
   return (
-    <div className={styles.pane}>
+    <div className={`${styles.pane} ${rotated ? styles.paneRotated : ''}`}>
       <div className={styles.panel}>{name} ({seat === 0 ? 'p1' : 'p2'})</div>
       <div className={styles.hand}>
         {isActive
@@ -107,6 +107,7 @@ GinRummyPane.propTypes = {
   selectedCardId: PropTypes.number,
   setSelectedCardId: PropTypes.func.isRequired,
   t: PropTypes.object.isRequired,
+  rotated: PropTypes.bool,
 };
 
 export function GinRummyGame({ memberId, callbackUrl, accessToken }) {
@@ -164,7 +165,7 @@ export function GinRummyGame({ memberId, callbackUrl, accessToken }) {
   return (
     <div className={styles.game}>
       <GinRummyPane seat={1} name={p2.name} activeName={currentName} gameState={gameState} dispatch={dispatch}
-        selectedCardId={selectedCardId} setSelectedCardId={setSelectedCardId} t={t} />
+        selectedCardId={selectedCardId} setSelectedCardId={setSelectedCardId} t={t} rotated />
 
       <div className={styles.center}>
         <div className={styles.status}>{statusText}</div>

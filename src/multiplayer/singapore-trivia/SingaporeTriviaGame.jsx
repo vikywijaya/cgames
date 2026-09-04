@@ -8,7 +8,7 @@ import styles from './SingaporeTriviaGame.module.css';
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 
-function AnswerPane({ seat, name, gameState, dispatch, t }) {
+function AnswerPane({ seat, name, gameState, dispatch, t, rotated }) {
   const myAnswer = gameState.answers[seat];
   const phase = gameState.phase;
   const canAnswer = phase === 'question' && myAnswer === null;
@@ -16,7 +16,7 @@ function AnswerPane({ seat, name, gameState, dispatch, t }) {
   const question = gameState.currentQuestion;
 
   return (
-    <div className={styles.pane}>
+    <div className={`${styles.pane} ${rotated ? styles.paneRotated : ''}`}>
       <div className={styles.panel}>
         {name} ({seat === 0 ? 'p1' : 'p2'}){t.pointsSuffix.replace('{n}', gameState.scores[seat] || 0)}
       </div>
@@ -65,6 +65,7 @@ AnswerPane.propTypes = {
   gameState: PropTypes.object.isRequired,
   dispatch: PropTypes.func.isRequired,
   t: PropTypes.object.isRequired,
+  rotated: PropTypes.bool,
 };
 
 export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
@@ -124,69 +125,70 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
 
   return (
     <div className={styles.game}>
-      <div className={styles.progress}>
-        {t.questionProgress.replace('{current}', String(gameState.questionIndex + 1)).replace('{total}', String(gameState.totalQuestions))}
-      </div>
+      <AnswerPane seat={1} name={p2.name} gameState={gameState} dispatch={dispatch} t={t} rotated />
 
-      {phase === 'question' && <p className={styles.timer}>⏱ {gameState.timeLeft}s</p>}
-
-      {(phase === 'question' || phase === 'reveal') && currentQuestion && (
-        <div className={styles.question}>
-          <p className={styles.questionText}>{currentQuestion.text}</p>
-          {currentQuestion.imageUrl && (
-            <img className={styles.questionImage} src={currentQuestion.imageUrl} alt="" />
-          )}
-          <p className={styles.answeredCount}>{gameState.answeredCount} / {gameState.playerCount} answered</p>
+      <div className={styles.center}>
+        <div className={styles.progress}>
+          {t.questionProgress.replace('{current}', String(gameState.questionIndex + 1)).replace('{total}', String(gameState.totalQuestions))}
         </div>
-      )}
 
-      {!lastGameOver && (
-        <div className={styles.hostControls}>
-          {phase === 'waiting' && (
-            <button type="button" className={styles.actionBtn} onClick={() => dispatch('start_question', {})}>{t.nextQuestion}</button>
-          )}
-          {phase === 'question' && (
-            <button type="button" className={styles.actionBtn} onClick={() => dispatch('reveal', {})}>{t.reveal}</button>
-          )}
-          {phase === 'reveal' && gameState.questionIndex < gameState.totalQuestions - 1 && (
-            <button type="button" className={styles.actionBtn} onClick={() => dispatch('start_question', {})}>{t.nextQuestion}</button>
-          )}
-          {phase === 'reveal' && gameState.questionIndex >= gameState.totalQuestions - 1 && (
-            <button type="button" className={styles.actionBtn} onClick={() => dispatch('next_question', {})}>{t.finish}</button>
-          )}
-        </div>
-      )}
+        {phase === 'question' && <p className={styles.timer}>⏱ {gameState.timeLeft}s</p>}
 
-      <div className={styles.panes}>
-        <AnswerPane seat={0} name={p1.name} gameState={gameState} dispatch={dispatch} t={t} />
-        <AnswerPane seat={1} name={p2.name} gameState={gameState} dispatch={dispatch} t={t} />
-      </div>
-
-      {lastGameOver && (
-        <div className={styles.gameOver}>
-          <h3>{t.trophyNamedWins.replace('{name}', players[lastGameOver.winner].name)}</h3>
-          {ranked.map((p, i) => (
-            <div key={p.seat} className={styles.resultRow}>
-              {i === 0 ? '🥇' : '🥈'} {p.name}{t.pointsSuffix.replace('{n}', p.score)}
-            </div>
-          ))}
-          <p>{lastGameOver.reason}</p>
-          <button className={styles.primaryBtn} onClick={() => dispatch('play_again', {})}>{t.playAgain}</button>
-        </div>
-      )}
-      {!lastGameOver && confirmingReset && (
-        <div className={styles.gameOver}>
-          <h3>{t.resetConfirmTitle}</h3>
-          <p>{t.resetConfirmBody}</p>
-          <div className={styles.confirmActions}>
-            <button className={styles.primaryBtn} onClick={handleConfirmReset}>{t.resetConfirmYes}</button>
-            <button className={styles.resignBtn} onClick={() => setConfirmingReset(false)}>{t.resetConfirmCancel}</button>
+        {(phase === 'question' || phase === 'reveal') && currentQuestion && (
+          <div className={styles.question}>
+            <p className={styles.questionText}>{currentQuestion.text}</p>
+            {currentQuestion.imageUrl && (
+              <img className={styles.questionImage} src={currentQuestion.imageUrl} alt="" />
+            )}
+            <p className={styles.answeredCount}>{gameState.answeredCount} / {gameState.playerCount} answered</p>
           </div>
-        </div>
-      )}
-      {!lastGameOver && !confirmingReset && (
-        <button type="button" className={styles.resignBtn} onClick={() => setConfirmingReset(true)}>{t.resetGame}</button>
-      )}
+        )}
+
+        {!lastGameOver && (
+          <div className={styles.hostControls}>
+            {phase === 'waiting' && (
+              <button type="button" className={styles.actionBtn} onClick={() => dispatch('start_question', {})}>{t.nextQuestion}</button>
+            )}
+            {phase === 'question' && (
+              <button type="button" className={styles.actionBtn} onClick={() => dispatch('reveal', {})}>{t.reveal}</button>
+            )}
+            {phase === 'reveal' && gameState.questionIndex < gameState.totalQuestions - 1 && (
+              <button type="button" className={styles.actionBtn} onClick={() => dispatch('start_question', {})}>{t.nextQuestion}</button>
+            )}
+            {phase === 'reveal' && gameState.questionIndex >= gameState.totalQuestions - 1 && (
+              <button type="button" className={styles.actionBtn} onClick={() => dispatch('next_question', {})}>{t.finish}</button>
+            )}
+          </div>
+        )}
+
+        {lastGameOver && (
+          <div className={styles.gameOver}>
+            <h3>{t.trophyNamedWins.replace('{name}', players[lastGameOver.winner].name)}</h3>
+            {ranked.map((p, i) => (
+              <div key={p.seat} className={styles.resultRow}>
+                {i === 0 ? '🥇' : '🥈'} {p.name}{t.pointsSuffix.replace('{n}', p.score)}
+              </div>
+            ))}
+            <p>{lastGameOver.reason}</p>
+            <button className={styles.primaryBtn} onClick={() => dispatch('play_again', {})}>{t.playAgain}</button>
+          </div>
+        )}
+        {!lastGameOver && confirmingReset && (
+          <div className={styles.gameOver}>
+            <h3>{t.resetConfirmTitle}</h3>
+            <p>{t.resetConfirmBody}</p>
+            <div className={styles.confirmActions}>
+              <button className={styles.primaryBtn} onClick={handleConfirmReset}>{t.resetConfirmYes}</button>
+              <button className={styles.resignBtn} onClick={() => setConfirmingReset(false)}>{t.resetConfirmCancel}</button>
+            </div>
+          </div>
+        )}
+        {!lastGameOver && !confirmingReset && (
+          <button type="button" className={styles.resignBtn} onClick={() => setConfirmingReset(true)}>{t.resetGame}</button>
+        )}
+      </div>
+
+      <AnswerPane seat={0} name={p1.name} gameState={gameState} dispatch={dispatch} t={t} />
     </div>
   );
 }

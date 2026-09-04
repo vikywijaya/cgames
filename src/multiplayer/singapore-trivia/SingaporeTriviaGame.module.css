@@ -1,24 +1,25 @@
 .game { display: flex; flex-direction: column; align-items: stretch; gap: 2px; padding: 3px; }
-.progress { font-size: 0.7rem; text-align: center; font-weight: 600; margin: 0; }
-.timer { font-size: 0.75rem; text-align: center; font-weight: 700; margin: 0; }
+.pane { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.paneRotated { transform: rotate(180deg); }
+.center { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 1px 0; }
+.progress { font-size: 0.75rem; text-align: center; font-weight: 600; margin: 0; }
+.timer { font-size: 0.85rem; text-align: center; font-weight: 700; margin: 0; }
 .question { text-align: center; }
-.questionText { font-size: 0.72rem; font-weight: 600; margin: 1px 0; line-height: 1.15; }
-.questionImage { max-width: 100%; max-height: 60px; object-fit: contain; border-radius: 5px; margin: 1px 0; }
-.answeredCount { font-size: 0.6rem; color: #666; margin: 0; }
-.hostControls { display: flex; justify-content: center; gap: 5px; }
-.actionBtn { padding: 3px 10px; border-radius: 5px; border: none; background: var(--color-primary, #1155cc); color: #fff; cursor: pointer; font-weight: 700; font-size: 0.7rem; }
-.panes { display: flex; gap: 3px; flex-wrap: wrap; justify-content: center; }
-.pane { flex: 1 1 150px; min-width: 130px; display: flex; flex-direction: column; align-items: stretch; gap: 1px; border: 1px solid #eee; border-radius: 6px; padding: 2px; }
-.panel { font-weight: 700; font-size: 0.65rem; text-align: center; margin: 0; }
-.options { display: flex; flex-direction: column; gap: 1px; }
-.optionBtn { padding: 2px 4px; border-radius: 4px; border: 1px solid #ccc; background: #fff; cursor: pointer; text-align: left; font-size: 0.6rem; line-height: 1.2; }
+.questionText { font-size: 0.8rem; font-weight: 600; margin: 1px 0; line-height: 1.2; }
+.questionImage { max-width: 100%; max-height: 70px; object-fit: contain; border-radius: 5px; margin: 1px 0; }
+.answeredCount { font-size: 0.65rem; color: #666; margin: 0; }
+.hostControls { display: flex; justify-content: center; gap: 6px; }
+.actionBtn { padding: 4px 12px; border-radius: 6px; border: none; background: var(--color-primary, #1155cc); color: #fff; cursor: pointer; font-weight: 700; font-size: 0.75rem; }
+.panel { font-weight: 700; font-size: 0.8rem; text-align: center; margin: 0; }
+.options { display: flex; flex-direction: column; gap: 1px; width: 100%; max-width: 320px; }
+.optionBtn { padding: 2px 8px; border-radius: 5px; border: 1px solid #ccc; background: #fff; cursor: pointer; text-align: left; font-size: 0.68rem; }
 .optionBtn:disabled { opacity: 0.7; cursor: not-allowed; }
 .optionBtn.selected { border-color: #1155cc; box-shadow: 0 0 0 2px rgba(17,85,204,0.3); }
 .optionBtn.correct { border-color: #2e7d32; background: #e8f5e9; }
 .optionBtn.wrong { border-color: #c0392b; background: #fdecea; }
-.waitingNote { font-size: 0.6rem; color: #666; font-style: italic; text-align: center; margin: 0; }
-.resignBtn { padding: 2px 10px; border-radius: 5px; border: 1px solid #c0392b; color: #c0392b; background: #fff; cursor: pointer; font-size: 0.65rem; align-self: center; }
-.primaryBtn { padding: 6px 16px; border-radius: 8px; border: none; background: var(--color-primary, #1155cc); color: #fff; cursor: pointer; font-weight: 700; }
+.waitingNote { font-size: 0.7rem; color: #666; font-style: italic; text-align: center; margin: 0; }
+.resignBtn { padding: 4px 12px; border-radius: 6px; border: 1px solid #c0392b; color: #c0392b; background: #fff; cursor: pointer; font-size: 0.75rem; align-self: center; }
+.primaryBtn { padding: 8px 18px; border-radius: 8px; border: none; background: var(--color-primary, #1155cc); color: #fff; cursor: pointer; font-weight: 700; }
 .confirmActions { display: flex; gap: 8px; justify-content: center; }
-.gameOver { text-align: center; background: #fff; border-radius: 12px; padding: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
-.resultRow { font-size: 0.75rem; }
+.gameOver { text-align: center; background: #fff; border-radius: 12px; padding: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+.resultRow { font-size: 0.8rem; }
