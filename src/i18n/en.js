@@ -511,5 +511,7 @@ export default {
     reveal: 'Reveal',
     nextQuestion: 'Next Question',
     finish: 'Finish',
+    tapToAnswer: 'Pick an answer!',
+    answeredWaiting: '✓ Answered — waiting…',
   },
 };

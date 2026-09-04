@@ -290,5 +290,7 @@ export default {
     reveal: 'வெளிப்படுத்து',
     nextQuestion: 'அடுத்த கேள்வி',
     finish: 'முடி',
+    tapToAnswer: 'ஒரு பதிலைத் தேர்ந்தெடுக்கவும்!',
+    answeredWaiting: '✓ பதிலளிக்கப்பட்டது — காத்திருக்கிறது…',
   },
 };

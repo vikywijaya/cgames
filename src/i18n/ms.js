@@ -290,5 +290,7 @@ export default {
     reveal: 'Dedah',
     nextQuestion: 'Soalan Seterusnya',
     finish: 'Selesai',
+    tapToAnswer: 'Pilih jawapan!',
+    answeredWaiting: '✓ Telah dijawab — menunggu…',
   },
 };

@@ -290,5 +290,7 @@ export default {
     reveal: '公布答案',
     nextQuestion: '下一题',
     finish: '结束',
+    tapToAnswer: '选择一个答案！',
+    answeredWaiting: '✓ 已回答 — 等待中…',
   },
 };
