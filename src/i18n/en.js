@@ -488,6 +488,10 @@ export default {
     done: 'Done',
     discard: 'Discard',
     knock: 'Knock',
+    namedTurnDraw: "{name}'s turn — draw a card",
+    namedDiscardOrKnock: '{name}: discard a card or knock',
+    namedLayOffOrDone: "{name}: lay off cards or click Done",
+    tapToRevealHand: "Cards hidden — it's {name}'s turn",
     // Crazy Eights
     yourTurnPlayDrawPass: 'Your turn — play a card, draw, or pass',
     opponentsTurnNamed: "{name}'s turn",
