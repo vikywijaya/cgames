@@ -328,6 +328,18 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
     if (started) startedAtRef.current = Date.now();
   }, [started]);
 
+  // Readying up IS the "start the round" gesture, so serve the first
+  // question straight away rather than parking on a waiting screen that
+  // asks both players to confirm a second time. questionIndex < 0 scopes
+  // this to the opening question — every later one is advanced by the arrow
+  // from the reveal — and it re-fires after a reset, since play_again puts
+  // the engine back to -1 and re-arms both ready flags.
+  useEffect(() => {
+    if (started && gameState.phase === 'waiting' && gameState.questionIndex < 0) {
+      dispatch('start_question', {});
+    }
+  }, [started, gameState.phase, gameState.questionIndex, dispatch]);
+
   useEffect(() => {
     if (!lastGameOver || reportedRef.current) return;
     reportedRef.current = true;
@@ -526,27 +538,18 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
           </p>
         )}
 
-        {/* Only the phases that actually have a control. While a question is
-            open there is none — an empty wrapper still claims a slot in the
+        {/* Reveal is the only phase with a control now: the opening question
+            auto-starts on ready-up, and while a question is open there's
+            nothing to press. Rendering the wrapper in a phase with no button
+            isn't harmless — an empty flex child still claims a slot in the
             centre row and wraps it onto a second line. */}
-        {!lastGameOver && started && (phase === 'waiting' || phase === 'reveal') && (
+        {!lastGameOver && started && phase === 'reveal' && (
           <div className={styles.hostControls}>
             {/* An arrow rather than the words "Next Question". The label
                 still exists for screen readers and as the long-press
                 tooltip — dropping the visible text must not drop the
                 accessible name. The arrow nudges forward on a slow loop so
                 it reads as "carry on" without a caption; see .nextArrow. */}
-            {phase === 'waiting' && (
-              <button
-                type="button"
-                className={styles.nextBtn}
-                aria-label={t.nextQuestion}
-                title={t.nextQuestion}
-                onClick={() => dispatch('start_question', {})}
-              >
-                <span className={styles.nextArrow} aria-hidden="true">→</span>
-              </button>
-            )}
             {phase === 'reveal' && gameState.questionIndex < gameState.totalQuestions - 1 && (
               <button
                 type="button"

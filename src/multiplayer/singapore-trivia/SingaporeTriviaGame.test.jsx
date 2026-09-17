@@ -20,7 +20,9 @@ afterEach(() => {
 // Every test below exercises the in-progress match rather than the
 // ready-up flow itself (covered separately by 'SingaporeTriviaGame ready
 // gate'), so tap both players' own per-pane Ready buttons first, same
-// convention as ChessGame.test.jsx's renderStarted helper.
+// convention as ChessGame.test.jsx's renderStarted helper. Readying up both
+// seats now serves the first question by itself, so these land straight on
+// an open question with no further clicks.
 function renderStarted(props) {
   const utils = render(<SingaporeTriviaGame memberId="m-1" {...props} />);
   fireEvent.click(screen.getByRole('button', { name: /Player 1, I'm Ready/i }));
@@ -55,7 +57,9 @@ describe('SingaporeTriviaGame ready gate', () => {
     fireEvent.click(screen.getByRole('button', { name: /Player 1, I'm Ready/i }));
     fireEvent.click(screen.getByRole('button', { name: /Player 2, I'm Ready/i }));
     expect(screen.queryByRole('button', { name: /I'm Ready/i })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /next question/i })).toBeInTheDocument();
+    // Straight into the first question — no second confirmation step.
+    const optionButtons = screen.getAllByRole('button').filter(b => /^[A-D]\)/.test(b.textContent || ''));
+    expect(optionButtons.length).toBe(8);
   });
 });
 
@@ -66,17 +70,17 @@ describe('SingaporeTriviaGame split-screen', () => {
     expect(screen.getByText(/Player 2/)).toBeInTheDocument();
   });
 
-  it('shows a Next Question control while waiting, and starts a question when clicked', () => {
+  it('serves the first question as soon as both players are ready', () => {
     renderStarted();
-    fireEvent.click(screen.getByRole('button', { name: /next question/i }));
-    // Once a question has started, 8 answer option buttons exist (4 per pane).
+    // 8 answer option buttons exist (4 per pane) with no further interaction,
+    // and there is no leftover control asking to start the round.
     const optionButtons = screen.getAllByRole('button').filter(b => /^[A-D]\)/.test(b.textContent || ''));
     expect(optionButtons.length).toBe(8);
+    expect(screen.queryByRole('button', { name: /next question/i })).not.toBeInTheDocument();
   });
 
   it('answering on one pane does not reveal the other pane\'s pick or the correct answer', () => {
     renderStarted();
-    fireEvent.click(screen.getByRole('button', { name: /next question/i }));
     const optionButtons = screen.getAllByRole('button').filter(b => /^[A-D]\)/.test(b.textContent || ''));
     fireEvent.click(optionButtons[0]); // seat 0's first option
     // No green/red highlighting classes should exist yet — reveal hasn't happened.
@@ -86,14 +90,12 @@ describe('SingaporeTriviaGame split-screen', () => {
 
   it('auto-reveals after 20 seconds', () => {
     renderStarted();
-    fireEvent.click(screen.getByRole('button', { name: /next question/i }));
     act(() => { vi.advanceTimersByTime(20_000); });
     expect(document.querySelector('[class*="correct"]')).not.toBeNull();
   });
 
   it('has no resign, reset or reveal controls', () => {
     renderStarted();
-    fireEvent.click(screen.getByRole('button', { name: /next question/i }));
     expect(screen.queryByRole('button', { name: /resign/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^reset$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^reveal$/i })).not.toBeInTheDocument();
@@ -101,7 +103,6 @@ describe('SingaporeTriviaGame split-screen', () => {
 
   it('marks the correct option once both players have answered', () => {
     renderStarted();
-    fireEvent.click(screen.getByRole('button', { name: /next question/i }));
     const opts = () => screen.getAllByRole('button').filter(b => /^[A-D]\)/.test(b.textContent || ''));
 
     // Seat 0 alone isn't enough — the round is still open, nothing revealed.
