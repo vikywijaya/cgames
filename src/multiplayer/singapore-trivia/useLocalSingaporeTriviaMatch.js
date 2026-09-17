@@ -27,8 +27,8 @@ export function useLocalSingaporeTriviaMatch() {
     clearPendingTimer();
     timerRef.current = setTimeout(() => {
       timerRef.current = null;
-      // Guard against a reveal that already happened another way (manual
-      // reveal or all-answered early reveal) between scheduling and firing.
+      // Guard against the all-answered early reveal having landed between
+      // scheduling this and it firing.
       if (engineRef.current.state().phase !== 'question') return;
       engineRef.current.revealAnswers();
       sync();
@@ -73,13 +73,6 @@ export function useLocalSingaporeTriviaMatch() {
       return;
     }
 
-    if (action === 'reveal') {
-      clearPendingTimer();
-      const result = engine.revealAnswers();
-      if (result.ok) sync();
-      return;
-    }
-
     if (action === 'next_question') {
       const result = engine.nextQuestion();
       if (!result.ok) return;
@@ -90,15 +83,6 @@ export function useLocalSingaporeTriviaMatch() {
         const winnerScore = engine.state().scores[winnerSeat];
         setLastGameOver({ winner: winnerSeat, reason: `${winnerName} wins with ${winnerScore} points!` });
       }
-      return;
-    }
-
-    if (action === 'resign') {
-      clearPendingTimer();
-      const resigningSeat = payload.seat;
-      const winner = 1 - resigningSeat;
-      setLastGameOver({ winner, reason: 'Resigned' });
-      setGameState(prev => ({ ...prev, isGameOver: true, winner }));
       return;
     }
 

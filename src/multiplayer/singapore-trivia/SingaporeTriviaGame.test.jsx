@@ -91,54 +91,34 @@ describe('SingaporeTriviaGame split-screen', () => {
     expect(document.querySelector('[class*="correct"]')).not.toBeNull();
   });
 
-  it('shows resign buttons for both panes and a reset button', () => {
+  it('has no resign, reset or reveal controls', () => {
     renderStarted();
-    expect(screen.getAllByRole('button', { name: /resign/i })).toHaveLength(2);
-    expect(screen.getAllByRole('button', { name: /^reset$/i }).length).toBeGreaterThan(0);
+    fireEvent.click(screen.getByRole('button', { name: /next question/i }));
+    expect(screen.queryByRole('button', { name: /resign/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^reset$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^reveal$/i })).not.toBeInTheDocument();
   });
 
-  it('asks for confirmation before resigning', () => {
+  it('spells out the correct answer once both players have answered', () => {
     renderStarted();
-    fireEvent.click(screen.getAllByRole('button', { name: /resign/i })[0]);
-    expect(screen.getByText(/resign this game\?/i)).toBeInTheDocument();
-    expect(saveScore).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /next question/i }));
+    const opts = () => screen.getAllByRole('button').filter(b => /^[A-D]\)/.test(b.textContent || ''));
+
+    // Seat 0 alone isn't enough — the round is still open.
+    fireEvent.click(opts()[0]);
+    expect(screen.queryByText(/correct answer:/i)).not.toBeInTheDocument();
+
+    // opts()[4] is the same question rendered in the other player's pane.
+    fireEvent.click(opts()[4]);
+    // One per pane, so both players can read it the right way up.
+    expect(screen.getAllByText(/correct answer:/i)).toHaveLength(2);
   });
 
-  it('cancelling a resign leaves the match untouched', () => {
+  it('spells out the correct answer when the timer runs out instead', () => {
     renderStarted();
-    fireEvent.click(screen.getAllByRole('button', { name: /resign/i })[0]);
-    fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
-    expect(screen.queryByText(/resign this game\?/i)).not.toBeInTheDocument();
-    expect(saveScore).not.toHaveBeenCalled();
-  });
-
-  it('reports a loss from Player 1\'s perspective when seat 0 confirms resigning', () => {
-    renderStarted();
-    fireEvent.click(screen.getAllByRole('button', { name: /resign/i })[0]);
-    fireEvent.click(screen.getByRole('button', { name: /yes, resign/i }));
-    expect(saveScore).toHaveBeenCalledWith('mp-singapore-trivia', 0, expect.any(Number), 'm-1', null);
-  });
-});
-
-describe('SingaporeTriviaGame reset', () => {
-  it('asks for confirmation before resetting', () => {
-    renderStarted();
-    fireEvent.click(screen.getAllByRole('button', { name: /^reset$/i })[0]);
-    expect(screen.getByText(/reset this game\?/i)).toBeInTheDocument();
-  });
-
-  it('cancelling leaves the game untouched', () => {
-    renderStarted();
-    fireEvent.click(screen.getAllByRole('button', { name: /^reset$/i })[0]);
-    fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
-    expect(screen.queryByText(/reset this game\?/i)).not.toBeInTheDocument();
-  });
-
-  it('confirming restarts the match at the ready gate', () => {
-    renderStarted();
-    fireEvent.click(screen.getAllByRole('button', { name: /^reset$/i })[0]);
-    fireEvent.click(screen.getByRole('button', { name: /yes, reset/i }));
-    expect(screen.getByRole('button', { name: /Player 1, I'm Ready/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Player 2, I'm Ready/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /next question/i }));
+    expect(screen.queryByText(/correct answer:/i)).not.toBeInTheDocument();
+    act(() => { vi.advanceTimersByTime(20_000); });
+    expect(screen.getAllByText(/correct answer:/i)).toHaveLength(2);
   });
 });

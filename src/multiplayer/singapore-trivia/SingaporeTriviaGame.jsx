@@ -59,39 +59,13 @@ function clampScale(scale) {
   return Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
 }
 
-// Same pill button as Chess/Xiangqi's: icon plus a short visible label
-// rather than an icon-only circle, easier to scan and tap correctly for the
-// senior-mobile audience. `ariaLabel` carries the fuller description while
-// `label` is the short text actually shown.
-function PillButton({ label, ariaLabel, tone, onClick, children }) {
-  return (
-    <button
-      type="button"
-      className={`${styles.pillBtn} ${tone === 'danger' ? styles.pillBtnDanger : ''}`}
-      aria-label={ariaLabel}
-      title={ariaLabel}
-      onClick={onClick}
-    >
-      <span aria-hidden="true">{children}</span>
-      <span>{label}</span>
-    </button>
-  );
-}
-PillButton.propTypes = {
-  label: PropTypes.string.isRequired,
-  ariaLabel: PropTypes.string.isRequired,
-  tone: PropTypes.oneOf(['neutral', 'danger']),
-  onClick: PropTypes.func.isRequired,
-  children: PropTypes.node.isRequired,
-};
-
 // Mirrors Chess/Xiangqi's PlayerCard: avatar, name, status badge, a chip on
 // the right, and the per-player action row. Chess puts the player's clock in
 // that chip; trivia has no per-player clock (its countdown is the one shared
 // progress bar in the center), so the chip carries the running score
 // instead. `active` means "still has to answer this question" — the trivia
 // equivalent of Chess's "your turn", since both seats answer at once.
-function PlayerCard({ seat, name, score, statusLabel, active, onResign, onReset, t }) {
+function PlayerCard({ seat, name, score, statusLabel, active, t }) {
   return (
     <div className={`${styles.card} ${active ? styles.cardActive : ''}`}>
       <div className={styles.cardHeader}>
@@ -110,12 +84,6 @@ function PlayerCard({ seat, name, score, statusLabel, active, onResign, onReset,
           <span className={styles.scoreIcon} aria-hidden="true">⭐</span>
           <span className={styles.scoreText}>{t.pointsChip.replace('{n}', String(score))}</span>
         </div>
-        {/* On the header row rather than a second row of their own. A whole
-            extra row costs ~30px in each pane, and that height is worth far
-            more as legible question and option text — the card is chrome,
-            the question is the game. */}
-        <PillButton label={t.resign} ariaLabel={t.resign} tone="danger" onClick={onResign}>⚑</PillButton>
-        <PillButton label={t.resetGame} ariaLabel={t.resetGame} onClick={onReset}>↻</PillButton>
       </div>
     </div>
   );
@@ -126,8 +94,6 @@ PlayerCard.propTypes = {
   score: PropTypes.number.isRequired,
   statusLabel: PropTypes.string,
   active: PropTypes.bool.isRequired,
-  onResign: PropTypes.func.isRequired,
-  onReset: PropTypes.func.isRequired,
   t: PropTypes.object.isRequired,
 };
 
@@ -173,24 +139,27 @@ ReadyCard.propTypes = {
   t: PropTypes.object.isRequired,
 };
 
-function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, ready, otherReady, onReady, onResignRequest, onResetRequest }) {
+function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, ready, otherReady, onReady }) {
   const myAnswer = gameState.answers[seat];
   const phase = gameState.phase;
   const canAnswer = started && phase === 'question' && myAnswer === null;
   const revealed = phase === 'reveal' || phase === 'finished';
   const question = gameState.currentQuestion;
 
-  // The status badge under the name replaces the old free-floating
-  // "Pick an answer!" / "Answered" notes below the options. On reveal it
-  // shows what this player just earned, so each card carries its own
-  // outcome rather than only the running total.
-  const pointsThisQuestion = gameState.pointsGained?.[seat] || 0;
-  let statusLabel = null;
+  // The badge only ever confirms something that already happened — that this
+  // player has locked an answer in, and what it earned them. There's
+  // deliberately no "Pick an answer!" prompt while the question is open: four
+  // tappable options under a question are self-explanatory, and a standing
+  // instruction on the one card that isn't the question is just noise to
+  // read past.
+  //
   // answeredShort, not answeredWaiting — the full "✓ Answered — waiting…"
   // wraps to a second line inside the badge, which grows both cards enough
   // to push the last answer option off a 375x812 viewport. Same reason
   // Chess carries undoShort/offerDrawShort alongside its full labels.
-  if (phase === 'question') statusLabel = myAnswer === null ? t.tapToAnswer : t.answeredShort;
+  const pointsThisQuestion = gameState.pointsGained?.[seat] || 0;
+  let statusLabel = null;
+  if (phase === 'question' && myAnswer !== null) statusLabel = t.answeredShort;
   else if (revealed && pointsThisQuestion > 0) statusLabel = `+${pointsThisQuestion}`;
 
   if (!started) {
@@ -249,25 +218,28 @@ function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, read
             })}
           </div>
         )}
+        {/* Spelled out rather than left to the green highlight alone: the
+            highlight says which row was right, this says what the answer WAS,
+            which is the thing a player is left wanting when they got it
+            wrong. Per pane, so it reads right-side up from both seats. */}
+        {question && revealed && (
+          <p className={styles.answerLine} key={`a${gameState.questionIndex}`}>
+            {t.correctAnswerIs.replace(
+              '{answer}',
+              `${OPTION_LETTERS[question.correctIndex]}) ${question.options[question.correctIndex]}`,
+            )}
+          </p>
+        )}
         {/* The card sits after the options so it reads as the footer of this
             player's own half — and because .paneSlot carries the 180deg
             rotation for the flipped side, DOM-last lands visually below the
-            options for BOTH players from where each of them is sitting.
-            Resign/Reset live on both cards whenever the match isn't over —
-            unlike Chess/Xiangqi/Gin Rummy/Crazy Eights, trivia has no strict
-            turn order (both seats can answer the same question at once), so
-            gating them to "whoever is on turn" doesn't apply here. Do not
-            change this to an isActive-style gate without re-checking this.
-            Both open a confirmation modal (owned by the parent) rather than
-            dispatching immediately, matching chess/xiangqi's flow. */}
+            options for BOTH players from where each of them is sitting. */}
         <PlayerCard
           seat={seat}
           name={name}
           score={gameState.scores[seat] || 0}
           statusLabel={statusLabel}
           active={canAnswer}
-          onResign={() => onResignRequest(seat)}
-          onReset={onResetRequest}
           t={t}
         />
       </div>
@@ -285,8 +257,6 @@ AnswerPane.propTypes = {
   ready: PropTypes.bool.isRequired,
   otherReady: PropTypes.bool.isRequired,
   onReady: PropTypes.func.isRequired,
-  onResignRequest: PropTypes.func.isRequired,
-  onResetRequest: PropTypes.func.isRequired,
 };
 
 export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
@@ -294,8 +264,6 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
   const { gameState, lastGameOver, players, dispatch } = useLocalSingaporeTriviaMatch();
   const startedAtRef = useRef(Date.now());
   const reportedRef = useRef(false);
-  const [confirmingReset, setConfirmingReset] = useState(false);
-  const [resignSeat, setResignSeat] = useState(null); // null | 0 | 1
   const [cardScale, setCardScale] = useState(computeCardScale);
   const gameRef = useRef(null);
   const rescaleAttemptsRef = useRef(0);
@@ -371,15 +339,15 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
   // that fills the viewport. The 2% epsilon is what stops this from
   // oscillating when a rescale re-wraps the question by a line.
   //
-  // confirmingReset/resignSeat are deliberately NOT in the dependency array:
-  // both render via .modalOverlay, which is position: fixed (see the CSS),
-  // so opening/closing them never changes gameRef's actual flow height and
-  // never needs a rescale. Including them previously meant every modal
-  // open/close re-ran this effect; combined with `cardScale` also being a
-  // dependency (so every correction re-triggers itself), a rescale that
-  // didn't fully converge within the 2% epsilon could re-fire forever and
-  // hit React's "Maximum update depth exceeded" limit. The rescaleAttempts
-  // cap below is a second, independent safety net: even if some future
+  // Anything that renders via .modalOverlay must stay OUT of the dependency
+  // array: the overlay is position: fixed (see the CSS), so opening or
+  // closing it never changes gameRef's flow height and never needs a
+  // rescale. When modal flags were listed here, every open/close re-ran this
+  // effect; combined with `cardScale` also being a dependency (so every
+  // correction re-triggers itself), a rescale that didn't fully converge
+  // within the 2% epsilon could re-fire forever and hit React's "Maximum
+  // update depth exceeded" limit. The rescaleAttempts cap below is a second,
+  // independent safety net: even if some future
   // change reintroduces a non-converging measurement (e.g. a scale that
   // flips text wrapping back and forth), this guarantees the effect gives up
   // after a bounded number of corrections per layout-affecting change
@@ -444,18 +412,9 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
     startedAtRef.current = Date.now();
     reportedRef.current = false;
     dispatch('play_again', {});
-    setConfirmingReset(false);
     setReadyP1(false);
     setReadyP2(false);
   };
-
-  const handleConfirmResign = () => {
-    if (resignSeat === null) return;
-    dispatch('resign', { seat: resignSeat });
-    setResignSeat(null);
-  };
-
-  const resignName = resignSeat !== null ? players[resignSeat].name : '';
 
   return (
     <div
@@ -471,7 +430,6 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
       <AnswerPane
         seat={1} name={p2.name} gameState={gameState} dispatch={dispatch} t={t} rotated
         started={started} ready={readyP2} otherReady={readyP1} onReady={() => handleReady(1)}
-        onResignRequest={setResignSeat} onResetRequest={() => setConfirmingReset(true)}
       />
 
       <div className={styles.center}>
@@ -515,9 +473,6 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
             {phase === 'waiting' && (
               <button type="button" className={styles.pillBtnPrimary} onClick={() => dispatch('start_question', {})}>{t.nextQuestion}</button>
             )}
-            {phase === 'question' && (
-              <button type="button" className={styles.pillBtnPrimary} onClick={() => dispatch('reveal', {})}>{t.reveal}</button>
-            )}
             {phase === 'reveal' && gameState.questionIndex < gameState.totalQuestions - 1 && (
               <button type="button" className={styles.pillBtnPrimary} onClick={() => dispatch('start_question', {})}>{t.nextQuestion}</button>
             )}
@@ -547,42 +502,11 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
           </div>
         )}
 
-        {!lastGameOver && confirmingReset && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modalSheet}>
-              <div className={styles.modalCard}>
-                <div className={styles.modalTitle}>{t.resetConfirmTitle}</div>
-                <p className={styles.modalBody}>{t.resetConfirmBody}</p>
-                <div className={styles.modalActions}>
-                  <button className={styles.primaryBtn} onClick={handlePlayAgain}>{t.resetConfirmYes}</button>
-                  <button className={styles.outlineBtn} onClick={() => setConfirmingReset(false)}>{t.resetConfirmCancel}</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {!lastGameOver && resignSeat !== null && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modalSheet}>
-              <div className={styles.modalCard}>
-                <div className={styles.modalTitle}>{t.resignModalTitle.replace('{name}', resignName)}</div>
-                <p className={styles.modalBody}>{t.resignModalBody}</p>
-                <div className={styles.modalActions}>
-                  <button className={styles.primaryBtn} onClick={handleConfirmResign}>{t.resignModalConfirm}</button>
-                  <button className={styles.outlineBtn} onClick={() => setResignSeat(null)}>{t.resetConfirmCancel}</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
       </div>
 
       <AnswerPane
         seat={0} name={p1.name} gameState={gameState} dispatch={dispatch} t={t}
         started={started} ready={readyP1} otherReady={readyP2} onReady={() => handleReady(0)}
-        onResignRequest={setResignSeat} onResetRequest={() => setConfirmingReset(true)}
       />
     </div>
   );

@@ -55,12 +55,6 @@ describe('useLocalSingaporeTriviaMatch', () => {
     expect(result.current.gameState.scores).toEqual(scoresAfterReveal);
   });
 
-  it('resign hands the win to the other seat and sets lastGameOver', () => {
-    const { result } = renderHook(() => useLocalSingaporeTriviaMatch());
-    act(() => { result.current.dispatch('resign', { seat: 0 }); });
-    expect(result.current.lastGameOver).toEqual({ winner: 1, reason: 'Resigned' });
-    expect(result.current.gameState.isGameOver).toBe(true);
-  });
 
   it('play_again resets to a fresh waiting-phase game and clears lastGameOver', () => {
     const { result } = renderHook(() => useLocalSingaporeTriviaMatch());
