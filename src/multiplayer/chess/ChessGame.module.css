@@ -24,8 +24,8 @@
    active, its clock, etc.) before the match actually begins. */
 /* Per-player identity colours, same system as Singapore Trivia: each side
    owns a hue, and everything belonging to that player (avatar, active
-   card, ready button, identity stripe) derives from these rather than
-   naming a colour at each use. Scoped to the slot, so the rotated half
+   card, ready button) derives from these rather than naming a colour at
+   each use. Scoped to the slot, so the rotated half
    simply redefines them and every descendant follows. */
 .cardSlot {
   --player-color: #285bc5;
@@ -90,20 +90,6 @@
   padding: var(--space-3, 12px) var(--space-4, 16px);
   box-sizing: border-box;
   box-shadow: var(--shadow-sm, 0 2px 14px rgba(61,114,232,0.08));
-  /* Identity stripe — tells the two sides apart at a glance even before
-     either is the active one. Drawn as a clipped overlay rather than a
-     border-top: a 4px top border mitres into the 1.5px side border around
-     the 18px radius, which tapers the stripe into a visible wedge at both
-     top corners. Clipping to the card's own radius keeps it even. */
-  position: relative;
-  overflow: hidden;
-}
-.card::before {
-  content: '';
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 4px;
-  background: var(--player-color);
 }
 .cardActive {
   background: var(--player-tint);
