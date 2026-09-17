@@ -84,8 +84,11 @@ describe('XiangqiGame ready overlay', () => {
 describe('XiangqiGame pass-and-play', () => {
   it('renders both player cards and a single shared board', () => {
     renderStarted();
-    expect(screen.getByText('Player 1')).toBeInTheDocument();
-    expect(screen.getByText('Player 2')).toBeInTheDocument();
+    // The P1/P2 chip carries the player name as its accessible name now
+    // that the spelled-out label is gone; assert that rather than the text,
+    // so this also fails if the label is ever dropped.
+    expect(screen.getByRole('img', { name: 'Player 1' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Player 2' })).toBeInTheDocument();
     expect(screen.getByText('RED')).toBeInTheDocument();
     expect(screen.getByText('BLACK')).toBeInTheDocument();
   });
@@ -148,7 +151,7 @@ describe('XiangqiGame reset', () => {
     renderStarted();
     fireEvent.click(screen.getAllByRole('button', { name: /^reset$/i })[0]);
     expect(screen.getByText(/reset this game\?/i)).toBeInTheDocument();
-    expect(screen.getByText('Player 1')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Player 1' })).toBeInTheDocument(); // board still mounted, unchanged
   });
 
   it('cancelling the confirmation leaves the game untouched', () => {

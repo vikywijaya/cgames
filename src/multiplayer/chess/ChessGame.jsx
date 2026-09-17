@@ -80,9 +80,14 @@ function PlayerCard({ isBlack, name, badgeLabel, active, clockText, clockLow, ac
   return (
     <div className={`${styles.card} ${active ? styles.cardActive : ''}`}>
       <div className={styles.cardHeader}>
-        <div className={`${styles.avatar} ${isBlack ? styles.avatarBlack : ''}`} aria-hidden="true">{isBlack ? 'P2' : 'P1'}</div>
+        {/* The P1/P2 chip IS the player label now — the spelled-out name that
+            used to sit beside it only repeated what this already says, in a
+            row where width is scarce. It carries the accessible name for
+            the same reason: with the text gone it can't stay decorative. */}
+        <div className={`${styles.avatar} ${isBlack ? styles.avatarBlack : ''}`} role="img" aria-label={name}>
+          {isBlack ? 'P2' : 'P1'}
+        </div>
         <div className={styles.nameCol}>
-          <div className={styles.nameText}>{name}</div>
           <div className={styles.badgeRow}>
             <span className={styles.badge}>{badgeLabel}</span>
             {active && <span className={`${styles.badge} ${styles.badgeActive}`}>{t.yourTurnBadge}</span>}

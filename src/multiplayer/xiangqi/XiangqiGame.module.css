@@ -127,7 +127,6 @@
 .avatarBlack { background: var(--player-color); }
 
 .nameCol { display: flex; flex-direction: column; gap: var(--space-1, 4px); min-width: 0; flex: 1; }
-.nameText { font-size: 1.0625rem; font-weight: 700; color: var(--color-text, #1A2233); line-height: 1.2; }
 .badgeRow { display: flex; align-items: center; gap: var(--space-1, 4px); flex-wrap: wrap; }
 
 .badge {
