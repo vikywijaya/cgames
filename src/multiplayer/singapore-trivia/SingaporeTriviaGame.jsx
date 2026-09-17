@@ -47,12 +47,12 @@ const READY_SCALE = 1.25;
 // for feel: startQuestion() starts the 20s answer clock, so every ms spent
 // revealing is a ms the players don't get to answer in — and, unlike a
 // static question, they can't read ahead of the reveal to make it up. As
-// tuned, words finish by ~0.9s and the last option lands by ~1.4s, so the
-// whole entrance costs about 7% of the round.
-const WORD_STEP = 60;        // ms between words at a comfortable reading cadence
-const WORD_FADE = 180;       // ms for one word to fade up
-const WORD_REVEAL_CAP = 780; // ms ceiling for the whole question, however long it is
-const OPTIONS_BEAT = 90;     // ms pause after the last word before the options start
+// tuned, words finish by ~1.4s and the last option lands by ~1.9s, so the
+// whole entrance costs about 10% of the round.
+const WORD_STEP = 95;         // ms between words at a comfortable reading cadence
+const WORD_FADE = 200;        // ms for one word to fade up
+const WORD_REVEAL_CAP = 1235; // ms ceiling for the whole question, however long it is
+const OPTIONS_BEAT = 120;     // ms pause after the last word before the options start
 
 function computeCardScale() {
   const availableHeight = Math.max(120, window.innerHeight - PAGE_CHROME_ABOVE_GAME - BOTTOM_MARGIN);
@@ -85,11 +85,20 @@ function PlayerCard({ seat, name, score, statusLabel, active, t }) {
         </div>
         <div className={styles.nameCol}>
           <div className={styles.nameText}>{name}</div>
-          {statusLabel && (
-            <div className={styles.badgeRow}>
-              <span className={`${styles.badge} ${active ? styles.badgeActive : ''}`}>{statusLabel}</span>
-            </div>
-          )}
+          {/* Always rendered, hidden when there's nothing to say, so the row
+              holds its height. Mounting it on demand grew the card by ~26px
+              the instant a player answered, and because computeCardScale
+              solves against the measured height that re-scaled the entire
+              screen — the options visibly jumped ~20px under the finger
+              that had just tapped one. */}
+          <div className={styles.badgeRow}>
+            <span
+              className={`${styles.badge} ${active ? styles.badgeActive : ''} ${statusLabel ? '' : styles.badgePlaceholder}`}
+              aria-hidden={statusLabel ? undefined : true}
+            >
+              {statusLabel || ' '}
+            </span>
+          </div>
         </div>
         <div className={styles.scoreChip}>
           <span className={styles.scoreIcon} aria-hidden="true">⭐</span>
