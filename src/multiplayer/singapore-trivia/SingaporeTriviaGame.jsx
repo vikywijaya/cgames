@@ -256,10 +256,15 @@ function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, read
                   type="button"
                   className={`${styles.optionBtn} ${isCorrect ? styles.correct : ''} ${isWrong ? styles.wrong : ''} ${!revealed && iSelected ? styles.selected : ''}`}
                   style={{ '--stagger-index': idx }}
+                  aria-pressed={iSelected}
                   disabled={!canAnswer}
                   onClick={() => dispatch('submit_answer', { seat, answerIndex: idx })}
                 >
-                  {OPTION_LETTERS[idx]}) {text}
+                  <span className={styles.optionLetter}>{OPTION_LETTERS[idx]})</span>
+                  <span className={styles.optionText}>{text}</span>
+                  <span className={styles.optionFeedback} aria-hidden="true">
+                    {isCorrect ? '✓' : isWrong ? '×' : iSelected ? '●' : ''}
+                  </span>
                 </button>
               );
             })}
