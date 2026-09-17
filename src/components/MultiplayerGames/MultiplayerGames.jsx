@@ -11,6 +11,13 @@ function getCoverImage(slug) {
 }
 
 export function MultiplayerGames({ t, games, memberId, callbackUrl, accessToken, inAppSlugs = [], onPlayInApp }) {
+  // Anything unavailable sinks to the end so the grid opens with games you
+  // can actually start. Derived rather than baked into MULTIPLAYER_GAMES so
+  // that catalog keeps its natural order — clearing a comingSoon flag puts
+  // that game straight back where it belongs instead of leaving it stranded
+  // at the bottom. sort is stable, so each group keeps its catalog order.
+  const ordered = [...games].sort((a, b) => Number(!!a.comingSoon) - Number(!!b.comingSoon));
+
   return (
     <div className={appStyles.lobby}>
       <div className={styles.header}>
@@ -20,7 +27,7 @@ export function MultiplayerGames({ t, games, memberId, callbackUrl, accessToken,
         <p className={styles.subtitle}>{t.app.multiplayerSubtitle}</p>
       </div>
       <div className={appStyles.gameGrid} role="list">
-        {games.map(game => (
+        {ordered.map(game => (
           <button
             key={game.id}
             className={`${appStyles.gameCard} ${game.comingSoon ? appStyles.gameCardDisabled : ''}`}
