@@ -16,9 +16,12 @@ const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 // actually need. Constants below are measured from a real render at
 // scale=1 (both panes always show all 4 options, so unlike the card games
 // there's no active/inactive asymmetry to model), including the host
-// page's back-button chrome above the game container.
+// page's back-button chrome above the game container. Bumped slightly over
+// the pre-ready-gate/pre-pill-button values since the pill-styled resign
+// button and (pre-start) the ready cover button both render a touch taller
+// than the old plain-link-styled resign button.
 const PAGE_CHROME_ABOVE_GAME = 60;
-const PANE_HEIGHT = 155; // panel label + 4 option rows + resign, unscaled (measured + margin)
+const PANE_HEIGHT = 175; // panel label + 4 option rows + resign pill, unscaled (measured + margin)
 const CENTER_HEIGHT = 165; // progress/timer/question/controls strip, unscaled (measured + margin)
 const BOTTOM_MARGIN = 15;
 const MIN_SCALE = 1;
@@ -40,53 +43,73 @@ function clampScale(scale) {
   return Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
 }
 
-function AnswerPane({ seat, name, gameState, dispatch, t, rotated }) {
+function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, ready, onReady, onResignRequest }) {
   const myAnswer = gameState.answers[seat];
   const phase = gameState.phase;
-  const canAnswer = phase === 'question' && myAnswer === null;
+  const canAnswer = started && phase === 'question' && myAnswer === null;
   const revealed = phase === 'reveal' || phase === 'finished';
   const question = gameState.currentQuestion;
 
   return (
-    <div className={`${styles.pane} ${rotated ? styles.paneRotated : ''}`}>
-      <div className={styles.panel}>
-        {name} ({seat === 0 ? 'p1' : 'p2'}){t.pointsSuffix.replace('{n}', gameState.scores[seat] || 0)}
-      </div>
-      {question && (phase === 'question' || revealed) && (
-        <div className={styles.options}>
-          {question.options.map((text, idx) => {
-            const isCorrect = revealed && idx === question.correctIndex;
-            const iSelected = myAnswer === idx;
-            const isWrong = revealed && iSelected && idx !== question.correctIndex;
-            return (
-              <button
-                key={idx}
-                type="button"
-                className={`${styles.optionBtn} ${isCorrect ? styles.correct : ''} ${isWrong ? styles.wrong : ''} ${!revealed && iSelected ? styles.selected : ''}`}
-                disabled={!canAnswer}
-                onClick={() => dispatch('submit_answer', { seat, answerIndex: idx })}
-              >
-                {OPTION_LETTERS[idx]}) {text}
-              </button>
-            );
-          })}
+    <div className={`${styles.paneSlot} ${rotated ? styles.paneRotated : ''}`}>
+      <div className={styles.pane}>
+        <div className={styles.panel}>
+          {name} ({seat === 0 ? 'p1' : 'p2'}){t.pointsSuffix.replace('{n}', gameState.scores[seat] || 0)}
         </div>
-      )}
-      {phase === 'question' && myAnswer !== null && (
-        <p className={styles.waitingNote}>{t.answeredWaiting}</p>
-      )}
-      {phase === 'question' && myAnswer === null && (
-        <p className={styles.waitingNote}>{t.tapToAnswer}</p>
-      )}
-      {/* Resign is available on both panes whenever the match isn't over —
-          unlike Chess/Xiangqi/Gin Rummy/Crazy Eights, trivia has no strict
-          turn order (both seats can answer the same question at once), so
-          gating Resign to "whoever is on turn" doesn't apply here. Do not
-          change this to an isActive-style gate without re-checking this. */}
-      {!gameState.isGameOver && (
-        <button type="button" className={styles.resignBtn} onClick={() => dispatch('resign', { seat })}>
-          {t.resign}
-        </button>
+        {question && (phase === 'question' || revealed) && (
+          <div className={styles.options}>
+            {question.options.map((text, idx) => {
+              const isCorrect = revealed && idx === question.correctIndex;
+              const iSelected = myAnswer === idx;
+              const isWrong = revealed && iSelected && idx !== question.correctIndex;
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  className={`${styles.optionBtn} ${isCorrect ? styles.correct : ''} ${isWrong ? styles.wrong : ''} ${!revealed && iSelected ? styles.selected : ''}`}
+                  disabled={!canAnswer}
+                  onClick={() => dispatch('submit_answer', { seat, answerIndex: idx })}
+                >
+                  {OPTION_LETTERS[idx]}) {text}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {phase === 'question' && myAnswer !== null && (
+          <p className={styles.waitingNote}>{t.answeredWaiting}</p>
+        )}
+        {phase === 'question' && myAnswer === null && (
+          <p className={styles.waitingNote}>{t.tapToAnswer}</p>
+        )}
+        {/* Resign is available on both panes whenever the match isn't over —
+            unlike Chess/Xiangqi/Gin Rummy/Crazy Eights, trivia has no strict
+            turn order (both seats can answer the same question at once), so
+            gating Resign to "whoever is on turn" doesn't apply here. Do not
+            change this to an isActive-style gate without re-checking this.
+            It opens a confirmation modal (owned by the parent) rather than
+            dispatching immediately, matching chess/xiangqi's resign flow. */}
+        {!gameState.isGameOver && (
+          <button type="button" className={`${styles.pillBtn} ${styles.pillBtnDanger}`} onClick={() => onResignRequest(seat)}>
+            {t.resign}
+          </button>
+        )}
+      </div>
+      {/* Covers this pane until BOTH players are ready, not just this one —
+          tapping only reveals this side's own confirmation, so a solo
+          "I'm ready" doesn't peek at the other side's pane underneath. Same
+          convention as the Chess/Xiangqi ready cover. */}
+      {!started && (
+        <div className={styles.readyCover}>
+          <button
+            type="button"
+            className={`${styles.readyBtn} ${ready ? styles.readyBtnConfirmed : ''}`}
+            disabled={ready}
+            onClick={onReady}
+          >
+            {ready ? `✓ ${t.readyConfirmed.replace('{name}', name)}` : t.readyButton.replace('{name}', name)}
+          </button>
+        </div>
       )}
     </div>
   );
@@ -98,6 +121,10 @@ AnswerPane.propTypes = {
   dispatch: PropTypes.func.isRequired,
   t: PropTypes.object.isRequired,
   rotated: PropTypes.bool,
+  started: PropTypes.bool.isRequired,
+  ready: PropTypes.bool.isRequired,
+  onReady: PropTypes.func.isRequired,
+  onResignRequest: PropTypes.func.isRequired,
 };
 
 export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
@@ -106,8 +133,17 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
   const startedAtRef = useRef(Date.now());
   const reportedRef = useRef(false);
   const [confirmingReset, setConfirmingReset] = useState(false);
+  const [resignSeat, setResignSeat] = useState(null); // null | 0 | 1
   const [cardScale, setCardScale] = useState(computeCardScale);
   const gameRef = useRef(null);
+  const rescaleAttemptsRef = useRef(0);
+
+  // The quiz only begins once both seats have confirmed ready — see the
+  // ready covers in AnswerPane. Resetting re-arms both flags so a fresh
+  // match needs a fresh ready-up too, same as Chess/Xiangqi.
+  const [readyP1, setReadyP1] = useState(false);
+  const [readyP2, setReadyP2] = useState(false);
+  const started = readyP1 && readyP2;
 
   useEffect(() => {
     const onResize = () => setCardScale(computeCardScale());
@@ -118,6 +154,14 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
       window.removeEventListener('orientationchange', onResize);
     };
   }, []);
+
+  // Mark the actual start of play once both seats are ready, so the
+  // reported play duration measures real game time rather than however
+  // long the ready screen sat open. Re-fires after a reset re-arms both
+  // ready flags for the next match.
+  useEffect(() => {
+    if (started) startedAtRef.current = Date.now();
+  }, [started]);
 
   useEffect(() => {
     if (!lastGameOver || reportedRef.current) return;
@@ -156,15 +200,37 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
   // each layout, measure what actually rendered and re-solve for the scale
   // that fills the viewport. The 2% epsilon is what stops this from
   // oscillating when a rescale re-wraps the question by a line.
+  //
+  // confirmingReset/resignSeat are deliberately NOT in the dependency array:
+  // both render via .modalOverlay, which is position: fixed (see the CSS),
+  // so opening/closing them never changes gameRef's actual flow height and
+  // never needs a rescale. Including them previously meant every modal
+  // open/close re-ran this effect; combined with `cardScale` also being a
+  // dependency (so every correction re-triggers itself), a rescale that
+  // didn't fully converge within the 2% epsilon could re-fire forever and
+  // hit React's "Maximum update depth exceeded" limit. The rescaleAttempts
+  // cap below is a second, independent safety net: even if some future
+  // change reintroduces a non-converging measurement (e.g. a scale that
+  // flips text wrapping back and forth), this guarantees the effect gives up
+  // after a bounded number of corrections per layout-affecting change
+  // instead of looping indefinitely.
   useLayoutEffect(() => {
+    rescaleAttemptsRef.current = 0;
+  }, [phase, currentQuestion, lastGameOver, started]);
+
+  useLayoutEffect(() => {
+    if (rescaleAttemptsRef.current >= 5) return;
     const el = gameRef.current;
     if (!el) return;
     const height = el.getBoundingClientRect().height;
     if (height <= 0) return;
     const available = Math.max(120, window.innerHeight - PAGE_CHROME_ABOVE_GAME - BOTTOM_MARGIN);
     const ideal = clampScale(cardScale * (available / height));
-    if (Math.abs(ideal - cardScale) / cardScale > 0.02) setCardScale(ideal);
-  }, [cardScale, phase, currentQuestion, lastGameOver, confirmingReset]);
+    if (Math.abs(ideal - cardScale) / cardScale > 0.02) {
+      rescaleAttemptsRef.current += 1;
+      setCardScale(ideal);
+    }
+  }, [cardScale, phase, currentQuestion, lastGameOver, started]);
 
   const ranked = players
     .map((p, i) => ({ name: p.name, score: scores[i] || 0, seat: i }))
@@ -178,16 +244,39 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
       return 0;
     });
 
-  const handleConfirmReset = () => {
+  const handleReady = (seat) => {
+    if (seat === 0) setReadyP1(true);
+    else setReadyP2(true);
+  };
+
+  // Shared by both the Reset-confirm modal and the game-over "Play Again"
+  // button — same convention as Chess/Xiangqi's handleReset, which both
+  // paths funnel through so a fresh match always re-arms the ready gate
+  // too (dispatching 'play_again' alone, without re-arming readyP1/readyP2,
+  // would leave `started` true and skip straight past the ready cover).
+  const handlePlayAgain = () => {
     startedAtRef.current = Date.now();
     reportedRef.current = false;
     dispatch('play_again', {});
     setConfirmingReset(false);
+    setReadyP1(false);
+    setReadyP2(false);
   };
+
+  const handleConfirmResign = () => {
+    if (resignSeat === null) return;
+    dispatch('resign', { seat: resignSeat });
+    setResignSeat(null);
+  };
+
+  const resignName = resignSeat !== null ? players[resignSeat].name : '';
 
   return (
     <div ref={gameRef} className={styles.game} style={{ '--card-scale': cardScale }}>
-      <AnswerPane seat={1} name={p2.name} gameState={gameState} dispatch={dispatch} t={t} rotated />
+      <AnswerPane
+        seat={1} name={p2.name} gameState={gameState} dispatch={dispatch} t={t} rotated
+        started={started} ready={readyP2} onReady={() => handleReady(1)} onResignRequest={setResignSeat}
+      />
 
       <div className={styles.center}>
         <div className={styles.progress}>
@@ -216,51 +305,85 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
           </div>
         )}
 
-        {!lastGameOver && (
+        {!lastGameOver && started && (
           <div className={styles.hostControls}>
             {phase === 'waiting' && (
-              <button type="button" className={styles.actionBtn} onClick={() => dispatch('start_question', {})}>{t.nextQuestion}</button>
+              <button type="button" className={styles.pillBtnPrimary} onClick={() => dispatch('start_question', {})}>{t.nextQuestion}</button>
             )}
             {phase === 'question' && (
-              <button type="button" className={styles.actionBtn} onClick={() => dispatch('reveal', {})}>{t.reveal}</button>
+              <button type="button" className={styles.pillBtnPrimary} onClick={() => dispatch('reveal', {})}>{t.reveal}</button>
             )}
             {phase === 'reveal' && gameState.questionIndex < gameState.totalQuestions - 1 && (
-              <button type="button" className={styles.actionBtn} onClick={() => dispatch('start_question', {})}>{t.nextQuestion}</button>
+              <button type="button" className={styles.pillBtnPrimary} onClick={() => dispatch('start_question', {})}>{t.nextQuestion}</button>
             )}
             {phase === 'reveal' && gameState.questionIndex >= gameState.totalQuestions - 1 && (
-              <button type="button" className={styles.actionBtn} onClick={() => dispatch('next_question', {})}>{t.finish}</button>
+              <button type="button" className={styles.pillBtnPrimary} onClick={() => dispatch('next_question', {})}>{t.finish}</button>
             )}
           </div>
+        )}
+
+        {!lastGameOver && !started && (
+          <p className={styles.waitingNote}>{t.passAndPlayIntro}</p>
         )}
 
         {lastGameOver && (
-          <div className={styles.gameOver}>
-            <h3>{t.trophyNamedWins.replace('{name}', players[lastGameOver.winner].name)}</h3>
-            {ranked.map((p, i) => (
-              <div key={p.seat} className={styles.resultRow}>
-                {i === 0 ? '🥇' : '🥈'} {p.name}{t.pointsSuffix.replace('{n}', p.score)}
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalSheet}>
+              <div className={styles.modalCard}>
+                <div className={styles.modalTitle}>{t.trophyNamedWins.replace('{name}', players[lastGameOver.winner].name)}</div>
+                {ranked.map((p, i) => (
+                  <div key={p.seat} className={styles.resultRow}>
+                    {i === 0 ? '🥇' : '🥈'} {p.name}{t.pointsSuffix.replace('{n}', p.score)}
+                  </div>
+                ))}
+                <p className={styles.modalBody}>{lastGameOver.reason}</p>
+                <div className={styles.modalActions}>
+                  <button className={styles.primaryBtn} onClick={handlePlayAgain}>{t.playAgain}</button>
+                </div>
               </div>
-            ))}
-            <p>{lastGameOver.reason}</p>
-            <button className={styles.primaryBtn} onClick={() => dispatch('play_again', {})}>{t.playAgain}</button>
-          </div>
-        )}
-        {!lastGameOver && confirmingReset && (
-          <div className={styles.gameOver}>
-            <h3>{t.resetConfirmTitle}</h3>
-            <p>{t.resetConfirmBody}</p>
-            <div className={styles.confirmActions}>
-              <button className={styles.primaryBtn} onClick={handleConfirmReset}>{t.resetConfirmYes}</button>
-              <button className={styles.resignBtn} onClick={() => setConfirmingReset(false)}>{t.resetConfirmCancel}</button>
             </div>
           </div>
         )}
-        {!lastGameOver && !confirmingReset && (
-          <button type="button" className={styles.resignBtn} onClick={() => setConfirmingReset(true)}>{t.resetGame}</button>
+
+        {!lastGameOver && confirmingReset && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalSheet}>
+              <div className={styles.modalCard}>
+                <div className={styles.modalTitle}>{t.resetConfirmTitle}</div>
+                <p className={styles.modalBody}>{t.resetConfirmBody}</p>
+                <div className={styles.modalActions}>
+                  <button className={styles.primaryBtn} onClick={handlePlayAgain}>{t.resetConfirmYes}</button>
+                  <button className={styles.outlineBtn} onClick={() => setConfirmingReset(false)}>{t.resetConfirmCancel}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!lastGameOver && resignSeat !== null && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalSheet}>
+              <div className={styles.modalCard}>
+                <div className={styles.modalTitle}>{t.resignModalTitle.replace('{name}', resignName)}</div>
+                <p className={styles.modalBody}>{t.resignModalBody}</p>
+                <div className={styles.modalActions}>
+                  <button className={styles.primaryBtn} onClick={handleConfirmResign}>{t.resignModalConfirm}</button>
+                  <button className={styles.outlineBtn} onClick={() => setResignSeat(null)}>{t.resetConfirmCancel}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!lastGameOver && !confirmingReset && resignSeat === null && (
+          <button type="button" className={styles.pillBtn} onClick={() => setConfirmingReset(true)}>{t.resetGame}</button>
         )}
       </div>
 
-      <AnswerPane seat={0} name={p1.name} gameState={gameState} dispatch={dispatch} t={t} />
+      <AnswerPane
+        seat={0} name={p1.name} gameState={gameState} dispatch={dispatch} t={t}
+        started={started} ready={readyP1} onReady={() => handleReady(0)} onResignRequest={setResignSeat}
+      />
     </div>
   );
 }
