@@ -215,30 +215,34 @@
      moment a question was answered. */
   min-height: calc(34px * var(--card-scale, 1) + 2 * var(--sp-1));
 }
-/* Dots instead of "Q 3 / 10". Sized small deliberately: this shares one
-   row with the timer bar and the answered-count, and a wide indicator
-   pushes them onto a second line. Exactly one dot is wide at a time, so
-   the block's width is constant across the round. */
-.progressDots { display: flex; align-items: center; gap: calc(2px * var(--card-scale, 1)); flex-shrink: 0; }
-.dot {
-  width: calc(4px * var(--card-scale, 1));
+/* ── Round strip ──────────────────────────────────────────────────────
+   Story-style segmented bar along each player's own outer screen edge,
+   one segment per question. Full width and flush to the edge so it reads
+   as chrome belonging to the frame rather than another control competing
+   with the countdown in the middle. Deliberately low-contrast: this is
+   reference information you glance at, not the live timer. */
+.roundStrip {
+  display: flex;
+  width: 100%;
+  gap: calc(2px * var(--card-scale, 1));
   height: calc(4px * var(--card-scale, 1));
-  border-radius: 999px;
-  background: var(--color-border, #DDE3F0);
   flex-shrink: 0;
 }
-.dotDone { background: var(--color-primary, #3D72E8); opacity: 0.45; }
-.dotCurrent {
-  width: calc(10px * var(--card-scale, 1));
-  background: var(--color-primary, #3D72E8);
+.roundSeg {
+  flex: 1;
+  border-radius: 999px;
+  background: var(--color-border, #DDE3F0);
 }
+.roundSegDone { background: var(--color-primary, #3D72E8); opacity: 0.35; }
+.roundSegCurrent { background: var(--color-primary, #3D72E8); }
+
 .progress { font-size: calc(0.85rem * var(--card-scale, 1)); text-align: center; font-weight: 600; margin: 0; }
 .timerBar {
-  /* Capped so the counter, bar and answered-count all hold one line; let
-     the bar grow and it pushes the count onto a second row, which is the
-     stacking this strip exists to avoid. */
-  flex: 1 1 calc(55px * var(--card-scale, 1));
-  max-width: calc(110px * var(--card-scale, 1));
+  /* The countdown is the only thing left in the centre row now that round
+     progress moved to the edges, so it takes the width rather than
+     competing for it. */
+  width: 100%;
+  max-width: calc(260px * var(--card-scale, 1));
   height: calc(6px * var(--card-scale, 1));
   border-radius: 999px;
   /* --color-border, not --color-bg: the latter is the exact page

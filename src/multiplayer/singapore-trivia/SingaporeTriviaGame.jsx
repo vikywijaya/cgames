@@ -277,6 +277,33 @@ function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, read
           active={canAnswer}
           t={t}
         />
+        {/* Round progress, one segment per question, pinned to this player's
+            own outer screen edge. DOM-last is what puts it there for BOTH
+            seats: .paneRotated flips Player 2's half, so last-in-DOM lands
+            at the top of the screen for them and the bottom for Player 1 —
+            and the fill runs left-to-right from wherever each is sitting.
+            It lives out here rather than in the centre strip because a
+            round counter and a countdown are different meters; side by side
+            in the same shape and colour they read as one. */}
+        {gameState.questionIndex >= 0 && (
+          <div
+            className={styles.roundStrip}
+            role="progressbar"
+            aria-label={t.questionProgress
+              .replace('{current}', String(gameState.questionIndex + 1))
+              .replace('{total}', String(gameState.totalQuestions))}
+            aria-valuemin={1}
+            aria-valuemax={gameState.totalQuestions}
+            aria-valuenow={gameState.questionIndex + 1}
+          >
+            {Array.from({ length: gameState.totalQuestions }, (_, i) => (
+              <span
+                key={i}
+                className={`${styles.roundSeg} ${i < gameState.questionIndex ? styles.roundSegDone : ''} ${i === gameState.questionIndex ? styles.roundSegCurrent : ''}`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -483,30 +510,10 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
         {/* "Q n / 10" only means something once a question has been served.
             questionIndex is -1 until the first one, which rendered as the
             meaningless "Q 0 / 10" — show what the round actually is instead. */}
-        {gameState.questionIndex >= 0 ? (
-          // One dot per question, the current one drawn as a wider pill.
-          // Exactly one dot is ever wide, so the row's width is the same on
-          // question 1 as on question 10 and the centre strip doesn't
-          // reflow as the round progresses. The counter text it replaces
-          // still exists as this element's accessible name.
-          <div
-            className={styles.progressDots}
-            role="progressbar"
-            aria-label={t.questionProgress
-              .replace('{current}', String(gameState.questionIndex + 1))
-              .replace('{total}', String(gameState.totalQuestions))}
-            aria-valuemin={1}
-            aria-valuemax={gameState.totalQuestions}
-            aria-valuenow={gameState.questionIndex + 1}
-          >
-            {Array.from({ length: gameState.totalQuestions }, (_, i) => (
-              <span
-                key={i}
-                className={`${styles.dot} ${i < gameState.questionIndex ? styles.dotDone : ''} ${i === gameState.questionIndex ? styles.dotCurrent : ''}`}
-              />
-            ))}
-          </div>
-        ) : (
+        {/* Only the round summary before the first question; once play
+            starts the round indicator lives at each player's own edge (see
+            .roundStrip in AnswerPane) and the centre is the countdown's. */}
+        {gameState.questionIndex < 0 && (
           <div className={styles.progress}>
             {t.roundSummary.replace('{questions}', String(gameState.totalQuestions)).replace('{seconds}', String(QUESTION_TIME))}
           </div>
