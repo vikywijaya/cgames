@@ -12,17 +12,18 @@ const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 // available viewport height instead of sitting small in a mostly-empty
 // page. There's no "board" or "cards" here — just 4 stacked option rows
 // per pane — so scale font-size/padding by a factor derived from how much
-// vertical room the two panes + shared question/timer/controls strip
-// actually need. Constants below are measured from a real render at
-// scale=1 (both panes always show all 4 options, so unlike the card games
-// there's no active/inactive asymmetry to model), including the host
-// page's back-button chrome above the game container. Bumped slightly over
-// the pre-ready-gate/pre-pill-button values since the pill-styled resign
-// button and (pre-start) the ready cover button both render a touch taller
-// than the old plain-link-styled resign button.
+// vertical room the two panes + shared progress/controls strip actually
+// need. Constants below are measured from a real render at scale=1 (both
+// panes always show all 4 options, so unlike the card games there's no
+// active/inactive asymmetry to model), including the host page's
+// back-button chrome above the game container. The question text/image/
+// countdown now render inside each pane (not the shared center strip — see
+// AnswerPane) so PANE_HEIGHT accounts for that and CENTER_HEIGHT is back
+// down to just the progress counter, answered-count line, and host
+// controls.
 const PAGE_CHROME_ABOVE_GAME = 60;
-const PANE_HEIGHT = 175; // panel label + 4 option rows + resign pill, unscaled (measured + margin)
-const CENTER_HEIGHT = 165; // progress/timer/question/controls strip, unscaled (measured + margin)
+const PANE_HEIGHT = 245; // panel label + question/timer + 4 option rows + resign pill, unscaled (measured + margin)
+const CENTER_HEIGHT = 90; // progress/answered-count/controls strip, unscaled (measured + margin)
 const BOTTOM_MARGIN = 15;
 const MIN_SCALE = 1;
 const MAX_SCALE = 2;
@@ -56,6 +57,23 @@ function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, read
         <div className={styles.panel}>
           {name} ({seat === 0 ? 'p1' : 'p2'}){t.pointsSuffix.replace('{n}', gameState.scores[seat] || 0)}
         </div>
+        {/* The question (and countdown) is duplicated into each pane rather
+            than shown once in the shared center strip, because only this
+            pane's own wrapper carries the 180deg rotation for whichever
+            player is sitting on the "flipped" side — a single shared center
+            copy would always read upside-down to that player. The center
+            strip keeps only the progress counter and host controls, which
+            are brief enough that reading them upside-down isn't a real
+            burden. */}
+        {question && (phase === 'question' || revealed) && (
+          <div className={styles.question}>
+            <p className={styles.questionText}>{question.text}</p>
+            {question.imageUrl && (
+              <img className={styles.questionImage} src={question.imageUrl} alt="" />
+            )}
+            {phase === 'question' && <p className={styles.timer}>⏱ {gameState.timeLeft}s</p>}
+          </div>
+        )}
         {question && (phase === 'question' || revealed) && (
           <div className={styles.options}>
             {question.options.map((text, idx) => {
@@ -283,26 +301,20 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
           {t.questionProgress.replace('{current}', String(gameState.questionIndex + 1)).replace('{total}', String(gameState.totalQuestions))}
         </div>
 
-        {phase === 'question' && <p className={styles.timer}>⏱ {gameState.timeLeft}s</p>}
-
-        {(phase === 'question' || phase === 'reveal') && currentQuestion && (
-          <div className={styles.question}>
-            <p className={styles.questionText}>{currentQuestion.text}</p>
-            {currentQuestion.imageUrl && (
-              <img className={styles.questionImage} src={currentQuestion.imageUrl} alt="" />
-            )}
-            {/* Live "who still has to answer" indicator. Only meaningful
-                while the question is open — once we're in reveal the count is
-                frozen at whatever it was when the timer ran out, which reads
-                as a stale "1 / 2 answered" next to the revealed answer. */}
-            {phase === 'question' && (
-              <p className={styles.answeredCount}>
-                {t.answeredCount
-                  .replace('{n}', String(gameState.answeredCount))
-                  .replace('{total}', String(gameState.playerCount))}
-              </p>
-            )}
-          </div>
+        {/* The question text/image/countdown itself is rendered inside each
+            AnswerPane (see there for why) so it's never upside-down for
+            whichever player sits on the rotated side. The center strip only
+            keeps content that's short enough to read either way. */}
+        {phase === 'question' && currentQuestion && (
+          // Live "who still has to answer" indicator. Only meaningful while
+          // the question is open — once we're in reveal the count is frozen
+          // at whatever it was when the timer ran out, which reads as a
+          // stale "1 / 2 answered" next to the revealed answer.
+          <p className={styles.answeredCount}>
+            {t.answeredCount
+              .replace('{n}', String(gameState.answeredCount))
+              .replace('{total}', String(gameState.playerCount))}
+          </p>
         )}
 
         {!lastGameOver && started && (

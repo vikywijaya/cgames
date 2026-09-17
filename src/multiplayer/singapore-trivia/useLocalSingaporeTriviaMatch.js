@@ -37,6 +37,19 @@ export function useLocalSingaporeTriviaMatch() {
 
   useEffect(() => clearPendingTimer, [clearPendingTimer]);
 
+  // gameState.timeLeft is derived from `_timerEnd - Date.now()` inside the
+  // engine, but engine.state() is only ever recomputed when a dispatch()
+  // call happens to sync() — so without this, the on-screen "⏱ 20s" stays
+  // frozen at whatever it was when the question started until a player
+  // answers (or the auto-reveal timeout fires) forces the next sync. Tick
+  // once a second while a question is live so the countdown actually counts
+  // down.
+  useEffect(() => {
+    if (gameState.phase !== 'question') return;
+    const id = setInterval(sync, 1000);
+    return () => clearInterval(id);
+  }, [gameState.phase, sync]);
+
   const dispatch = useCallback((action, payload = {}) => {
     const engine = engineRef.current;
 
