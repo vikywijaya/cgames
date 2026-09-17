@@ -82,7 +82,9 @@ describe('SingaporeTriviaGame split-screen', () => {
   it('answering on one pane does not reveal the other pane\'s pick or the correct answer', () => {
     renderStarted();
     const optionButtons = screen.getAllByRole('button').filter(b => /^[A-D]\)/.test(b.textContent || ''));
-    fireEvent.click(optionButtons[0]); // seat 0's first option
+    // Options 0-3 are seat 1's pane: it renders first so the rotated half
+    // sits at the top of the screen. Seat 0's are 4-7.
+    fireEvent.click(optionButtons[0]);
     // No green/red highlighting classes should exist yet — reveal hasn't happened.
     expect(document.querySelector('[class*="correct"]')).toBeNull();
     expect(document.querySelector('[class*="wrong"]')).toBeNull();
@@ -109,7 +111,8 @@ describe('SingaporeTriviaGame split-screen', () => {
     fireEvent.click(opts()[0]);
     expect(document.querySelector('[class*="correct"]')).toBeNull();
 
-    // opts()[4] is the same question rendered in the other player's pane.
+    // 0-3 and 4-7 are the same question in each pane (seat 1's first — it
+    // renders first so the rotated half is on top), so this is the other seat.
     fireEvent.click(opts()[4]);
     expect(document.querySelector('[class*="correct"]')).not.toBeNull();
   });
