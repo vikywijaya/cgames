@@ -83,10 +83,18 @@
 }
 .avatarP2 { background: linear-gradient(135deg, #1A2233 0%, #3D4A66 100%); }
 .nameCol { display: flex; flex-direction: column; gap: var(--sp-1); min-width: 0; flex: 1; }
-.card .nameCol { overflow: hidden; }
+/* The in-game card runs name and badge along one line so the row's height
+   is the avatar's and never the badge's; ReadyCard keeps .nameCol stacked
+   for its name-over-hint. */
+.card .nameCol {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--sp-2);
+  overflow: hidden;
+}
+.card .badge { flex-shrink: 0; }
 .card .nameText { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .nameText { font-size: calc(0.75rem * var(--card-scale, 1)); font-weight: 700; color: var(--color-text, #1A2233); line-height: 1.2; }
-.badgeRow { display: flex; align-items: center; gap: var(--sp-1); flex-wrap: wrap; }
 .badge {
   display: inline-flex;
   align-items: center;
@@ -95,6 +103,10 @@
   font-size: calc(0.6rem * var(--card-scale, 1));
   font-weight: 700;
   letter-spacing: 0.03em;
+  /* Explicit, not inherited: the inherited line-height made the badge
+     28.7px against the avatar's 27, so it — not the avatar — set the row
+     height, and the card still grew ~2px the moment a badge appeared. */
+  line-height: 1;
   background: var(--color-bg, #F4F6FB);
   color: var(--color-text-muted, #6B7A99);
   /* A badge that wraps grows the card enough to push the last answer
@@ -102,9 +114,6 @@
   white-space: nowrap;
 }
 .badgeActive { background: var(--color-success, #2DAF7B); color: #fff; }
-/* Holds the row's height without showing anything — visibility, not
-   display/none, is the point. */
-.badgePlaceholder { visibility: hidden; }
 .scoreChip {
   flex-shrink: 0;
   display: flex;

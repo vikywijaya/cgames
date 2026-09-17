@@ -85,20 +85,17 @@ function PlayerCard({ seat, name, score, statusLabel, active, t }) {
         </div>
         <div className={styles.nameCol}>
           <div className={styles.nameText}>{name}</div>
-          {/* Always rendered, hidden when there's nothing to say, so the row
-              holds its height. Mounting it on demand grew the card by ~26px
-              the instant a player answered, and because computeCardScale
-              solves against the measured height that re-scaled the entire
-              screen — the options visibly jumped ~20px under the finger
-              that had just tapped one. */}
-          <div className={styles.badgeRow}>
-            <span
-              className={`${styles.badge} ${active ? styles.badgeActive : ''} ${statusLabel ? '' : styles.badgePlaceholder}`}
-              aria-hidden={statusLabel ? undefined : true}
-            >
-              {statusLabel || ' '}
-            </span>
-          </div>
+          {/* Beside the name, not under it. Stacking it made the card's
+              height depend on whether the badge was there, and since
+              computeCardScale solves against the measured height, a badge
+              appearing mid-question re-scaled the whole screen — the
+              options jumped under the finger that had just tapped one.
+              On this row the height is set by the avatar, which is always
+              taller than the badge, so the badge coming and going costs
+              width only and nothing moves. */}
+          {statusLabel && (
+            <span className={`${styles.badge} ${active ? styles.badgeActive : ''}`}>{statusLabel}</span>
+          )}
         </div>
         <div className={styles.scoreChip}>
           <span className={styles.scoreIcon} aria-hidden="true">⭐</span>
