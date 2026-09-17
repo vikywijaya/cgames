@@ -215,6 +215,23 @@
      moment a question was answered. */
   min-height: calc(34px * var(--card-scale, 1) + 2 * var(--sp-1));
 }
+/* Dots instead of "Q 3 / 10". Sized small deliberately: this shares one
+   row with the timer bar and the answered-count, and a wide indicator
+   pushes them onto a second line. Exactly one dot is wide at a time, so
+   the block's width is constant across the round. */
+.progressDots { display: flex; align-items: center; gap: calc(2px * var(--card-scale, 1)); flex-shrink: 0; }
+.dot {
+  width: calc(4px * var(--card-scale, 1));
+  height: calc(4px * var(--card-scale, 1));
+  border-radius: 999px;
+  background: var(--color-border, #DDE3F0);
+  flex-shrink: 0;
+}
+.dotDone { background: var(--color-primary, #3D72E8); opacity: 0.45; }
+.dotCurrent {
+  width: calc(10px * var(--card-scale, 1));
+  background: var(--color-primary, #3D72E8);
+}
 .progress { font-size: calc(0.85rem * var(--card-scale, 1)); text-align: center; font-weight: 600; margin: 0; }
 .timerBar {
   /* Capped so the counter, bar and answered-count all hold one line; let

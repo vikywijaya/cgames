@@ -471,11 +471,34 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
         {/* "Q n / 10" only means something once a question has been served.
             questionIndex is -1 until the first one, which rendered as the
             meaningless "Q 0 / 10" — show what the round actually is instead. */}
-        <div className={styles.progress}>
-          {gameState.questionIndex >= 0
-            ? t.questionProgress.replace('{current}', String(gameState.questionIndex + 1)).replace('{total}', String(gameState.totalQuestions))
-            : t.roundSummary.replace('{questions}', String(gameState.totalQuestions)).replace('{seconds}', String(QUESTION_TIME))}
-        </div>
+        {gameState.questionIndex >= 0 ? (
+          // One dot per question, the current one drawn as a wider pill.
+          // Exactly one dot is ever wide, so the row's width is the same on
+          // question 1 as on question 10 and the centre strip doesn't
+          // reflow as the round progresses. The counter text it replaces
+          // still exists as this element's accessible name.
+          <div
+            className={styles.progressDots}
+            role="progressbar"
+            aria-label={t.questionProgress
+              .replace('{current}', String(gameState.questionIndex + 1))
+              .replace('{total}', String(gameState.totalQuestions))}
+            aria-valuemin={1}
+            aria-valuemax={gameState.totalQuestions}
+            aria-valuenow={gameState.questionIndex + 1}
+          >
+            {Array.from({ length: gameState.totalQuestions }, (_, i) => (
+              <span
+                key={i}
+                className={`${styles.dot} ${i < gameState.questionIndex ? styles.dotDone : ''} ${i === gameState.questionIndex ? styles.dotCurrent : ''}`}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className={styles.progress}>
+            {t.roundSummary.replace('{questions}', String(gameState.totalQuestions)).replace('{seconds}', String(QUESTION_TIME))}
+          </div>
+        )}
 
         {/* The question text/image itself is rendered inside each AnswerPane
             (see there for why) so it's never upside-down for whichever
