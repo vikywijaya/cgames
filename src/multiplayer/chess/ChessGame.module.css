@@ -90,17 +90,24 @@
   padding: var(--space-3, 12px) var(--space-4, 16px);
   box-sizing: border-box;
   box-shadow: var(--shadow-sm, 0 2px 14px rgba(61,114,232,0.08));
-  /* Identity stripe, as on Trivia's ready card — tells the two sides apart
-     at a glance even before either is the active one. */
-  border-top: 4px solid var(--player-color);
+  /* Identity stripe — tells the two sides apart at a glance even before
+     either is the active one. Drawn as a clipped overlay rather than a
+     border-top: a 4px top border mitres into the 1.5px side border around
+     the 18px radius, which tapers the stripe into a visible wedge at both
+     top corners. Clipping to the card's own radius keeps it even. */
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: var(--player-color);
 }
 .cardActive {
   background: var(--player-tint);
   border-color: var(--player-border);
-  /* border-color above is a shorthand and would repaint the identity
-     stripe pale, so restate it — the stripe should read the same whether
-     or not it's this player's turn. */
-  border-top-color: var(--player-color);
 }
 
 .cardHeader { display: flex; align-items: center; gap: var(--space-3, 12px); }
