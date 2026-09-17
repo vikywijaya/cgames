@@ -546,5 +546,8 @@ export default {
     readyConfirmed: '{name} Ready',
     undoShort: 'Undo',
     offerDrawShort: 'Draw',
+    // Xiangqi Pass and Play (reuses most Chess Pass and Play keys above)
+    redLabel: 'RED',
+    noMovesHintXiangqi: 'Red moves first — tap a piece to see where it can go.',
   },
 };

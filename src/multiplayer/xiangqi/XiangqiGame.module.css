@@ -1,13 +1,283 @@
-.game { display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 4px; }
-.pane { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.paneRotated { transform: rotate(180deg); }
-.center { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 4px 0; }
-.panel { font-weight: 700; font-size: 0.95rem; }
-.status { font-size: 1rem; }
-.canvas { max-width: 100%; touch-action: none; }
-.banner { background: #fff3cd; color: #664d03; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
-.gameOver { text-align: center; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
-.primaryBtn { padding: 10px 20px; border-radius: 8px; border: none; background: var(--color-primary, #1155cc); color: #fff; cursor: pointer; font-weight: 700; }
-.resignBtn { padding: 8px 16px; border-radius: 8px; border: 1px solid #c0392b; color: #c0392b; background: #fff; cursor: pointer; }
-.controls { display: flex; gap: 8px; }
-.confirmActions { display: flex; gap: 8px; justify-content: center; }
+/* Xiangqi Pass and Play — single shared board, mirroring the Chess Pass
+   and Play treatment (src/multiplayer/chess/ChessGame.module.css) so both
+   games share the same layout/visual language. Tokens map onto this
+   repo's own src/design/tokens.css, same as Chess's copy of this file. */
+
+.game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  padding: var(--space-2, 8px) var(--space-2, 8px) var(--space-2, 8px);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── Ready cover ─────────────────────────────────────────────────────
+   Each player card sits inside a .cardSlot; while the match hasn't
+   started, a .readyCover sits directly on top of that card (same
+   footprint, same rounded corners) with a single Ready button standing in
+   for the whole card's content. Tapping it only confirms that player's own
+   readiness — the cover doesn't lift until BOTH covers are ready to lift
+   together, so neither side can see the other's card (whose turn is
+   active, its clock, etc.) before the match actually begins. */
+.cardSlot {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+}
+/* Rotates Black's whole card (and its ready cover) to face the player
+   sitting across the phone from Player 1 — same convention as the other
+   pass-and-play games. The shared board is intentionally left alone. */
+.cardSlotRotated { transform: rotate(180deg); }
+.readyCover {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3, 12px);
+  background: rgba(244, 246, 251, 0.94);
+  backdrop-filter: blur(3px);
+  border-radius: var(--radius-xl, 18px);
+  border: 1.5px solid var(--color-border, #DDE3F0);
+}
+.readyBtn {
+  min-height: var(--min-target, 52px);
+  padding: 0 var(--space-5, 20px);
+  border-radius: var(--radius-xl, 18px);
+  border: 1.5px solid var(--color-primary, #3D72E8);
+  background: #fff;
+  color: var(--color-primary, #3D72E8);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1rem;
+  font-family: inherit;
+  width: 100%;
+}
+.readyBtnConfirmed {
+  border-color: var(--color-success, #2DAF7B);
+  background: var(--color-success-bg, #E6F9F2);
+  color: var(--color-success, #2DAF7B);
+  cursor: default;
+}
+
+/* ── Player card ─────────────────────────────────────────────────── */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+  width: 100%;
+  max-width: 480px;
+  background: var(--color-surface, #fff);
+  border: 1.5px solid var(--color-border, #DDE3F0);
+  border-radius: var(--radius-xl, 18px);
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  box-sizing: border-box;
+  box-shadow: var(--shadow-sm, 0 2px 14px rgba(61,114,232,0.08));
+}
+.cardActive {
+  background: var(--color-success-bg, #E6F9F2);
+  border-color: var(--color-success, #2DAF7B);
+}
+
+.cardHeader { display: flex; align-items: center; gap: var(--space-3, 12px); }
+
+.avatar {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-full, 999px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #fff;
+  background: var(--color-primary, #3D72E8);
+}
+.avatarBlack { background: linear-gradient(135deg, #1A2233 0%, #3D4A66 100%); }
+
+.nameCol { display: flex; flex-direction: column; gap: var(--space-1, 4px); min-width: 0; flex: 1; }
+.nameText { font-size: 1.0625rem; font-weight: 700; color: var(--color-text, #1A2233); line-height: 1.2; }
+.badgeRow { display: flex; align-items: center; gap: var(--space-1, 4px); flex-wrap: wrap; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-2, 8px);
+  border-radius: var(--radius-full, 999px);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  background: var(--color-bg, #F4F6FB);
+  color: var(--color-text-muted, #6B7A99);
+}
+.badgeActive { background: var(--color-success, #2DAF7B); color: #fff; }
+
+.clockChip {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1, 4px);
+  padding: var(--space-1, 4px) var(--space-3, 12px);
+  border-radius: var(--radius-full, 999px);
+  background: var(--color-bg, #F4F6FB);
+  border: 1.5px solid var(--color-border, #DDE3F0);
+}
+.clockLow { background: var(--color-error-bg, #FEF0EF); border-color: var(--color-error, #E84B3D); }
+.clockIcon { font-size: 1rem; line-height: 1; }
+.clockText {
+  font-size: 1.15rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted, #6B7A99);
+  line-height: 1;
+}
+.clockActive { color: var(--color-text, #1A2233); }
+.clockLow .clockText, .clockLow .clockIcon { color: var(--color-error, #E84B3D); }
+
+.actionsRow { display: flex; align-items: center; justify-content: space-between; gap: var(--space-1, 4px); }
+.actionsGroup { display: flex; align-items: center; gap: var(--space-1, 4px); transition: opacity var(--transition-base, 250ms ease); }
+
+.pillBtn {
+  height: 40px;
+  padding: 0 var(--space-2, 8px);
+  border-radius: var(--radius-full, 999px);
+  border: none;
+  background: var(--color-bg, #F4F6FB);
+  color: var(--color-text-muted, #6B7A99);
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.pillBtn span:first-child { font-size: 0.9rem; line-height: 1; }
+.pillBtn:disabled { cursor: not-allowed; }
+.pillBtnTeal { background: var(--color-teal-bg, #E5F6F8); color: var(--color-teal, #1A9FAF); }
+.pillBtnDanger {
+  background: #fff;
+  color: var(--color-error, #E84B3D);
+  border: 1.5px solid var(--color-error, #E84B3D);
+}
+
+/* ── Banner ──────────────────────────────────────────────────────── */
+.bannerRow { display: flex; align-items: center; gap: var(--space-2, 8px); width: 100%; max-width: 480px; }
+.callout {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  padding: var(--space-2, 8px) var(--space-3, 12px);
+  border-radius: var(--radius-lg, 14px);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-text, #1A2233);
+}
+.calloutInfo    { background: var(--color-primary-light, #EBF2FF); }
+.calloutDanger  { background: var(--color-error-bg, #FEF0EF); }
+.calloutSuccess { background: var(--color-success-bg, #E6F9F2); }
+.calloutIcon { flex-shrink: 0; font-size: 1.15rem; line-height: 1; }
+
+/* ── Board ───────────────────────────────────────────────────────── */
+.boardCanvas {
+  touch-action: none;
+  border-radius: var(--radius-lg, 14px);
+  border: 1px solid var(--color-border, #DDE3F0);
+  box-shadow: var(--shadow-md, 0 6px 24px rgba(61,114,232,0.13));
+  display: block;
+}
+
+/* ── Move history ────────────────────────────────────────────────── */
+.historySection { display: flex; flex-direction: column; gap: var(--space-1, 4px); width: 100%; max-width: 480px; }
+.historyLabel { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.08em; color: var(--color-text-muted, #6B7A99); }
+.historyScroll {
+  display: flex;
+  gap: var(--space-2, 8px);
+  overflow-x: auto;
+  padding-bottom: var(--space-1, 4px);
+  min-height: 36px;
+  align-items: center;
+  scrollbar-width: thin;
+}
+.historyChip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1, 4px);
+  flex-shrink: 0;
+  padding: var(--space-1, 4px) var(--space-2, 8px);
+  border-radius: var(--radius-full, 999px);
+  border: 1px solid var(--color-border, #DDE3F0);
+  background: var(--color-surface, #fff);
+}
+.historyChipBlack { background: var(--color-bg, #F4F6FB); border-color: #C9D4EA; }
+.historyMoveNum { font-size: 0.75rem; font-weight: 700; color: var(--color-text-muted, #6B7A99); }
+.historyMoveText { font-size: 0.9rem; font-weight: 600; color: var(--color-text, #1A2233); white-space: nowrap; }
+.noMovesHint { font-size: 0.9rem; color: var(--color-text-muted, #6B7A99); }
+
+/* ── Modal ───────────────────────────────────────────────────────── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(26, 34, 51, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4, 16px);
+}
+.modalSheet { width: 100%; max-width: 400px; }
+.modalCard {
+  background: var(--color-surface, #fff);
+  border-radius: var(--radius-xl, 18px);
+  padding: var(--space-6, 24px);
+  box-shadow: var(--shadow-lg, 0 8px 32px rgba(61,114,232,0.16));
+}
+.modalHeader { display: flex; align-items: center; gap: var(--space-3, 12px); }
+.modalIconWrap {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-lg, 14px);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+.modalTitle { font-size: 1.35rem; font-weight: 700; color: var(--color-text, #1A2233); line-height: 1.2; }
+.modalBody { font-size: 1.0625rem; color: var(--color-text-muted, #6B7A99); line-height: 1.45; margin-top: var(--space-4, 14px); }
+.modalActions { display: flex; flex-direction: column; gap: var(--space-3, 10px); margin-top: var(--space-5, 20px); }
+
+.primaryBtn {
+  min-height: var(--min-target, 52px);
+  padding: 0 var(--space-5, 20px);
+  border-radius: var(--radius-xl, 18px);
+  border: none;
+  background: var(--color-primary, #3D72E8);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1rem;
+  font-family: inherit;
+  width: 100%;
+}
+.outlineBtn {
+  min-height: var(--min-target, 52px);
+  padding: 0 var(--space-5, 20px);
+  border-radius: var(--radius-xl, 18px);
+  border: 1.5px solid var(--color-text-muted, #6B7A99);
+  color: var(--color-text-muted, #6B7A99);
+  background: #fff;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1rem;
+  font-family: inherit;
+  width: 100%;
+}

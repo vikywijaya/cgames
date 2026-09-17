@@ -324,5 +324,8 @@ export default {
     readyConfirmed: '{name} Siap',
     undoShort: 'Batalkan',
     offerDrawShort: 'Seri',
+    // Xiangqi Pass and Play (memakai ulang sebagian besar kunci Catur di atas)
+    redLabel: 'MERAH',
+    noMovesHintXiangqi: 'Merah jalan duluan — ketuk bidak untuk melihat ke mana ia bisa bergerak.',
   },
 };

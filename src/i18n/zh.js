@@ -324,5 +324,8 @@ export default {
     readyConfirmed: '{name} 已准备',
     undoShort: '悔棋',
     offerDrawShort: '求和',
+    // 象棋轮流对战（复用上方大部分国际象棋按键）
+    redLabel: '红方',
+    noMovesHintXiangqi: '红方先走——点击棋子查看可走的位置。',
   },
 };

@@ -324,5 +324,8 @@ export default {
     readyConfirmed: '{name} Sedia',
     undoShort: 'Buat Asal',
     offerDrawShort: 'Seri',
+    // Xiangqi Pass and Play (menggunakan semula kebanyakan kekunci Chess di atas)
+    redLabel: 'MERAH',
+    noMovesHintXiangqi: 'Merah bergerak dahulu — ketik buah untuk lihat ke mana ia boleh bergerak.',
   },
 };
