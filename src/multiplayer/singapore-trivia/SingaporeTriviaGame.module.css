@@ -14,6 +14,10 @@
   --sp-1: calc(3px * var(--card-scale, 1));
   --sp-2: calc(6px * var(--card-scale, 1));
   --sp-3: calc(10px * var(--card-scale, 1));
+  /* tokens.css has durations but no easing curves; this is the standard
+     strong ease-out for entrances. Built-in `ease-out` is too weak to read
+     as deliberate. */
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -200,7 +204,49 @@
 .timerBarFillLow { background: var(--color-error, #E84B3D); }
 /* Margins are 0 throughout — the flex `gap` on .pane/.center owns all the
    vertical rhythm, so spacing can't come from two competing sources. */
-.question { text-align: center; display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); }
+/* ── Question entrance ────────────────────────────────────────────────
+   Without this a new question replaces the old one instantly: a sentence
+   and four answers teleport at the exact moment a player most needs to
+   notice the content changed. The stagger walks the eye down the question
+   and then the options in reading order.
+
+   transform/opacity only, and deliberately so — computeCardScale measures
+   .game's layout height in a useLayoutEffect, and transforms don't affect
+   layout, so the entrance cannot perturb the solved scale. Animating
+   height/margin here would make the two fight.
+
+   Both panes run it at once, and a translateY inside the 180deg-rotated
+   pane resolves to "rises from below" for the player sitting on that side
+   too, so the motion reads the same way from both seats. */
+@keyframes questionIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+/* `both` so an option stays invisible through its delay — without the
+   backwards fill they'd all flash in first, then animate. */
+.question {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  animation: questionIn 220ms var(--ease-out-strong) both;
+}
+.optionBtn {
+  animation: questionIn 200ms var(--ease-out-strong) both;
+  animation-delay: calc(90ms + var(--stagger-index, 0) * 45ms);
+}
+/* Fewer and gentler, not none: the fade still signals "this is new", the
+   travel is what goes. */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes questionIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .question, .optionBtn { animation-duration: 150ms; }
+  .optionBtn { animation-delay: calc(var(--stagger-index, 0) * 20ms); }
+}
+
 .questionText { font-size: calc(1rem * var(--card-scale, 1)); font-weight: 600; margin: 0; line-height: 1.35; }
 .questionImage { max-width: 100%; max-height: calc(70px * var(--card-scale, 1)); object-fit: contain; border-radius: calc(8px * var(--card-scale, 1)); margin: 0; }
 .answeredCount { font-size: calc(0.72rem * var(--card-scale, 1)); color: #666; margin: 0; }

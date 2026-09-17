@@ -215,8 +215,13 @@ function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, read
             progress bar (not text), so it doesn't have the same
             upside-down-reading problem — it lives once in the center strip
             instead of being duplicated here. */}
+        {/* Keyed on the question index so each new question remounts these
+            and replays the staggered entrance (see .question/.optionBtn in
+            the CSS). Keying on the index and not the phase is deliberate:
+            revealing the answer restyles the same options in place rather
+            than re-animating them out from under whoever is reading. */}
         {question && (phase === 'question' || revealed) && (
-          <div className={styles.question}>
+          <div className={styles.question} key={`q${gameState.questionIndex}`}>
             <p className={styles.questionText}>{question.text}</p>
             {question.imageUrl && (
               <img className={styles.questionImage} src={question.imageUrl} alt="" />
@@ -224,7 +229,7 @@ function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, read
           </div>
         )}
         {question && (phase === 'question' || revealed) && (
-          <div className={styles.options}>
+          <div className={styles.options} key={`o${gameState.questionIndex}`}>
             {question.options.map((text, idx) => {
               const isCorrect = revealed && idx === question.correctIndex;
               const iSelected = myAnswer === idx;
@@ -234,6 +239,7 @@ function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, read
                   key={idx}
                   type="button"
                   className={`${styles.optionBtn} ${isCorrect ? styles.correct : ''} ${isWrong ? styles.wrong : ''} ${!revealed && iSelected ? styles.selected : ''}`}
+                  style={{ '--stagger-index': idx }}
                   disabled={!canAnswer}
                   onClick={() => dispatch('submit_answer', { seat, answerIndex: idx })}
                 >
