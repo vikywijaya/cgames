@@ -218,8 +218,14 @@
   height: 100%;
   background: #fff;
   border-radius: var(--radius-full);
-  min-width: 4px;
-  transition: width var(--transition-base);
+  /* Fills the track and is scaled down, rather than being sized by width:
+     animating width lays out and paints every frame, scaleX is
+     compositor-only. barScale() in App.jsx keeps a sliver visible at 0,
+     which is what the old min-width: 4px was for — min-width can't do it
+     any more now the element is always full width. */
+  width: 100%;
+  transform-origin: left center;
+  transition: transform var(--transition-base);
 }
 .heroToNext {
   font-size: 12.5px;
@@ -878,8 +884,14 @@
   height: 100%;
   background: #FFD24A;
   border-radius: var(--radius-full);
-  min-width: 4px;
-  transition: width var(--transition-base);
+  /* Fills the track and is scaled down, rather than being sized by width:
+     animating width lays out and paints every frame, scaleX is
+     compositor-only. barScale() in App.jsx keeps a sliver visible at 0,
+     which is what the old min-width: 4px was for — min-width can't do it
+     any more now the element is always full width. */
+  width: 100%;
+  transform-origin: left center;
+  transition: transform var(--transition-base);
 }
 .rankProgressRow {
   display: flex;
@@ -1054,8 +1066,14 @@
 .scoreBarFill {
   height: 100%;
   border-radius: var(--radius-full);
-  min-width: 4px;
-  transition: width var(--transition-base);
+  /* Fills the track and is scaled down, rather than being sized by width:
+     animating width lays out and paints every frame, scaleX is
+     compositor-only. barScale() in App.jsx keeps a sliver visible at 0,
+     which is what the old min-width: 4px was for — min-width can't do it
+     any more now the element is always full width. */
+  width: 100%;
+  transform-origin: left center;
+  transition: transform var(--transition-base);
 }
 .scoreBarPct {
   font-size: 13px;

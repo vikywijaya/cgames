@@ -229,6 +229,17 @@ function getProgressHint(scores, totalGames, t) {
 /* ──────────────────────────────────────────────────────────────
    App
 ────────────────────────────────────────────────────────────── */
+// Progress bars fill their track and are scaled down, so their transition
+// runs on transform instead of width (animating width re-lays-out and
+// repaints every frame). The floor replaces the old `min-width: 4px`, which
+// stops working once the element is always full width: it keeps a sliver
+// visible at 0% so an untouched bar still reads as a bar. ~2% is about 4px
+// on these tracks.
+const BAR_MIN_SCALE = 0.02;
+function barScale(pct) {
+  return Math.max(BAR_MIN_SCALE, Math.min(1, (Number(pct) || 0) / 100));
+}
+
 export function App() {
   const t = translations[urlLangCode] || translations.en;
 
@@ -589,7 +600,7 @@ export function App() {
               </div>
               <div className={styles.rankProgress}>
                 <div className={styles.rankBarTrack}>
-                  <div className={styles.rankBarFill} style={{ width: `${achievement.progressPct}%` }} />
+                  <div className={styles.rankBarFill} style={{ transform: `scaleX(${barScale(achievement.progressPct)})` }} />
                 </div>
                 <div className={styles.rankProgressRow}>
                   <span>
@@ -653,7 +664,7 @@ export function App() {
                       {sc ? (
                         <div className={styles.scoreBarRow}>
                           <div className={styles.scoreBarTrack}>
-                            <div className={styles.scoreBarFill} style={{ width: `${sc.best}%`, background: tierColor }} />
+                            <div className={styles.scoreBarFill} style={{ transform: `scaleX(${barScale(sc.best)})`, background: tierColor }} />
                           </div>
                           <span className={styles.scoreBarPct} style={{ color: tierColor }}>{t.app.best} {sc.best}%</span>
                         </div>
@@ -1035,7 +1046,7 @@ export function App() {
               </div>
             </div>
             <div className={styles.heroBarTrack}>
-              <div className={styles.heroBarFill} style={{ width: `${achievement.progressPct}%` }} />
+              <div className={styles.heroBarFill} style={{ transform: `scaleX(${barScale(achievement.progressPct)})` }} />
             </div>
             <div className={styles.heroToNext}>
               {achievement.nextLevel
