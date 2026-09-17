@@ -41,7 +41,7 @@ const MAX_SCALE = 2;
 // pinned the scale at MAX_SCALE and still left a gap at the bottom — giant
 // type and dead space at once. It fills by layout instead (see .gameReady,
 // which centres it in the viewport), at one comfortable fixed size.
-const READY_SCALE = 1.15;
+const READY_SCALE = 1.25;
 
 function computeCardScale() {
   const availableHeight = Math.max(120, window.innerHeight - PAGE_CHROME_ABOVE_GAME - BOTTOM_MARGIN);
@@ -110,8 +110,10 @@ function PlayerCard({ seat, name, score, statusLabel, active, onResign, onReset,
           <span className={styles.scoreIcon} aria-hidden="true">⭐</span>
           <span className={styles.scoreText}>{t.pointsChip.replace('{n}', String(score))}</span>
         </div>
-      </div>
-      <div className={styles.actionsRow}>
+        {/* On the header row rather than a second row of their own. A whole
+            extra row costs ~30px in each pane, and that height is worth far
+            more as legible question and option text — the card is chrome,
+            the question is the game. */}
         <PillButton label={t.resign} ariaLabel={t.resign} tone="danger" onClick={onResign}>⚑</PillButton>
         <PillButton label={t.resetGame} ariaLabel={t.resetGame} onClick={onReset}>↻</PillButton>
       </div>
