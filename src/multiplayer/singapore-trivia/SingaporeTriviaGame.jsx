@@ -308,7 +308,10 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
             copy lives here instead of being duplicated per pane. */}
         {phase === 'question' && (
           <div className={styles.timerBar} role="progressbar" aria-label={t.timeRemaining} aria-valuemin={0} aria-valuemax={QUESTION_TIME} aria-valuenow={gameState.timeLeft}>
-            <div className={`${styles.timerBarFill} ${gameState.timeLeft <= 5 ? styles.timerBarFillLow : ''}`} style={{ width: `${Math.max(0, (gameState.timeLeft / QUESTION_TIME) * 100)}%` }} />
+            <div
+              className={`${styles.timerBarFill} ${gameState.timeLeft <= 5 ? styles.timerBarFillLow : ''}`}
+              style={{ transform: `scaleX(${Math.max(0, gameState.timeLeft / QUESTION_TIME)})` }}
+            />
           </div>
         )}
 
