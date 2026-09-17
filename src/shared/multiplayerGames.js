@@ -8,11 +8,15 @@ export const MULTIPLAYER_BASE_URL =
   import.meta.env.VITE_MULTIPLAYER_URL ||
   (import.meta.env.DEV ? 'http://localhost:3000' : '');
 
+// comingSoon renders the card greyed out and untappable, the same convention
+// GAME_GROUPS uses in gameData.js. The two card games are off for now; their
+// routes and components are left in place so turning them back on is just
+// this flag.
 export const MULTIPLAYER_GAMES = [
   { id: 'mp-chess',            slug: 'chess',            icon: '♟️' },
   { id: 'mp-xiangqi',          slug: 'xiangqi',          icon: '🀄' },
-  { id: 'mp-gin-rummy',        slug: 'gin-rummy',        icon: '🃏' },
-  { id: 'mp-crazy-eights',     slug: 'crazy-eights',     icon: '🎴' },
+  { id: 'mp-gin-rummy',        slug: 'gin-rummy',        icon: '🃏', comingSoon: true },
+  { id: 'mp-crazy-eights',     slug: 'crazy-eights',     icon: '🎴', comingSoon: true },
   { id: 'mp-singapore-trivia', slug: 'singapore-trivia', icon: '🇸🇬' },
 ];
 

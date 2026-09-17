@@ -23,17 +23,22 @@ export function MultiplayerGames({ t, games, memberId, callbackUrl, accessToken,
         {games.map(game => (
           <button
             key={game.id}
-            className={appStyles.gameCard}
-            onClick={() => {
+            className={`${appStyles.gameCard} ${game.comingSoon ? appStyles.gameCardDisabled : ''}`}
+            disabled={game.comingSoon}
+            onClick={game.comingSoon ? undefined : () => {
               if (inAppSlugs.includes(game.slug) && onPlayInApp) {
                 onPlayInApp(game.slug);
               } else {
                 window.location.href = multiplayerGameUrl(game.slug, { memberId, callbackUrl, accessToken });
               }
             }}
-            aria-label={`Play ${game.title}`}
+            aria-label={game.comingSoon ? `${game.title} — ${t.app.comingSoon}` : `Play ${game.title}`}
           >
-            <span className={appStyles.gameDomain}>{t.app.multiplayerPlayers}</span>
+            <span className={appStyles.gameDomain}>
+              {game.comingSoon
+                ? <span className={appStyles.comingSoonBadge}>{t.app.comingSoon}</span>
+                : t.app.multiplayerPlayers}
+            </span>
             <div className={appStyles.gameIconBox} aria-hidden="true">
               {getCoverImage(game.slug)
                 ? <img src={getCoverImage(game.slug)} alt="" className={appStyles.gameIconImg} />
@@ -57,6 +62,7 @@ MultiplayerGames.propTypes = {
     icon: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
     description: PropTypes.string.isRequired,
+    comingSoon: PropTypes.bool,
   })).isRequired,
   memberId: PropTypes.string,
   callbackUrl: PropTypes.string,
