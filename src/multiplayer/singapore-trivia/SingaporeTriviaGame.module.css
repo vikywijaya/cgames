@@ -224,15 +224,20 @@
 /* Margins are 0 throughout — the flex `gap` on .pane/.center owns all the
    vertical rhythm, so spacing can't come from two competing sources. */
 /* ── Question entrance ────────────────────────────────────────────────
-   Without this a new question replaces the old one instantly: a sentence
-   and four answers teleport at the exact moment a player most needs to
-   notice the content changed. The stagger walks the eye down the question
-   and then the options in reading order.
+   The question reads in a word at a time, then the options arrive under
+   it. Without any of this a sentence and four answers teleport into place
+   at the exact moment a player most needs to notice the content changed.
 
-   transform/opacity only, and deliberately so — computeCardScale measures
-   .game's layout height in a useLayoutEffect, and transforms don't affect
-   layout, so the entrance cannot perturb the solved scale. Animating
-   height/margin here would make the two fight.
+   opacity/transform only, and deliberately so — computeCardScale measures
+   .game's layout height in a useLayoutEffect, and neither property
+   affects layout, so the entrance cannot perturb the solved scale.
+   Animating height/margin here would make the two fight.
+
+   The words in particular animate opacity ONLY. They are laid out inline
+   exactly as the plain string was, so the line breaks and the measured
+   height are right from the first frame; giving each word its own
+   translate would also make text visibly jitter as it is being read,
+   which is the one place motion should stay out of the way.
 
    Both panes run it at once, and a translateY inside the 180deg-rotated
    pane resolves to "rises from below" for the player sitting on that side
@@ -241,8 +246,12 @@
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: none; }
 }
-/* `both` so an option stays invisible through its delay — without the
-   backwards fill they'd all flash in first, then animate. */
+@keyframes wordIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+/* `both` throughout so an element stays invisible through its delay —
+   without the backwards fill they'd all flash in first, then animate. */
 /* Left-aligned, and to the same 320px column as .options, so the question
    and the answers share one left edge. Centred text re-indents every line,
    which is the harder thing to read back down a three-line question. */
@@ -254,11 +263,20 @@
   width: 100%;
   max-width: 320px;
   gap: var(--sp-2);
-  animation: questionIn 220ms var(--ease-out-strong) both;
+}
+.questionWord {
+  animation: wordIn 180ms var(--ease-out-strong) both;
+  animation-delay: calc(var(--stagger-index, 0) * var(--word-step, 60ms));
+}
+/* Both wait out the question: --options-delay is computed from the word
+   count so the options never start before the last word has landed. */
+.questionImage {
+  animation: questionIn 200ms var(--ease-out-strong) both;
+  animation-delay: var(--options-delay, 90ms);
 }
 .optionBtn {
   animation: questionIn 200ms var(--ease-out-strong) both;
-  animation-delay: calc(90ms + var(--stagger-index, 0) * 45ms);
+  animation-delay: calc(var(--options-delay, 90ms) + var(--stagger-index, 0) * 45ms);
 }
 /* Fewer and gentler, not none: the fade still signals "this is new", the
    travel is what goes. */
@@ -267,8 +285,12 @@
     from { opacity: 0; }
     to   { opacity: 1; }
   }
-  .question, .optionBtn { animation-duration: 150ms; }
-  .optionBtn { animation-delay: calc(var(--stagger-index, 0) * 20ms); }
+  .questionWord, .questionImage, .optionBtn { animation-duration: 150ms; }
+  /* The whole question appears at once — a word-by-word sequence is
+     exactly the kind of drawn-out motion this setting asks us to drop. */
+  .questionWord { animation-delay: 0ms; }
+  .questionImage { animation-delay: 150ms; }
+  .optionBtn { animation-delay: calc(150ms + var(--stagger-index, 0) * 20ms); }
 }
 
 .questionText { font-size: calc(1rem * var(--card-scale, 1)); font-weight: 600; margin: 0; line-height: 1.35; }

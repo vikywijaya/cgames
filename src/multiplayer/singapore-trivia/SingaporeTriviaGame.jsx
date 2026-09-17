@@ -43,6 +43,17 @@ const MAX_SCALE = 2;
 // which centres it in the viewport), at one comfortable fixed size.
 const READY_SCALE = 1.25;
 
+// Question entrance. These are held to a budget rather than picked purely
+// for feel: startQuestion() starts the 20s answer clock, so every ms spent
+// revealing is a ms the players don't get to answer in — and, unlike a
+// static question, they can't read ahead of the reveal to make it up. As
+// tuned, words finish by ~0.9s and the last option lands by ~1.4s, so the
+// whole entrance costs about 7% of the round.
+const WORD_STEP = 60;        // ms between words at a comfortable reading cadence
+const WORD_FADE = 180;       // ms for one word to fade up
+const WORD_REVEAL_CAP = 780; // ms ceiling for the whole question, however long it is
+const OPTIONS_BEAT = 90;     // ms pause after the last word before the options start
+
 function computeCardScale() {
   const availableHeight = Math.max(120, window.innerHeight - PAGE_CHROME_ABOVE_GAME - BOTTOM_MARGIN);
 
@@ -162,6 +173,16 @@ function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, read
   if (phase === 'question' && myAnswer !== null) statusLabel = t.answeredShort;
   else if (revealed && pointsThisQuestion > 0) statusLabel = `+${pointsThisQuestion}`;
 
+  // The question reads in a word at a time, then the options follow it.
+  // WORD_REVEAL_CAP is the point of this maths: the answer clock is already
+  // running while this plays, so a long question must not spend more of it
+  // than a short one. Past ~13 words the cadence tightens instead of the
+  // reveal getting longer, which bounds the whole thing at roughly
+  // WORD_REVEAL_CAP no matter how wordy the question bank gets.
+  const words = question ? question.text.split(' ') : [];
+  const wordStep = words.length ? Math.min(WORD_STEP, WORD_REVEAL_CAP / words.length) : WORD_STEP;
+  const optionsDelay = Math.round(words.length * wordStep + WORD_FADE + OPTIONS_BEAT);
+
   if (!started) {
     return (
       <div className={`${styles.paneSlot} ${rotated ? styles.paneRotated : ''}`}>
@@ -191,14 +212,34 @@ function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, read
             than re-animating them out from under whoever is reading. */}
         {question && (phase === 'question' || revealed) && (
           <div className={styles.question} key={`q${gameState.questionIndex}`}>
-            <p className={styles.questionText}>{question.text}</p>
+            {/* One span per word so the question reads in rather than
+                appearing whole. The spans lay out exactly as the plain
+                string did and only their opacity animates, so the line
+                breaks — and the height computeCardScale measures — are
+                identical from the first frame. */}
+            <p className={styles.questionText} style={{ '--word-step': `${wordStep}ms` }}>
+              {words.map((word, idx) => (
+                <span key={idx} className={styles.questionWord} style={{ '--stagger-index': idx }}>
+                  {word}{idx < words.length - 1 ? ' ' : ''}
+                </span>
+              ))}
+            </p>
             {question.imageUrl && (
-              <img className={styles.questionImage} src={question.imageUrl} alt="" />
+              <img
+                className={styles.questionImage}
+                src={question.imageUrl}
+                alt=""
+                style={{ '--options-delay': `${optionsDelay}ms` }}
+              />
             )}
           </div>
         )}
         {question && (phase === 'question' || revealed) && (
-          <div className={styles.options} key={`o${gameState.questionIndex}`}>
+          <div
+            className={styles.options}
+            key={`o${gameState.questionIndex}`}
+            style={{ '--options-delay': `${optionsDelay}ms` }}
+          >
             {question.options.map((text, idx) => {
               const isCorrect = revealed && idx === question.correctIndex;
               const iSelected = myAnswer === idx;
