@@ -294,7 +294,6 @@ export default {
     answeredWaiting: '✓ Telah dijawab — menunggu…',
     answeredShort: '✓ Dijawab',
     answeredCount: '{n} / {total} telah menjawab',
-    correctAnswerIs: 'Jawapan betul: {answer}',
     timeRemaining: 'Masa berbaki',
     whiteLabel: 'PUTIH',
     blackLabel: 'HITAM',

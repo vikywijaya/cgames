@@ -294,7 +294,6 @@ export default {
     answeredWaiting: '✓ பதிலளிக்கப்பட்டது — காத்திருக்கிறது…',
     answeredShort: '✓ பதிலளித்தது',
     answeredCount: '{n} / {total} பதிலளித்தனர்',
-    correctAnswerIs: 'சரியான பதில்: {answer}',
     timeRemaining: 'மீதமுள்ள நேரம்',
     whiteLabel: 'வெள்ளை',
     blackLabel: 'கருப்பு',

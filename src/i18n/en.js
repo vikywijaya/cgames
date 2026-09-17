@@ -515,7 +515,6 @@ export default {
     answeredWaiting: '✓ Answered — waiting…',
     answeredShort: '✓ Answered',
     answeredCount: '{n} / {total} answered',
-    correctAnswerIs: 'Correct answer: {answer}',
     timeRemaining: 'Time remaining',
     // Chess Pass and Play (single-board, clock, undo/draw/history)
     whiteLabel: 'WHITE',

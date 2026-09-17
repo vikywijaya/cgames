@@ -218,18 +218,6 @@ function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, read
             })}
           </div>
         )}
-        {/* Spelled out rather than left to the green highlight alone: the
-            highlight says which row was right, this says what the answer WAS,
-            which is the thing a player is left wanting when they got it
-            wrong. Per pane, so it reads right-side up from both seats. */}
-        {question && revealed && (
-          <p className={styles.answerLine} key={`a${gameState.questionIndex}`}>
-            {t.correctAnswerIs.replace(
-              '{answer}',
-              `${OPTION_LETTERS[question.correctIndex]}) ${question.options[question.correctIndex]}`,
-            )}
-          </p>
-        )}
         {/* The card sits after the options so it reads as the footer of this
             player's own half — and because .paneSlot carries the 180deg
             rotation for the flipped side, DOM-last lands visually below the
