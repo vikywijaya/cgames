@@ -23,17 +23,25 @@ const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 // down to just the progress counter, answered-count line, and host
 // controls.
 const PAGE_CHROME_ABOVE_GAME = 60;
-const PANE_HEIGHT = 275; // player card + question + 4 option rows, unscaled (measured + margin)
-const CENTER_HEIGHT = 80; // progress/timer-bar/answered-count/controls strip, unscaled (measured + margin)
+const PANE_HEIGHT = 250; // player card + question + 4 option rows, unscaled (measured + margin)
+const CENTER_HEIGHT = 100; // progress/timer-bar/answered-count/controls strip, unscaled (measured + margin)
 const BOTTOM_MARGIN = 15;
-const MIN_SCALE = 1;
+// Below 1 so the layout can actually compress, not just grow. The CSS is
+// authored to fit a 375x812 phone at roughly scale 1, but a long question
+// wrapping to three or four lines on a short phone (375x667) needs ~0.85 to
+// stay on screen — and no amount of base-size tuning can guarantee a fit for
+// every question on every device, since question length varies per round.
+// Overflow matters more here than in a normal page: the two players sit on
+// opposite sides of one device and share a single scroll position, so
+// neither can scroll their own half into view.
+const MIN_SCALE = 0.8;
 const MAX_SCALE = 2;
 
 function computeCardScale() {
   const availableHeight = Math.max(120, window.innerHeight - PAGE_CHROME_ABOVE_GAME - BOTTOM_MARGIN);
 
-  let best = 1;
-  for (let scale = 1; scale <= 3; scale += 0.02) {
+  let best = MIN_SCALE;
+  for (let scale = MIN_SCALE; scale <= 3; scale += 0.02) {
     const totalHeight = PANE_HEIGHT * scale * 2 + CENTER_HEIGHT * scale;
     if (totalHeight <= availableHeight) best = scale;
     else break;
