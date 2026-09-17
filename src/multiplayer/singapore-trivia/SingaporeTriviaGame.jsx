@@ -24,7 +24,7 @@ const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 // controls.
 const PAGE_CHROME_ABOVE_GAME = 60;
 const PANE_HEIGHT = 250; // player card + question + 4 option rows, unscaled (measured + margin)
-const CENTER_HEIGHT = 100; // progress/timer-bar/answered-count/controls strip, unscaled (measured + margin)
+const CENTER_HEIGHT = 55; // progress/timer-bar/answered-count/controls, one row, unscaled (measured + margin)
 const BOTTOM_MARGIN = 15;
 // Below 1 so the layout can actually compress, not just grow. The CSS is
 // authored to fit a 375x812 phone at roughly scale 1, but a long question
@@ -468,7 +468,10 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
           </p>
         )}
 
-        {!lastGameOver && started && (
+        {/* Only the phases that actually have a control. While a question is
+            open there is none — an empty wrapper still claims a slot in the
+            centre row and wraps it onto a second line. */}
+        {!lastGameOver && started && (phase === 'waiting' || phase === 'reveal') && (
           <div className={styles.hostControls}>
             {phase === 'waiting' && (
               <button type="button" className={styles.pillBtnPrimary} onClick={() => dispatch('start_question', {})}>{t.nextQuestion}</button>
