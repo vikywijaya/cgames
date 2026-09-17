@@ -322,6 +322,8 @@ export default {
     reasonTimeout: '超时',
     reasonDrawAgreed: '双方同意和棋',
     passAndPlayIntro: '两位玩家共用这台设备。每位玩家点击下方的"准备"按钮 — 双方都准备好后比赛开始。',
+    roundSummary: '{questions} 道题 · 每题 {seconds} 秒',
+    waitingForOther: '等待另一位玩家…',
     getReadyTitle: '准备开始',
     readyButton: '{name}，我准备好了',
     readyConfirmed: '{name} 已准备',

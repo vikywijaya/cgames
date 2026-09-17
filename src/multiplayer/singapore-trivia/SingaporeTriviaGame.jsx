@@ -36,6 +36,12 @@ const BOTTOM_MARGIN = 15;
 // neither can scroll their own half into view.
 const MIN_SCALE = 0.8;
 const MAX_SCALE = 2;
+// The pre-match scene is deliberately NOT auto-scaled. It has far less
+// content than a question, so solving "what scale fills the viewport" for it
+// pinned the scale at MAX_SCALE and still left a gap at the bottom — giant
+// type and dead space at once. It fills by layout instead (see .gameReady,
+// which centres it in the viewport), at one comfortable fixed size.
+const READY_SCALE = 1.15;
 
 function computeCardScale() {
   const availableHeight = Math.max(120, window.innerHeight - PAGE_CHROME_ABOVE_GAME - BOTTOM_MARGIN);
@@ -123,7 +129,49 @@ PlayerCard.propTypes = {
   t: PropTypes.object.isRequired,
 };
 
-function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, ready, onReady, onResignRequest, onResetRequest }) {
+// The pre-match state gets its own card rather than Chess's translucent
+// cover laid over the live one. Chess covers its card because there's
+// something to hide behind it — whose turn it is, each side's clock. Before
+// a trivia round there is nothing secret (no question yet, both scores 0),
+// so the cover only blurred a ghost of the empty card through itself and
+// left a big hollow panel with a button floating in the middle of it.
+function ReadyCard({ seat, name, ready, waitingForOther, onReady, t }) {
+  return (
+    <div className={`${styles.readyCard} ${ready ? styles.readyCardConfirmed : ''}`}>
+      <div className={styles.cardHeader}>
+        <div className={`${styles.avatar} ${seat === 1 ? styles.avatarP2 : ''}`} aria-hidden="true">
+          {seat === 0 ? 'P1' : 'P2'}
+        </div>
+        <div className={styles.nameCol}>
+          <div className={styles.nameText}>{name}</div>
+          {/* Duplicated per pane, like the question, so it reads right-side
+              up for whichever player is on the rotated side. */}
+          <p className={styles.readyHint}>
+            {ready ? (waitingForOther ? t.waitingForOther : '') : t.passAndPlayIntro}
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        className={`${styles.readyBtn} ${ready ? styles.readyBtnConfirmed : ''}`}
+        disabled={ready}
+        onClick={onReady}
+      >
+        {ready ? `✓ ${t.readyConfirmed.replace('{name}', name)}` : t.readyButton.replace('{name}', name)}
+      </button>
+    </div>
+  );
+}
+ReadyCard.propTypes = {
+  seat: PropTypes.oneOf([0, 1]).isRequired,
+  name: PropTypes.string.isRequired,
+  ready: PropTypes.bool.isRequired,
+  waitingForOther: PropTypes.bool.isRequired,
+  onReady: PropTypes.func.isRequired,
+  t: PropTypes.object.isRequired,
+};
+
+function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, ready, otherReady, onReady, onResignRequest, onResetRequest }) {
   const myAnswer = gameState.answers[seat];
   const phase = gameState.phase;
   const canAnswer = started && phase === 'question' && myAnswer === null;
@@ -142,6 +190,17 @@ function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, read
   // Chess carries undoShort/offerDrawShort alongside its full labels.
   if (phase === 'question') statusLabel = myAnswer === null ? t.tapToAnswer : t.answeredShort;
   else if (revealed && pointsThisQuestion > 0) statusLabel = `+${pointsThisQuestion}`;
+
+  if (!started) {
+    return (
+      <div className={`${styles.paneSlot} ${rotated ? styles.paneRotated : ''}`}>
+        <ReadyCard
+          seat={seat} name={name} ready={ready} waitingForOther={ready && !otherReady}
+          onReady={onReady} t={t}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={`${styles.paneSlot} ${rotated ? styles.paneRotated : ''}`}>
@@ -204,22 +263,6 @@ function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, read
           t={t}
         />
       </div>
-      {/* Covers this pane until BOTH players are ready, not just this one —
-          tapping only reveals this side's own confirmation, so a solo
-          "I'm ready" doesn't peek at the other side's pane underneath. Same
-          convention as the Chess/Xiangqi ready cover. */}
-      {!started && (
-        <div className={styles.readyCover}>
-          <button
-            type="button"
-            className={`${styles.readyBtn} ${ready ? styles.readyBtnConfirmed : ''}`}
-            disabled={ready}
-            onClick={onReady}
-          >
-            {ready ? `✓ ${t.readyConfirmed.replace('{name}', name)}` : t.readyButton.replace('{name}', name)}
-          </button>
-        </div>
-      )}
     </div>
   );
 }
@@ -232,6 +275,7 @@ AnswerPane.propTypes = {
   rotated: PropTypes.bool,
   started: PropTypes.bool.isRequired,
   ready: PropTypes.bool.isRequired,
+  otherReady: PropTypes.bool.isRequired,
   onReady: PropTypes.func.isRequired,
   onResignRequest: PropTypes.func.isRequired,
   onResetRequest: PropTypes.func.isRequired,
@@ -302,6 +346,14 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
   const p2 = players[1];
   const { phase, currentQuestion, scores = [0, 0] } = gameState;
 
+  // Only the phases that actually put a question and four options on screen
+  // have enough content for "what scale fills the viewport" to be a
+  // meaningful question. The ready gate and the waiting beat between
+  // questions are sparse — solving for them pinned the scale at MAX_SCALE
+  // and still left a gap at the bottom, i.e. giant type and dead space at
+  // once. Those fill by layout instead (see .gameReady).
+  const showingQuestion = phase === 'question' || phase === 'reveal' || phase === 'finished';
+
   // computeCardScale() above is only an opening estimate: its constants are
   // measured from the question phase, so every other phase (waiting, reveal,
   // game over) renders shorter content at that same scale and leaves a band
@@ -339,6 +391,9 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
   }, [phase, currentQuestion, lastGameOver, started]);
 
   useLayoutEffect(() => {
+    // Sparse scenes render at READY_SCALE and fill by layout — nothing to
+    // solve for until a question is actually on screen.
+    if (!showingQuestion) return;
     const el = gameRef.current;
     if (!el) return;
     const height = el.getBoundingClientRect().height;
@@ -395,16 +450,30 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
   const resignName = resignSeat !== null ? players[resignSeat].name : '';
 
   return (
-    <div ref={gameRef} className={styles.game} style={{ '--card-scale': cardScale }}>
+    <div
+      ref={gameRef}
+      className={`${styles.game} ${showingQuestion ? '' : styles.gameReady}`}
+      style={{
+        '--card-scale': showingQuestion ? cardScale : READY_SCALE,
+        // Same reserved chrome the scale maths uses, handed to .gameReady so
+        // the two don't drift apart.
+        '--page-chrome': `${PAGE_CHROME_ABOVE_GAME + BOTTOM_MARGIN}px`,
+      }}
+    >
       <AnswerPane
         seat={1} name={p2.name} gameState={gameState} dispatch={dispatch} t={t} rotated
-        started={started} ready={readyP2} onReady={() => handleReady(1)}
+        started={started} ready={readyP2} otherReady={readyP1} onReady={() => handleReady(1)}
         onResignRequest={setResignSeat} onResetRequest={() => setConfirmingReset(true)}
       />
 
       <div className={styles.center}>
+        {/* "Q n / 10" only means something once a question has been served.
+            questionIndex is -1 until the first one, which rendered as the
+            meaningless "Q 0 / 10" — show what the round actually is instead. */}
         <div className={styles.progress}>
-          {t.questionProgress.replace('{current}', String(gameState.questionIndex + 1)).replace('{total}', String(gameState.totalQuestions))}
+          {gameState.questionIndex >= 0
+            ? t.questionProgress.replace('{current}', String(gameState.questionIndex + 1)).replace('{total}', String(gameState.totalQuestions))
+            : t.roundSummary.replace('{questions}', String(gameState.totalQuestions)).replace('{seconds}', String(QUESTION_TIME))}
         </div>
 
         {/* The question text/image itself is rendered inside each AnswerPane
@@ -450,9 +519,6 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
           </div>
         )}
 
-        {!lastGameOver && !started && (
-          <p className={styles.waitingNote}>{t.passAndPlayIntro}</p>
-        )}
 
         {lastGameOver && (
           <div className={styles.modalOverlay}>
@@ -507,7 +573,7 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
 
       <AnswerPane
         seat={0} name={p1.name} gameState={gameState} dispatch={dispatch} t={t}
-        started={started} ready={readyP1} onReady={() => handleReady(0)}
+        started={started} ready={readyP1} otherReady={readyP2} onReady={() => handleReady(0)}
         onResignRequest={setResignSeat} onResetRequest={() => setConfirmingReset(true)}
       />
     </div>

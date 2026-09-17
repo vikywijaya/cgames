@@ -112,21 +112,45 @@
   line-height: 1;
 }
 .actionsRow { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
-.readyCover {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--sp-3);
-  background: rgba(244, 246, 251, 0.94);
-  backdrop-filter: blur(3px);
-  border-radius: calc(12px * var(--card-scale, 1));
-  border: 1px solid var(--color-border, #DDE3F0);
+/* ── Ready scene ──────────────────────────────────────────────────────
+   Before the match starts there is no question and both scores are 0, so
+   there's nothing to hide and no content to size the layout against. The
+   scene therefore fills by layout rather than by scale: .gameReady centres
+   everything in the viewport so the slack sits symmetrically above and
+   below instead of pooling at the bottom. */
+.gameReady {
+  min-height: calc(100dvh - var(--page-chrome, 75px));
+  /* space-between, not centre: the two players sit at opposite ends of the
+     device, so each card belongs near its own player's edge with the round
+     summary between them, rather than both huddled in the middle. */
+  justify-content: space-between;
 }
+.readyCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  width: 100%;
+  max-width: 480px;
+  background: var(--color-surface, #fff);
+  border: 1.5px solid var(--color-border, #DDE3F0);
+  border-radius: calc(12px * var(--card-scale, 1));
+  padding: var(--sp-3);
+  box-sizing: border-box;
+  box-shadow: var(--shadow-sm, 0 2px 14px rgba(61,114,232,0.08));
+}
+.readyCardConfirmed {
+  background: var(--color-success-bg, #E6F9F2);
+  border-color: var(--color-success, #2DAF7B);
+}
+.readyHint {
+  font-size: calc(0.62rem * var(--card-scale, 1));
+  color: var(--color-text-muted, #6B7A99);
+  line-height: 1.35;
+  margin: 0;
+}
+.readyHint:empty { display: none; }
 .readyBtn {
-  min-height: calc(34px * var(--card-scale, 1));
+  min-height: calc(40px * var(--card-scale, 1));
   padding: var(--sp-2) var(--sp-3);
   border-radius: calc(12px * var(--card-scale, 1));
   border: 1.5px solid var(--color-primary, #3D72E8);
@@ -134,7 +158,7 @@
   color: var(--color-primary, #3D72E8);
   cursor: pointer;
   font-weight: 700;
-  font-size: calc(0.72rem * var(--card-scale, 1));
+  font-size: calc(0.82rem * var(--card-scale, 1));
   font-family: inherit;
   width: 100%;
 }

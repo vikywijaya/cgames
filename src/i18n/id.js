@@ -322,6 +322,8 @@ export default {
     reasonTimeout: 'Waktu habis',
     reasonDrawAgreed: 'Kedua pemain setuju',
     passAndPlayIntro: 'Dua pemain berbagi perangkat ini. Setiap pemain ketuk tombol Siap di bawah — pertandingan dimulai setelah kedua pemain siap.',
+    roundSummary: '{questions} pertanyaan · {seconds} detik masing-masing',
+    waitingForOther: 'Menunggu pemain lain…',
     getReadyTitle: 'Bersiap',
     readyButton: '{name}, Saya Siap',
     readyConfirmed: '{name} Siap',

@@ -322,6 +322,8 @@ export default {
     reasonTimeout: 'நேரம் முடிந்தது',
     reasonDrawAgreed: 'இரு வீரர்களும் ஒப்புக்கொண்டனர்',
     passAndPlayIntro: 'இரண்டு வீரர்கள் இந்த சாதனத்தைப் பகிர்கிறார்கள். ஒவ்வொரு வீரரும் கீழே உள்ள தயார் பொத்தானைத் தட்டவும் — இருவரும் தயாரானதும் ஆட்டம் தொடங்கும்.',
+    roundSummary: '{questions} கேள்விகள் · தலா {seconds} வினாடிகள்',
+    waitingForOther: 'மற்ற வீரருக்காகக் காத்திருக்கிறது…',
     getReadyTitle: 'தயாராகுங்கள்',
     readyButton: '{name}, நான் தயார்',
     readyConfirmed: '{name} தயார்',

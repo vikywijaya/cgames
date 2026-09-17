@@ -544,6 +544,8 @@ export default {
     reasonTimeout: 'Out of time',
     reasonDrawAgreed: 'Both players agreed',
     passAndPlayIntro: 'Two players share this device. Each player taps their Ready button below — the match begins once both are ready.',
+    roundSummary: '{questions} questions · {seconds}s each',
+    waitingForOther: 'Waiting for the other player…',
     getReadyTitle: 'Get Ready',
     readyButton: "{name}, I'm Ready",
     readyConfirmed: '{name} Ready',

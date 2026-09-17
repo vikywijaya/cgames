@@ -322,6 +322,8 @@ export default {
     reasonTimeout: 'Kehabisan masa',
     reasonDrawAgreed: 'Kedua-dua pemain bersetuju',
     passAndPlayIntro: 'Dua pemain berkongsi peranti ini. Setiap pemain ketik butang Sedia di bawah — perlawanan bermula sebaik sahaja kedua-dua pemain sedia.',
+    roundSummary: '{questions} soalan · {seconds}s setiap satu',
+    waitingForOther: 'Menunggu pemain satu lagi…',
     getReadyTitle: 'Bersedia',
     readyButton: '{name}, Saya Sedia',
     readyConfirmed: '{name} Sedia',
