@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useLocalSingaporeTriviaMatch } from './useLocalSingaporeTriviaMatch';
 import { saveScore } from '../../utils/scoreStore';
@@ -20,9 +20,12 @@ const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 const PAGE_CHROME_ABOVE_GAME = 60;
 const PANE_HEIGHT = 155; // panel label + 4 option rows + resign, unscaled (measured + margin)
 const CENTER_HEIGHT = 165; // progress/timer/question/controls strip, unscaled (measured + margin)
+const BOTTOM_MARGIN = 15;
+const MIN_SCALE = 1;
+const MAX_SCALE = 2;
 
 function computeCardScale() {
-  const availableHeight = Math.max(120, window.innerHeight - PAGE_CHROME_ABOVE_GAME - 15);
+  const availableHeight = Math.max(120, window.innerHeight - PAGE_CHROME_ABOVE_GAME - BOTTOM_MARGIN);
 
   let best = 1;
   for (let scale = 1; scale <= 3; scale += 0.02) {
@@ -30,7 +33,11 @@ function computeCardScale() {
     if (totalHeight <= availableHeight) best = scale;
     else break;
   }
-  return Math.max(1, Math.min(2, best));
+  return clampScale(best);
+}
+
+function clampScale(scale) {
+  return Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
 }
 
 function AnswerPane({ seat, name, gameState, dispatch, t, rotated }) {
@@ -100,6 +107,7 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
   const reportedRef = useRef(false);
   const [confirmingReset, setConfirmingReset] = useState(false);
   const [cardScale, setCardScale] = useState(computeCardScale);
+  const gameRef = useRef(null);
 
   useEffect(() => {
     const onResize = () => setCardScale(computeCardScale());
@@ -140,6 +148,24 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
   const p2 = players[1];
   const { phase, currentQuestion, scores = [0, 0] } = gameState;
 
+  // computeCardScale() above is only an opening estimate: its constants are
+  // measured from the question phase, so every other phase (waiting, reveal,
+  // game over) renders shorter content at that same scale and leaves a band
+  // of dead space at the bottom. Question text also wraps to a different
+  // number of lines per question, which no fixed constant can model. So after
+  // each layout, measure what actually rendered and re-solve for the scale
+  // that fills the viewport. The 2% epsilon is what stops this from
+  // oscillating when a rescale re-wraps the question by a line.
+  useLayoutEffect(() => {
+    const el = gameRef.current;
+    if (!el) return;
+    const height = el.getBoundingClientRect().height;
+    if (height <= 0) return;
+    const available = Math.max(120, window.innerHeight - PAGE_CHROME_ABOVE_GAME - BOTTOM_MARGIN);
+    const ideal = clampScale(cardScale * (available / height));
+    if (Math.abs(ideal - cardScale) / cardScale > 0.02) setCardScale(ideal);
+  }, [cardScale, phase, currentQuestion, lastGameOver, confirmingReset]);
+
   const ranked = players
     .map((p, i) => ({ name: p.name, score: scores[i] || 0, seat: i }))
     .sort((a, b) => {
@@ -160,7 +186,7 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
   };
 
   return (
-    <div className={styles.game} style={{ '--card-scale': cardScale }}>
+    <div ref={gameRef} className={styles.game} style={{ '--card-scale': cardScale }}>
       <AnswerPane seat={1} name={p2.name} gameState={gameState} dispatch={dispatch} t={t} rotated />
 
       <div className={styles.center}>
@@ -176,7 +202,17 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
             {currentQuestion.imageUrl && (
               <img className={styles.questionImage} src={currentQuestion.imageUrl} alt="" />
             )}
-            <p className={styles.answeredCount}>{gameState.answeredCount} / {gameState.playerCount} answered</p>
+            {/* Live "who still has to answer" indicator. Only meaningful
+                while the question is open — once we're in reveal the count is
+                frozen at whatever it was when the timer ran out, which reads
+                as a stale "1 / 2 answered" next to the revealed answer. */}
+            {phase === 'question' && (
+              <p className={styles.answeredCount}>
+                {t.answeredCount
+                  .replace('{n}', String(gameState.answeredCount))
+                  .replace('{total}', String(gameState.playerCount))}
+              </p>
+            )}
           </div>
         )}
 

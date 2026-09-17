@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from '../i18n/useTranslation';
 import styles from './MultiplayerLobby.module.css';
 
 export function MultiplayerLobby({
   gameMeta, status, roomId, myColor, players, errorMessage,
   onCreateRoom, onJoinRoom, inviteRoomId, onStart,
 }) {
+  const t = useTranslation().multiplayer;
   const [name, setName] = useState('');
 
   const connectedCount = players.filter(p => p.connected).length;
@@ -29,11 +31,11 @@ export function MultiplayerLobby({
 
       {!hasJoined && (
         <div className={styles.joinForm}>
-          <label htmlFor="mp-name">Your Name</label>
+          <label htmlFor="mp-name">{t.yourName}</label>
           <input
             id="mp-name"
             type="text"
-            placeholder="Enter your name"
+            placeholder={t.enterYourName}
             value={name}
             onChange={e => setName(e.target.value)}
           />
@@ -42,7 +44,7 @@ export function MultiplayerLobby({
             disabled={name.trim().length === 0 || status !== 'connected'}
             onClick={handleSubmit}
           >
-            {inviteRoomId ? 'Join Game' : 'Create Game'}
+            {inviteRoomId ? t.joinGame : t.createGame}
           </button>
         </div>
       )}
@@ -51,14 +53,14 @@ export function MultiplayerLobby({
         <div className={styles.waitingRoom}>
           {players.map(p => (
             <div key={p.color} className={styles.playerRow}>
-              {p.name} ({p.color}){!p.connected && ' — disconnected'}
+              {p.name} ({p.color}){!p.connected && t.disconnectedSuffix}
             </div>
           ))}
           {isHost && allReady && (
-            <button className={styles.primaryBtn} onClick={onStart}>Start Game</button>
+            <button className={styles.primaryBtn} onClick={onStart}>{t.startGame}</button>
           )}
           {isHost && !allReady && (
-            <p>Waiting for {gameMeta.maxPlayers - connectedCount} more player{gameMeta.maxPlayers - connectedCount > 1 ? 's' : ''}…</p>
+            <p>{(gameMeta.maxPlayers - connectedCount > 1 ? t.waitingForPlayers : t.waitingForPlayer).replace('{n}', gameMeta.maxPlayers - connectedCount)}</p>
           )}
         </div>
       )}

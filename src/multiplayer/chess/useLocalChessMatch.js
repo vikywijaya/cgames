@@ -42,9 +42,32 @@ export function useLocalChessMatch() {
     }
 
     if (action === 'resign') {
-      const resigningColor = engine.turn() === 'w' ? 'White' : 'Black';
       const winner = engine.turn() === 'w' ? 'black' : 'white';
-      setLastGameOver({ winner, reason: `${resigningColor} resigned` });
+      setLastGameOver({ winner, reason: 'Resignation' });
+      return;
+    }
+
+    // A single ply undo — only meaningful while the game is still in
+    // progress; the caller (ChessGame) already gates the Undo control on
+    // !lastGameOver, but guard here too since dispatch has no other caller.
+    if (action === 'undo') {
+      if (!engine.undo()) return;
+      setGameState(snapshot(engine, null));
+      return;
+    }
+
+    // Both players agreed to a draw via the pass-the-device confirmation —
+    // there's no engine-level concept of this, it's purely a UI negotiation
+    // that ends the match even.
+    if (action === 'draw_agreed') {
+      setLastGameOver({ winner: 'draw', reason: 'Agreed' });
+      return;
+    }
+
+    // A player's clock ran out. The clock itself is UI-only state (the
+    // engine has no notion of time), so the component tells us who lost.
+    if (action === 'timeout') {
+      setLastGameOver({ winner: payload.winner, reason: 'Timeout' });
       return;
     }
 

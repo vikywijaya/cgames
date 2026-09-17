@@ -719,7 +719,9 @@ export function App() {
         {showBackButtons && (
           <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         )}
-        <MultiplayerChessSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
+        <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
+          <MultiplayerChessSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
+        </GameContext.Provider>
       </div>
     );
   }
@@ -730,7 +732,9 @@ export function App() {
         {showBackButtons && (
           <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         )}
-        <MultiplayerXiangqiSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
+        <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
+          <MultiplayerXiangqiSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
+        </GameContext.Provider>
       </div>
     );
   }
@@ -741,7 +745,9 @@ export function App() {
         {showBackButtons && (
           <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         )}
-        <MultiplayerGinRummySession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
+        <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
+          <MultiplayerGinRummySession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
+        </GameContext.Provider>
       </div>
     );
   }
@@ -752,7 +758,9 @@ export function App() {
         {showBackButtons && (
           <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         )}
-        <MultiplayerCrazyEightsSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
+        <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
+          <MultiplayerCrazyEightsSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
+        </GameContext.Provider>
       </div>
     );
   }
@@ -763,7 +771,9 @@ export function App() {
         {showBackButtons && (
           <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
         )}
-        <MultiplayerSingaporeTriviaSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
+        <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
+          <MultiplayerSingaporeTriviaSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
+        </GameContext.Provider>
       </div>
     );
   }

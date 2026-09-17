@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
-import { ChessBoard } from './ChessBoardCanvas';
+import { ChessBoardCH } from './ChessBoardCH';
 import { legalMovesFor, parseFenState } from './chessMoves';
 import { useLocalChessMatch } from './useLocalChessMatch';
 import { saveScore } from '../../utils/scoreStore';
@@ -9,71 +9,114 @@ import { useTranslation } from '../../i18n/useTranslation';
 import styles from './ChessGame.module.css';
 
 const RESULT_PCT = { win: 100, draw: 50, loss: 0 };
+const FILES = 'abcdefgh';
+const GLYPH = { K: '♔', Q: '♕', R: '♖', B: '♗', N: '♘', P: '♙', k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
+const CLOCK_SECONDS = 10 * 60; // 10 min per side, matching the design's clockMinutes default
 
-// Vertical space reserved for the two panel name labels and the middle
-// status/resign/game-over strip, so both boards fit on one screen without
-// scrolling — tuned to this layout's actual content, not a hard number.
-const RESERVED_VERTICAL_SPACE = 260;
+// Vertical space reserved for the two player cards, the (occasional) status
+// banner, and the move-history strip, so the single shared board fits on
+// one screen without scrolling — tuned to this layout's actual content,
+// not a hard number.
+const RESERVED_VERTICAL_SPACE = 470;
 
 function computeMaxBoardSize() {
-  const perPaneHeightBudget = (window.innerHeight - RESERVED_VERTICAL_SPACE) / 2;
-  return Math.max(160, Math.min(560, perPaneHeightBudget));
+  return Math.max(220, Math.min(460, window.innerHeight - RESERVED_VERTICAL_SPACE));
 }
 
-function ChessPane({ color, name, gameState, dispatch, rotated, maxSize }) {
-  const canvasRef = useRef(null);
-  const boardRef = useRef(null);
+function sq(r, c) { return FILES[c] + (8 - r); }
+function mmss(totalSeconds) {
+  const s = Math.max(0, totalSeconds);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
 
-  useEffect(() => {
-    // Always draw upright ('white' orientation) — the CSS 180° rotation on the
-    // black pane (via `rotated`) is the sole source of that pane's visual flip.
-    // Passing the actual seat color here would double-flip: ChessBoard's own
-    // internal `flipped` orientation plus the CSS transform would cancel out
-    // rendering but NOT click coordinates, since click hit-testing reflects
-    // the rotated element while ChessBoard's `_toBoard` assumes an unrotated,
-    // unflipped canvas — making every click land on the mirrored square.
-    const board = new ChessBoard(canvasRef.current, 'white', maxSize);
-    board.onPieceSelect = ([r, c]) => {
-      const parsed = boardRef.current?.fenState;
-      const currentBoard = boardRef.current?.board;
-      if (!currentBoard || !parsed) return [];
-      const piece = currentBoard[r][c];
-      if (!piece) return [];
-      const pieceIsWhite = piece === piece.toUpperCase();
-      if ((color === 'white') !== pieceIsWhite) return [];
-      return legalMovesFor(currentBoard, parsed, r, c);
-    };
-    board.onMove = (from, to, promotion) => {
-      dispatch('make_move', { from, to, promotion: promotion || null });
-    };
-    boardRef.current = board;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [color, dispatch]);
+// The engine/hook report game-over reasons as fixed English tokens
+// ('Checkmate', 'Stalemate', 'Resignation', 'Timeout', 'Agreed') rather than
+// translated text, the same way the pre-redesign ChessGame rendered
+// lastGameOver.reason directly. Map them to the current language here so
+// the banner/modal copy stays translated without changing the hook's API.
+function reasonLabel(reason, t) {
+  switch (reason) {
+    case 'Checkmate': return t.reasonCheckmate;
+    case 'Stalemate': return t.reasonStalemate;
+    case 'Resignation': return t.reasonResignation;
+    case 'Timeout': return t.reasonTimeout;
+    case 'Agreed': return t.reasonDrawAgreed;
+    default: return reason;
+  }
+}
 
-  useEffect(() => {
-    boardRef.current?.setMaxSize(maxSize);
-  }, [maxSize]);
-
-  useEffect(() => {
-    if (!gameState || !boardRef.current) return;
-    const parsed = parseFenState(gameState.fen);
-    boardRef.current.updateBoard(parsed.board, parsed, gameState.lastMove || null);
-  }, [gameState]);
-
+// A pill-shaped button showing both the icon and a short visible label,
+// rather than an icon-only circle relying solely on aria-label/title —
+// easier to scan and tap correctly for the senior-mobile audience this
+// design targets. `ariaLabel` carries the fuller description (e.g. "Undo
+// last move") while `label` is the short text actually shown on the pill
+// (e.g. "Undo").
+function PillButton({ label, ariaLabel, tone, disabled, onClick, children }) {
+  const toneClass = tone === 'teal' ? styles.pillBtnTeal : tone === 'danger' ? styles.pillBtnDanger : '';
   return (
-    <div className={`${styles.pane} ${rotated ? styles.paneRotated : ''}`}>
-      <div className={styles.panel}>{name} ({color})</div>
-      <canvas ref={canvasRef} className={styles.canvas} />
+    <button
+      type="button"
+      className={`${styles.pillBtn} ${toneClass}`}
+      aria-label={ariaLabel}
+      title={ariaLabel}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      <span aria-hidden="true">{children}</span>
+      <span>{label}</span>
+    </button>
+  );
+}
+PillButton.propTypes = {
+  label: PropTypes.string.isRequired,
+  ariaLabel: PropTypes.string.isRequired,
+  tone: PropTypes.oneOf(['neutral', 'teal', 'danger']),
+  disabled: PropTypes.bool,
+  onClick: PropTypes.func.isRequired,
+  children: PropTypes.node.isRequired,
+};
+
+function PlayerCard({ isBlack, name, badgeLabel, active, clockText, clockLow, actionsDisabled, onUndo, onOfferDraw, onResign, onReset, t }) {
+  return (
+    <div className={`${styles.card} ${active ? styles.cardActive : ''}`}>
+      <div className={styles.cardHeader}>
+        <div className={`${styles.avatar} ${isBlack ? styles.avatarBlack : ''}`} aria-hidden="true">{isBlack ? 'P2' : 'P1'}</div>
+        <div className={styles.nameCol}>
+          <div className={styles.nameText}>{name}</div>
+          <div className={styles.badgeRow}>
+            <span className={styles.badge}>{badgeLabel}</span>
+            {active && <span className={`${styles.badge} ${styles.badgeActive}`}>{t.yourTurnBadge}</span>}
+          </div>
+        </div>
+        <div className={`${styles.clockChip} ${clockLow ? styles.clockLow : ''}`}>
+          <span className={styles.clockIcon} aria-hidden="true">⏱</span>
+          <span className={`${styles.clockText} ${active && !clockLow ? styles.clockActive : ''}`}>{clockText}</span>
+        </div>
+      </div>
+      <div className={styles.actionsRow}>
+        <div className={styles.actionsGroup} style={{ opacity: actionsDisabled ? 0.45 : 1 }}>
+          <PillButton label={t.undoShort} ariaLabel={t.undo} disabled={actionsDisabled} onClick={onUndo}>↩</PillButton>
+          <PillButton label={t.offerDrawShort} ariaLabel={t.offerDraw} tone="teal" disabled={actionsDisabled} onClick={onOfferDraw}>🤝</PillButton>
+          <PillButton label={t.resign} ariaLabel={t.resign} tone="danger" disabled={actionsDisabled} onClick={onResign}>⚑</PillButton>
+        </div>
+        <PillButton label={t.resetGame} ariaLabel={t.resetGame} onClick={onReset}>↻</PillButton>
+      </div>
     </div>
   );
 }
-ChessPane.propTypes = {
-  color: PropTypes.oneOf(['white', 'black']).isRequired,
+PlayerCard.propTypes = {
+  isBlack: PropTypes.bool,
   name: PropTypes.string.isRequired,
-  gameState: PropTypes.object,
-  dispatch: PropTypes.func.isRequired,
-  rotated: PropTypes.bool,
-  maxSize: PropTypes.number.isRequired,
+  badgeLabel: PropTypes.string.isRequired,
+  active: PropTypes.bool.isRequired,
+  clockText: PropTypes.string.isRequired,
+  clockLow: PropTypes.bool.isRequired,
+  actionsDisabled: PropTypes.bool.isRequired,
+  onUndo: PropTypes.func.isRequired,
+  onOfferDraw: PropTypes.func.isRequired,
+  onResign: PropTypes.func.isRequired,
+  onReset: PropTypes.func.isRequired,
+  t: PropTypes.object.isRequired,
 };
 
 export function ChessGame({ memberId, callbackUrl, accessToken }) {
@@ -81,8 +124,69 @@ export function ChessGame({ memberId, callbackUrl, accessToken }) {
   const { gameState, lastGameOver, players, dispatch } = useLocalChessMatch();
   const startedAtRef = useRef(Date.now());
   const reportedRef = useRef(false);
+
+  // The match only begins once both seats have confirmed ready — see the
+  // ready overlay in the render below. Resetting re-arms both flags so a
+  // fresh game needs a fresh ready-up too.
+  const [readyWhite, setReadyWhite] = useState(false);
+  const [readyBlack, setReadyBlack] = useState(false);
+  const started = readyWhite && readyBlack;
   const [maxBoardSize, setMaxBoardSize] = useState(computeMaxBoardSize);
-  const [confirmingReset, setConfirmingReset] = useState(false);
+  const [modal, setModal] = useState(null); // null | 'resign' | 'reset' | 'draw' | 'over'
+  const [moves, setMoves] = useState([]);
+  const [clocks, setClocks] = useState({ w: CLOCK_SECONDS, b: CLOCK_SECONDS });
+
+  const canvasRef = useRef(null);
+  const boardRef = useRef(null);
+  const histRef = useRef(null);
+  const pendingMoveRef = useRef(null);
+
+  // Refs mirroring the latest render's values so the once-registered clock
+  // interval (below) always reads fresh state without needing to tear down
+  // and re-create a new setInterval every second.
+  const gameStateRef = useRef(gameState); gameStateRef.current = gameState;
+  const lastGameOverRef = useRef(lastGameOver); lastGameOverRef.current = lastGameOver;
+  const modalRef = useRef(modal); modalRef.current = modal;
+  const clocksRef = useRef(clocks); clocksRef.current = clocks;
+  const startedRef = useRef(started); startedRef.current = started;
+
+  const white = players.find(p => p.color === 'white');
+  const black = players.find(p => p.color === 'black');
+
+  // Mark the actual start of play once both seats are ready, so the
+  // reported play duration measures real game time rather than however
+  // long the ready screen sat open. Re-fires after a reset re-arms both
+  // ready flags for the next match.
+  useEffect(() => {
+    if (started) startedAtRef.current = Date.now();
+  }, [started]);
+
+  // Board setup — mounts once on load so the starting position is visible
+  // right away, under the ready covers (see the render below). Piece
+  // selection is blocked until `started` (and while a modal or the match
+  // itself is over) so the covers aren't just cosmetic. onPieceSelect/onMove
+  // close over refs so they always see current state without re-creating
+  // the board.
+  useEffect(() => {
+    const board = new ChessBoardCH(canvasRef.current, 'white', maxBoardSize);
+    board.onPieceSelect = ([r, c]) => {
+      const cur = board.board, parsed = board.fenState;
+      if (!cur || !parsed || !startedRef.current || lastGameOverRef.current || modalRef.current) return [];
+      const piece = cur[r][c];
+      if (!piece) return [];
+      const pieceIsWhite = piece === piece.toUpperCase();
+      if ((gameStateRef.current.turn === 'w') !== pieceIsWhite) return [];
+      return legalMovesFor(cur, parsed, r, c);
+    };
+    board.onMove = (from, to, promotion) => handleMove(from, to, promotion || null);
+    boardRef.current = board;
+    board.updateBoard(parseFenState(gameState.fen).board, parseFenState(gameState.fen), null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    boardRef.current?.setMaxSize(maxBoardSize);
+  }, [maxBoardSize]);
 
   useEffect(() => {
     const onResize = () => setMaxBoardSize(computeMaxBoardSize());
@@ -93,6 +197,74 @@ export function ChessGame({ memberId, callbackUrl, accessToken }) {
       window.removeEventListener('orientationchange', onResize);
     };
   }, []);
+
+  // Repaint on every game state change. The board keeps a fixed white-on-
+  // bottom orientation throughout — it does not flip for whoever's turn it
+  // is, so the physical device orientation stays put for both players.
+  useEffect(() => {
+    const board = boardRef.current;
+    if (!board) return;
+    const parsed = parseFenState(gameState.fen);
+    board.updateBoard(parsed.board, parsed, gameState.lastMove || null);
+  }, [gameState, lastGameOver]);
+
+  function handleMove(from, to, promotion) {
+    const parsed = parseFenState(gameState.fen);
+    const piece = parsed.board[from[0]][from[1]];
+    const captured = !!parsed.board[to[0]][to[1]];
+    pendingMoveRef.current = { piece, captured, from, to };
+    dispatch('make_move', { from, to, promotion });
+  }
+
+  // Finalize the pending move's notation once gameState reflects it — see
+  // handleMove above. Runs in the same render pass as a resulting
+  // checkmate/stalemate, since the hook batches both state updates.
+  useEffect(() => {
+    const pending = pendingMoveRef.current;
+    if (!pending || !gameState.lastMove) return;
+    const { from, to } = gameState.lastMove;
+    if (pending.from[0] !== from[0] || pending.from[1] !== from[1] || pending.to[0] !== to[0] || pending.to[1] !== to[1]) return;
+    pendingMoveRef.current = null;
+
+    const { piece, captured } = pending;
+    const byWhite = piece === piece.toUpperCase();
+    const mateSuffix = lastGameOver && lastGameOver.winner !== 'draw' ? '#' : (gameState.inCheck ? '+' : '');
+    const entry = {
+      byWhite,
+      text: `${GLYPH[piece]} ${sq(from[0], from[1])}${captured ? '×' : '→'}${sq(to[0], to[1])}${mateSuffix}`,
+    };
+    setMoves(m => {
+      const next = [...m, { ...entry, n: m.length + 1 }];
+      return next;
+    });
+
+    const h = histRef.current;
+    if (h) requestAnimationFrame(() => { h.scrollLeft = h.scrollWidth; });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameState, lastGameOver]);
+
+  // Switch straight to the "game over" modal whenever the match ends,
+  // regardless of cause — checkmate/stalemate (via the move effect above),
+  // resignation, an agreed draw, or a clock timeout. Resign/draw/timeout
+  // never touch pendingMoveRef, so this can't be folded into that effect.
+  useEffect(() => {
+    if (lastGameOver) setModal('over');
+  }, [lastGameOver]);
+
+  // Per-second clock tick, paused during game over or any open modal.
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (!startedRef.current || lastGameOverRef.current || modalRef.current) return;
+      const side = gameStateRef.current.turn;
+      const current = clocksRef.current[side];
+      if (current <= 0) return;
+      const left = current - 1;
+      clocksRef.current = { ...clocksRef.current, [side]: left };
+      setClocks(clocksRef.current);
+      if (left === 0) dispatch('timeout', { winner: side === 'w' ? 'black' : 'white' });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [dispatch]);
 
   useEffect(() => {
     if (!lastGameOver || reportedRef.current) return;
@@ -118,55 +290,201 @@ export function ChessGame({ memberId, callbackUrl, accessToken }) {
       .catch(e => console.warn('[ChessGame] callback failed:', e));
   }, [lastGameOver, memberId, callbackUrl, accessToken]);
 
-  const white = players.find(p => p.color === 'white');
-  const black = players.find(p => p.color === 'black');
-  const turnLabel = gameState.turn === 'w' ? white.name : black.name;
-  const turnStatus = gameState.inCheck
-    ? t.namedInCheck.replace('{name}', turnLabel)
-    : t.namedTurn.replace('{name}', turnLabel);
+  const turn = gameState.turn;
+  const whiteActive = !lastGameOver && turn === 'w';
+  const blackActive = !lastGameOver && turn === 'b';
+  const turnName = turn === 'w' ? white.name : black.name;
+  const lowW = clocks.w <= 60, lowB = clocks.b <= 60;
 
-  const handleConfirmReset = () => {
-    startedAtRef.current = Date.now();
+  let bannerText = t.bannerYourMove.replace('{name}', turnName);
+  let calloutTone = 'info', calloutIcon = '👉';
+  if (lastGameOver) {
+    bannerText = lastGameOver.winner === 'draw'
+      ? t.bannerDrawResult.replace('{reason}', reasonLabel(lastGameOver.reason, t).toLowerCase())
+      : t.bannerWinResult
+        .replace('{name}', lastGameOver.winner === 'white' ? white.name : black.name)
+        .replace('{reason}', reasonLabel(lastGameOver.reason, t).toLowerCase());
+    calloutTone = 'success'; calloutIcon = '🏆';
+  } else if (gameState.inCheck) {
+    bannerText = t.bannerInCheck.replace('{name}', turnName);
+    calloutTone = 'danger'; calloutIcon = '⚠️';
+  }
+  const showBanner = !!lastGameOver || gameState.inCheck;
+  const calloutClass = calloutTone === 'danger' ? styles.calloutDanger : calloutTone === 'success' ? styles.calloutSuccess : styles.calloutInfo;
+
+  const resetClocks = () => {
+    clocksRef.current = { w: CLOCK_SECONDS, b: CLOCK_SECONDS };
+    setClocks(clocksRef.current);
+  };
+
+  const handleReady = (color) => {
+    if (color === 'white') setReadyWhite(true);
+    else setReadyBlack(true);
+  };
+
+  const handleReset = () => {
     reportedRef.current = false;
     dispatch('play_again');
-    setConfirmingReset(false);
+    setMoves([]);
+    resetClocks();
+    setModal(null);
+    setReadyWhite(false);
+    setReadyBlack(false);
   };
+
+  const handleUndo = () => {
+    dispatch('undo');
+    setMoves(m => m.slice(0, -1));
+  };
+
+  const modals = {
+    resign: {
+      title: t.resignModalTitle.replace('{name}', turnName),
+      body: t.resignModalBody,
+      confirm: t.resignModalConfirm,
+      accent: 'var(--color-error, #E84B3D)',
+      iconBg: 'var(--color-error-bg, #FEF0EF)',
+      icon: '⚑',
+      cancellable: true,
+      run: () => dispatch('resign'),
+    },
+    reset: {
+      title: t.resetConfirmTitle,
+      body: t.resetConfirmBody,
+      confirm: t.resetConfirmYes,
+      accent: 'var(--color-text-muted, #6B7A99)',
+      iconBg: 'var(--color-bg, #F4F6FB)',
+      icon: '↻',
+      cancellable: true,
+      run: handleReset,
+    },
+    draw: {
+      title: t.drawModalTitle,
+      body: t.drawModalBody.replace('{name}', turn === 'w' ? black.name : white.name),
+      confirm: t.drawModalConfirm,
+      accent: 'var(--color-teal, #1A9FAF)',
+      iconBg: 'var(--color-teal-bg, #E5F6F8)',
+      icon: '🤝',
+      cancellable: true,
+      run: () => dispatch('draw_agreed'),
+    },
+    over: lastGameOver ? {
+      title: lastGameOver.winner === 'draw' ? t.gameOverDrawTitle : t.gameOverWinTitle.replace('{name}', lastGameOver.winner === 'white' ? white.name : black.name),
+      body: t.gameOverBody.replace('{reason}', reasonLabel(lastGameOver.reason, t)).replace('{n}', String(moves.length)),
+      confirm: t.playAgain,
+      accent: 'var(--color-success, #2DAF7B)',
+      iconBg: 'var(--color-success-bg, #E6F9F2)',
+      icon: lastGameOver.winner === 'draw' ? '⚖️' : '🏆',
+      cancellable: false,
+      run: handleReset,
+    } : null,
+  };
+  const activeModal = modal ? modals[modal] : null;
 
   return (
     <div className={styles.game}>
-      <ChessPane color="black" name={black.name} gameState={gameState} dispatch={dispatch} maxSize={maxBoardSize} rotated />
-
-      <div className={styles.center}>
-        <div className={styles.status}>{turnStatus}</div>
-        {lastGameOver && (
-          <div className={styles.gameOver}>
-            <h3>
-              {lastGameOver.winner === 'draw' ? t.draw
-                : `${lastGameOver.winner === 'white' ? white.name : black.name} ${t.youWinSimple}`}
-            </h3>
-            <p>{lastGameOver.reason}</p>
-            <button className={styles.primaryBtn} onClick={() => dispatch('play_again')}>{t.playAgain}</button>
-          </div>
-        )}
-        {!lastGameOver && confirmingReset && (
-          <div className={styles.gameOver}>
-            <h3>{t.resetConfirmTitle}</h3>
-            <p>{t.resetConfirmBody}</p>
-            <div className={styles.confirmActions}>
-              <button className={styles.primaryBtn} onClick={handleConfirmReset}>{t.resetConfirmYes}</button>
-              <button className={styles.resignBtn} onClick={() => setConfirmingReset(false)}>{t.resetConfirmCancel}</button>
-            </div>
-          </div>
-        )}
-        {!lastGameOver && !confirmingReset && (
-          <div className={styles.controls}>
-            <button className={styles.resignBtn} onClick={() => dispatch('resign')}>{t.resign}</button>
-            <button className={styles.resignBtn} onClick={() => setConfirmingReset(true)}>{t.resetGame}</button>
+      {/* Played on a phone lying between two people facing each other, so
+          Black's whole card — name, badge, clock, action buttons, and its
+          ready cover — is rotated 180° to read right-side up for whoever
+          is sitting across, same as the other pass-and-play games
+          (gin rummy, crazy eights, Singapore trivia). Only this card
+          rotates; the shared board itself does not (a real board sitting
+          on a table between two players isn't rotated for either side
+          either — see the "don't flip the board" note on the board-paint
+          effect above). */}
+      <div className={`${styles.cardSlot} ${styles.cardSlotRotated}`}>
+        <PlayerCard
+          isBlack name={black.name} badgeLabel={t.blackLabel}
+          active={blackActive} clockText={mmss(clocks.b)} clockLow={lowB}
+          actionsDisabled={!blackActive}
+          onUndo={handleUndo} onOfferDraw={() => setModal('draw')} onResign={() => setModal('resign')} onReset={() => setModal('reset')}
+          t={t}
+        />
+        {/* Covers this card until BOTH players are ready, not just this one
+            — tapping only reveals this side's own confirmation, so a solo
+            "I'm ready" doesn't peek at the other side's card underneath. */}
+        {!started && (
+          <div className={styles.readyCover}>
+            <button
+              type="button"
+              className={`${styles.readyBtn} ${readyBlack ? styles.readyBtnConfirmed : ''}`}
+              disabled={readyBlack}
+              onClick={() => handleReady('black')}
+            >
+              {readyBlack ? `✓ ${t.readyConfirmed.replace('{name}', black.name)}` : t.readyButton.replace('{name}', black.name)}
+            </button>
           </div>
         )}
       </div>
 
-      <ChessPane color="white" name={white.name} gameState={gameState} dispatch={dispatch} maxSize={maxBoardSize} />
+      {showBanner && (
+        <div className={styles.bannerRow}>
+          <div className={`${styles.callout} ${calloutClass}`}>
+            <span className={styles.calloutIcon} aria-hidden="true">{calloutIcon}</span>
+            <span>{bannerText}</span>
+          </div>
+        </div>
+      )}
+
+      <canvas ref={canvasRef} className={styles.boardCanvas} />
+
+      <div className={styles.historySection}>
+        <div className={styles.historyLabel}>{t.movesLabel}</div>
+        <div className={styles.historyScroll} ref={histRef}>
+          {moves.map(m => (
+            <div key={m.n} className={`${styles.historyChip} ${!m.byWhite ? styles.historyChipBlack : ''}`}>
+              <span className={styles.historyMoveNum}>{m.n}</span>
+              <span className={styles.historyMoveText}>{m.text}</span>
+            </div>
+          ))}
+          {moves.length === 0 && <div className={styles.noMovesHint}>{t.noMovesHint}</div>}
+        </div>
+      </div>
+
+      <div className={styles.cardSlot}>
+        <PlayerCard
+          name={white.name} badgeLabel={t.whiteLabel}
+          active={whiteActive} clockText={mmss(clocks.w)} clockLow={lowW}
+          actionsDisabled={!whiteActive}
+          onUndo={handleUndo} onOfferDraw={() => setModal('draw')} onResign={() => setModal('resign')} onReset={() => setModal('reset')}
+          t={t}
+        />
+        {!started && (
+          <div className={styles.readyCover}>
+            <button
+              type="button"
+              className={`${styles.readyBtn} ${readyWhite ? styles.readyBtnConfirmed : ''}`}
+              disabled={readyWhite}
+              onClick={() => handleReady('white')}
+            >
+              {readyWhite ? `✓ ${t.readyConfirmed.replace('{name}', white.name)}` : t.readyButton.replace('{name}', white.name)}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {activeModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalSheet}>
+            <div className={styles.modalCard}>
+              <div className={styles.modalHeader}>
+                <div className={styles.modalIconWrap} style={{ background: activeModal.iconBg }} aria-hidden="true">
+                  <span style={{ color: activeModal.accent }}>{activeModal.icon}</span>
+                </div>
+                <div className={styles.modalTitle}>{activeModal.title}</div>
+              </div>
+              <div className={styles.modalBody}>{activeModal.body}</div>
+              <div className={styles.modalActions}>
+                <button type="button" className={styles.primaryBtn} onClick={activeModal.run}>{activeModal.confirm}</button>
+                {activeModal.cancellable && (
+                  <button type="button" className={styles.outlineBtn} onClick={() => setModal(null)}>{t.resetConfirmCancel}</button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

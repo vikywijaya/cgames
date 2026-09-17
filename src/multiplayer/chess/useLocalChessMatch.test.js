@@ -45,7 +45,7 @@ describe('useLocalChessMatch', () => {
   it('resign ends the game with the other color as winner', () => {
     const { result } = renderHook(() => useLocalChessMatch());
     act(() => { result.current.dispatch('resign'); }); // white to move resigns
-    expect(result.current.lastGameOver).toEqual({ winner: 'black', reason: 'White resigned' });
+    expect(result.current.lastGameOver).toEqual({ winner: 'black', reason: 'Resignation' });
   });
 
   it('play_again resets to a fresh initial position', () => {
@@ -54,5 +54,32 @@ describe('useLocalChessMatch', () => {
     act(() => { result.current.dispatch('play_again'); });
     expect(result.current.gameState.turn).toBe('w');
     expect(result.current.lastGameOver).toBe(null);
+  });
+
+  it('undo reverts the last move and returns turn to the mover', () => {
+    const { result } = renderHook(() => useLocalChessMatch());
+    act(() => { result.current.dispatch('make_move', { from: [6, 4], to: [4, 4], promotion: null }); });
+    act(() => { result.current.dispatch('undo'); });
+    expect(result.current.gameState.turn).toBe('w');
+    expect(result.current.gameState.fen.split(' ')[0]).toContain('PPPP');
+  });
+
+  it('undo with no moves played is a no-op', () => {
+    const { result } = renderHook(() => useLocalChessMatch());
+    const before = result.current.gameState;
+    act(() => { result.current.dispatch('undo'); });
+    expect(result.current.gameState.fen).toBe(before.fen);
+  });
+
+  it('draw_agreed ends the game as a draw', () => {
+    const { result } = renderHook(() => useLocalChessMatch());
+    act(() => { result.current.dispatch('draw_agreed'); });
+    expect(result.current.lastGameOver).toEqual({ winner: 'draw', reason: 'Agreed' });
+  });
+
+  it('timeout ends the game for the named winner', () => {
+    const { result } = renderHook(() => useLocalChessMatch());
+    act(() => { result.current.dispatch('timeout', { winner: 'black' }); });
+    expect(result.current.lastGameOver).toEqual({ winner: 'black', reason: 'Timeout' });
   });
 });
