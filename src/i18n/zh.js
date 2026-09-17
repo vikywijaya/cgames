@@ -293,6 +293,7 @@ export default {
     tapToAnswer: '选择一个答案！',
     answeredWaiting: '✓ 已回答 — 等待中…',
     answeredCount: '{n} / {total} 已作答',
+    timeRemaining: '剩余时间',
     whiteLabel: '白方',
     blackLabel: '黑方',
     yourTurnBadge: '轮到你了',

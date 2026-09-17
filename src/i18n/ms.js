@@ -293,6 +293,7 @@ export default {
     tapToAnswer: 'Pilih jawapan!',
     answeredWaiting: '✓ Telah dijawab — menunggu…',
     answeredCount: '{n} / {total} telah menjawab',
+    timeRemaining: 'Masa berbaki',
     whiteLabel: 'PUTIH',
     blackLabel: 'HITAM',
     yourTurnBadge: 'GILIRAN ANDA',

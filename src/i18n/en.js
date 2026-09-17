@@ -514,6 +514,7 @@ export default {
     tapToAnswer: 'Pick an answer!',
     answeredWaiting: '✓ Answered — waiting…',
     answeredCount: '{n} / {total} answered',
+    timeRemaining: 'Time remaining',
     // Chess Pass and Play (single-board, clock, undo/draw/history)
     whiteLabel: 'WHITE',
     blackLabel: 'BLACK',

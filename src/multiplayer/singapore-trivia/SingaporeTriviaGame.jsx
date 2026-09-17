@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useLocalSingaporeTriviaMatch } from './useLocalSingaporeTriviaMatch';
+import { QUESTION_TIME } from './singaporeTriviaEngine';
 import { saveScore } from '../../utils/scoreStore';
 import { buildPayload } from '../../utils/buildPayload';
 import { useTranslation } from '../../i18n/useTranslation';
@@ -57,21 +58,20 @@ function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, read
         <div className={styles.panel}>
           {name} ({seat === 0 ? 'p1' : 'p2'}){t.pointsSuffix.replace('{n}', gameState.scores[seat] || 0)}
         </div>
-        {/* The question (and countdown) is duplicated into each pane rather
-            than shown once in the shared center strip, because only this
-            pane's own wrapper carries the 180deg rotation for whichever
-            player is sitting on the "flipped" side — a single shared center
-            copy would always read upside-down to that player. The center
-            strip keeps only the progress counter and host controls, which
-            are brief enough that reading them upside-down isn't a real
-            burden. */}
+        {/* The question is duplicated into each pane rather than shown once
+            in the shared center strip, because only this pane's own wrapper
+            carries the 180deg rotation for whichever player is sitting on
+            the "flipped" side — a single shared center copy would always
+            read upside-down to that player. The countdown itself is a
+            progress bar (not text), so it doesn't have the same
+            upside-down-reading problem — it lives once in the center strip
+            instead of being duplicated here. */}
         {question && (phase === 'question' || revealed) && (
           <div className={styles.question}>
             <p className={styles.questionText}>{question.text}</p>
             {question.imageUrl && (
               <img className={styles.questionImage} src={question.imageUrl} alt="" />
             )}
-            {phase === 'question' && <p className={styles.timer}>⏱ {gameState.timeLeft}s</p>}
           </div>
         )}
         {question && (phase === 'question' || revealed) && (
@@ -301,10 +301,17 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
           {t.questionProgress.replace('{current}', String(gameState.questionIndex + 1)).replace('{total}', String(gameState.totalQuestions))}
         </div>
 
-        {/* The question text/image/countdown itself is rendered inside each
-            AnswerPane (see there for why) so it's never upside-down for
-            whichever player sits on the rotated side. The center strip only
-            keeps content that's short enough to read either way. */}
+        {/* The question text/image itself is rendered inside each AnswerPane
+            (see there for why) so it's never upside-down for whichever
+            player sits on the rotated side. The countdown is a bar, not
+            text, so it has no "upside-down" reading problem — one shared
+            copy lives here instead of being duplicated per pane. */}
+        {phase === 'question' && (
+          <div className={styles.timerBar} role="progressbar" aria-label={t.timeRemaining} aria-valuemin={0} aria-valuemax={QUESTION_TIME} aria-valuenow={gameState.timeLeft}>
+            <div className={`${styles.timerBarFill} ${gameState.timeLeft <= 5 ? styles.timerBarFillLow : ''}`} style={{ width: `${Math.max(0, (gameState.timeLeft / QUESTION_TIME) * 100)}%` }} />
+          </div>
+        )}
+
         {phase === 'question' && currentQuestion && (
           // Live "who still has to answer" indicator. Only meaningful while
           // the question is open — once we're in reveal the count is frozen

@@ -45,7 +45,21 @@
 
 .center { display: flex; flex-direction: column; align-items: center; gap: calc(2px * var(--card-scale, 1)); padding: calc(1px * var(--card-scale, 1)) 0; position: relative; }
 .progress { font-size: calc(0.75rem * var(--card-scale, 1)); text-align: center; font-weight: 600; margin: 0; }
-.timer { font-size: calc(0.85rem * var(--card-scale, 1)); text-align: center; font-weight: 700; margin: 0; }
+.timerBar {
+  width: 100%;
+  max-width: 220px;
+  height: calc(6px * var(--card-scale, 1));
+  border-radius: 999px;
+  background: var(--color-bg, #F4F6FB);
+  overflow: hidden;
+}
+.timerBarFill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--color-primary, #1155cc);
+  transition: width 1s linear;
+}
+.timerBarFillLow { background: var(--color-error, #E84B3D); }
 .question { text-align: center; }
 .questionText { font-size: calc(0.8rem * var(--card-scale, 1)); font-weight: 600; margin: 1px 0; line-height: 1.2; }
 .questionImage { max-width: 100%; max-height: calc(70px * var(--card-scale, 1)); object-fit: contain; border-radius: 5px; margin: 1px 0; }

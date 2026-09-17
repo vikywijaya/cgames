@@ -293,6 +293,7 @@ export default {
     tapToAnswer: 'ஒரு பதிலைத் தேர்ந்தெடுக்கவும்!',
     answeredWaiting: '✓ பதிலளிக்கப்பட்டது — காத்திருக்கிறது…',
     answeredCount: '{n} / {total} பதிலளித்தனர்',
+    timeRemaining: 'மீதமுள்ள நேரம்',
     whiteLabel: 'வெள்ளை',
     blackLabel: 'கருப்பு',
     yourTurnBadge: 'உங்கள் முறை',
