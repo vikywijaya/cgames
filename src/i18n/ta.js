@@ -293,7 +293,6 @@ export default {
     finish: 'முடி',
     answeredWaiting: '✓ பதிலளிக்கப்பட்டது — காத்திருக்கிறது…',
     answeredShort: '✓ பதிலளித்தது',
-    answeredCount: '{n} / {total} பதிலளித்தனர்',
     timeRemaining: 'மீதமுள்ள நேரம்',
     whiteLabel: 'வெள்ளை',
     blackLabel: 'கருப்பு',

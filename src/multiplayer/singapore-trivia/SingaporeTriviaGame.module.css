@@ -332,7 +332,6 @@
 
 .questionText { font-size: calc(1rem * var(--card-scale, 1)); font-weight: 600; margin: 0; line-height: 1.35; }
 .questionImage { max-width: 100%; max-height: calc(70px * var(--card-scale, 1)); object-fit: contain; border-radius: calc(8px * var(--card-scale, 1)); margin: 0; }
-.answeredCount { font-size: calc(0.72rem * var(--card-scale, 1)); color: #666; margin: 0; }
 .hostControls { display: flex; justify-content: center; gap: var(--sp-2); }
 .options { display: flex; flex-direction: column; gap: var(--sp-1); width: 100%; max-width: 320px; }
 .optionBtn { padding: var(--sp-2) var(--sp-3); border-radius: calc(8px * var(--card-scale, 1)); border: 1px solid #ccc; background: #fff; cursor: pointer; text-align: left; font-size: calc(0.92rem * var(--card-scale, 1)); line-height: 1.25; }

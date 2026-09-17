@@ -293,7 +293,6 @@ export default {
     finish: '结束',
     answeredWaiting: '✓ 已回答 — 等待中…',
     answeredShort: '✓ 已回答',
-    answeredCount: '{n} / {total} 已作答',
     timeRemaining: '剩余时间',
     whiteLabel: '白方',
     blackLabel: '黑方',

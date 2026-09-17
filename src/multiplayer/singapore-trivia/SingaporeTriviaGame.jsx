@@ -526,18 +526,6 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
           </div>
         )}
 
-        {phase === 'question' && currentQuestion && (
-          // Live "who still has to answer" indicator. Only meaningful while
-          // the question is open — once we're in reveal the count is frozen
-          // at whatever it was when the timer ran out, which reads as a
-          // stale "1 / 2 answered" next to the revealed answer.
-          <p className={styles.answeredCount}>
-            {t.answeredCount
-              .replace('{n}', String(gameState.answeredCount))
-              .replace('{total}', String(gameState.playerCount))}
-          </p>
-        )}
-
         {/* Reveal is the only phase with a control now: the opening question
             auto-starts on ready-up, and while a question is open there's
             nothing to press. Rendering the wrapper in a phase with no button

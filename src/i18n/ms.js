@@ -293,7 +293,6 @@ export default {
     finish: 'Selesai',
     answeredWaiting: '✓ Telah dijawab — menunggu…',
     answeredShort: '✓ Dijawab',
-    answeredCount: '{n} / {total} telah menjawab',
     timeRemaining: 'Masa berbaki',
     whiteLabel: 'PUTIH',
     blackLabel: 'HITAM',
