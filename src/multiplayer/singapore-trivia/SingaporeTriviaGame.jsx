@@ -23,8 +23,8 @@ const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 // down to just the progress counter, answered-count line, and host
 // controls.
 const PAGE_CHROME_ABOVE_GAME = 60;
-const PANE_HEIGHT = 245; // panel label + question/timer + 4 option rows + resign pill, unscaled (measured + margin)
-const CENTER_HEIGHT = 90; // progress/answered-count/controls strip, unscaled (measured + margin)
+const PANE_HEIGHT = 275; // player card + question + 4 option rows, unscaled (measured + margin)
+const CENTER_HEIGHT = 80; // progress/timer-bar/answered-count/controls strip, unscaled (measured + margin)
 const BOTTOM_MARGIN = 15;
 const MIN_SCALE = 1;
 const MAX_SCALE = 2;
@@ -45,19 +45,99 @@ function clampScale(scale) {
   return Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
 }
 
-function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, ready, onReady, onResignRequest }) {
+// Same pill button as Chess/Xiangqi's: icon plus a short visible label
+// rather than an icon-only circle, easier to scan and tap correctly for the
+// senior-mobile audience. `ariaLabel` carries the fuller description while
+// `label` is the short text actually shown.
+function PillButton({ label, ariaLabel, tone, onClick, children }) {
+  return (
+    <button
+      type="button"
+      className={`${styles.pillBtn} ${tone === 'danger' ? styles.pillBtnDanger : ''}`}
+      aria-label={ariaLabel}
+      title={ariaLabel}
+      onClick={onClick}
+    >
+      <span aria-hidden="true">{children}</span>
+      <span>{label}</span>
+    </button>
+  );
+}
+PillButton.propTypes = {
+  label: PropTypes.string.isRequired,
+  ariaLabel: PropTypes.string.isRequired,
+  tone: PropTypes.oneOf(['neutral', 'danger']),
+  onClick: PropTypes.func.isRequired,
+  children: PropTypes.node.isRequired,
+};
+
+// Mirrors Chess/Xiangqi's PlayerCard: avatar, name, status badge, a chip on
+// the right, and the per-player action row. Chess puts the player's clock in
+// that chip; trivia has no per-player clock (its countdown is the one shared
+// progress bar in the center), so the chip carries the running score
+// instead. `active` means "still has to answer this question" — the trivia
+// equivalent of Chess's "your turn", since both seats answer at once.
+function PlayerCard({ seat, name, score, statusLabel, active, onResign, onReset, t }) {
+  return (
+    <div className={`${styles.card} ${active ? styles.cardActive : ''}`}>
+      <div className={styles.cardHeader}>
+        <div className={`${styles.avatar} ${seat === 1 ? styles.avatarP2 : ''}`} aria-hidden="true">
+          {seat === 0 ? 'P1' : 'P2'}
+        </div>
+        <div className={styles.nameCol}>
+          <div className={styles.nameText}>{name}</div>
+          {statusLabel && (
+            <div className={styles.badgeRow}>
+              <span className={`${styles.badge} ${active ? styles.badgeActive : ''}`}>{statusLabel}</span>
+            </div>
+          )}
+        </div>
+        <div className={styles.scoreChip}>
+          <span className={styles.scoreIcon} aria-hidden="true">⭐</span>
+          <span className={styles.scoreText}>{t.pointsChip.replace('{n}', String(score))}</span>
+        </div>
+      </div>
+      <div className={styles.actionsRow}>
+        <PillButton label={t.resign} ariaLabel={t.resign} tone="danger" onClick={onResign}>⚑</PillButton>
+        <PillButton label={t.resetGame} ariaLabel={t.resetGame} onClick={onReset}>↻</PillButton>
+      </div>
+    </div>
+  );
+}
+PlayerCard.propTypes = {
+  seat: PropTypes.oneOf([0, 1]).isRequired,
+  name: PropTypes.string.isRequired,
+  score: PropTypes.number.isRequired,
+  statusLabel: PropTypes.string,
+  active: PropTypes.bool.isRequired,
+  onResign: PropTypes.func.isRequired,
+  onReset: PropTypes.func.isRequired,
+  t: PropTypes.object.isRequired,
+};
+
+function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, ready, onReady, onResignRequest, onResetRequest }) {
   const myAnswer = gameState.answers[seat];
   const phase = gameState.phase;
   const canAnswer = started && phase === 'question' && myAnswer === null;
   const revealed = phase === 'reveal' || phase === 'finished';
   const question = gameState.currentQuestion;
 
+  // The status badge under the name replaces the old free-floating
+  // "Pick an answer!" / "Answered" notes below the options. On reveal it
+  // shows what this player just earned, so each card carries its own
+  // outcome rather than only the running total.
+  const pointsThisQuestion = gameState.pointsGained?.[seat] || 0;
+  let statusLabel = null;
+  // answeredShort, not answeredWaiting — the full "✓ Answered — waiting…"
+  // wraps to a second line inside the badge, which grows both cards enough
+  // to push the last answer option off a 375x812 viewport. Same reason
+  // Chess carries undoShort/offerDrawShort alongside its full labels.
+  if (phase === 'question') statusLabel = myAnswer === null ? t.tapToAnswer : t.answeredShort;
+  else if (revealed && pointsThisQuestion > 0) statusLabel = `+${pointsThisQuestion}`;
+
   return (
     <div className={`${styles.paneSlot} ${rotated ? styles.paneRotated : ''}`}>
       <div className={styles.pane}>
-        <div className={styles.panel}>
-          {name} ({seat === 0 ? 'p1' : 'p2'}){t.pointsSuffix.replace('{n}', gameState.scores[seat] || 0)}
-        </div>
         {/* The question is duplicated into each pane rather than shown once
             in the shared center strip, because only this pane's own wrapper
             carries the 180deg rotation for whichever player is sitting on
@@ -94,24 +174,27 @@ function AnswerPane({ seat, name, gameState, dispatch, t, rotated, started, read
             })}
           </div>
         )}
-        {phase === 'question' && myAnswer !== null && (
-          <p className={styles.waitingNote}>{t.answeredWaiting}</p>
-        )}
-        {phase === 'question' && myAnswer === null && (
-          <p className={styles.waitingNote}>{t.tapToAnswer}</p>
-        )}
-        {/* Resign is available on both panes whenever the match isn't over —
+        {/* The card sits after the options so it reads as the footer of this
+            player's own half — and because .paneSlot carries the 180deg
+            rotation for the flipped side, DOM-last lands visually below the
+            options for BOTH players from where each of them is sitting.
+            Resign/Reset live on both cards whenever the match isn't over —
             unlike Chess/Xiangqi/Gin Rummy/Crazy Eights, trivia has no strict
             turn order (both seats can answer the same question at once), so
-            gating Resign to "whoever is on turn" doesn't apply here. Do not
+            gating them to "whoever is on turn" doesn't apply here. Do not
             change this to an isActive-style gate without re-checking this.
-            It opens a confirmation modal (owned by the parent) rather than
-            dispatching immediately, matching chess/xiangqi's resign flow. */}
-        {!gameState.isGameOver && (
-          <button type="button" className={`${styles.pillBtn} ${styles.pillBtnDanger}`} onClick={() => onResignRequest(seat)}>
-            {t.resign}
-          </button>
-        )}
+            Both open a confirmation modal (owned by the parent) rather than
+            dispatching immediately, matching chess/xiangqi's flow. */}
+        <PlayerCard
+          seat={seat}
+          name={name}
+          score={gameState.scores[seat] || 0}
+          statusLabel={statusLabel}
+          active={canAnswer}
+          onResign={() => onResignRequest(seat)}
+          onReset={onResetRequest}
+          t={t}
+        />
       </div>
       {/* Covers this pane until BOTH players are ready, not just this one —
           tapping only reveals this side's own confirmation, so a solo
@@ -143,6 +226,7 @@ AnswerPane.propTypes = {
   ready: PropTypes.bool.isRequired,
   onReady: PropTypes.func.isRequired,
   onResignRequest: PropTypes.func.isRequired,
+  onResetRequest: PropTypes.func.isRequired,
 };
 
 export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
@@ -232,22 +316,35 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
   // flips text wrapping back and forth), this guarantees the effect gives up
   // after a bounded number of corrections per layout-affecting change
   // instead of looping indefinitely.
+  //
+  // That cap is deliberately asymmetric — it limits growth only. Growth is
+  // the direction that oscillates: a bigger scale can re-wrap the question
+  // onto another line, which grows the height, which asks to shrink again.
+  // Shrinking is what resolves an actual overflow, is monotonic, and is
+  // bounded below by MIN_SCALE (once clamped there, ideal === cardScale and
+  // the epsilon check stops it), so it always terminates on its own.
+  // Capping it too would let the effect give up mid-overshoot and leave the
+  // game overflowing the viewport, which is exactly what this whole
+  // mechanism exists to prevent.
   useLayoutEffect(() => {
     rescaleAttemptsRef.current = 0;
   }, [phase, currentQuestion, lastGameOver, started]);
 
   useLayoutEffect(() => {
-    if (rescaleAttemptsRef.current >= 5) return;
     const el = gameRef.current;
     if (!el) return;
     const height = el.getBoundingClientRect().height;
     if (height <= 0) return;
     const available = Math.max(120, window.innerHeight - PAGE_CHROME_ABOVE_GAME - BOTTOM_MARGIN);
     const ideal = clampScale(cardScale * (available / height));
-    if (Math.abs(ideal - cardScale) / cardScale > 0.02) {
+    if (Math.abs(ideal - cardScale) / cardScale <= 0.02) return;
+
+    const growing = ideal > cardScale;
+    if (growing) {
+      if (rescaleAttemptsRef.current >= 5) return;
       rescaleAttemptsRef.current += 1;
-      setCardScale(ideal);
     }
+    setCardScale(ideal);
   }, [cardScale, phase, currentQuestion, lastGameOver, started]);
 
   const ranked = players
@@ -293,7 +390,8 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
     <div ref={gameRef} className={styles.game} style={{ '--card-scale': cardScale }}>
       <AnswerPane
         seat={1} name={p2.name} gameState={gameState} dispatch={dispatch} t={t} rotated
-        started={started} ready={readyP2} onReady={() => handleReady(1)} onResignRequest={setResignSeat}
+        started={started} ready={readyP2} onReady={() => handleReady(1)}
+        onResignRequest={setResignSeat} onResetRequest={() => setConfirmingReset(true)}
       />
 
       <div className={styles.center}>
@@ -397,14 +495,12 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
           </div>
         )}
 
-        {!lastGameOver && !confirmingReset && resignSeat === null && (
-          <button type="button" className={styles.pillBtn} onClick={() => setConfirmingReset(true)}>{t.resetGame}</button>
-        )}
       </div>
 
       <AnswerPane
         seat={0} name={p1.name} gameState={gameState} dispatch={dispatch} t={t}
-        started={started} ready={readyP1} onReady={() => handleReady(0)} onResignRequest={setResignSeat}
+        started={started} ready={readyP1} onReady={() => handleReady(0)}
+        onResignRequest={setResignSeat} onResetRequest={() => setConfirmingReset(true)}
       />
     </div>
   );

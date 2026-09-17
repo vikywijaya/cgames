@@ -506,6 +506,7 @@ export default {
     waitingForHost: 'Waiting for host to start the next question…',
     questionProgress: 'Q {current} / {total}',
     pointsSuffix: ' — {n} pt',
+    pointsChip: '{n} pt',
     trophyYouWin: '🏆 You Win!',
     trophyNamedWins: '🏆 {name} Wins!',
     reveal: 'Reveal',
@@ -513,6 +514,7 @@ export default {
     finish: 'Finish',
     tapToAnswer: 'Pick an answer!',
     answeredWaiting: '✓ Answered — waiting…',
+    answeredShort: '✓ Answered',
     answeredCount: '{n} / {total} answered',
     timeRemaining: 'Time remaining',
     // Chess Pass and Play (single-board, clock, undo/draw/history)
