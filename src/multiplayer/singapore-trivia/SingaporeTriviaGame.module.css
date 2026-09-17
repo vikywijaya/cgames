@@ -18,6 +18,8 @@
      strong ease-out for entrances. Built-in `ease-out` is too weak to read
      as deliberate. */
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  /* For movement that travels and comes back, rather than an entrance. */
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -326,6 +328,48 @@
    One primary-tinted pill, for advancing the round (Next Question /
    Finish). Reveal used to live here too; the answer now shows itself once
    both players have answered or the timer runs out. */
+/* Replaces the "Next Question" pill with an arrow. Height is deliberately
+   the SAME calc as .pillBtnPrimary: .center pins its min-height to that
+   figure so the strip doesn't change size between phases, and a taller or
+   shorter control here would put the whole-screen resize back. Kept wide
+   rather than a tight circle so the tap target stays comfortable now that
+   the words are gone. */
+.nextBtn {
+  height: calc(34px * var(--card-scale, 1));
+  min-width: calc(72px * var(--card-scale, 1));
+  padding: 0 calc(18px * var(--card-scale, 1));
+  border-radius: 999px;
+  border: none;
+  background: var(--color-primary, #1155cc);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* The glyph is the only thing that moves; the button itself holds still
+     so the tap target never shifts under a finger. */
+  overflow: hidden;
+}
+.nextArrow {
+  font-size: calc(1.15rem * var(--card-scale, 1));
+  line-height: 1;
+  font-weight: 700;
+  animation: nextNudge 2s var(--ease-in-out-strong) infinite;
+}
+/* Nudge, then rest. The movement occupies only the first quarter of the
+   cycle so this reads as an occasional "carry on" rather than something
+   permanently in motion next to an answer the players are still reading. */
+@keyframes nextNudge {
+  0%   { transform: translateX(0); }
+  12%  { transform: translateX(4px); }
+  24%  { transform: translateX(0); }
+  100% { transform: translateX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* An ambient loop is the first thing this setting means to switch off. */
+  .nextArrow { animation: none; }
+}
+
 .pillBtnPrimary {
   height: calc(34px * var(--card-scale, 1));
   padding: 0 calc(20px * var(--card-scale, 1));

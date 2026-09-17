@@ -508,11 +508,32 @@ export function SingaporeTriviaGame({ memberId, callbackUrl, accessToken }) {
             centre row and wraps it onto a second line. */}
         {!lastGameOver && started && (phase === 'waiting' || phase === 'reveal') && (
           <div className={styles.hostControls}>
+            {/* An arrow rather than the words "Next Question". The label
+                still exists for screen readers and as the long-press
+                tooltip — dropping the visible text must not drop the
+                accessible name. The arrow nudges forward on a slow loop so
+                it reads as "carry on" without a caption; see .nextArrow. */}
             {phase === 'waiting' && (
-              <button type="button" className={styles.pillBtnPrimary} onClick={() => dispatch('start_question', {})}>{t.nextQuestion}</button>
+              <button
+                type="button"
+                className={styles.nextBtn}
+                aria-label={t.nextQuestion}
+                title={t.nextQuestion}
+                onClick={() => dispatch('start_question', {})}
+              >
+                <span className={styles.nextArrow} aria-hidden="true">→</span>
+              </button>
             )}
             {phase === 'reveal' && gameState.questionIndex < gameState.totalQuestions - 1 && (
-              <button type="button" className={styles.pillBtnPrimary} onClick={() => dispatch('start_question', {})}>{t.nextQuestion}</button>
+              <button
+                type="button"
+                className={styles.nextBtn}
+                aria-label={t.nextQuestion}
+                title={t.nextQuestion}
+                onClick={() => dispatch('start_question', {})}
+              >
+                <span className={styles.nextArrow} aria-hidden="true">→</span>
+              </button>
             )}
             {phase === 'reveal' && gameState.questionIndex >= gameState.totalQuestions - 1 && (
               <button type="button" className={styles.pillBtnPrimary} onClick={() => dispatch('next_question', {})}>{t.finish}</button>
