@@ -41,10 +41,12 @@ export function MultiplayerGames({ t, games, memberId, callbackUrl, accessToken,
             }}
             aria-label={game.comingSoon ? `${game.title} — ${t.app.comingSoon}` : `Play ${game.title}`}
           >
+            {/* Plain text in the corner chip, not a nested .comingSoonBadge:
+                that badge is a 40px footer pill sized for the single-player
+                card's play-button slot, and these cards have no footer. Put
+                inside this chip it was a pill within a pill. */}
             <span className={appStyles.gameDomain}>
-              {game.comingSoon
-                ? <span className={appStyles.comingSoonBadge}>{t.app.comingSoon}</span>
-                : t.app.multiplayerPlayers}
+              {game.comingSoon ? t.app.comingSoon : t.app.multiplayerPlayers}
             </span>
             <div className={appStyles.gameIconBox} aria-hidden="true">
               {getCoverImage(game.slug)
