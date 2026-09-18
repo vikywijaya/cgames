@@ -1081,7 +1081,16 @@ export function App() {
               <span className={styles.focusIconBox} aria-hidden="true">👥</span>
               <span className={styles.focusHeadText}>
                 <span className={styles.focusTitle}>{t.app.playWithFriend}</span>
-                <span className={styles.focusEyebrow}>{t.app.playWithFriendDesc}</span>
+                {/* Counted from the catalog, not written into the string:
+                    it was hardcoded "5" and already wrong once the two card
+                    games were disabled. Derived, it can't drift again when
+                    they come back. */}
+                <span className={styles.focusEyebrow}>
+                  {t.app.playWithFriendDesc.replace(
+                    '{count}',
+                    String(MULTIPLAYER_GAMES.filter(g => !g.comingSoon).length),
+                  )}
+                </span>
               </span>
             </span>
             <span className={styles.focusFooter}>

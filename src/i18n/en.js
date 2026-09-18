@@ -65,9 +65,9 @@ export default {
     favoritesEmptyHomeDesc: 'Tap the ♥ on any game to pin it here.',
     favoritesEmptyHomeCta: 'Browse games to add favorites',
     playWithFriend: 'Play with a Friend',
-    playWithFriendDesc: '5 online 2-player games — chess, cards & more.',
+    playWithFriendDesc: '{count} two-player games to play on one device.',
     multiplayerTitle: 'Play with a Friend',
-    multiplayerSubtitle: 'Tap a game to create or join with a 6-character room code — no account needed.',
+    multiplayerSubtitle: 'Two players share one device — tap a game to start.',
     multiplayerPlayers: '2 Players',
     // Daily challenge
     todaysChallenge: "Today's Challenge",
