@@ -48,6 +48,16 @@ function initialBoard() {
   return board;
 }
 
+/**
+ * The next index when sowing for `seat`: one step anticlockwise, skipping
+ * the OPPONENT's store (each player sows through their own store only).
+ */
+function nextIndex(seat, i) {
+  let n = (i + 1) % BOARD_SIZE;
+  if (n === STORE[1 - seat]) n = (n + 1) % BOARD_SIZE;
+  return n;
+}
+
 export function createGame({ maxSowSteps = MAX_SOW_STEPS } = {}) {
   let board = initialBoard();
   let turn = 0;
@@ -74,5 +84,85 @@ export function createGame({ maxSowSteps = MAX_SOW_STEPS } = {}) {
     winner = snapshot.winner ?? null;
   }
 
-  return { state, legalMoves, restore };
+  function move(seat, hole) {
+    if (isGameOver)               return { ok: false, reason: 'game-over', steps: [], state: state() };
+    if (seat !== turn)            return { ok: false, reason: 'not-your-turn', steps: [], state: state() };
+    if (!ownsHouse(seat, hole))   return { ok: false, reason: 'not-your-house', steps: [], state: state() };
+    if (board[hole] === 0)        return { ok: false, reason: 'empty-house', steps: [], state: state() };
+
+    const steps = [];
+    let sowCount = 0;
+    let extraTurn = false;
+    const initialBoard = [...board]; // save initial state to check capture rule
+
+    let hand = board[hole];
+    let current = hole;
+    board[hole] = 0;
+    steps.push({ type: 'pickup', hole, count: hand });
+
+    // Outer loop runs once per relay; the inner loop sows the current hand.
+    for (;;) {
+      let forced = false;
+      while (hand > 0) {
+        if (sowCount >= maxSowSteps) { forced = true; break; }
+        current = nextIndex(seat, current);
+        board[current] += 1;
+        hand -= 1;
+        sowCount += 1;
+        steps.push({ type: 'sow', hole: current, seedsRemaining: hand });
+      }
+
+      if (forced) {
+        // Return the undistributed hand to the mover's store so seeds are
+        // conserved, then end the move. See MAX_SOW_STEPS.
+        board[STORE[seat]] += hand;
+        steps.push({ type: 'forceEnd', seat, seedsReturned: hand });
+        hand = 0;
+        break;
+      }
+
+      // Rule 1 — landed in own store: extra turn.
+      if (current === STORE[seat]) {
+        extraTurn = true;
+        steps.push({ type: 'extraTurn', seat });
+        break;
+      }
+
+      // Rule 2 — landed on a hole that already held seeds: lift and sow on.
+      if (board[current] > 1) {
+        hand = board[current];
+        board[current] = 0;
+        steps.push({ type: 'relay', hole: current, count: hand });
+        continue;
+      }
+
+      // board[current] === 1, so the hole was empty before this seed landed.
+      const facing = opposite(current);
+
+      // Rule 3 — empty house on the mover's own side, with seeds opposite.
+      // Check the INITIAL state of the opposite house, not the current state
+      // (in case we sowed to it during this move).
+      if (ownsHouse(seat, current) && initialBoard[facing] > 0) {
+        const count = board[current] + board[facing];
+        board[current] = 0;
+        board[facing] = 0;
+        board[STORE[seat]] += count;
+        steps.push({
+          type: 'capture', hole: current, oppositeHole: facing,
+          count, store: STORE[seat],
+        });
+        break;
+      }
+
+      // Rule 3 boundary (opposite house empty) and rule 4 (mati on the
+      // opponent's side) both simply end the move with the seed left in place.
+      break;
+    }
+
+    if (!extraTurn) turn = 1 - seat;
+
+    return { ok: true, steps, state: state() };
+  }
+
+  return { state, legalMoves, move, restore };
 }
