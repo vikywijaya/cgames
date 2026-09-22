@@ -108,24 +108,32 @@ describe('congkakEngine sowing', () => {
     expect(steps[3]).toEqual({ type: 'sow', hole: 3, seedsRemaining: 0 });
   });
 
-  it('skips the opponent store while sowing', () => {
+  it('skips the opponent store while sowing, and captures live across the wrap', () => {
     const engine = createGame();
-    // P1 sows from house 6; next holes are own store 7, then 8..14, then
-    // must SKIP store 15 and wrap to house 0.
+    // P1 sows 10 from house 6: store 7, then 8..14, SKIP store 15, wrap to
+    // house 0, then house 1. The 10th seed lands on house 1 — empty before
+    // this seed, a legal Rule 3 capture. Its opposite, house 13, already
+    // holds a seed sown earlier in this SAME move (the 7th of the 10):
+    // captures read the board's CURRENT state, so that seed is swept too.
     engine.restore({ board: [0,0,0,0,0,0,10, 0, 0,0,0,0,0,0,0, 0], turn: 0 });
     const { state } = engine.move(0, 6);
     expect(state.board[15]).toBe(0);   // opponent store untouched
-    expect(state.board[7]).toBe(1);    // own store got one
+    expect(state.board[1]).toBe(0);    // captured: was empty, now swept
+    expect(state.board[13]).toBe(0);   // captured: its seed swept too
+    expect(state.board[7]).toBe(3);    // 1 passed through + 2 captured
     expect(state.board[0]).toBe(1);    // wrapped past 15 into house 0
-    expect(state.board[1]).toBe(1);
   });
 
-  it('skips the opponent store for P2 as well', () => {
+  it('skips the opponent store for P2 as well, and captures live across the wrap', () => {
     const engine = createGame();
+    // Mirror of the P1 case above: the 10th seed lands on house 9 (empty),
+    // capturing house 5, which this same move already sowed a seed into.
     engine.restore({ board: [0,0,0,0,0,0,0, 0, 0,0,0,0,0,0,10, 0], turn: 1 });
     const { state } = engine.move(1, 14);
     expect(state.board[7]).toBe(0);    // P1 store untouched
-    expect(state.board[15]).toBe(1);   // own store got one
+    expect(state.board[9]).toBe(0);    // captured: was empty, now swept
+    expect(state.board[5]).toBe(0);    // captured: its seed swept too
+    expect(state.board[15]).toBe(3);   // 1 passed through + 2 captured
     expect(state.board[0]).toBe(1);
   });
 });

@@ -93,7 +93,6 @@ export function createGame({ maxSowSteps = MAX_SOW_STEPS } = {}) {
     const steps = [];
     let sowCount = 0;
     let extraTurn = false;
-    const initialBoard = [...board]; // save initial state to check capture rule
 
     let hand = board[hole];
     let current = hole;
@@ -140,9 +139,12 @@ export function createGame({ maxSowSteps = MAX_SOW_STEPS } = {}) {
       const facing = opposite(current);
 
       // Rule 3 — empty house on the mover's own side, with seeds opposite.
-      // Check the INITIAL state of the opposite house, not the current state
-      // (in case we sowed to it during this move).
-      if (ownsHouse(seat, current) && initialBoard[facing] > 0) {
+      // Read board[facing] LIVE, not a pre-move snapshot: a long sow can
+      // wrap all the way around and drop a seed into `facing` earlier in
+      // this SAME move (see the "skips the opponent store" tests) — that
+      // seed is legitimately sitting there now and is captured too, same as
+      // a real physical board where sowing mutates holes as you go.
+      if (ownsHouse(seat, current) && board[facing] > 0) {
         const count = board[current] + board[facing];
         board[current] = 0;
         board[facing] = 0;
