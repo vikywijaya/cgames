@@ -136,7 +136,13 @@ export function CongkakGame({ memberId, callbackUrl, accessToken }) {
 
   useEffect(() => {
     if (lastGameOver) playComplete();
-  }, [lastGameOver, playComplete]);
+    // playComplete is a fresh closure every render (useSoundFx isn't
+    // memoized) — depending on it here would refire this effect on every
+    // re-render while the game stays over, e.g. on every animation tick of
+    // the winning move's own sow. Only lastGameOver's identity (a fresh
+    // object per distinct game-over event) should retrigger this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lastGameOver]);
 
   const onHoleTap = useCallback(hole => {
     if (animating) return;
