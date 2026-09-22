@@ -2,12 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { MULTIPLAYER_GAMES, multiplayerGameUrl } from './multiplayerGames';
 
 describe('multiplayerGames', () => {
-  it('lists exactly the 5 ready games with expected ids and slugs', () => {
+  it('lists exactly the 6 ready games with expected ids and slugs', () => {
     expect(MULTIPLAYER_GAMES.map(g => ({ id: g.id, slug: g.slug }))).toEqual([
       { id: 'mp-chess', slug: 'chess' },
       { id: 'mp-xiangqi', slug: 'xiangqi' },
       { id: 'mp-gin-rummy', slug: 'gin-rummy' },
       { id: 'mp-crazy-eights', slug: 'crazy-eights' },
+      { id: 'mp-congkak', slug: 'congkak' },
       { id: 'mp-singapore-trivia', slug: 'singapore-trivia' },
     ]);
   });
