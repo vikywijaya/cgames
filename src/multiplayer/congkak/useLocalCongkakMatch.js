@@ -55,8 +55,9 @@ export function useLocalCongkakMatch() {
       // Unlike a move, a resignation can come from the seat that is not on
       // turn, so it is driven by payload.seat rather than engine turn order.
       const winner = 1 - payload.seat;
+      engine.restore({ ...engine.state(), isGameOver: true, winner });
       setLastGameOver({ winner, reason: 'Resigned' });
-      setGameState(prev => ({ ...prev, isGameOver: true, winner }));
+      setGameState(engine.state());
       return;
     }
 

@@ -104,4 +104,13 @@ describe('useLocalCongkakMatch', () => {
     act(() => { result.current.dispatch('move', { seat: 0, hole: 6 }); });
     expect(result.current.lastGameOver).toEqual({ winner: 'draw', reason: 'Draw' });
   });
+
+  it('resign syncs the engine itself, so a later move dispatch cannot revive the match', () => {
+    const { result } = renderHook(() => useLocalCongkakMatch());
+    act(() => { result.current.dispatch('resign', { seat: 0 }); });
+    expect(result.current.gameState.isGameOver).toBe(true);
+    act(() => { result.current.dispatch('move', { seat: 1, hole: 8 }); });
+    expect(result.current.gameState.isGameOver).toBe(true);
+    expect(result.current.lastGameOver).toEqual({ winner: 1, reason: 'Resigned' });
+  });
 });
