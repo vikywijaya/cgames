@@ -223,6 +223,7 @@ export default {
     'mp-gin-rummy': { title: '金拉米纸牌', description: '在这款经典双人纸牌游戏中抽牌、弃牌并叫牌。' },
     'mp-crazy-eights': { title: 'Crazy Eights 纸牌', description: '匹配花色或点数，出百搭8获胜。' },
     'mp-singapore-trivia': { title: '新加坡问答', description: '与朋友比赛回答新加坡主题的问答题。' },
+    'mp-congkak': { title: '播棋 (Congkak)', description: '两人共用一副棋盘的传统播种棋。' },
   },
 
   multiplayer: {
@@ -330,5 +331,16 @@ export default {
     // 象棋轮流对战（复用上方大部分国际象棋按键）
     redLabel: '红方',
     noMovesHintXiangqi: '红方先走——点击棋子查看可走的位置。',
+    // Congkak
+    holeYours: '你的第 {n} 格，{seeds} 颗',
+    holeOpponent: '对手第 {n} 格，{seeds} 颗',
+    storeLabel: '{p} 大格，{seeds} 颗',
+    namedWins: '{name} 获胜！',
+    reasonMostSeeds: '棋子最多',
+    reasonDraw: '平分',
+    reasonResigned: '认输',
+    announceCapture: '吃掉 {n} 颗',
+    announceExtraTurn: '再走一步',
+    announceSown: '已播种',
   },
 };

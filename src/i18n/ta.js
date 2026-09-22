@@ -223,6 +223,7 @@ export default {
     'mp-gin-rummy': { title: 'ஜின் ரம்மி', description: 'இந்த கிளாசிக் இரு-வீரர் கார்டு விளையாட்டில் இழுத்து, கைவிட்டு, நாக் செய்யுங்கள்.' },
     'mp-crazy-eights': { title: 'கிரேசி எய்ட்ஸ்', description: 'சூட் அல்லது தரத்தைப் பொருத்தி, வெல்ல வைல்டு எட்டுகளை விளையாடுங்கள்.' },
     'mp-singapore-trivia': { title: 'சிங்கப்பூர் வினாடி வினா', description: 'சிங்கப்பூர் தொடர்பான வினாடி வினா கேள்விகளுக்கு நண்பருடன் போட்டியிடுங்கள்.' },
+    'mp-congkak': { title: 'பல்லாங்குழி (Pallanguzhi)', description: 'இருவருக்கான பாரம்பரிய விளையாட்டு — ஒரே பலகையைப் பகிருங்கள்.' },
   },
 
   multiplayer: {
@@ -330,5 +331,16 @@ export default {
     // சியாங்கி பாஸ் அண்ட் பிளே (மேலே உள்ள செஸ் விசைகளில் பெரும்பாலானவற்றை மீண்டும் பயன்படுத்துகிறது)
     redLabel: 'சிவப்பு',
     noMovesHintXiangqi: 'சிவப்பு முதலில் நகரும் — காயை தட்டி அது எங்கு செல்லும் எனப் பாருங்கள்.',
+    // Congkak
+    holeYours: 'உங்கள் குழி {n}, {seeds} விதைகள்',
+    holeOpponent: 'எதிராளி குழி {n}, {seeds} விதைகள்',
+    storeLabel: '{p} கிடங்கு, {seeds} விதைகள்',
+    namedWins: '{name} வெற்றி!',
+    reasonMostSeeds: 'அதிக விதைகள்',
+    reasonDraw: 'சமநிலை',
+    reasonResigned: 'விலகினார்',
+    announceCapture: '{n} விதைகள் கைப்பற்றப்பட்டன',
+    announceExtraTurn: 'கூடுதல் முறை',
+    announceSown: 'விதைக்கப்பட்டது',
   },
 };

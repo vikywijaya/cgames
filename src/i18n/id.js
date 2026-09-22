@@ -223,6 +223,7 @@ export default {
     'mp-gin-rummy': { title: 'Gin Rummy', description: 'Ambil kartu, buang, dan "knock" dalam permainan kartu klasik dua pemain ini.' },
     'mp-crazy-eights': { title: 'Crazy Eights', description: 'Cocokkan jenis atau angka kartu, dan mainkan delapan liar untuk menang.' },
     'mp-singapore-trivia': { title: 'Trivia Singapura', description: 'Berlomba dengan teman menjawab soal trivia bertema Singapura.' },
+    'mp-congkak': { title: 'Congklak', description: 'Permainan tradisional untuk dua orang — berbagi satu papan.' },
   },
 
   multiplayer: {
@@ -330,5 +331,16 @@ export default {
     // Xiangqi Pass and Play (memakai ulang sebagian besar kunci Catur di atas)
     redLabel: 'MERAH',
     noMovesHintXiangqi: 'Merah jalan duluan — ketuk bidak untuk melihat ke mana ia bisa bergerak.',
+    // Congkak
+    holeYours: 'Lubang Anda {n}, {seeds} biji',
+    holeOpponent: 'Lubang lawan {n}, {seeds} biji',
+    storeLabel: 'Lumbung {p}, {seeds} biji',
+    namedWins: '{name} menang!',
+    reasonMostSeeds: 'Biji terbanyak',
+    reasonDraw: 'Skor seri',
+    reasonResigned: 'Menyerah',
+    announceCapture: 'Menangkap {n} biji',
+    announceExtraTurn: 'Giliran gratis',
+    announceSown: 'Biji ditabur',
   },
 };
