@@ -6,6 +6,8 @@ vi.mock('../../utils/buildPayload', () => ({ buildPayload: vi.fn(() => ({ mocked
 
 import { CongkakGame } from './CongkakGame';
 
+const originalMatchMedia = window.matchMedia;
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.useFakeTimers();
@@ -14,6 +16,8 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers();
+  // Safety net in case a test throws before its own inline restore runs.
+  window.matchMedia = originalMatchMedia;
 });
 
 /** Run the whole sowing animation to completion. */
@@ -25,7 +29,7 @@ describe('CongkakGame board wiring', () => {
   it('starts with P1 to move — only P1 houses are tappable', () => {
     render(<CongkakGame memberId="m-1" />);
     expect(screen.getByLabelText(/Your hole 1, 7 seeds/i)).toBeEnabled();
-    expect(screen.getByLabelText(/Opponent hole 1, 7 seeds/i)).toBeDisabled();
+    expect(screen.getByLabelText(/Opponent hole 1, 7 seeds/i)).toHaveAttribute('aria-disabled', 'true');
   });
 
   it('tapping a legal hole sows and updates the board once the animation finishes', () => {
@@ -44,9 +48,28 @@ describe('CongkakGame board wiring', () => {
     render(<CongkakGame memberId="m-1" />);
     fireEvent.click(screen.getByLabelText(/Your hole 1, 7 seeds/i));
     act(() => { vi.advanceTimersByTime(120); });
-    // mid-animation: every hole is disabled
-    expect(screen.getByLabelText(/Your hole 2/i)).toBeDisabled();
+    // mid-animation: every hole is aria-disabled (not natively disabled, so
+    // focus isn't force-blurred — the spec calls for aria-disabled here).
+    expect(screen.getByLabelText(/Your hole 2/i)).toHaveAttribute('aria-disabled', 'true');
     finishAnimation();
+  });
+
+  it('resolves a move instantly under prefers-reduced-motion, with no animation delay', () => {
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation(query => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    }));
+
+    render(<CongkakGame memberId="m-1" />);
+    fireEvent.click(screen.getByLabelText(/Your hole 3, 7 seeds/i));
+    // No finishAnimation()/timer advance needed — reduced motion resolves
+    // synchronously inside the effect, not via setTimeout.
+    expect(screen.getByLabelText(/Opponent hole 3, 0 seeds/i)).toBeInTheDocument();
+
+    window.matchMedia = originalMatchMedia;
   });
 
   it('disables Undo until a move has been made, then enables it', () => {

@@ -99,6 +99,7 @@ export function CongkakGame({ memberId, callbackUrl, accessToken }) {
   const timerRef = useRef(null);
   const reportedRef = useRef(false);
   const startedAtRef = useRef(Date.now());
+  const playAgainRef = useRef(null);
 
   // Keep the visible board in step with the engine whenever no animation is
   // running (undo, reset, resign).
@@ -163,6 +164,13 @@ export function CongkakGame({ memberId, callbackUrl, accessToken }) {
     // object per distinct game-over event) should retrigger this.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastGameOver]);
+
+  // Move focus into the game-over modal so keyboard/screen-reader users get
+  // a signal the match ended, rather than being left on whatever the last
+  // focused (now aria-disabled) hole was.
+  useEffect(() => {
+    if (lastGameOver && !animating) playAgainRef.current?.focus();
+  }, [lastGameOver, animating]);
 
   // Fire the CaritaHub completion payload exactly once per match. Scored from
   // P1's perspective: on a shared device, P1 is the member of record.
@@ -270,7 +278,7 @@ export function CongkakGame({ memberId, callbackUrl, accessToken }) {
             </h2>
             <p className={styles.modalReason}>{reasonLabel(lastGameOver.reason, t)}</p>
             <p className={styles.modalScore}>{displayBoard[7]} — {displayBoard[15]}</p>
-            <button type="button" className={styles.pillBtn} onClick={handleReset}>
+            <button type="button" className={styles.pillBtn} ref={playAgainRef} onClick={handleReset}>
               {t.playAgain}
             </button>
           </div>

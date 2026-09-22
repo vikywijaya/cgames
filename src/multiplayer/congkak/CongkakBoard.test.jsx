@@ -47,7 +47,7 @@ describe('CongkakBoard', () => {
     const onHoleTap = vi.fn();
     renderBoard({ onHoleTap, legalHoles: [0] });
     const illegal = screen.getByLabelText('House 3, 7 seeds');
-    expect(illegal).toBeDisabled();
+    expect(illegal).toHaveAttribute('aria-disabled', 'true');
     fireEvent.click(illegal);
     expect(onHoleTap).not.toHaveBeenCalled();
   });

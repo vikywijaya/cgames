@@ -27,9 +27,9 @@ function Hole({ index, seeds, legal, highlight, onTap, label }) {
       type="button"
       className={`${styles.hole} ${legal ? styles.holeLegal : ''}`}
       data-highlight={highlight ? 'true' : 'false'}
-      disabled={!legal}
+      aria-disabled={!legal}
       aria-label={label}
-      onClick={() => onTap(index)}
+      onClick={() => { if (legal) onTap(index); }}
     >
       <Seeds count={seeds} />
       <span className={styles.holeCount}>{seeds}</span>

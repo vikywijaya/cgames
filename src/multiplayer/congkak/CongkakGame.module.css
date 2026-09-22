@@ -9,12 +9,15 @@
   border-radius: 28px;
   background: var(--color-surface-2, #6b4423);
   max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .houseRows {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .houseRow {
@@ -84,8 +87,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   transition: transform 120ms ease, box-shadow 120ms ease;
 }
+
+.storeP1 { }
+.storeP2 { }
 
 .store[data-highlight='true'] {
   transform: scale(1.06);
