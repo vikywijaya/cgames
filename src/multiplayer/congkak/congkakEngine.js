@@ -140,8 +140,8 @@ export function createGame({ maxSowSteps = MAX_SOW_STEPS } = {}) {
     if (count > 0) {
       holes.forEach(h => { board[h] = 0; });
       board[STORE[sweeper]] += count;
+      steps.push({ type: 'sweep', seat: sweeper, holes, count });
     }
-    steps.push({ type: 'sweep', seat: sweeper, holes, count });
 
     isGameOver = true;
     winner = board[STORE[0]] > board[STORE[1]] ? 0

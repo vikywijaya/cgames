@@ -264,6 +264,19 @@ describe('congkakEngine end of game', () => {
     expect(result.ok).toBe(false);
     expect(result.reason).toBe('game-over');
   });
+
+  it('does not push a sweep step when the sweeping side is also already empty', () => {
+    const engine = createGame();
+    // P1's last seed grants an extra turn (house 6 -> store 7) and leaves
+    // P1 empty; P2 is ALSO already empty (all its seeds are in store 15).
+    engine.restore({ board: [0,0,0,0,0,0,1, 48, 0,0,0,0,0,0,0, 49], turn: 0 });
+    const { steps, state } = engine.move(0, 6);
+    expect(steps.some(s => s.type === 'sweep')).toBe(false);
+    expect(state.board[7]).toBe(49);
+    expect(state.board[15]).toBe(49);
+    expect(state.isGameOver).toBe(true);
+    expect(state.winner).toBe('draw');
+  });
 });
 
 describe('applyStep', () => {
