@@ -152,7 +152,7 @@ describe('congkakEngine landing rules', () => {
   it('rule 2: landing on a non-empty hole relays, lifting that hole and sowing on', () => {
     const engine = createGame();
     // 1 seed at house 0 lands on house 1 which holds 2 -> lift 3, sow on
-    engine.restore({ board: [1,2,0,0,0,0,0, 0, 0,0,0,0,0,0,0, 0], turn: 0 });
+    engine.restore({ board: [1,2,0,0,0,0,0, 0, 0,0,0,0,0,0,3, 0], turn: 0 });
     const { steps, state } = engine.move(0, 0);
     expect(steps).toContainEqual({ type: 'relay', hole: 1, count: 3 });
     expect(state.board[1]).toBe(0);
@@ -211,5 +211,119 @@ describe('congkakEngine termination guard', () => {
     expect(state.turn).toBe(1);
     // seeds are conserved: nothing vanished
     expect(state.board.reduce((a, b) => a + b, 0)).toBe(20 + 6 + 7);
+  });
+});
+
+import { applyStep } from './congkakEngine';
+
+describe('congkakEngine end of game', () => {
+  it('ends when the seat due to move has no seeds, sweeping the other side into its own store', () => {
+    const engine = createGame();
+    // P1 plays its last seed into its own store (extra turn), leaving P1 empty.
+    engine.restore({ board: [0,0,0,0,0,0,1, 40, 0,0,0,0,0,2,3, 30], turn: 0 });
+    const { steps, state } = engine.move(0, 6);
+    expect(state.isGameOver).toBe(true);
+    const sweep = steps.find(s => s.type === 'sweep');
+    expect(sweep).toEqual({ type: 'sweep', seat: 1, holes: [13, 14], count: 5 });
+    expect(state.board[13]).toBe(0);
+    expect(state.board[14]).toBe(0);
+    expect(state.board[15]).toBe(35);  // 30 + 5 swept
+    expect(state.board[7]).toBe(41);   // 40 + the sown seed
+  });
+
+  it('declares the larger store the winner and emits an end step', () => {
+    const engine = createGame();
+    engine.restore({ board: [0,0,0,0,0,0,1, 40, 0,0,0,0,0,2,3, 30], turn: 0 });
+    const { steps, state } = engine.move(0, 6);
+    expect(state.winner).toBe(0);      // 41 vs 35
+    expect(steps).toContainEqual({ type: 'end', winner: 0 });
+  });
+
+  it('declares P2 the winner when P2 has more seeds', () => {
+    const engine = createGame();
+    engine.restore({ board: [0,0,0,0,0,0,1, 10, 0,0,0,0,0,2,3, 80], turn: 0 });
+    const { state } = engine.move(0, 6);
+    expect(state.winner).toBe(1);
+  });
+
+  it('declares a draw on equal stores', () => {
+    const engine = createGame();
+    // P1 ends empty; stores finish level at 49 each.
+    engine.restore({ board: [0,0,0,0,0,0,1, 48, 0,0,0,0,0,0,5, 44], turn: 0 });
+    const { state } = engine.move(0, 6);
+    expect(state.board[7]).toBe(49);
+    expect(state.board[15]).toBe(49);
+    expect(state.winner).toBe('draw');
+  });
+
+  it('refuses further moves once the game is over', () => {
+    const engine = createGame();
+    engine.restore({ board: [0,0,0,0,0,0,1, 40, 0,0,0,0,0,2,3, 30], turn: 0 });
+    engine.move(0, 6);
+    const result = engine.move(1, 13);
+    expect(result.ok).toBe(false);
+    expect(result.reason).toBe('game-over');
+  });
+});
+
+describe('applyStep', () => {
+  it('empties the tapped hole on pickup', () => {
+    const board = [3,0,0,0,0,0,0, 0, 0,0,0,0,0,0,0, 0];
+    applyStep(board, { type: 'pickup', hole: 0, count: 3 });
+    expect(board[0]).toBe(0);
+  });
+
+  it('adds a seed on sow', () => {
+    const board = new Array(16).fill(0);
+    applyStep(board, { type: 'sow', hole: 4, seedsRemaining: 2 });
+    expect(board[4]).toBe(1);
+  });
+
+  it('empties the relayed hole', () => {
+    const board = new Array(16).fill(0);
+    board[5] = 4;
+    applyStep(board, { type: 'relay', hole: 5, count: 4 });
+    expect(board[5]).toBe(0);
+  });
+
+  it('moves both houses into the store on capture', () => {
+    const board = new Array(16).fill(0);
+    board[1] = 1; board[13] = 5;
+    applyStep(board, { type: 'capture', hole: 1, oppositeHole: 13, count: 6, store: 7 });
+    expect(board[1]).toBe(0);
+    expect(board[13]).toBe(0);
+    expect(board[7]).toBe(6);
+  });
+
+  it('clears the swept houses into that seat\'s store', () => {
+    const board = new Array(16).fill(0);
+    board[13] = 2; board[14] = 3; board[15] = 30;
+    applyStep(board, { type: 'sweep', seat: 1, holes: [13, 14], count: 5 });
+    expect(board[13]).toBe(0);
+    expect(board[14]).toBe(0);
+    expect(board[15]).toBe(35);
+  });
+
+  it('returns the undistributed hand to the store on forceEnd', () => {
+    const board = new Array(16).fill(0);
+    applyStep(board, { type: 'forceEnd', seat: 0, seedsReturned: 4 });
+    expect(board[7]).toBe(4);
+  });
+
+  it('leaves the board untouched for extraTurn and end', () => {
+    const board = [1,2,3,0,0,0,0, 0, 0,0,0,0,0,0,0, 0];
+    const before = [...board];
+    applyStep(board, { type: 'extraTurn', seat: 0 });
+    applyStep(board, { type: 'end', winner: 0 });
+    expect(board).toEqual(before);
+  });
+
+  it('replaying every step of a move reproduces the engine\'s final board', () => {
+    const engine = createGame();
+    const before = engine.state().board;
+    const { steps, state } = engine.move(0, 2);
+    const replayed = [...before];
+    steps.forEach(step => applyStep(replayed, step));
+    expect(replayed).toEqual(state.board);
   });
 });

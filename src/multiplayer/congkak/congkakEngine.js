@@ -58,6 +58,39 @@ function nextIndex(seat, i) {
   return n;
 }
 
+/**
+ * Apply one step to a board array, in place. The UI animation walks the step
+ * list through this so its displayed board tracks the engine exactly; the
+ * final replayed board is identical to engine.state().board, which is what
+ * makes an interrupted animation harmless.
+ */
+export function applyStep(board, step) {
+  switch (step.type) {
+    case 'pickup':
+    case 'relay':
+      board[step.hole] = 0;
+      break;
+    case 'sow':
+      board[step.hole] += 1;
+      break;
+    case 'capture':
+      board[step.hole] = 0;
+      board[step.oppositeHole] = 0;
+      board[step.store] += step.count;
+      break;
+    case 'sweep':
+      step.holes.forEach(h => { board[h] = 0; });
+      board[STORE[step.seat]] += step.count;
+      break;
+    case 'forceEnd':
+      board[STORE[step.seat]] += step.seedsReturned;
+      break;
+    default:
+      // extraTurn and end carry no board change.
+      break;
+  }
+}
+
 export function createGame({ maxSowSteps = MAX_SOW_STEPS } = {}) {
   let board = initialBoard();
   let turn = 0;
@@ -82,6 +115,39 @@ export function createGame({ maxSowSteps = MAX_SOW_STEPS } = {}) {
     turn = snapshot.turn;
     isGameOver = snapshot.isGameOver ?? false;
     winner = snapshot.winner ?? null;
+  }
+
+  /** Seeds still sitting in seat's houses, and which houses hold them. */
+  function housesWithSeeds(seat) {
+    const holes = [];
+    let count = 0;
+    for (let i = 0; i < BOARD_SIZE; i++) {
+      if (ownsHouse(seat, i) && board[i] > 0) { holes.push(i); count += board[i]; }
+    }
+    return { holes, count };
+  }
+
+  /**
+   * The game ends when the seat now due to move has nothing to sow. The other
+   * side sweeps its remaining seeds into its own store, and the larger store
+   * wins.
+   */
+  function checkEnd(steps) {
+    if (housesWithSeeds(turn).count > 0) return;
+
+    const sweeper = 1 - turn;
+    const { holes, count } = housesWithSeeds(sweeper);
+    if (count > 0) {
+      holes.forEach(h => { board[h] = 0; });
+      board[STORE[sweeper]] += count;
+    }
+    steps.push({ type: 'sweep', seat: sweeper, holes, count });
+
+    isGameOver = true;
+    winner = board[STORE[0]] > board[STORE[1]] ? 0
+      : board[STORE[0]] < board[STORE[1]] ? 1
+      : 'draw';
+    steps.push({ type: 'end', winner });
   }
 
   function move(seat, hole) {
@@ -162,6 +228,8 @@ export function createGame({ maxSowSteps = MAX_SOW_STEPS } = {}) {
     }
 
     if (!extraTurn) turn = 1 - seat;
+
+    checkEnd(steps);
 
     return { ok: true, steps, state: state() };
   }
