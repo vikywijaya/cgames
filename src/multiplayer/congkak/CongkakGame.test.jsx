@@ -134,4 +134,12 @@ describe('CongkakGame game over', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Your hole 1, 7 seeds/i)).toBeInTheDocument();
   });
+
+  it('disables Undo and Resign once the game is over', () => {
+    render(<CongkakGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /resign/i })[0]);
+    expect(screen.getAllByRole('button', { name: /undo/i })[0]).toBeDisabled();
+    expect(screen.getAllByRole('button', { name: /resign/i })[0]).toBeDisabled();
+    expect(screen.getAllByRole('button', { name: /resign/i })[1]).toBeDisabled();
+  });
 });

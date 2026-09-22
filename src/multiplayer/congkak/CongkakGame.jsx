@@ -237,7 +237,7 @@ export function CongkakGame({ memberId, callbackUrl, accessToken }) {
       <div className={styles.cardSlotRotated}>
         <PlayerCard
           seat={1} seeds={displayBoard[15]} active={gameState.turn === 1 && !gameState.isGameOver}
-          canUndo={canUndo} disabled={animating}
+          canUndo={canUndo} disabled={animating || gameState.isGameOver}
           onUndo={handleUndo} onResign={() => dispatch('resign', { seat: 1 })}
           onReset={handleReset} t={t}
         />
@@ -255,12 +255,12 @@ export function CongkakGame({ memberId, callbackUrl, accessToken }) {
 
       <PlayerCard
         seat={0} seeds={displayBoard[7]} active={gameState.turn === 0 && !gameState.isGameOver}
-        canUndo={canUndo} disabled={animating}
+        canUndo={canUndo} disabled={animating || gameState.isGameOver}
         onUndo={handleUndo} onResign={() => dispatch('resign', { seat: 0 })}
         onReset={handleReset} t={t}
       />
 
-      {lastGameOver && (
+      {lastGameOver && !animating && (
         <div className={styles.modalOverlay} role="dialog" aria-modal="true" aria-label={t.gameOver}>
           <div className={styles.modalCard}>
             <h2 className={styles.modalTitle}>
