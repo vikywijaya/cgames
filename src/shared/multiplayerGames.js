@@ -17,6 +17,7 @@ export const MULTIPLAYER_GAMES = [
   { id: 'mp-xiangqi',          slug: 'xiangqi',          icon: '🀄' },
   { id: 'mp-gin-rummy',        slug: 'gin-rummy',        icon: '🃏', comingSoon: true },
   { id: 'mp-crazy-eights',     slug: 'crazy-eights',     icon: '🎴', comingSoon: true },
+  { id: 'mp-congkak',          slug: 'congkak',          icon: '🌰' },
   { id: 'mp-singapore-trivia', slug: 'singapore-trivia', icon: '🇸🇬' },
 ];
 
