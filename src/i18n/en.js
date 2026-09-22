@@ -437,6 +437,7 @@ export default {
     'mp-gin-rummy': { title: 'Gin Rummy', description: 'Draw, discard, and knock in this classic 2-player card game.' },
     'mp-crazy-eights': { title: 'Crazy Eights', description: 'Match suits or ranks, and play wild eights to win.' },
     'mp-singapore-trivia': { title: 'Singapore Trivia', description: 'Race a friend to answer Singapore-themed quiz questions.' },
+    'mp-congkak': { title: 'Congkak', description: 'The traditional sowing game for two — share one board.' },
   },
 
   // ─── Play with a Friend (multiplayer lobby + in-game UI) ───
@@ -552,5 +553,16 @@ export default {
     // Xiangqi Pass and Play (reuses most Chess Pass and Play keys above)
     redLabel: 'RED',
     noMovesHintXiangqi: 'Red moves first — tap a piece to see where it can go.',
+    // Congkak
+    holeYours: 'Your hole {n}, {seeds} seeds',
+    holeOpponent: 'Opponent hole {n}, {seeds} seeds',
+    storeLabel: '{p} store, {seeds} seeds',
+    namedWins: '{name} wins!',
+    reasonMostSeeds: 'Most seeds',
+    reasonDraw: 'Level scores',
+    reasonResigned: 'Resigned',
+    announceCapture: 'Captured {n} seeds',
+    announceExtraTurn: 'Free turn',
+    announceSown: 'Seeds sown',
   },
 };

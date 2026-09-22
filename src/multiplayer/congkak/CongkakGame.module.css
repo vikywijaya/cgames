@@ -107,3 +107,94 @@
   .holeLegal { animation: none; }
   .hole, .store { transition: none; }
 }
+
+/* ── Game layout ───────────────────────────────────────────────────────── */
+
+.game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+/* P2 sits opposite, so only their card is rotated — the shared board is not.
+   Same convention as XiangqiGame's .cardSlotRotated. */
+.cardSlotRotated { transform: rotate(180deg); }
+
+.card {
+  width: 100%;
+  max-width: 560px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: var(--color-surface, #fff);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 12%);
+}
+
+.cardActive { box-shadow: 0 0 0 3px var(--color-accent, #f2a541); }
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-weight: 700;
+  background: var(--color-accent, #f2a541);
+  color: #fff;
+}
+
+.avatarP2 { background: var(--color-accent-2, #4a7ebb); }
+
+.badgeActive {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: var(--color-accent, #f2a541);
+  color: #fff;
+}
+
+.seedTally {
+  margin-left: auto;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.actionsRow { display: flex; gap: 8px; }
+
+.pillBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 600;
+  background: var(--color-surface-2, #eee);
+  color: var(--color-text, #2b1a0e);
+  cursor: pointer;
+}
+
+.pillBtn:disabled { opacity: 0.45; cursor: default; }
+.pillBtnDanger { background: var(--color-danger, #d9534f); color: #fff; }
+
+/* Visible to screen readers only. */
+.liveRegion {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
