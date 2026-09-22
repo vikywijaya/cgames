@@ -32,7 +32,12 @@ describe('CongkakGame board wiring', () => {
     render(<CongkakGame memberId="m-1" />);
     fireEvent.click(screen.getByLabelText(/Your hole 3, 7 seeds/i));
     finishAnimation();
-    expect(screen.getByLabelText(/Your hole 3, 0 seeds/i)).toBeInTheDocument();
+    // House labels are turn-relative ("Your"/"Opponent" describes whoever is
+    // about to tap next, not a fixed seat) — standard for an accessible
+    // turn-based game. This move ends in a capture (never an extra turn), so
+    // turn passes to P2, and this same physical house is now labelled from
+    // P2's perspective: "Opponent hole 3", not "Your hole 3".
+    expect(screen.getByLabelText(/Opponent hole 3, 0 seeds/i)).toBeInTheDocument();
   });
 
   it('locks the board while the animation is running', () => {
