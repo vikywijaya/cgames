@@ -1,0 +1,109 @@
+/* ── Board ─────────────────────────────────────────────────────────────── */
+
+.board {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 28px;
+  background: var(--color-surface-2, #6b4423);
+  max-width: 100%;
+}
+
+.houseRows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.houseRow {
+  display: flex;
+  gap: 10px;
+}
+
+/* 64px is the accessibility floor for tap targets here — these are shared
+   between two seated players reaching across a tablet. */
+.hole {
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  min-height: 64px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-surface, #d9b382);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: default;
+  opacity: 0.55;
+  transition: opacity 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+}
+
+.holeLegal {
+  opacity: 1;
+  cursor: pointer;
+  box-shadow: 0 0 0 3px var(--color-accent, #f2a541);
+  animation: holePulse 1.6s ease-in-out infinite;
+}
+
+.hole[data-highlight='true'] {
+  transform: scale(1.12);
+  box-shadow: 0 0 0 4px var(--color-success, #4caf50);
+}
+
+.holeCount {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-text, #2b1a0e);
+}
+
+.seedDots {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+  max-width: 40px;
+}
+
+.seedDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-text, #2b1a0e);
+}
+
+.store {
+  width: 80px;
+  height: 152px;
+  border-radius: 40px;
+  background: var(--color-surface, #d9b382);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.store[data-highlight='true'] {
+  transform: scale(1.06);
+  box-shadow: 0 0 0 4px var(--color-success, #4caf50);
+}
+
+.storeCount {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-text, #2b1a0e);
+}
+
+@keyframes holePulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--color-accent, #f2a541); }
+  50%      { box-shadow: 0 0 0 6px var(--color-accent, #f2a541); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holeLegal { animation: none; }
+  .hole, .store { transition: none; }
+}
