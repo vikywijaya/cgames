@@ -66,6 +66,9 @@ sown one per hole. Resolution depends on where the **last** seed lands:
    including the seed just dropped, and continue sowing. (Continuous sow.)
 3. **An empty house on the player's own side** → capture. That seed plus every
    seed in the opposite opponent house moves to the player's store. Turn passes.
+   **If the opposite house is empty there is no capture** — the seed stays
+   where it landed and the turn passes. Capturing a single lone seed is
+   degenerate and would surprise players.
 4. **An empty house on the opponent's side** → *mati*. Turn passes, nothing
    captured.
 
@@ -79,9 +82,13 @@ seeds into their own store. The larger store wins; equal stores are a draw.
 
 Rule 2 has no trivial termination proof. In practice relay chains resolve
 quickly, but the engine carries a hard cap of **10,000 sow steps per move**,
-after which the move force-ends and the turn passes. This should never fire in
+after which the undistributed hand returns to the mover's store (so seeds stay
+conserved), the move force-ends, and the turn passes. This should never fire in
 real play; it exists so that "never" is guaranteed rather than assumed, and so
 a pathological position cannot hang the tablet.
+
+The cap is injectable — `createGame({ maxSowSteps })` — so tests can exercise
+the guard with a small value instead of constructing a 10,000-step position.
 
 ## Engine API
 
