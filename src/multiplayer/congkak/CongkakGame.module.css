@@ -3,7 +3,12 @@
 .board {
   display: flex;
   align-items: center;
-  justify-content: center;
+  /* "safe" keeps centering when the row fits, but falls back to start-
+     aligned (nothing clipped) once it overflows and needs to scroll — plain
+     "center" would leave the leading store and hole permanently scrolled
+     off past scrollLeft:0, since a centered flex row's start-side overflow
+     isn't reachable by scrolling. */
+  justify-content: safe center;
   gap: 12px;
   padding: 16px;
   border-radius: 28px;

@@ -66,8 +66,15 @@ describe('CongkakGame board wiring', () => {
     render(<CongkakGame memberId="m-1" />);
     fireEvent.click(screen.getByLabelText(/Your hole 3, 7 seeds/i));
     // No finishAnimation()/timer advance needed — reduced motion resolves
-    // synchronously inside the effect, not via setTimeout.
+    // synchronously inside the effect, not via setTimeout. The hole-label
+    // check alone doesn't discriminate the two paths (the first, synchronous
+    // "pickup" step already zeroes the tapped hole even on the animated
+    // path, before any timer fires) — the live-region announcement is only
+    // set once every step has been applied, which only happens synchronously
+    // under reduced motion, so it's what actually proves this ran the
+    // reduced-motion branch and not just the animated branch's first frame.
     expect(screen.getByLabelText(/Opponent hole 3, 0 seeds/i)).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(/Captured 9 seeds/i);
 
     window.matchMedia = originalMatchMedia;
   });
