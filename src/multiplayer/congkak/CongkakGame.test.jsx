@@ -73,3 +73,65 @@ describe('CongkakGame board wiring', () => {
     expect(screen.getByRole('status')).toHaveTextContent(/./);
   });
 });
+
+import { saveScore } from '../../utils/scoreStore';
+import { buildPayload } from '../../utils/buildPayload';
+
+describe('CongkakGame game over', () => {
+  it('shows the game-over modal when a player resigns', () => {
+    render(<CongkakGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /resign/i })[0]);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('reports a loss for P1 when P1 resigns', () => {
+    render(<CongkakGame memberId="m-1" />);
+    // The rotated card is P2's; index 0 is P2's resign, index 1 is P1's.
+    fireEvent.click(screen.getAllByRole('button', { name: /resign/i })[1]);
+    expect(saveScore).toHaveBeenCalledWith('mp-congkak', 0, expect.any(Number), 'm-1', null);
+  });
+
+  it('reports a win for P1 when P2 resigns', () => {
+    render(<CongkakGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /resign/i })[0]);
+    expect(saveScore).toHaveBeenCalledWith('mp-congkak', 100, expect.any(Number), 'm-1', null);
+  });
+
+  it('builds the payload with the standard game id and max score', () => {
+    render(<CongkakGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /resign/i })[0]);
+    expect(buildPayload).toHaveBeenCalledWith(expect.objectContaining({
+      memberId: 'm-1', gameId: 'mp-congkak', score: 100, maxScore: 100, completed: true,
+    }));
+  });
+
+  it('fires the completion payload exactly once', () => {
+    render(<CongkakGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /resign/i })[0]);
+    finishAnimation();
+    expect(saveScore).toHaveBeenCalledTimes(1);
+  });
+
+  it('POSTs to callbackUrl with the access token header when both are given', () => {
+    render(<CongkakGame memberId="m-1" callbackUrl="https://example.test/done" accessToken="tok-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /resign/i })[0]);
+    expect(global.fetch).toHaveBeenCalledWith('https://example.test/done', expect.objectContaining({
+      method: 'POST',
+      headers: expect.objectContaining({ 'Access-Token': 'tok-1' }),
+    }));
+  });
+
+  it('does not POST when no callbackUrl is given', () => {
+    render(<CongkakGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /resign/i })[0]);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('Play Again from the modal starts a fresh board', () => {
+    render(<CongkakGame memberId="m-1" />);
+    fireEvent.click(screen.getAllByRole('button', { name: /resign/i })[0]);
+    fireEvent.click(screen.getByRole('button', { name: /play again/i }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/Your hole 1, 7 seeds/i)).toBeInTheDocument();
+  });
+});

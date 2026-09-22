@@ -5,6 +5,8 @@ import { useLocalCongkakMatch } from './useLocalCongkakMatch';
 import { applyStep, ownsHouse } from './congkakEngine';
 import { useSoundFx } from '../../hooks/useSoundFx';
 import { useTranslation } from '../../i18n/useTranslation';
+import { saveScore } from '../../utils/scoreStore';
+import { buildPayload } from '../../utils/buildPayload';
 import styles from './CongkakGame.module.css';
 
 // Pacing for the step walk. A sow is a quick tick; a relay or capture gets a
@@ -18,6 +20,22 @@ function prefersReducedMotion() {
   return typeof window !== 'undefined'
     && typeof window.matchMedia === 'function'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+const RESULT_PCT = { win: 100, draw: 50, loss: 0 };
+
+/**
+ * The hook reports reasons as fixed English tokens rather than translated
+ * text; map them here so the modal copy follows the current language.
+ * Mirrors XiangqiGame's reasonLabel.
+ */
+function reasonLabel(reason, t) {
+  switch (reason) {
+    case 'Most seeds': return t.reasonMostSeeds;
+    case 'Draw':       return t.reasonDraw;
+    case 'Resigned':   return t.reasonResigned;
+    default:           return reason;
+  }
 }
 
 /**
@@ -79,6 +97,8 @@ export function CongkakGame({ memberId, callbackUrl, accessToken }) {
   const [announcement, setAnnouncement] = useState('');
   const [canUndo, setCanUndo] = useState(false);
   const timerRef = useRef(null);
+  const reportedRef = useRef(false);
+  const startedAtRef = useRef(Date.now());
 
   // Keep the visible board in step with the engine whenever no animation is
   // running (undo, reset, resign).
@@ -144,6 +164,32 @@ export function CongkakGame({ memberId, callbackUrl, accessToken }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastGameOver]);
 
+  // Fire the CaritaHub completion payload exactly once per match. Scored from
+  // P1's perspective: on a shared device, P1 is the member of record.
+  useEffect(() => {
+    if (!lastGameOver || reportedRef.current) return;
+    reportedRef.current = true;
+
+    const result = lastGameOver.winner === 'draw' ? 'draw'
+      : lastGameOver.winner === 0 ? 'win' : 'loss';
+    const durationSeconds = Math.round((Date.now() - startedAtRef.current) / 1000);
+
+    saveScore('mp-congkak', RESULT_PCT[result], durationSeconds, memberId, null);
+
+    const payload = buildPayload({
+      memberId, gameId: 'mp-congkak',
+      score: RESULT_PCT[result], maxScore: 100,
+      completed: true, durationSeconds,
+    });
+    window.parent.postMessage({ type: 'GAME_COMPLETE', payload }, '*');
+
+    if (!callbackUrl) return;
+    const headers = { 'Content-Type': 'application/json', Accept: 'application/json' };
+    if (accessToken) headers['Access-Token'] = accessToken;
+    fetch(callbackUrl, { method: 'POST', headers, body: JSON.stringify(payload) })
+      .catch(e => console.warn('[CongkakGame] callback failed:', e));
+  }, [lastGameOver, memberId, callbackUrl, accessToken]);
+
   const onHoleTap = useCallback(hole => {
     if (animating) return;
     dispatch('move', { seat: gameState.turn, hole });
@@ -181,6 +227,8 @@ export function CongkakGame({ memberId, callbackUrl, accessToken }) {
     setHighlightHole(null);
     setAnnouncement('');
     setCanUndo(false);
+    reportedRef.current = false;
+    startedAtRef.current = Date.now();
     dispatch('reset');
   }
 
@@ -211,6 +259,23 @@ export function CongkakGame({ memberId, callbackUrl, accessToken }) {
         onUndo={handleUndo} onResign={() => dispatch('resign', { seat: 0 })}
         onReset={handleReset} t={t}
       />
+
+      {lastGameOver && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true" aria-label={t.gameOver}>
+          <div className={styles.modalCard}>
+            <h2 className={styles.modalTitle}>
+              {lastGameOver.winner === 'draw'
+                ? t.draw
+                : t.namedWins.replace('{name}', lastGameOver.winner === 0 ? 'P1' : 'P2')}
+            </h2>
+            <p className={styles.modalReason}>{reasonLabel(lastGameOver.reason, t)}</p>
+            <p className={styles.modalScore}>{displayBoard[7]} — {displayBoard[15]}</p>
+            <button type="button" className={styles.pillBtn} onClick={handleReset}>
+              {t.playAgain}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

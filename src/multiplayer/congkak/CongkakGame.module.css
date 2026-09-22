@@ -198,3 +198,30 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+/* ── Game over ─────────────────────────────────────────────────────────── */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 55%);
+  z-index: 50;
+}
+
+.modalCard {
+  padding: 28px 32px;
+  border-radius: 24px;
+  background: var(--color-surface, #fff);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.modalTitle { margin: 0; font-size: 1.75rem; }
+.modalReason { margin: 0; opacity: 0.75; }
+.modalScore { margin: 0; font-size: 2rem; font-weight: 800; }
