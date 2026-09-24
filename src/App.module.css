@@ -406,24 +406,22 @@
   font-size: 2.2rem;
   flex-shrink: 0;
 }
-/* Saturated gradients with white text, at the same strength as the hero,
-   Daily Challenge and Your Scores cards. Orange and rose are hues no
-   other card on the home screen uses, so each tile stands apart. */
-.tile:has(.tileIconGames) {
-  background: linear-gradient(135deg, #f97316 0%, #c2410c 100%);
-  box-shadow: 0 10px 30px rgba(249, 115, 22, 0.34);
-}
+/* Saturated blue with white text, at the same strength as the hero,
+   Daily Challenge and Your Scores cards. Both tiles share it so the row
+   reads as one pair of secondary actions. */
+.tile:has(.tileIconGames),
 .tile:has(.tileIconMultiplayer) {
-  background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
-  box-shadow: 0 10px 30px rgba(236, 72, 153, 0.34);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.34);
 }
 @media (hover: hover) and (pointer: fine) {
-.tile:has(.tileIconGames):hover       { box-shadow: 0 14px 36px rgba(249, 115, 22, 0.42); }
-.tile:has(.tileIconMultiplayer):hover { box-shadow: 0 14px 36px rgba(236, 72, 153, 0.42); }
+.tile:has(.tileIconGames):hover,
+.tile:has(.tileIconMultiplayer):hover { box-shadow: 0 14px 36px rgba(59, 130, 246, 0.42); }
 }
-/* Frosted white box, as .focusIconBox. */
+/* Solid white, like .heroAvatar on the blue hero: the gamepad is drawn in
+   blue and would vanish on a translucent box over a blue tile. */
 .tileIconGames,
-.tileIconMultiplayer { background: rgba(255, 255, 255, 0.18); }
+.tileIconMultiplayer { background: #fff; }
 .tileText { display: block; }
 .tileTitle {
   display: block;
