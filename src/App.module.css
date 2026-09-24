@@ -406,16 +406,24 @@
   font-size: 2.2rem;
   flex-shrink: 0;
 }
+/* Saturated gradients with white text, at the same strength as the hero,
+   Daily Challenge and Your Scores cards. Orange and rose are hues no
+   other card on the home screen uses, so each tile stands apart. */
 .tile:has(.tileIconGames) {
-  background: linear-gradient(135deg, #FFF3E8 0%, #FFE3C4 100%);
-  border-color: rgba(224, 120, 32, 0.18);
+  background: linear-gradient(135deg, #f97316 0%, #c2410c 100%);
+  box-shadow: 0 10px 30px rgba(249, 115, 22, 0.34);
 }
 .tile:has(.tileIconMultiplayer) {
-  background: linear-gradient(135deg, #E5F6F8 0%, #C9EEF2 100%);
-  border-color: rgba(26, 159, 175, 0.18);
+  background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+  box-shadow: 0 10px 30px rgba(236, 72, 153, 0.34);
 }
-.tileIconGames       { background: #FFDDAE; box-shadow: 0 3px 10px rgba(224, 120, 32, 0.25); }
-.tileIconMultiplayer { background: #B7E9EE; box-shadow: 0 3px 10px rgba(26, 159, 175, 0.25); }
+@media (hover: hover) and (pointer: fine) {
+.tile:has(.tileIconGames):hover       { box-shadow: 0 14px 36px rgba(249, 115, 22, 0.42); }
+.tile:has(.tileIconMultiplayer):hover { box-shadow: 0 14px 36px rgba(236, 72, 153, 0.42); }
+}
+/* Frosted white box, as .focusIconBox. */
+.tileIconGames,
+.tileIconMultiplayer { background: rgba(255, 255, 255, 0.18); }
 .tileText { display: block; }
 .tileTitle {
   display: block;
@@ -423,13 +431,13 @@
   font-size: 17px;
   font-weight: 800;
   line-height: 1.2;
-  color: var(--color-text);
+  color: #fff;
 }
 .tileSub {
   display: block;
   font-size: 13.5px;
   line-height: 1.3;
-  color: var(--color-text-muted);
+  color: rgba(255, 255, 255, 0.85);
   margin-top: 2px;
 }
 
