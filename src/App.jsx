@@ -1139,7 +1139,7 @@ export function App() {
                   games were disabled. Derived, it can't drift again when
                   they come back. */}
               <span className={styles.tileSub}>
-                {t.app.playWithFriendDesc.replace(
+                {t.app.playWithFriendShort.replace(
                   '{count}',
                   String(MULTIPLAYER_GAMES.filter(g => !g.comingSoon).length),
                 )}

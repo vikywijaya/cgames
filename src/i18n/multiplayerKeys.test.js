@@ -2,13 +2,13 @@ import { describe, it, expect } from 'vitest';
 import translations from './index';
 
 const APP_KEYS = [
-  'playWithFriend', 'playWithFriendDesc',
+  'playWithFriend', 'playWithFriendDesc', 'playWithFriendShort',
   'multiplayerTitle', 'multiplayerSubtitle',
   'multiplayerPlayers',
 ];
 
 const GAME_IDS = [
-  'mp-chess', 'mp-xiangqi', 'mp-gin-rummy', 'mp-crazy-eights', 'mp-singapore-trivia',
+  'mp-chess', 'mp-xiangqi', 'mp-gin-rummy', 'mp-crazy-eights', 'mp-congkak', 'mp-singapore-trivia',
 ];
 
 describe('multiplayer i18n keys', () => {

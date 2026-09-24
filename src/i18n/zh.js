@@ -62,6 +62,7 @@ export default {
     favoritesEmptyHomeCta: '浏览游戏以添加收藏',
     playWithFriend: '和朋友一起玩',
     playWithFriendDesc: '{count} 款双人游戏，共用一台设备畅玩。',
+    playWithFriendShort: '{count} 款双人游戏',
     multiplayerTitle: '和朋友一起玩',
     multiplayerSubtitle: '两位玩家共用一台设备——点按游戏即可开始。',
     multiplayerPlayers: '2人游戏',

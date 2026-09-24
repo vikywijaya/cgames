@@ -62,6 +62,7 @@ export default {
     favoritesEmptyHomeCta: 'Layari permainan untuk tambah kegemaran',
     playWithFriend: 'Main Bersama Rakan',
     playWithFriendDesc: '{count} permainan dua pemain untuk dimainkan pada satu peranti.',
+    playWithFriendShort: '{count} permainan dua pemain',
     multiplayerTitle: 'Main Bersama Rakan',
     multiplayerSubtitle: 'Dua pemain berkongsi satu peranti — ketik permainan untuk mula.',
     multiplayerPlayers: '2 Pemain',
