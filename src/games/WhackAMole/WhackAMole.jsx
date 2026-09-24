@@ -111,6 +111,11 @@ function BombSVG() {
   );
 }
 
+// When the hammer head lands: 42% of the 420ms swing in .hammerWrap.
+// The mole reacts (sound, dazed face, squash, +1) at this moment, not at
+// the tap. Keep in step with the CSS keyframes and .whackStars delay.
+const HAMMER_IMPACT_MS = 175;
+
 function HammerSVG({ visible }) {
   if (!visible) return null;
   return (
@@ -221,22 +226,26 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playBoing
     setActive({ ...activeRef.current });
 
     if (type === 'mole') {
-      playBoing();
       scoreRef.current += 1;
       setScore(scoreRef.current);
       reportScore(scoreRef.current);
-      // Bonked mole stays visible briefly + hammer + floating +1
-      const popupId = ++popupIdRef.current;
-      setPopups(prev => [...prev, { id: popupId, idx }]);
-      setWhacked(prev => ({ ...prev, [idx]: 'mole' }));
+      // The mole keeps standing, un-hit, while the hammer swings down...
+      setWhacked(prev => ({ ...prev, [idx]: 'incoming' }));
       setHammer(idx);
+      // ...and only reacts when the head lands.
+      setTimeout(() => {
+        playBoing();
+        const popupId = ++popupIdRef.current;
+        setPopups(prev => [...prev, { id: popupId, idx }]);
+        setWhacked(prev => ({ ...prev, [idx]: 'mole' }));
+        setTimeout(() => {
+          setPopups(prev => prev.filter(p => p.id !== popupId));
+        }, 800);
+      }, HAMMER_IMPACT_MS);
+      setTimeout(() => setHammer(null), 450);
       setTimeout(() => {
         setWhacked(prev => { const n = { ...prev }; delete n[idx]; return n; });
-        setHammer(null);
-      }, 450);
-      setTimeout(() => {
-        setPopups(prev => prev.filter(p => p.id !== popupId));
-      }, 800);
+      }, HAMMER_IMPACT_MS + 450);
     } else {
       // Bomb tapped — explosion + shake, then game over
       playFail();
@@ -279,7 +288,7 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playBoing
             <button
               key={i}
               style={{ '--idx': i }}
-              className={`${styles.hole} ${type ? styles.holeActive : ''} ${whackType ? styles.holeWhacked : ''}`}
+              className={`${styles.hole} ${type ? styles.holeActive : ''} ${whackType && whackType !== 'incoming' ? styles.holeWhacked : ''}`}
               onPointerDown={() => handleTap(i)}
               aria-label={type === 'mole' ? 'Whack the mole!' : type === 'bomb' ? 'Avoid the bomb!' : 'Empty hole'}
             >
@@ -292,6 +301,13 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playBoing
                 {type && (
                   <span className={`${styles.creature} ${type === 'bomb' ? styles.creatureBomb : ''}`}>
                     {type === 'mole' ? <MoleSVG /> : <BombSVG />}
+                  </span>
+                )}
+                {/* Tapped, hammer still on its way: the same mole, held still
+                    (no pop-up replay), until the head lands. */}
+                {!type && whackType === 'incoming' && (
+                  <span className={`${styles.creature} ${styles.creatureHeld}`}>
+                    <MoleSVG />
                   </span>
                 )}
                 {/* Bonked mole stays flattened in the hole for a beat */}

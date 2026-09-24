@@ -163,6 +163,10 @@
   filter: drop-shadow(0 2px 3px rgba(0,0,0,0.25));
 }
 
+/* The tapped mole waiting for the hammer: already fully up, so skip the
+   pop-up entrance that a fresh mount would otherwise replay. */
+.creatureHeld { animation: none; }
+
 .creatureBomb {
   width: 52%;
   height: 70%;
