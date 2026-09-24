@@ -334,7 +334,25 @@
 @media (hover: hover) and (pointer: fine) {
 .scoresCard:hover { box-shadow: 0 14px 36px rgba(20, 184, 166, 0.42); }
 }
-.scoresPlayBtn { color: #0d7d76; }
+/* One row: icon, title, and a small pill pushed to the right. The whole
+   card is the button, so the pill is a visual cue, not the tap target. */
+.scoresInner { padding: 18px 18px 18px 20px; }
+.scoresInner .focusTitle { font-size: 19px; }
+.scoresMiniBtn {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 40px;
+  padding: 0 16px;
+  background: #fff;
+  color: #0d7d76;
+  border-radius: var(--radius-full);
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+}
 
 /* ── Two secondary tiles ── */
 .tileRow {

@@ -1087,23 +1087,6 @@ export function App() {
           </span>
         </button>
 
-        {/* ── Your Scores focus card ── */}
-        <button className={`${styles.focusCard} ${styles.scoresCard}`} onClick={() => setView('scores')} aria-label="View your scores">
-          <span className={styles.focusBlob} aria-hidden="true" />
-          <span className={styles.focusInner}>
-            <span className={styles.focusHead}>
-              <span className={styles.focusIconBox} aria-hidden="true">🏆</span>
-              <span className={styles.focusHeadText}>
-                <span className={styles.focusTitle}>{t.app.yourScores}</span>
-                <span className={styles.focusEyebrow}>{t.app.scoresShort}</span>
-              </span>
-            </span>
-            <span className={styles.focusFooter}>
-              <span className={`${styles.focusPlayBtn} ${styles.scoresPlayBtn}`}>{t.app.seeAll} <span aria-hidden="true">›</span></span>
-            </span>
-          </span>
-        </button>
-
         {/* ── Two secondary tiles ── */}
         <div className={styles.tileRow}>
           <button className={styles.tile} onClick={() => setView('games')} aria-label="Browse all cognitive games">
@@ -1138,6 +1121,22 @@ export function App() {
             </span>
           </button>
         </div>
+
+        {/* ── Your Scores: compact one-row card ── */}
+        <button className={`${styles.focusCard} ${styles.scoresCard}`} onClick={() => setView('scores')} aria-label="View your scores">
+          <span className={styles.focusBlob} aria-hidden="true" />
+          <span className={`${styles.focusInner} ${styles.scoresInner}`}>
+            <span className={styles.focusHead}>
+              <span className={styles.focusIconBox} aria-hidden="true">🏆</span>
+              <span className={styles.focusHeadText}>
+                <span className={styles.focusTitle}>{t.app.yourScores}</span>
+                <span className={styles.focusEyebrow}>{t.app.scoresShort}</span>
+              </span>
+              <span className={styles.scoresMiniBtn}>{t.app.seeAll} <span aria-hidden="true">›</span></span>
+            </span>
+          </span>
+        </button>
+
 
         {/* ── Your favorites ── */}
         <div className={styles.favSection}>
