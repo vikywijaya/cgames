@@ -390,14 +390,16 @@
 .endDuration  { font-size: var(--text-sm); color: var(--color-text-muted); }
 
 .endButtonGroup {
+  /* Stacked, full width. Side by side, each large button got ~160px, but
+     "Back to Games" at the large 22px size needs ~230px with its padding,
+     so the label spilled out of the button. */
   display: flex;
-  gap: var(--space-4);
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  gap: var(--space-3);
   width: 100%;
   max-width: 400px;
 }
-.endButtonGroup > * { flex: 1; min-width: 130px; }
+.endButtonGroup > * { width: 100%; }
 
 /* Timed-out badge */
 .timedOutBadge {
