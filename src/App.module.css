@@ -325,14 +325,16 @@
   font-weight: 800;
 }
 
-.multiplayerCard {
+/* Teal accent — carried over from the old Scores tile's own teal (see
+   .tileIconScores below) now that Your Scores is the focus card. */
+.scoresCard {
   background: linear-gradient(135deg, #14b8a6 0%, #0d7d76 100%);
   box-shadow: 0 10px 30px rgba(20, 184, 166, 0.34);
 }
 @media (hover: hover) and (pointer: fine) {
-.multiplayerCard:hover { box-shadow: 0 14px 36px rgba(20, 184, 166, 0.42); }
+.scoresCard:hover { box-shadow: 0 14px 36px rgba(20, 184, 166, 0.42); }
 }
-.multiplayerPlayBtn { color: #0d7d76; }
+.scoresPlayBtn { color: #0d7d76; }
 
 /* ── Two secondary tiles ── */
 .tileRow {
@@ -371,12 +373,12 @@
   background: linear-gradient(135deg, #FFF3E8 0%, #FFE3C4 100%);
   border-color: rgba(224, 120, 32, 0.18);
 }
-.tile:has(.tileIconScores) {
+.tile:has(.tileIconMultiplayer) {
   background: linear-gradient(135deg, #E5F6F8 0%, #C9EEF2 100%);
   border-color: rgba(26, 159, 175, 0.18);
 }
-.tileIconGames  { background: #FFDDAE; box-shadow: 0 3px 10px rgba(224, 120, 32, 0.25); }
-.tileIconScores { background: #B7E9EE; box-shadow: 0 3px 10px rgba(26, 159, 175, 0.25); }
+.tileIconGames       { background: #FFDDAE; box-shadow: 0 3px 10px rgba(224, 120, 32, 0.25); }
+.tileIconMultiplayer { background: #B7E9EE; box-shadow: 0 3px 10px rgba(26, 159, 175, 0.25); }
 .tileText { display: block; }
 .tileTitle {
   display: block;

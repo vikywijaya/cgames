@@ -1087,28 +1087,19 @@ export function App() {
           </span>
         </button>
 
-        {/* ── Play with a Friend focus card ── */}
-        <button className={`${styles.focusCard} ${styles.multiplayerCard}`} onClick={() => setView('multiplayer')} aria-label="Play with a friend online">
+        {/* ── Your Scores focus card ── */}
+        <button className={`${styles.focusCard} ${styles.scoresCard}`} onClick={() => setView('scores')} aria-label="View your scores">
           <span className={styles.focusBlob} aria-hidden="true" />
           <span className={styles.focusInner}>
             <span className={styles.focusHead}>
-              <span className={styles.focusIconBox} aria-hidden="true">👥</span>
+              <span className={styles.focusIconBox} aria-hidden="true">🏆</span>
               <span className={styles.focusHeadText}>
-                <span className={styles.focusTitle}>{t.app.playWithFriend}</span>
-                {/* Counted from the catalog, not written into the string:
-                    it was hardcoded "5" and already wrong once the two card
-                    games were disabled. Derived, it can't drift again when
-                    they come back. */}
-                <span className={styles.focusEyebrow}>
-                  {t.app.playWithFriendDesc.replace(
-                    '{count}',
-                    String(MULTIPLAYER_GAMES.filter(g => !g.comingSoon).length),
-                  )}
-                </span>
+                <span className={styles.focusTitle}>{t.app.yourScores}</span>
+                <span className={styles.focusEyebrow}>{t.app.scoresShort}</span>
               </span>
             </span>
             <span className={styles.focusFooter}>
-              <span className={`${styles.focusPlayBtn} ${styles.multiplayerPlayBtn}`}>{t.app.playNow} <span aria-hidden="true">›</span></span>
+              <span className={`${styles.focusPlayBtn} ${styles.scoresPlayBtn}`}>{t.app.seeAll} <span aria-hidden="true">›</span></span>
             </span>
           </span>
         </button>
@@ -1139,11 +1130,20 @@ export function App() {
               </span>
             </span>
           </button>
-          <button className={styles.tile} onClick={() => setView('scores')} aria-label="View your scores">
-            <span className={`${styles.tileIconBox} ${styles.tileIconScores}`} aria-hidden="true">🏆</span>
+          <button className={styles.tile} onClick={() => setView('multiplayer')} aria-label="Play with a friend online">
+            <span className={`${styles.tileIconBox} ${styles.tileIconMultiplayer}`} aria-hidden="true">👥</span>
             <span className={styles.tileText}>
-              <span className={styles.tileTitle}>{t.app.yourScores}</span>
-              <span className={styles.tileSub}>{t.app.scoresShort}</span>
+              <span className={styles.tileTitle}>{t.app.playWithFriend}</span>
+              {/* Counted from the catalog, not written into the string:
+                  it was hardcoded "5" and already wrong once the two card
+                  games were disabled. Derived, it can't drift again when
+                  they come back. */}
+              <span className={styles.tileSub}>
+                {t.app.playWithFriendDesc.replace(
+                  '{count}',
+                  String(MULTIPLAYER_GAMES.filter(g => !g.comingSoon).length),
+                )}
+              </span>
             </span>
           </button>
         </div>
