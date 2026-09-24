@@ -1108,7 +1108,7 @@ export function App() {
         <div className={styles.tileRow}>
           <button className={styles.tile} onClick={() => setView('games')} aria-label="Browse all cognitive games">
             <span className={`${styles.tileIconBox} ${styles.tileIconGames}`} aria-hidden="true">
-              <svg width="30" height="30" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                   <linearGradient id="gamepadBody" x1="4" y1="12" x2="44" y2="38" gradientUnits="userSpaceOnUse">
                     <stop offset="0%" stopColor="#5C90F5" />

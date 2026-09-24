@@ -353,7 +353,7 @@
   cursor: pointer;
   background: #fff;
   border-radius: 20px;
-  padding: 14px;
+  padding: 14px 12px;
   width: 100%;
   min-width: 0;
   aspect-ratio: 1;
@@ -371,13 +371,16 @@
 .tile:active { transform: translateY(0) scale(0.99); }
 .tile:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 .tileIconBox {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  /* Same box and glyph size as .focusIconBox, so every icon on the home
+     screen reads at one scale. */
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 2.2rem;
+  flex-shrink: 0;
 }
 .tile:has(.tileIconGames) {
   background: linear-gradient(135deg, #FFF3E8 0%, #FFE3C4 100%);
