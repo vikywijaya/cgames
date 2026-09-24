@@ -59,7 +59,9 @@
 }
 
 .chainPill {
-  flex: 1;
+  /* Content-sized label. This sits in .playArea's vertical flex column,
+     where flex: 1 stretched it to fill the height above the grid. */
+  flex: none;
   text-align: center;
   font-family: var(--font-heading);
   font-size: var(--text-sm);
