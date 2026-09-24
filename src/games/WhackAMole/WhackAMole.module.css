@@ -182,8 +182,18 @@
   width: 92%;
   height: 42%;
   border-radius: 50%;
-  background: linear-gradient(180deg, #96714d 0%, #7d5a3b 55%, #63462d 100%);
-  clip-path: inset(52% 0 0 0);
+  /* Same gradient as .dirtRim, over the same box, so the ring reads as one
+     continuous piece where the lip meets the back rim at its widest point. */
+  background: linear-gradient(180deg, #a9805a 0%, #8a6443 55%, #6e4e33 100%);
+  /* Only the crescent of dirt in front of the opening. The rim and the
+     opening share a centre, and the opening is 78/92 = 84.8% as wide and
+     32/42 = 76.2% as tall as this box, so an ellipse with half those radii
+     punches the opening's exact shape out. Without the cut-out the lower
+     half of the rim covered the opening with a flat brown slab, making the
+     hole read as a half-filled bowl. */
+  -webkit-mask: radial-gradient(ellipse 42.4% 38.1% at 50% 50%, transparent calc(100% - 1px), #000 100%);
+          mask: radial-gradient(ellipse 42.4% 38.1% at 50% 50%, transparent calc(100% - 1px), #000 100%);
+  clip-path: inset(50% 0 0 0);
   box-shadow: inset 0 -3px 5px rgba(0,0,0,0.25);
   z-index: 3;
 }
