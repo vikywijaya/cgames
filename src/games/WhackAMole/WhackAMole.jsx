@@ -114,20 +114,19 @@ function BombSVG() {
 function HammerSVG({ visible }) {
   if (!visible) return null;
   return (
-    // Hammer head at bottom, handle goes up — slams DOWN onto mole
-    <svg viewBox="0 0 56 88" width="56" height="88" xmlns="http://www.w3.org/2000/svg" className={styles.hammerSvg}>
-      {/* Handle going up */}
-      <rect x="24" y="4" width="8" height="54" rx="4" fill="#8B5E3C" />
-      <rect x="25" y="4" width="3" height="54" rx="2" fill="rgba(255,255,255,0.18)" />
-      {/* Head at bottom */}
-      <rect x="4" y="56" width="48" height="28" rx="7" fill="#4a4a4a" />
-      {/* Top highlight */}
-      <rect x="4" y="56" width="48" height="11" rx="7" fill="#6e6e6e" />
-      {/* Striking face shine */}
-      <rect x="7" y="58" width="42" height="7" rx="4" fill="#888" />
-      {/* Side bolt detail */}
-      <circle cx="12" cy="70" r="3" fill="#333" />
-      <circle cx="44" cy="70" r="3" fill="#333" />
+    // Side-on mallet: head on the left, handle running right to the grip.
+    // It swings around the grip (see .hammerWrap), so the head arcs down.
+    <svg viewBox="0 0 96 48" width="96" height="48" xmlns="http://www.w3.org/2000/svg" className={styles.hammerSvg}>
+      {/* Handle */}
+      <rect x="34" y="20" width="58" height="8" rx="4" fill="#9a6a43" />
+      <rect x="34" y="21" width="58" height="2.5" rx="1.25" fill="rgba(255,255,255,0.22)" />
+      {/* Grip wrap */}
+      <rect x="74" y="19" width="18" height="10" rx="5" fill="#3d5a99" />
+      {/* Head: a barrel, striking faces top and bottom */}
+      <rect x="6" y="4" width="30" height="40" rx="8" fill="#d9443b" />
+      <rect x="10" y="4" width="8" height="40" rx="4" fill="rgba(255,255,255,0.28)" />
+      <rect x="6" y="4" width="30" height="7" rx="3.5" fill="#f0e6d8" />
+      <rect x="6" y="37" width="30" height="7" rx="3.5" fill="#f0e6d8" />
     </svg>
   );
 }
@@ -309,8 +308,13 @@ function WhackGame({ difficulty, onComplete, reportScore, secondsLeft, playBoing
               <span className={styles.dirtFront} aria-hidden="true" />
               {showHammer && (
                 <>
-                  <span className={styles.hammerWrap} aria-hidden="true">
-                    <HammerSVG visible />
+                  {/* Right-column holes (the grid is always 3 wide) swing a
+                      mirrored hammer, so the handle points into the board
+                      instead of hanging off its right edge. */}
+                  <span className={`${styles.hammerSpace} ${i % 3 === 2 ? styles.hammerMirror : ''}`} aria-hidden="true">
+                    <span className={styles.hammerWrap}>
+                      <HammerSVG visible />
+                    </span>
                   </span>
                   <span className={styles.whackStars} aria-hidden="true">✦ ✦ ✦</span>
                 </>
