@@ -62,7 +62,7 @@ export default {
     favoritesEmptyHomeCta: 'Jelajahi permainan untuk menambah favorit',
     playWithFriend: 'Main dengan Teman',
     playWithFriendDesc: '{count} permainan dua pemain untuk dimainkan di satu perangkat.',
-    playWithFriendShort: '{count} permainan dua pemain',
+    playWithFriendShort: 'Permainan 2 pemain',
     multiplayerTitle: 'Main dengan Teman',
     multiplayerSubtitle: 'Dua pemain berbagi satu perangkat — ketuk permainan untuk mulai.',
     multiplayerPlayers: '2 Pemain',

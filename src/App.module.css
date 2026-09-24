@@ -353,14 +353,20 @@
   cursor: pointer;
   background: #fff;
   border-radius: 20px;
-  padding: 14px 12px;
+  /* Same inset and icon-to-text gap as the focus cards (.focusInner,
+     .focusHead), with content anchored to the top like theirs. */
+  padding: 22px 20px 20px;
   width: 100%;
   min-width: 0;
   aspect-ratio: 1;
+  /* A square is the target, but a narrow phone can't fit the 64px icon,
+     the inset and a two-line title inside one. Stretch keeps both tiles
+     in the row the same height when either has to grow. */
+  align-self: stretch;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 8px;
+  justify-content: flex-start;
+  gap: 14px;
   border: 1.5px solid transparent;
   box-shadow: 0 2px 14px rgba(61, 114, 232, 0.08);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);

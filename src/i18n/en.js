@@ -66,7 +66,7 @@ export default {
     favoritesEmptyHomeCta: 'Browse games to add favorites',
     playWithFriend: 'Play with a Friend',
     playWithFriendDesc: '{count} two-player games to play on one device.',
-    playWithFriendShort: '{count} two-player games',
+    playWithFriendShort: '2-player games',
     multiplayerTitle: 'Play with a Friend',
     multiplayerSubtitle: 'Two players share one device — tap a game to start.',
     multiplayerPlayers: '2 Players',

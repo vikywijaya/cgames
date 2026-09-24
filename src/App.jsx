@@ -1134,16 +1134,7 @@ export function App() {
             <span className={`${styles.tileIconBox} ${styles.tileIconMultiplayer}`} aria-hidden="true">👥</span>
             <span className={styles.tileText}>
               <span className={styles.tileTitle}>{t.app.playWithFriend}</span>
-              {/* Counted from the catalog, not written into the string:
-                  it was hardcoded "5" and already wrong once the two card
-                  games were disabled. Derived, it can't drift again when
-                  they come back. */}
-              <span className={styles.tileSub}>
-                {t.app.playWithFriendShort.replace(
-                  '{count}',
-                  String(MULTIPLAYER_GAMES.filter(g => !g.comingSoon).length),
-                )}
-              </span>
+              <span className={styles.tileSub}>{t.app.playWithFriendShort}</span>
             </span>
           </button>
         </div>

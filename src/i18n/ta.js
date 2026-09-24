@@ -62,7 +62,7 @@ export default {
     favoritesEmptyHomeCta: 'பிடித்தவை சேர்க்க விளையாட்டுகளை உலாவவும்',
     playWithFriend: 'நண்பருடன் விளையாடுங்கள்',
     playWithFriendDesc: 'ஒரே சாதனத்தில் விளையாட {count} இரு-வீரர் விளையாட்டுகள்.',
-    playWithFriendShort: '{count} இரு-வீரர் விளையாட்டுகள்',
+    playWithFriendShort: '2 வீரர் விளையாட்டுகள்',
     multiplayerTitle: 'நண்பருடன் விளையாடுங்கள்',
     multiplayerSubtitle: 'இரண்டு வீரர்கள் ஒரே சாதனத்தைப் பகிர்கிறார்கள் — தொடங்க ஒரு விளையாட்டைத் தட்டவும்.',
     multiplayerPlayers: '2 வீரர்கள்',
