@@ -567,12 +567,7 @@ export default {
       tile: 'Tile',
       chances: 'Chances:',
     },
-    'lumeno': {
-      title: 'Lumeno',
-      label: 'LUMENO',
-      description: 'Drag through 3 or more same-colour orbs to clear them.',
-      instructions: 'Drag through 3 or more same-colour orbs to clear them. Longer chains score more! Clear orbs before the board fills up.',
-    },
+    'lumeno': { title: "Lumeno", label: "LUMENO", description: "Link 3 or more touching orbs of the same colour to collect them.", instructions: "Each puzzle shows the orbs you need to collect. Link 3 or more touching orbs of the same colour, in any direction, by dragging or by tapping them one by one. Tap Clear (or tap the last orb again) to collect them. There is no clock, so take your time. If you get stuck, tap Hint to see a good chain.", puzzleOf: "Puzzle {n} of {total}", goal: "Collect", howTo: "Drag or tap touching orbs of the same colour", chainMore: "Link {n} more", chainReady: "{n} linked, tap Clear", nice: "Well done, {n} collected!", notGoal: "Those were not goal orbs, but the board changed", tipShort: "Link at least 3 orbs first", tipMatch: "Orbs must touch and share a colour, starting a new chain", shuffled: "No chains were left, so the board was shuffled for you", hintShown: "Here is a good chain to try", solved: "Puzzle solved!", hint: "Hint", clear: "Clear", colors: { red: "Red heart", blue: "Blue circle", yellow: "Yellow star", green: "Green triangle", purple: "Purple square" } },
     'pipe-puzzle': {
       title: "Pipe Puzzle",
       label: "PIPE PUZZLE",
