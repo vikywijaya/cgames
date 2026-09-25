@@ -1,135 +1,154 @@
-@keyframes popIn {
-  0%   { opacity: 0; transform: scale(0.5) translateY(12px); }
-  60%  { opacity: 1; transform: scale(1.08) translateY(-2px); }
-  80%  { transform: scale(0.96) translateY(1px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
-}
-
 .wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
   width: 100%;
-  padding: 0;
-
-  flex: 1;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
-/* Fills the space below the pinned info header and centers gameplay in it */
-.playArea {
-  flex: 1;
+/* ── Header ── */
+.header {
+  background: var(--color-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  color: #ffffff;
+}
+.headerText { display: flex; flex-direction: column; gap: 2px; }
+.headerLabel { font-size: 16px; font-weight: var(--font-weight-bold); }
+.headerName { font-size: 18px; }
+.headerBadge {
+  background: rgba(0, 0, 0, 0.22);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+.badgeNum { font-size: 22px; font-weight: var(--font-weight-bold); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.badgeSub { font-size: 16px; }
+
+/* ── Board ── */
+.boardWrap {
+  position: relative;
+  width: 100%;
+  background: #ffffff;
+  border: 2px solid #cbd5e1;
+  border-radius: var(--radius-xl);
+  padding: var(--space-3);
+  display: flex;
+  justify-content: center;
+}
+.board {
+  width: 100%;
+  max-width: 400px;
+  max-height: 46vh;
+  height: auto;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.slot { cursor: pointer; transition: fill 0.2s ease; }
+.slotHint { animation: hintPulse 0.9s ease-in-out infinite alternate; }
+@keyframes hintPulse {
+  from { stroke-opacity: 1; }
+  to   { stroke-opacity: 0.35; }
+}
+
+.banner {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-4);
-  width: 100%;
-}
-
-.meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  max-width: 420px;
-  font-size: var(--text-sm);
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 1.5px solid #e2e8f0;
+  gap: var(--space-1);
+  background: rgba(255, 255, 255, 0.82);
   border-radius: var(--radius-xl);
-  padding: var(--space-2) var(--space-4);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
-.roundLabel { color: var(--color-text-muted); }
-.roundLabel strong { color: var(--color-primary); }
-
-/* ── Board (SVG) ── */
-.board {
-  width: 100%;
-  max-width: 360px;
-  height: auto;
-  overflow: visible;
-  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
+.bannerTitle { font-size: 28px; font-weight: var(--font-weight-bold); color: #14532d; }
+.bannerStars { font-size: 40px; color: #b45309; letter-spacing: 4px; }
+.starOff { color: #cbd5e1; }
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
-/* ── Clear / Reset button ── */
-.clearBtn {
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--text-sm);
+/* ── Message line ── */
+.message {
+  min-height: 28px;
+  font-size: 18px;
   font-weight: 600;
-  color: var(--color-text-muted);
-  background: var(--color-surface);
-  border: 2px solid var(--color-border);
+  color: #1f2937;
+  text-align: center;
+}
+.messageWarn { color: #9a3412; }
+
+/* ── Tray ── */
+.tray {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 84px;
+}
+.pieceBtn {
+  width: 80px;
+  height: 80px;
+  padding: 6px;
+  background: #ffffff;
+  border: 3px solid #cbd5e1;
   border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition: transform 0.15s ease, border-color 0.15s ease;
 }
-@media (hover: hover) and (pointer: fine) {
-.clearBtn:hover {
-  background: #fee2e2;
-  color: #dc2626;
-  border-color: #fca5a5;
+.pieceBtn:active { transform: scale(0.95); }
+.pieceSelected {
+  border-color: #1d4ed8;
+  box-shadow: 0 0 0 3px #bfdbfe;
+  transform: translateY(-3px);
 }
-}
+.pieceSvg { width: 100%; height: 100%; display: block; }
 
-/* ── Solved feedback ── */
-@keyframes solvedPulse {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.03); }
-  100% { transform: scale(1); }
-}
-
-/* ── Info header — WordRecall style ── */
-.infoHeader {
-  background: var(--color-surface);
-  border-radius: 0;
-  padding: var(--space-4) var(--space-5);
+/* ── Controls ── */
+.controls {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  width: calc(100% + var(--space-4) * 2);
-  margin: 0 calc(-1 * var(--space-4));
-  position: sticky;
-  top: 0;
-  z-index: 5;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
 }
-
-.infoHeaderText {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-
-.infoHeaderSub {
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-regular);
-  color: var(--color-text-muted);
-}
-
-.infoBadge {
-  background: var(--color-primary-light);
-  border-radius: var(--radius-xl);
+.ctrlBtn {
+  min-height: 52px;
+  min-width: 110px;
   padding: var(--space-2) var(--space-4);
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+  background: #ffffff;
+  border: 2px solid #64748b;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+}
+.ctrlBtn:disabled { opacity: 0.45; cursor: default; }
+
+.footer {
   display: flex;
-  align-items: baseline;
-  gap: 4px;
-  flex-shrink: 0;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 16px;
+  color: #374151;
 }
 
-.infoBadgeNum {
-  font-size: var(--text-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-primary);
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.infoBadgeSub {
-  font-size: var(--text-xs);
-  color: var(--color-primary);
+@media (prefers-reduced-motion: reduce) {
+  .slotHint, .banner { animation: none; }
 }

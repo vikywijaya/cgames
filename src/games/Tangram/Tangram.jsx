@@ -1,452 +1,293 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './Tangram.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
+import { PUZZLES, piecePoints, fitsSlot, turnForSlot, starsFor, bounds, makePieces } from './tangramData';
 
-/* ── The 7 classic tangram pieces (tans) ──
-   Each piece is defined as a polygon in a normalised coordinate space.
-   The full tangram square is 100×100.
-   Pieces are: 2 large triangles, 1 medium triangle, 2 small triangles,
-   1 square, and 1 parallelogram. */
-
-const TAN_DEFS = [
-  { id: 'lg-tri-1',  label: 'Large Triangle 1',  color: '#ef4444', points: [[0,0],[50,50],[0,100]] },
-  { id: 'lg-tri-2',  label: 'Large Triangle 2',  color: '#3b82f6', points: [[0,0],[100,0],[50,50]] },
-  { id: 'md-tri',    label: 'Medium Triangle',    color: '#22c55e', points: [[50,50],[100,100],[0,100]] },
-  { id: 'sm-tri-1',  label: 'Small Triangle 1',   color: '#f59e0b', points: [[0,0],[50,0],[25,25]] },
-  { id: 'sm-tri-2',  label: 'Small Triangle 2',   color: '#a78bfa', points: [[50,50],[75,25],[75,75]] },
-  { id: 'square',    label: 'Square',             color: '#ec4899', points: [[25,25],[50,0],[75,25],[50,50]] },
-  { id: 'para',      label: 'Parallelogram',      color: '#06b6d4', points: [[50,50],[75,75],[100,75],[75,50]] },
-];
-
-/* ── Puzzle silhouettes ──
-   Each puzzle has a target outline (SVG path) and a solution: where each
-   piece should be placed. The player drags pieces onto the board to
-   match the silhouette. We define puzzles as a set of piece placements
-   (translate offsets) that together form the silhouette. */
-
-function generatePuzzles() {
-  // Each puzzle is an arrangement of all 7 tans inside a 100×100 viewbox.
-  // We pre-define several classic tangram shapes.
-  return [
-    {
-      name: 'Square',
-      // Classic square arrangement
-      solution: [
-        { id: 'lg-tri-1',  x: 0, y: 0 },
-        { id: 'lg-tri-2',  x: 0, y: 0 },
-        { id: 'md-tri',    x: 0, y: 0 },
-        { id: 'sm-tri-1',  x: 0, y: 0 },
-        { id: 'sm-tri-2',  x: 0, y: 0 },
-        { id: 'square',    x: 0, y: 0 },
-        { id: 'para',      x: 0, y: 0 },
-      ],
-    },
-    {
-      name: 'Arrow',
-      solution: [
-        { id: 'lg-tri-1',  x: 25, y: -25 },
-        { id: 'lg-tri-2',  x: 0,  y: 0 },
-        { id: 'md-tri',    x: 15, y: 10 },
-        { id: 'sm-tri-1',  x: 10, y: 30 },
-        { id: 'sm-tri-2',  x: -5, y: 20 },
-        { id: 'square',    x: 5,  y: 5 },
-        { id: 'para',      x: -10, y: 15 },
-      ],
-    },
-    {
-      name: 'House',
-      solution: [
-        { id: 'lg-tri-1',  x: 10, y: -20 },
-        { id: 'lg-tri-2',  x: -5, y: 5 },
-        { id: 'md-tri',    x: 5,  y: 15 },
-        { id: 'sm-tri-1',  x: 20, y: 10 },
-        { id: 'sm-tri-2',  x: 15, y: -5 },
-        { id: 'square',    x: 0,  y: 25 },
-        { id: 'para',      x: -15, y: 20 },
-      ],
-    },
-  ];
-}
-
-/* ── Snap distance threshold (in SVG units) ── */
-const SNAP_DIST = 8;
-
-/* ── Difficulty config ── */
-const DIFFICULTY_CONFIG = {
-  easy:   { rounds: 3, timeLimitSeconds: null, showOutlines: true  },
-  medium: { rounds: 5, timeLimitSeconds: 180,  showOutlines: true  },
-  hard:   { rounds: 7, timeLimitSeconds: 120,  showOutlines: false },
+/*
+ * Tangram — tap a piece, then tap the space where it belongs.
+ *
+ * Tuned for seniors:
+ * - No clock. Tap to pick and tap to place instead of dragging.
+ * - Easy: the spaces are outlined and every piece already faces the right
+ *   way. Medium: outlined, but pieces must be turned. Hard: only the
+ *   silhouette is shown and pieces must be turned.
+ * - Tap a placed piece to take it back. "Start again" clears the puzzle.
+ * - Hint picks a piece, turns it the right way and makes its space glow.
+ * - 3 stars per puzzle without hints, 2 with one hint, 1 with more.
+ */
+const CONFIG = {
+  easy:   { preTurned: true,  outlines: true,  autoTurn: true  },
+  medium: { preTurned: false, outlines: true,  autoTurn: false },
+  hard:   { preTurned: false, outlines: false, autoTurn: false },
 };
 
-const TIME_LIMITS = {
-  easy:   DIFFICULTY_CONFIG.easy.timeLimitSeconds,
-  medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds,
-  hard:   DIFFICULTY_CONFIG.hard.timeLimitSeconds,
-};
+const toPts = (points, dx = 0, dy = 0) => points.map(([x, y]) => `${x + dx},${y + dy}`).join(' ');
 
-/* ── Point-in-polygon test (ray casting) ── */
-function pointInPolygon(px, py, polygon) {
-  let inside = false;
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const [xi, yi] = polygon[i];
-    const [xj, yj] = polygon[j];
-    if (((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi)) {
-      inside = !inside;
-    }
-  }
-  return inside;
+function PieceIcon({ kind, turn, color }) {
+  const pts = piecePoints(kind, turn);
+  const w = Math.max(...pts.map(p => p[0]));
+  const h = Math.max(...pts.map(p => p[1]));
+  const size = Math.max(3.2, w + 0.4, h + 0.4);
+  return (
+    <svg viewBox={`${-(size - w) / 2} ${-(size - h) / 2} ${size} ${size}`} className={styles.pieceSvg} aria-hidden="true">
+      <polygon points={toPts(pts)} fill={color} stroke="#111827" strokeWidth="0.1" strokeLinejoin="round" />
+    </svg>
+  );
 }
+PieceIcon.propTypes = { kind: PropTypes.string.isRequired, turn: PropTypes.number.isRequired, color: PropTypes.string.isRequired };
 
-/* ── Distance between two points ── */
-function dist(x1, y1, x2, y2) {
-  return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
-}
-
-/* ── Compute centroid of a polygon ── */
-function centroid(points) {
-  const n = points.length;
-  const cx = points.reduce((s, p) => s + p[0], 0) / n;
-  const cy = points.reduce((s, p) => s + p[1], 0) / n;
-  return [cx, cy];
-}
-
-/* ── Generate a random arrangement puzzle ──
-   We place all 7 tans at random positions around a board.
-   The target silhouette is the "solution" arrangement. */
-
-function buildRound(gridSize) {
-  const trayPieces = TAN_DEFS.map((def) => {
-    // Scatter pieces in a tray area below the board
-    return {
-      ...def,
-      x: 10 + Math.random() * (gridSize - 40),
-      y: gridSize + 20 + Math.random() * 40,
-      placed: false,
-    };
-  });
-
-  // The solution positions are defined relative to the board centre
-  const solutionPieces = TAN_DEFS.map((def) => {
-    const [cx, cy] = centroid(def.points);
-    return {
-      id: def.id,
-      // Target position: piece centroid should be at its solution spot
-      targetX: 0,
-      targetY: 0,
-      cx, cy,
-    };
-  });
-
-  return { trayPieces, solutionPieces };
-}
-
-/* ──────────────────────────────────────────────────────
-   TangramGame — the inner game component
-────────────────────────────────────────────────────── */
-function TangramGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+function TangramGame({ difficulty, onComplete, reportScore, reportRound, playClick, playSuccess, playFail }) {
   const t = useTranslation();
-  const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const { rounds, showOutlines } = config;
-  const boardSize = 240; // SVG viewBox size for the board area
-  const trayHeight = 160;
-  const totalHeight = boardSize + trayHeight + 20;
+  const tt = t.games['tangram'];
+  const config = CONFIG[difficulty] ?? CONFIG.easy;
+  const puzzles = PUZZLES[difficulty] ?? PUZZLES.easy;
+  const maxScore = puzzles.length * 3;
 
-  const [round, setRound] = useState(0);
-  const [score, setScore] = useState(0);
+  const [idx, setIdx] = useState(0);
+  const [pieces, setPieces] = useState(() => makePieces(puzzles[0], config.preTurned));
+  const [placed, setPlaced] = useState({}); // slotIndex -> pieceId
+  const [selected, setSelected] = useState(null);
+  const [hints, setHints] = useState(0);
+  const [hintSlot, setHintSlot] = useState(null);
+  const [message, setMessage] = useState(null); // { id, text, tone }
   const [solved, setSolved] = useState(false);
+  const [banner, setBanner] = useState(null);
+  const [score, setScore] = useState(0);
 
-  // Each piece: { ...TAN_DEF, x, y, placed }
-  const [pieces, setPieces] = useState(() => initPieces());
-  const [dragging, setDragging] = useState(null); // { id, offsetX, offsetY }
-  const svgRef = useRef(null);
-  const onCompleteRef = useRef(onComplete);
-  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
   const scoreRef = useRef(0);
-  const roundRef = useRef(0);
-  const roundsRef = useRef(rounds);
-  useEffect(() => { scoreRef.current = score; }, [score]);
-  useEffect(() => { roundRef.current = round; }, [round]);
-  useEffect(() => { roundsRef.current = rounds; }, [rounds]);
+  const hintsRef = useRef(0);
+  const solvedRef = useRef(false);
+  const doneRef = useRef(false);
+  const idRef = useRef(0);
+  const timersRef = useRef(new Set());
 
-  function initPieces() {
-    // Place pieces randomly in the tray area
-    const shuffled = [...TAN_DEFS].sort(() => Math.random() - 0.5);
-    return shuffled.map((def, i) => ({
-      ...def,
-      x: 15 + (i % 4) * 55,
-      y: boardSize + 10 + Math.floor(i / 4) * 55,
-      placed: false,
-    }));
-  }
-
-  // Target positions: all pieces assembled into the classic square at centre of board
-  const targets = useMemo(() => {
-    // Classic tangram square — each piece's centroid target on the board
-    // We'll place the assembled square centred at (boardSize/2, boardSize/2)
-    // Scale factor: pieces defined in 0-100 space, board is boardSize
-    const scale = boardSize * 0.7 / 100;
-    const ox = boardSize * 0.15;
-    const oy = boardSize * 0.15;
-
-    return TAN_DEFS.map(def => {
-      const [cx, cy] = centroid(def.points);
-      return {
-        id: def.id,
-        x: ox + cx * scale,
-        y: oy + cy * scale,
-      };
-    });
-  }, [boardSize]);
-
-  // Scale for rendering pieces
-  const pieceScale = boardSize * 0.7 / 100;
-
+  const later = useCallback((fn, ms) => {
+    const h = setTimeout(() => { timersRef.current.delete(h); fn(); }, ms);
+    timersRef.current.add(h);
+  }, []);
   useEffect(() => {
-    if (secondsLeft === 0) onComplete({ finalScore: score, maxScore: rounds, completed: false });
-  }, [secondsLeft, score, rounds, onComplete]);
-
-
-  // Convert mouse/touch event to SVG coordinates
-  const toSVG = useCallback((e) => {
-    const svg = svgRef.current;
-    if (!svg) return { x: 0, y: 0 };
-    const pt = svg.createSVGPoint();
-    const touch = e.touches?.[0] ?? e.changedTouches?.[0] ?? e;
-    pt.x = touch.clientX;
-    pt.y = touch.clientY;
-    const svgPt = pt.matrixTransform(svg.getScreenCTM().inverse());
-    return { x: svgPt.x, y: svgPt.y };
+    const timers = timersRef.current;
+    return () => { timers.forEach(clearTimeout); timers.clear(); };
   }, []);
 
-  const handlePointerDown = useCallback((e, pieceId) => {
-    if (solved) return;
-    e.preventDefault();
-    const pos = toSVG(e);
-    const piece = pieces.find(p => p.id === pieceId);
-    if (!piece) return;
+  const puzzle = puzzles[idx];
 
-    // If piece was placed, unplace it
-    if (piece.placed) {
-      setPieces(prev => prev.map(p =>
-        p.id === pieceId ? { ...p, placed: false } : p
-      ));
-    }
+  useEffect(() => { reportRound?.(idx + 1, puzzles.length); }, [idx, puzzles.length, reportRound]);
 
+  const say = useCallback((text, tone = 'info', ms = 2600) => {
+    const id = ++idRef.current;
+    setMessage({ id, text, tone });
+    later(() => setMessage(m => (m?.id === id ? null : m)), ms);
+  }, [later]);
+
+  const placedIds = new Set(Object.values(placed));
+  const trayPieces = pieces.filter(p => !placedIds.has(p.id));
+  const selectedPiece = pieces.find(p => p.id === selected) ?? null;
+
+  const selectPiece = useCallback((id) => {
+    if (solvedRef.current) return;
     playClick();
-    setDragging({
-      id: pieceId,
-      offsetX: pos.x - piece.x,
-      offsetY: pos.y - piece.y,
-    });
-  }, [solved, pieces, toSVG, playClick]);
+    setSelected(cur => (cur === id ? null : id));
+  }, [playClick]);
 
-  const handlePointerMove = useCallback((e) => {
-    if (!dragging) return;
-    e.preventDefault();
-    const pos = toSVG(e);
-    setPieces(prev => prev.map(p =>
-      p.id === dragging.id
-        ? { ...p, x: pos.x - dragging.offsetX, y: pos.y - dragging.offsetY }
-        : p
-    ));
-  }, [dragging, toSVG]);
+  const turnSelected = useCallback(() => {
+    if (solvedRef.current || !selected) return;
+    playClick();
+    setPieces(prev => prev.map(p => (p.id === selected ? { ...p, turn: (p.turn + 1) % 4 } : p)));
+  }, [selected, playClick]);
 
-  const handlePointerUp = useCallback((e) => {
-    if (!dragging) return;
-    e.preventDefault();
-
-    const piece = pieces.find(p => p.id === dragging.id);
-    const target = targets.find(t => t.id === dragging.id);
-
-    if (piece && target) {
-      // Check if piece centroid is close to target
-      const [cx, cy] = centroid(piece.points);
-      const pieceCX = piece.x + cx * pieceScale;
-      const pieceCY = piece.y + cy * pieceScale;
-      const d = dist(pieceCX, pieceCY, target.x, target.y);
-
-      if (d < SNAP_DIST * 3) {
-        // Snap to target
-        const snapX = target.x - cx * pieceScale;
-        const snapY = target.y - cy * pieceScale;
-        const updatedPieces = pieces.map(p =>
-          p.id === dragging.id ? { ...p, x: snapX, y: snapY, placed: true } : p
-        );
-        setPieces(updatedPieces);
-        playSuccess();
-
-        if (!solved && updatedPieces.every(p => p.placed)) {
-          setSolved(true);
-          const newScore = scoreRef.current + 1;
-          setScore(newScore);
-          reportScore(newScore);
-          setTimeout(() => {
-            const nextRound = roundRef.current + 1;
-            if (nextRound >= roundsRef.current) {
-              onCompleteRef.current({ finalScore: newScore, maxScore: roundsRef.current, completed: true });
-              return;
-            }
-            setSolved(false);
-            setRound(nextRound);
-            setPieces(initPieces());
-          }, 1200);
-        }
-      } else {
-        playFail();
+  const finishPuzzle = useCallback(() => {
+    solvedRef.current = true;
+    setSolved(true);
+    setSelected(null);
+    setHintSlot(null);
+    const stars = starsFor(hintsRef.current);
+    scoreRef.current += stars;
+    setScore(scoreRef.current);
+    reportScore?.(scoreRef.current);
+    setBanner({ stars });
+    later(() => playSuccess(), 200);
+    later(() => {
+      if (doneRef.current) return;
+      const next = idx + 1;
+      if (next >= puzzles.length) {
+        doneRef.current = true;
+        onComplete({ finalScore: scoreRef.current, maxScore, completed: true });
+        return;
       }
+      hintsRef.current = 0;
+      solvedRef.current = false;
+      setHints(0);
+      setBanner(null);
+      setSolved(false);
+      setPlaced({});
+      setMessage(null);
+      setPieces(makePieces(puzzles[next], config.preTurned));
+      setIdx(next);
+    }, 2000);
+  }, [idx, puzzles, maxScore, config.preTurned, later, onComplete, playSuccess, reportScore]);
+
+  const tapSlot = useCallback((slotIdx) => {
+    if (solvedRef.current) return;
+    const slot = puzzle.slots[slotIdx];
+    const occupant = placed[slotIdx];
+    if (occupant) {
+      // Take a placed piece back to the tray.
+      playClick();
+      const next = { ...placed };
+      delete next[slotIdx];
+      setPlaced(next);
+      setSelected(occupant);
+      return;
     }
-
-    setDragging(null);
-  }, [dragging, pieces, targets, pieceScale, solved, score, reportScore, playSuccess, playFail]);
-
-  // Reset all pieces to tray
-  const resetPieces = useCallback(() => {
-    if (solved) return;
+    if (!selectedPiece) {
+      say(tt.pickFirst);
+      return;
+    }
+    let turn = selectedPiece.turn;
+    if (selectedPiece.kind === slot.kind && config.autoTurn) turn = turnForSlot(slot);
+    if (!fitsSlot(selectedPiece.kind, turn, slot)) {
+      playFail();
+      say(selectedPiece.kind === slot.kind ? tt.needTurn : tt.wrongShape, 'warn');
+      return;
+    }
     playClick();
-    setPieces(initPieces());
-  }, [solved, playClick]);
+    if (turn !== selectedPiece.turn) {
+      setPieces(prev => prev.map(p => (p.id === selectedPiece.id ? { ...p, turn } : p)));
+    }
+    const next = { ...placed, [slotIdx]: selectedPiece.id };
+    setPlaced(next);
+    setSelected(null);
+    setMessage(null);
+    if (hintSlot === slotIdx) setHintSlot(null);
+    if (Object.keys(next).length === puzzle.slots.length) finishPuzzle();
+  }, [puzzle, placed, selectedPiece, config.autoTurn, hintSlot, say, tt, playClick, playFail, finishPuzzle]);
 
-  const placedCount = pieces.filter(p => p.placed).length;
+  const giveHint = useCallback(() => {
+    if (solvedRef.current) return;
+    const slotIdx = puzzle.slots.findIndex((_, i) => !placed[i]);
+    if (slotIdx < 0) return;
+    const slot = puzzle.slots[slotIdx];
+    const candidates = trayPieces.filter(p => p.kind === slot.kind);
+    const piece = candidates.find(p => p.id === selected) ?? candidates[0];
+    if (!piece) return;
+    playClick();
+    hintsRef.current += 1;
+    setHints(hintsRef.current);
+    const turn = turnForSlot(slot);
+    setPieces(prev => prev.map(p => (p.id === piece.id ? { ...p, turn } : p)));
+    setSelected(piece.id);
+    setHintSlot(slotIdx);
+    say(tt.hintMsg, 'info', 3200);
+  }, [puzzle, placed, trayPieces, selected, say, tt, playClick]);
+
+  const resetPuzzle = useCallback(() => {
+    if (solvedRef.current) return;
+    playClick();
+    setPlaced({});
+    setSelected(null);
+    setHintSlot(null);
+    setMessage(null);
+  }, [playClick]);
+
+  const b = bounds(puzzle.slots);
+  const pad = 0.4;
+  const viewBox = `${b.minX - pad} ${b.minY - pad} ${b.maxX - b.minX + pad * 2} ${b.maxY - b.minY + pad * 2}`;
+  const placedCount = Object.keys(placed).length;
+  const puzzleName = tt.names?.[puzzle.name] ?? puzzle.name;
+  const stars = starsFor(hints);
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>{t.common.puzzle} {round + 1} {t.common.of} {rounds}</span>
+      <div className={styles.header}>
+        <div className={styles.headerText}>
+          <span className={styles.headerLabel}>
+            {tt.progress.replace('{n}', idx + 1).replace('{total}', puzzles.length)}
+          </span>
+          <span className={styles.headerName}>{tt.makeThe.replace('{name}', puzzleName)}</span>
         </div>
-        <div className={styles.infoBadge}>
-          <span className={styles.infoBadgeNum}>{placedCount}</span>
-          <span className={styles.infoBadgeSub}>/ 7 placed</span>
+        <div className={styles.headerBadge} aria-label={tt.placedCount.replace('{n}', placedCount).replace('{total}', puzzle.slots.length)}>
+          <span className={styles.badgeNum}>{placedCount}/{puzzle.slots.length}</span>
+          <span className={styles.badgeSub}>{tt.pieces}</span>
         </div>
       </div>
 
-      <div className={styles.playArea}>
-      <svg
-        ref={svgRef}
-        className={styles.board}
-        viewBox={`0 0 ${boardSize} ${totalHeight}`}
-        onMouseMove={handlePointerMove}
-        onMouseUp={handlePointerUp}
-        onMouseLeave={handlePointerUp}
-        onTouchMove={handlePointerMove}
-        onTouchEnd={handlePointerUp}
-        onTouchCancel={handlePointerUp}
-      >
-        {/* Board background */}
-        <rect
-          x="4" y="4"
-          width={boardSize - 8} height={boardSize - 8}
-          rx="12"
-          fill="#f1f5f9"
-          stroke="#cbd5e1"
-          strokeWidth="2"
-        />
-
-        {/* Target silhouette outlines */}
-        {showOutlines && targets.map(target => {
-          const def = TAN_DEFS.find(d => d.id === target.id);
-          const placed = pieces.find(p => p.id === target.id)?.placed;
-          if (placed) return null;
-          const pts = def.points
-            .map(([px, py]) => `${target.x - centroid(def.points)[0] * pieceScale + px * pieceScale},${target.y - centroid(def.points)[1] * pieceScale + py * pieceScale}`)
-            .join(' ');
-          return (
-            <polygon
-              key={`outline-${target.id}`}
-              points={pts}
-              fill="rgba(148, 163, 184, 0.15)"
-              stroke="#94a3b8"
-              strokeWidth="1"
-              strokeDasharray="4 3"
-            />
-          );
-        })}
-
-        {/* Tray separator */}
-        <line
-          x1="10" y1={boardSize + 2}
-          x2={boardSize - 10} y2={boardSize + 2}
-          stroke="#e2e8f0" strokeWidth="1.5" strokeDasharray="6 4"
-        />
-        <text
-          x={boardSize / 2} y={boardSize + 14}
-          textAnchor="middle"
-          fill="#94a3b8"
-          fontSize="8"
-          fontFamily="inherit"
+      <div className={styles.boardWrap}>
+        <svg
+          className={styles.board}
+          viewBox={viewBox}
+          role="group"
+          aria-label={tt.boardLabel}
         >
-          Drag pieces onto the board
-        </text>
-
-        {/* Pieces (render non-dragging first, dragging piece on top) */}
-        {pieces
-          .sort((a, b) => {
-            if (a.id === dragging?.id) return 1;
-            if (b.id === dragging?.id) return -1;
-            return 0;
-          })
-          .map(piece => {
-            const pts = piece.points
-              .map(([px, py]) => `${piece.x + px * pieceScale},${piece.y + py * pieceScale}`)
-              .join(' ');
-            const isDragging = piece.id === dragging?.id;
+          {puzzle.slots.map((slot, i) => {
+            const occupant = pieces.find(p => p.id === placed[i]);
+            const isHint = hintSlot === i;
+            const outline = config.outlines || isHint;
             return (
-              <g key={piece.id}>
-                <polygon
-                  points={pts}
-                  fill={piece.color}
-                  stroke={piece.placed ? '#16a34a' : isDragging ? '#1d4ed8' : 'rgba(0,0,0,0.2)'}
-                  strokeWidth={piece.placed ? 2.5 : isDragging ? 2 : 1.5}
-                  opacity={piece.placed ? 0.9 : isDragging ? 0.8 : 1}
-                  style={{
-                    cursor: solved ? 'default' : 'grab',
-                    filter: isDragging ? 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))' : piece.placed ? 'none' : 'drop-shadow(0 2px 3px rgba(0,0,0,0.15))',
-                    transition: isDragging ? 'none' : 'all 0.2s ease',
-                  }}
-                  onMouseDown={(e) => handlePointerDown(e, piece.id)}
-                  onTouchStart={(e) => handlePointerDown(e, piece.id)}
-                />
-                {piece.placed && (
-                  <text
-                    x={piece.x + centroid(piece.points)[0] * pieceScale}
-                    y={piece.y + centroid(piece.points)[1] * pieceScale + 3}
-                    textAnchor="middle"
-                    fontSize="10"
-                    fill="white"
-                    style={{ pointerEvents: 'none' }}
-                  >
-                    ✓
-                  </text>
-                )}
-              </g>
+              <polygon
+                key={`slot-${i}`}
+                points={toPts(slot.points)}
+                className={`${styles.slot} ${isHint ? styles.slotHint : ''}`}
+                fill={occupant ? occupant.color : config.outlines ? '#e5e7eb' : '#374151'}
+                stroke={occupant ? '#111827' : isHint ? '#f59e0b' : outline ? '#4b5563' : '#374151'}
+                strokeWidth={isHint ? 0.14 : occupant ? 0.08 : outline ? 0.07 : 0.03}
+                strokeDasharray={!occupant && config.outlines && !isHint ? '0.25 0.15' : undefined}
+                strokeLinejoin="round"
+                onClick={() => tapSlot(i)}
+                role="button"
+                aria-label={occupant ? tt.takeBack : tt.space}
+              />
             );
           })}
-
-        {/* Solved overlay */}
-        {solved && (
-          <g>
-            <rect x="0" y="0" width={boardSize} height={boardSize} fill="rgba(34,197,94,0.12)" rx="12" />
-            <text
-              x={boardSize / 2} y={boardSize / 2}
-              textAnchor="middle" dominantBaseline="middle"
-              fill="#16a34a" fontSize="20" fontWeight="bold"
-              fontFamily="inherit"
-            >
-              Solved!
-            </text>
-          </g>
+        </svg>
+        {solved && banner && (
+          <div className={styles.banner} role="status">
+            <span className={styles.bannerTitle}>{tt.solved}</span>
+            <span className={styles.bannerStars} aria-label={tt.starsLabel.replace('{n}', banner.stars)}>
+              {'★'.repeat(banner.stars)}<span className={styles.starOff}>{'★'.repeat(3 - banner.stars)}</span>
+            </span>
+          </div>
         )}
-      </svg>
+      </div>
 
-      {/* Reset button */}
-      {placedCount > 0 && !solved && (
-        <button className={styles.clearBtn} onClick={resetPieces}>
-          Reset Pieces
+      <div className={`${styles.message} ${message?.tone === 'warn' ? styles.messageWarn : ''}`} aria-live="polite">
+        {message?.text ?? (selectedPiece ? tt.tapSpace : trayPieces.length ? tt.tapPiece : '')}
+      </div>
+
+      <div className={styles.tray} role="group" aria-label={tt.trayLabel}>
+        {trayPieces.map(p => (
+          <button
+            key={p.id}
+            type="button"
+            className={`${styles.pieceBtn} ${selected === p.id ? styles.pieceSelected : ''}`}
+            onClick={() => selectPiece(p.id)}
+            aria-pressed={selected === p.id}
+            aria-label={tt.shapes[p.kind]}
+            disabled={solved}
+          >
+            <PieceIcon kind={p.kind} turn={p.turn} color={p.color} />
+          </button>
+        ))}
+      </div>
+
+      <div className={styles.controls}>
+        <button type="button" className={styles.ctrlBtn} onClick={turnSelected} disabled={!selectedPiece || solved}>
+          ↻ {tt.turn}
         </button>
-      )}
+        <button type="button" className={styles.ctrlBtn} onClick={giveHint} disabled={solved}>
+          💡 {tt.hint}
+        </button>
+        <button type="button" className={styles.ctrlBtn} onClick={resetPuzzle} disabled={solved || placedCount === 0}>
+          ↺ {tt.reset}
+        </button>
+      </div>
+
+      <div className={styles.footer}>
+        <span>{tt.starsNow.replace('{n}', stars)}</span>
+        <span>{tt.total.replace('{n}', score).replace('{total}', maxScore)}</span>
       </div>
     </div>
   );
@@ -455,8 +296,8 @@ function TangramGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
 TangramGame.propTypes = {
   difficulty:  PropTypes.string.isRequired,
   onComplete:  PropTypes.func.isRequired,
-  reportScore: PropTypes.func.isRequired,
-  secondsLeft: PropTypes.number,
+  reportScore: PropTypes.func,
+  reportRound: PropTypes.func,
   playClick:   PropTypes.func.isRequired,
   playSuccess: PropTypes.func.isRequired,
   playFail:    PropTypes.func.isRequired,
@@ -471,15 +312,24 @@ export function Tangram({ memberId, difficulty = 'easy', onComplete, callbackUrl
       title={t.games['tangram'].title}
       instructions={t.games['tangram'].instructions}
       difficulty={difficulty}
-      timeLimits={TIME_LIMITS}
+      timeLimits={{ easy: null, medium: null, hard: null }}
       flushTop
       onGameComplete={fireCallback}
       onBack={onBack}
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ difficulty: diff, onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
-        <TangramGame difficulty={diff} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
+      {({ difficulty: diff, onComplete: sc, reportScore, reportRound, playClick, playSuccess, playFail }) => (
+        <TangramGame
+          key={diff}
+          difficulty={diff}
+          onComplete={sc}
+          reportScore={reportScore}
+          reportRound={reportRound}
+          playClick={playClick}
+          playSuccess={playSuccess}
+          playFail={playFail}
+        />
       )}
     </GameShell>
   );
