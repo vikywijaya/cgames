@@ -206,7 +206,7 @@ export default {
     'letter-count': { title: '字母计数', label: '字母计数', description: '数一个字母在单词中出现几次。', instructions: '数一下指定字母在单词中出现了几次。选择正确的数量。', wrongAnswer: '✗ 出现了', times: '次' },
     'currency-quiz': { title: '货币测验', label: '货币测验', description: '说出每个国家的货币。', instructions: '你将看到一个国家。选择正确的货币。', wrongAnswer: '✗ 正确答案是' },
     'landmark-quiz': { title: '地标测验', label: '地标测验', description: '识别著名地标所在的国家。', instructions: '你将看到一个著名地标。选择它所在的国家。', wrongAnswer: '✗ 它在' },
-    'snake-lite': { title: '贪吃蛇', label: '贪吃蛇', description: '引导蛇吃水果。别撞墙！', instructions: '引导蛇吃水果变长。别撞墙或自己的身体！' },
+    'snake-lite': { title: '贪吃蛇', label: '贪吃蛇', description: '引导蛇吃水果。别撞墙！', instructions: '用方向按钮、滑动或方向键引导小蛇去吃水果。每吃一个水果，小蛇就会变长。连续吃水果且不碰撞可以累积连击：连续5个得分翻倍，连续10个得分三倍。金色星星值3分，但几秒后会消失。', rulesEasy: '小蛇可以穿过墙壁，从另一边出来。咬到自己的尾巴只会让它变短。', rulesMedium: '撞墙会失去3条命中的一条。咬到自己的尾巴只会让它变短。', rulesHard: '撞墙或咬到自己的尾巴都会失去3条命中的一条。', combo: '连击', pts: '分', ouch: '哎哟！', bite: '咬断了！', ariaBoard: '贪吃蛇游戏板', ariaControls: '方向按钮', up: '上', down: '下', left: '左', right: '右' },
     'tile-flip': { title: '翻方块', label: '翻方块', description: '记住亮起的方块，然后点击。', instructions: '观察哪些方块亮起，记住位置，然后凭记忆点击它们。' },
     'lumeno': { title: 'Lumeno', label: 'LUMENO', description: '拖动3个或更多相同颜色的球来消除。', instructions: '拖动3个或更多相同颜色的球来消除它们。链越长分数越高！' },
     'pipe-puzzle': { title: '管道拼图', label: '管道拼图', description: '旋转方块连接相同颜色的点。', instructions: '旋转管道方块，使每对相同颜色的点通过不间断的管道连接。' },
