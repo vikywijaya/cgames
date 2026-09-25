@@ -47,22 +47,39 @@
 .scoreDisplay { font-size: var(--text-md); color: var(--color-text-muted); }
 .scoreDisplay strong { color: var(--color-primary); font-size: var(--text-lg); }
 
-/* Grass field */
+/* Board: a mowed lawn inside a wooden frame */
+.field {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  padding: 10px;
+  border-radius: calc(var(--radius-xl) + 6px);
+  background: linear-gradient(180deg, #b98755 0%, #9a6a3e 100%);
+  box-shadow:
+    0 14px 30px rgba(60, 40, 15, 0.28),
+    inset 0 2px 0 rgba(255,255,255,0.25),
+    inset 0 -3px 0 rgba(0,0,0,0.18);
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-4);
+  gap: var(--space-3);
   width: 100%;
-  max-width: 360px;
-  padding: var(--space-4);
-  background: linear-gradient(180deg, #6fd992 0%, #4cbf72 55%, #37a95e 100%);
-  border: 3px solid rgba(20, 108, 56, 0.55);
+  padding: var(--space-4) var(--space-3);
   border-radius: var(--radius-xl);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255,255,255,0.55) 0 2px, transparent 3px),
+    radial-gradient(circle at 88% 82%, rgba(255,236,120,0.8) 0 2px, transparent 3px),
+    radial-gradient(circle at 78% 10%, rgba(255,180,200,0.8) 0 2px, transparent 3px),
+    radial-gradient(circle at 20% 92%, rgba(255,255,255,0.55) 0 2px, transparent 3px),
+    repeating-linear-gradient(90deg, #5ccb80 0 20%, #4fbd73 20% 40%),
+    #54c378;
   box-shadow:
-    0 10px 30px rgba(22, 101, 52, 0.28),
-    inset 0 2px 6px rgba(255,255,255,0.28),
-    inset 0 -8px 16px rgba(0,0,0,0.10);
+    inset 0 3px 8px rgba(0,0,0,0.18),
+    inset 0 -6px 14px rgba(0,0,0,0.10);
 }
+.gridSix { padding-block: var(--space-5); }
 
 /* Screen shake when a bomb goes off */
 @keyframes gridShake {
@@ -376,4 +393,188 @@
 @keyframes hammerFade {
   0%, 60% { transform: rotate(0deg); opacity: 1; }
   100%    { transform: rotate(0deg); opacity: 0; }
+}
+
+/* ── Revamp additions ─────────────────────────────────────────── */
+
+.hudLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* Combo meter: multiplier chip + progress to the next tier */
+.combo {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 8px;
+  row-gap: 3px;
+  align-items: center;
+  min-width: 108px;
+}
+.comboMult {
+  grid-row: 1 / 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: 32px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: #e2e8f0;
+  color: #475569;
+  font-weight: 800;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  transition: background 200ms ease, color 200ms ease, transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.combo2 .comboMult { background: #fde68a; color: #92400e; transform: scale(1.06); }
+.combo3 .comboMult { background: linear-gradient(135deg, #fb923c, #ef4444); color: #fff; transform: scale(1.12); }
+.comboTrack {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+.comboFill {
+  display: block;
+  height: 100%;
+  background: #22c55e;
+  transform-origin: left;
+  transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.combo2 .comboFill { background: #f59e0b; }
+.combo3 .comboFill { background: #ef4444; }
+.comboLabel {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+@keyframes badgeBump {
+  0% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+.infoBadgeNum { display: inline-block; animation: badgeBump 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+
+/* Combo tier banner across the board */
+@keyframes bannerIn {
+  0%   { transform: translate(-50%, -50%) scale(0.6) rotate(-4deg); opacity: 0; }
+  18%  { transform: translate(-50%, -50%) scale(1.08) rotate(-4deg); opacity: 1; }
+  30%  { transform: translate(-50%, -50%) scale(1) rotate(-4deg); }
+  80%  { opacity: 1; }
+  100% { transform: translate(-50%, -70%) scale(1) rotate(-4deg); opacity: 0; }
+}
+.banner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 20;
+  pointer-events: none;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-weight: 900;
+  font-size: 1.5rem;
+  color: #fff;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+  animation: bannerIn 1100ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+.banner2 { background: linear-gradient(135deg, #f59e0b, #f97316); }
+.banner3 { background: linear-gradient(135deg, #f97316, #dc2626); }
+
+/* Golden mole: warm glow on the hole and a shimmer on the mole */
+.holeGolden .holeOpening {
+  box-shadow: inset 0 5px 8px rgba(0,0,0,0.75), 0 0 0 3px rgba(253, 224, 71, 0.95), 0 0 14px rgba(253, 224, 71, 0.8);
+}
+.holeBomb .holeOpening {
+  box-shadow: inset 0 5px 8px rgba(0,0,0,0.75), 0 0 0 3px rgba(248, 113, 113, 0.6);
+}
+@keyframes goldShimmer {
+  0%, 100% { filter: drop-shadow(0 2px 3px rgba(0,0,0,0.25)) brightness(1); }
+  50%      { filter: drop-shadow(0 0 6px rgba(253, 224, 71, 0.9)) brightness(1.12); }
+}
+.creatureGolden {
+  animation:
+    popUp 220ms cubic-bezier(0.23, 1, 0.32, 1) backwards,
+    goldShimmer 600ms ease-in-out infinite;
+}
+
+/* Escaped target ducks back down instead of vanishing */
+@keyframes duckDown {
+  0%   { transform: translateX(-50%) translateY(0); }
+  100% { transform: translateX(-50%) translateY(105%); }
+}
+.creatureLeaving { animation: duckDown 200ms cubic-bezier(0.55, 0, 1, 0.45) forwards; }
+
+/* Knocked-off helmet spins away */
+@keyframes helmetFly {
+  0%   { transform: translate(-50%, 0) rotate(0); opacity: 1; }
+  100% { transform: translate(calc(-50% + 34px), -46px) rotate(140deg); opacity: 0; }
+}
+@keyframes helmetFlyLeft {
+  0%   { transform: translate(-50%, 0) rotate(0); opacity: 1; }
+  100% { transform: translate(calc(-50% - 34px), -46px) rotate(-140deg); opacity: 0; }
+}
+.helmetFly {
+  position: absolute;
+  top: -8%;
+  left: 50%;
+  width: 56%;
+  height: 24%;
+  z-index: 9;
+  pointer-events: none;
+  animation: helmetFly 600ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+.helmetFlyLeft { animation-name: helmetFlyLeft; }
+
+@keyframes sparkFlicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.fuseSpark { animation: sparkFlicker 180ms steps(2) infinite; }
+
+/* Popup tones */
+.tone_good { -webkit-text-stroke: 1px #15803d; }
+.tone_x2   { color: #fef3c7; -webkit-text-stroke: 1px #b45309; font-size: 1.4rem; }
+.tone_x3   { color: #fee2e2; -webkit-text-stroke: 1px #b91c1c; font-size: 1.55rem; }
+.tone_gold { color: #fef08a; -webkit-text-stroke: 1px #a16207; font-size: 1.5rem; }
+.tone_bad  { color: #fff; -webkit-text-stroke: 1px #b91c1c; }
+
+/* Legend of what each target is worth */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  max-width: 380px;
+}
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 6px;
+  border-radius: 999px;
+  background: var(--color-surface);
+  border: 1px solid #e2e8f0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text);
+}
+.legendBad { color: #b91c1c; }
+.legendIcon {
+  display: inline-block;
+  width: 22px;
+  height: 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner { animation: none; transform: translate(-50%, -50%) rotate(-4deg); }
+  .creatureGolden { animation: none; }
+  .helmetFly, .helmetFlyLeft { animation: none; opacity: 0; }
+  .fuseSpark { animation: none; }
 }

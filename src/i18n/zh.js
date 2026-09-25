@@ -192,7 +192,7 @@ export default {
     'balloon-pop': { title: '戳气球', label: '戳气球', description: '在气球飘走前点击它！', instructions: '在气球飘走前点击它！在时间结束前尽可能多地戳破气球。' },
     'flag-quiz': { title: '国旗测验', label: '国旗测验', description: '通过国旗识别国家。', instructions: '看国旗，从下面的选项中选择正确的国家。', wrongAnswer: '✗ 那是' },
     'colour-memory': { title: '颜色记忆', label: '颜色记忆', description: '观察颜色序列，然后重复。', instructions: '观察颜色依次亮起，然后按相同顺序点击。每轮序列变长！' },
-    'whack-a-mole': { title: '打地鼠', label: '打地鼠', description: '在地鼠消失前点击它！', instructions: '地鼠从洞里冒出来。在它们消失前点击它们！它们会越来越快。' },
+    'whack-a-mole': { title: '打地鼠', label: '打地鼠', description: '在地鼠消失前点击它！', instructions: '地鼠从洞里冒出来——在它们躲回去之前点击它们！连续击中可以累积连击：连中5个得分翻倍，连中10个得分三倍。金色地鼠值3分。速度会越来越快。', instructionsHard: '戴头盔的地鼠需要点两下。避开炸弹！漏掉地鼠或点到炸弹会失去3条命中的一条。', combo: '连击', pts: '分', twoTaps: '点2下', avoid: '避开', ariaMole: '打地鼠！', ariaBomb: '避开炸弹！', ariaEmpty: '空洞' },
     'odd-one-out': { title: '找不同', label: '找不同', description: '找出不属于的那个表情。', instructions: '看一组表情符号，点击那个与其他不同的。', wrongAnswer: '✗ 那个就是不同的！' },
     'capital-quiz': { title: '首都测验', label: '首都测验', description: '说出每个国家的首都。', instructions: '你将看到一个国家。选择正确的首都。', wrongAnswer: '✗ 正确答案是' },
     'number-sort': { title: '数字排序', label: '数字排序', description: '从小到大点击数字。', instructions: '尽快从最小到最大点击数字。' },
