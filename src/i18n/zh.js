@@ -189,7 +189,7 @@ export default {
     'word-search': { title: '找字游戏', label: '找字游戏', description: '在字母网格中找到隐藏的单词。', instructions: '在字母网格中找到所有隐藏的单词。点击起始字母然后点击结束字母。', clearSelection: '取消选择' },
     'catch-falling-fruit': { title: '接水果', label: '接水果', description: '滑动篮子接住掉落的水果。', instructions: '水果会从天上掉下来——用篮子接住！滑动手指移动。炸弹——接到会失去一条命！星星——+3奖励分！' },
     'right-time': { title: '正确时间', label: '正确时间', description: '看时钟选择正确时间。', instructions: '看模拟时钟并从选项中选择正确的时间。', wrongAnswer: '✗ 正确答案是' },
-    'balloon-pop': { title: '戳气球', label: '戳气球', description: '在气球飘走前点击它！', instructions: '在气球飘走前点击它！在时间结束前尽可能多地戳破气球。' },
+    'balloon-pop': { title: '戳气球', label: '戳气球', description: '在气球飘走前点击它！', instructions: '在气球飞走前点击它们！连续戳破可以累积连击：连续5个得分翻倍，连续10个得分三倍。金色气球值3分。气球会越升越快。 彩虹气球会一次戳破屏幕上所有气球！', instructionsHard: '只戳顶部显示的颜色——颜色会在游戏中改变。不要戳暴风气球！漏掉正确颜色的气球会失去一条命。', combo: '连击', pts: '分', popOnly: '只戳', popAll: '全部戳破', avoid: '避开', ariaArea: '戳气球游戏——点击气球戳破它们', ariaBalloon: '戳破这个气球', ariaStorm: '暴风气球——不要戳', colours: { red: '红色', blue: '蓝色', purple: '紫色', green: '绿色' } },
     'flag-quiz': { title: '国旗测验', label: '国旗测验', description: '通过国旗识别国家。', instructions: '看国旗，从下面的选项中选择正确的国家。', wrongAnswer: '✗ 那是' },
     'colour-memory': { title: '颜色记忆', label: '颜色记忆', description: '观察颜色序列，然后重复。', instructions: '观察颜色依次亮起，然后按相同顺序点击。每轮序列变长！' },
     'whack-a-mole': { title: '打地鼠', label: '打地鼠', description: '在地鼠消失前点击它！', instructions: '地鼠从洞里冒出来——在它们躲回去之前点击它们！连续击中可以累积连击：连中5个得分翻倍，连中10个得分三倍。金色地鼠值3分。速度会越来越快。', instructionsHard: '戴头盔的地鼠需要点两下。避开炸弹！漏掉地鼠或点到炸弹会失去3条命中的一条。', combo: '连击', pts: '分', twoTaps: '点2下', avoid: '避开', ariaMole: '打地鼠！', ariaBomb: '避开炸弹！', ariaEmpty: '空洞' },
