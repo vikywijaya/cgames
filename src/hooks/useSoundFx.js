@@ -11,6 +11,7 @@
  *   playReveal()   – soft ping (card flip / tile highlight)
  *   playTick()     – sharp tick (countdown timer, last 5 s)
  *   playBoing()    – springy boing (whack / mole hit)
+ *   playNote(freq) – a soft musical note (per-pad tones, e.g. Colour Memory)
  */
 
 let _ctx = null;
@@ -121,5 +122,14 @@ export function useSoundFx() {
     ], 'triangle');
   }
 
-  return { playClick, playSuccess, playFail, playComplete, playPop, playReveal, playTick, playBoing };
+  // A soft bell-like note at the given frequency: a sine with a quiet
+  // octave overtone, long enough to hear the pitch clearly.
+  function playNote(freq, dur = 0.45) {
+    playTone([
+      { freq, t: 0, dur, vol: 0.4 },
+      { freq: freq * 2, t: 0, dur: dur * 0.6, vol: 0.08 },
+    ]);
+  }
+
+  return { playClick, playSuccess, playFail, playComplete, playPop, playReveal, playTick, playBoing, playNote };
 }

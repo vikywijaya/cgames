@@ -51,7 +51,7 @@ export function GameShell({
   const countdownTimerRef = useRef(null);
   const startTimeRef = useRef(null);
   const animTimerRef = useRef(null);
-  const { playClick, playSuccess, playFail, playComplete, playPop, playReveal, playBoing, playTick } = useSoundFx();
+  const { playClick, playSuccess, playFail, playComplete, playPop, playReveal, playBoing, playTick, playNote } = useSoundFx();
 
   // Compute effective time limit from timeLimits map or legacy prop
   const effectiveTimeLimit = timeLimits ? (timeLimits[localDifficulty] ?? null) : timeLimitSeconds;
@@ -314,6 +314,7 @@ export function GameShell({
                 playPop,
                 playReveal,
                 playBoing,
+                playNote,
                 countingDown: countdown !== null,
               })}
             </div>
