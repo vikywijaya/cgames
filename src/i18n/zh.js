@@ -212,7 +212,7 @@ export default {
     'lumeno': { title: 'Lumeno', label: 'LUMENO', description: '拖动3个或更多相同颜色的球来消除。', instructions: '拖动3个或更多相同颜色的球来消除它们。链越长分数越高！' },
     'pipe-puzzle': { title: '管道拼图', label: '管道拼图', description: '旋转方块连接相同颜色的点。', instructions: '旋转管道方块，使每对相同颜色的点通过不间断的管道连接。' },
     'sumix': { title: 'Sumix', label: 'SUMIX', description: '激活数字使每行每列总和达标。', instructions: '切换数字单元格的开关，使每行每列的总和等于目标值。' },
-    'block-puzzle': { title: '方块', label: '方块拼图', description: '放置方块填满每个空格。', instructions: '将方块拖到棋盘上填满每个空格。所有方块必须放置！' },
+    'block-puzzle': { title: "方块", label: "方块拼图", description: "用所有方块填满轮廓形状。", instructions: "用下面的方块填满棋盘上每个空格。先点一个方块，再点它要盖住的格子，或者把它拖到棋盘上。方块不会旋转。点已放好的方块可以把它拿回来。如果卡住了，就按提示，会有一个方块放到正确位置。没有计时，请慢慢来。", solved: "完成！", noHelp: "没用提示就完成了，太棒了！", wellDone: "做得好！", noFit: "这个方块放不进那里，换个位置试试。", liftedBack: "方块已拿回，点棋盘再放一次。", pickFirst: "点下面的一个方块把它拿起来。", nowTapBoard: "现在点棋盘上的一个格子。", hintPlaced: "这里是其中一个方块的位置。", hintMoved: "一个方块已放到正确位置，挡路的方块已放回托盘。", hint: "提示", undo: "撤销", reset: "重新开始", hintsUsed: "已用提示", squaresLeft: "剩余格子", piecesLeft: "剩余方块", pieceLabel: "方块", emptyCell: "空格", placedCell: "点一下把它拿回来。", onBoard: "在棋盘上" },
     'ring-sort': { title: '环形排序', label: '环形排序', description: '排序彩环使每根杆只有一种颜色。', instructions: '在杆之间移动彩环，使每根杆只有相同颜色的环。' },
     'math-cross': { title: '数学填字', label: '数学填字', description: '将数字放入方程式填字格。', instructions: '将给定的数字放入填字网格，使每个方程式都正确。', tapEmptySlot: '点击网格上的空位', pickNumber: '选择下面的数字', tapNumberThenSlot: '点击数字，然后点击空位' },
     'tangram': { title: '七巧板', label: '七巧板', description: '拖动七块几何形状填满轮廓。', instructions: '拖动并旋转七块七巧板精确填满轮廓形状。' },

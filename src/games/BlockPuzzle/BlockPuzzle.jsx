@@ -5,501 +5,569 @@ import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './BlockPuzzle.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
 
-/* ── Colours for pieces ── */
+/*
+ * BlockPuzzle — fill the outlined shape with the pieces in the tray.
+ *
+ * Tuned for seniors:
+ * - No clock. Pieces never rotate, so what you see in the tray is exactly
+ *   what lands on the board.
+ * - Tap a piece, then tap any square it should cover (the game finds the
+ *   fitting spot around that square), or drag it onto the board.
+ * - Tap a placed piece to take it back. Undo and Start over are always there.
+ * - Hint puts one piece in its right place (moving anything in the way back
+ *   to the tray), so a puzzle can never get stuck.
+ * - Every puzzle is built by cutting a shape into the given pieces, so it
+ *   always has a solution.
+ * - Stars per puzzle: 3 with no hints, 2 with one hint, 1 with more.
+ *   maxScore = 3 x puzzles.
+ * - Each piece shows its number, so colour is never the only cue.
+ */
+
+// Strong, distinct colours with dark borders; all readable with white numbers.
 const PIECE_COLORS = [
-  '#f59e0b', // amber/yellow
-  '#3b82f6', // blue
-  '#22c55e', // green
-  '#ef4444', // red
-  '#a78bfa', // purple
-  '#06b6d4', // teal
-  '#f97316', // orange
-  '#ec4899', // pink
+  { fill: '#2563eb', edge: '#1e3a8a' }, // blue
+  { fill: '#dc2626', edge: '#7f1d1d' }, // red
+  { fill: '#d97706', edge: '#78350f' }, // amber
+  { fill: '#7c3aed', edge: '#4c1d95' }, // purple
+  { fill: '#0f766e', edge: '#134e4a' }, // teal
+  { fill: '#db2777', edge: '#831843' }, // pink
+  { fill: '#4d7c0f', edge: '#365314' }, // olive green
+  { fill: '#475569', edge: '#1e293b' }, // slate
 ];
 
-/* ── All polyomino shapes (relative coords) ── */
-const SHAPES = [
-  // Monominoes & Dominoes
-  [[0,0],[0,1]],                                         // horizontal 2
-  [[0,0],[1,0]],                                         // vertical 2
-  // Triominoes
-  [[0,0],[0,1],[0,2]],                                   // horizontal 3
-  [[0,0],[1,0],[2,0]],                                   // vertical 3
-  [[0,0],[0,1],[1,0]],                                   // L corner
-  [[0,0],[0,1],[1,1]],                                   // reverse L corner
-  // Tetrominoes
-  [[0,0],[0,1],[1,0],[1,1]],                             // 2x2 square
-  [[0,0],[0,1],[0,2],[0,3]],                             // horizontal 4
-  [[0,0],[1,0],[2,0],[3,0]],                             // vertical 4
-  [[0,0],[0,1],[0,2],[1,0]],                             // L
-  [[0,0],[0,1],[0,2],[1,2]],                             // reverse L
-  [[0,0],[1,0],[1,1],[1,2]],                             // L flipped
-  [[0,0],[0,1],[1,1],[1,2]],                             // S
-  [[0,0],[0,1],[1,0],[0,2]],                             // T top
-  [[0,0],[1,0],[1,1],[2,0]],                             // T left
-];
-
-const DIFFICULTY_CONFIG = {
-  easy:   { gridSize: 6, rounds: 4, timeLimitSeconds: null },
-  medium: { gridSize: 7, rounds: 6, timeLimitSeconds: 180  },
-  hard:   { gridSize: 8, rounds: 8, timeLimitSeconds: 120  },
+/* Polyomino shapes (relative coords). Every shape contains [0,0]. */
+const SHAPES = {
+  d2h: [[0,0],[0,1]],
+  d2v: [[0,0],[1,0]],
+  i3h: [[0,0],[0,1],[0,2]],
+  i3v: [[0,0],[1,0],[2,0]],
+  l3a: [[0,0],[0,1],[1,0]],
+  l3b: [[0,0],[0,1],[1,1]],
+  l3c: [[0,0],[1,0],[1,1]],
+  sq:  [[0,0],[0,1],[1,0],[1,1]],
+  i4h: [[0,0],[0,1],[0,2],[0,3]],
+  i4v: [[0,0],[1,0],[2,0],[3,0]],
+  l4a: [[0,0],[0,1],[0,2],[1,0]],
+  l4b: [[0,0],[0,1],[0,2],[1,2]],
+  l4c: [[0,0],[1,0],[1,1],[1,2]],
+  l4d: [[0,0],[1,0],[2,0],[2,1]],
+  s4:  [[0,0],[0,1],[1,1],[1,2]],
+  t4a: [[0,0],[0,1],[0,2],[1,1]],
+  t4b: [[0,0],[1,0],[1,1],[2,0]],
 };
 
-const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
+const DIFFICULTY_CONFIG = {
+  easy:   { gridSize: 5, rounds: 4, pieces: [3, 4], shapes: ['d2h', 'd2v', 'i3h', 'i3v', 'l3a', 'l3b', 'l3c', 'sq'] },
+  medium: { gridSize: 6, rounds: 5, pieces: [5, 5], shapes: ['i3h', 'i3v', 'l3a', 'l3b', 'l3c', 'sq', 'i4h', 'l4a', 'l4c', 't4a', 's4'] },
+  hard:   { gridSize: 6, rounds: 5, pieces: [6, 7], shapes: ['l3a', 'l3b', 'l3c', 'sq', 'i4h', 'i4v', 'l4a', 'l4b', 'l4c', 'l4d', 's4', 't4a', 't4b'] },
+};
 
-/**
- * Generate a puzzle board. We start with an empty grid, place random pieces
- * to create a pattern, then give the player those pieces to place back.
- */
-function generatePuzzle(gridSize) {
-  const board = Array.from({ length: gridSize }, () => Array(gridSize).fill(null));
-  // active = which cells are part of the puzzle shape
-  const active = Array.from({ length: gridSize }, () => Array(gridSize).fill(false));
-  const pieces = [];
-
-  // Try to fill as much of the board as possible with pieces
-  const maxAttempts = 200;
-  let attempts = 0;
-
-  while (attempts < maxAttempts) {
-    attempts++;
-    // Pick a random shape
-    const shapeIdx = Math.floor(Math.random() * SHAPES.length);
-    const shape = SHAPES[shapeIdx];
-    const color = PIECE_COLORS[pieces.length % PIECE_COLORS.length];
-
-    // Pick a random position
-    const r = Math.floor(Math.random() * gridSize);
-    const c = Math.floor(Math.random() * gridSize);
-
-    // Check if shape fits
-    const cells = shape.map(([dr, dc]) => [r + dr, c + dc]);
-    const fits = cells.every(
-      ([cr, cc]) => cr >= 0 && cr < gridSize && cc >= 0 && cc < gridSize && !active[cr][cc]
-    );
-
-    if (fits) {
-      cells.forEach(([cr, cc]) => {
-        active[cr][cc] = true;
-        board[cr][cc] = pieces.length; // store piece index
-      });
-      pieces.push({ shape, color, cells });
-    }
-  }
-
-  // Only keep puzzle if we placed enough pieces
-  if (pieces.length < 3) return generatePuzzle(gridSize);
-
-  return { board, active, pieces, gridSize };
+const STARS_MAX = 3;
+export function starsFor(hints) {
+  if (hints <= 0) return 3;
+  if (hints === 1) return 2;
+  return 1;
 }
 
-function BlockPuzzleGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
-  const t = useTranslation();
-  const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const { gridSize, rounds } = config;
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
-  const [round, setRound] = useState(0);
-  const [score, setScore] = useState(0);
-  const [puzzle, setPuzzle] = useState(() => generatePuzzle(gridSize));
-  // Board state: null = empty, 'inactive' = not part of puzzle, or piece index
-  const [boardState, setBoardState] = useState(() => initBoard(puzzle));
-  const [piecesUsed, setPiecesUsed] = useState(() => new Set());
-  const [selectedPiece, setSelectedPiece] = useState(null);
-  const [hoverCell, setHoverCell] = useState(null);
-  const [solved, setSolved] = useState(false);
-  const [justPlaced, setJustPlaced] = useState(new Set());
-  // Drag-and-drop state. `drag` holds the floating ghost info while a piece is
-  // being dragged from the tray onto the board.
-  const [drag, setDrag] = useState(null); // { pieceIdx, x, y } | null
-  const boardRef = useRef(null);
-  const dragMovedRef = useRef(false);
-  const advanceTimerRef = useRef(null);
-  const stateRef = useRef({ score, round, rounds, gridSize, onComplete, reportScore, playSuccess });
-  stateRef.current = { score, round, rounds, gridSize, onComplete, reportScore, playSuccess };
+const shapeKey = (shape) => shape.map(([r, c]) => `${r},${c}`).join(';');
 
-  function initBoard(puz) {
-    return Array.from({ length: puz.gridSize }, (_, r) =>
-      Array.from({ length: puz.gridSize }, (_, c) =>
-        puz.active[r][c] ? null : 'inactive'
-      )
-    );
+/**
+ * Build a puzzle by growing one connected shape out of pieces. The pieces
+ * themselves are the solution, so every puzzle is solvable.
+ */
+export function generatePuzzle(config, attempt = 0) {
+  const { gridSize } = config;
+  const target = config.pieces[0] + Math.floor(Math.random() * (config.pieces[1] - config.pieces[0] + 1));
+  const active = Array.from({ length: gridSize }, () => Array(gridSize).fill(false));
+  const placed = [];
+  const touches = (cells) => cells.some(([r, c]) =>
+    [[1,0],[-1,0],[0,1],[0,-1]].some(([dr, dc]) => active[r + dr]?.[c + dc]));
+
+  for (let tries = 0; tries < 600 && placed.length < target; tries++) {
+    const name = config.shapes[Math.floor(Math.random() * config.shapes.length)];
+    // Keep variety: at most two of the same shape.
+    if (placed.filter(p => p.name === name).length >= 2) continue;
+    const shape = SHAPES[name];
+    const r0 = Math.floor(Math.random() * gridSize);
+    const c0 = Math.floor(Math.random() * gridSize);
+    const cells = shape.map(([dr, dc]) => [r0 + dr, c0 + dc]);
+    const fits = cells.every(([r, c]) => r < gridSize && c < gridSize && !active[r][c]);
+    if (!fits) continue;
+    if (placed.length === 0) {
+      // First piece near the middle so the shape can grow in every direction.
+      const mid = (gridSize - 1) / 2;
+      if (Math.abs(r0 - mid) > 1.5 || Math.abs(c0 - mid) > 1.5) continue;
+    } else if (!touches(cells)) continue;
+    cells.forEach(([r, c]) => { active[r][c] = true; });
+    placed.push({ name, shape, cells });
   }
 
+  if (placed.length < target && attempt < 30) return generatePuzzle(config, attempt + 1);
+
+  // Trim empty rows/columns so the shape fills the board (bigger squares).
+  const all = placed.flatMap(p => p.cells);
+  const r0 = Math.min(...all.map(([r]) => r));
+  const c0 = Math.min(...all.map(([, c]) => c));
+  const rows = Math.max(...all.map(([r]) => r)) - r0 + 1;
+  const cols = Math.max(...all.map(([, c]) => c)) - c0 + 1;
+  const size = Math.max(rows, cols);
+  const offR = r0 - Math.floor((size - rows) / 2);
+  const offC = c0 - Math.floor((size - cols) / 2);
+  const grid = Array.from({ length: size }, () => Array(size).fill(false));
+  const pieces = shuffle(placed).map((p, i) => {
+    const solution = p.cells.map(([r, c]) => [r - offR, c - offC]);
+    solution.forEach(([r, c]) => { grid[r][c] = true; });
+    return { shape: p.shape, key: shapeKey(p.shape), color: PIECE_COLORS[i % PIECE_COLORS.length], solution };
+  });
+  return { gridSize: size, active: grid, pieces };
+}
+
+/** Cells piece `shape` would cover with its [0,0] at (r, c). */
+const cellsAt = (shape, r, c) => shape.map(([dr, dc]) => [r + dr, c + dc]);
+
+function fitsOn(board, cells) {
+  return cells.every(([r, c]) => board[r]?.[c] === null);
+}
+
+/**
+ * Where the piece goes when the player taps (r, c): first try with the
+ * piece's top-left block on that square, then any other position that
+ * still covers the tapped square.
+ */
+export function findFit(board, shape, r, c) {
+  const first = cellsAt(shape, r, c);
+  if (fitsOn(board, first)) return first;
+  for (const [dr, dc] of shape) {
+    const cells = cellsAt(shape, r - dr, c - dc);
+    if (fitsOn(board, cells)) return cells;
+  }
+  return null;
+}
+
+function buildBoard(puzzle, placements) {
+  const board = puzzle.active.map(row => row.map(a => (a ? null : 'x')));
+  Object.entries(placements).forEach(([idx, cells]) => {
+    cells.forEach(([r, c]) => { board[r][c] = Number(idx); });
+  });
+  return board;
+}
+
+const sameCells = (a, b) => {
+  const s = new Set(a.map(([r, c]) => `${r},${c}`));
+  return b.length === a.length && b.every(([r, c]) => s.has(`${r},${c}`));
+};
+
+/**
+ * Pick one hint move: a solution slot that isn't yet filled by a matching
+ * piece, and the piece to put there. Returns the new placements.
+ */
+export function hintMove(puzzle, placements) {
+  const slots = puzzle.pieces.map(p => ({ key: p.key, cells: p.solution }));
+  const inGoodSpot = new Set();
+  const openSlots = [];
+  slots.forEach(slot => {
+    const owner = Object.entries(placements).find(([idx, cells]) =>
+      !inGoodSpot.has(Number(idx)) && puzzle.pieces[idx].key === slot.key && sameCells(cells, slot.cells));
+    if (owner) inGoodSpot.add(Number(owner[0]));
+    else openSlots.push(slot);
+  });
+  if (openSlots.length === 0) return null;
+  const slot = openSlots[0];
+  const candidates = puzzle.pieces
+    .map((p, i) => i)
+    .filter(i => puzzle.pieces[i].key === slot.key && !inGoodSpot.has(i));
+  // Prefer a piece still in the tray.
+  const pieceIdx = candidates.find(i => !placements[i]) ?? candidates[0];
+  const slotSet = new Set(slot.cells.map(([r, c]) => `${r},${c}`));
+  const next = {};
+  const returned = [];
+  Object.entries(placements).forEach(([idx, cells]) => {
+    const i = Number(idx);
+    if (i === pieceIdx) return;
+    if (cells.some(([r, c]) => slotSet.has(`${r},${c}`))) returned.push(i);
+    else next[i] = cells;
+  });
+  next[pieceIdx] = slot.cells;
+  return { placements: next, pieceIdx, cells: slot.cells, returned };
+}
+
+function PieceShape({ piece, idx, cell }) {
+  const rows = Math.max(...piece.shape.map(([r]) => r)) + 1;
+  const cols = Math.max(...piece.shape.map(([, c]) => c)) + 1;
+  const set = new Set(piece.shape.map(([r, c]) => `${r},${c}`));
+  return (
+    <span className={styles.shape} style={{ gridTemplateColumns: `repeat(${cols}, ${cell}px)`, gridTemplateRows: `repeat(${rows}, ${cell}px)` }}>
+      {Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_, c) => {
+        const on = set.has(`${r},${c}`);
+        return (
+          <span
+            key={`${r}-${c}`}
+            className={on ? styles.shapeCell : styles.shapeGap}
+            style={on ? { background: piece.color.fill, borderColor: piece.color.edge } : undefined}
+          >
+            {on && r === 0 && c === 0 ? idx + 1 : ''}
+          </span>
+        );
+      }))}
+    </span>
+  );
+}
+PieceShape.propTypes = { piece: PropTypes.object.isRequired, idx: PropTypes.number.isRequired, cell: PropTypes.number.isRequired };
+
+function BlockPuzzleGame({ difficulty, onComplete, reportScore, reportRound, playClick, playSuccess, playFail }) {
+  const t = useTranslation();
+  const tb = t.games['block-puzzle'];
+  const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
+  const { rounds } = config;
+
+  const [round, setRound] = useState(0);
+  const [puzzle, setPuzzle] = useState(() => generatePuzzle(config));
+  const [placements, setPlacements] = useState({}); // pieceIdx -> cells
+  const [history, setHistory] = useState([]);       // earlier placements, for Undo
+  const [selected, setSelected] = useState(null);
+  const [hoverCell, setHoverCell] = useState(null);
+  const [hints, setHints] = useState(0);
+  const [score, setScore] = useState(0);
+  const [solved, setSolved] = useState(false);
+  const [message, setMessage] = useState(null);     // { text, tone }
+  const [flash, setFlash] = useState(null);         // { cells:Set, tone }
+  const [banner, setBanner] = useState(null);
+  const [drag, setDrag] = useState(null);           // { pieceIdx, x, y }
+
+  const boardRef = useRef(null);
+  const dragMovedRef = useRef(false);
+  const placementsRef = useRef(placements);
+  placementsRef.current = placements;
+  const solvedRef = useRef(false);
+  const hintsRef = useRef(0);
+  const scoreRef = useRef(0);
+  const doneRef = useRef(false);
+  const idRef = useRef(0);
+  const timersRef = useRef(new Set());
+
+  const later = useCallback((fn, ms) => {
+    const h = setTimeout(() => { timersRef.current.delete(h); fn(); }, ms);
+    timersRef.current.add(h);
+  }, []);
   useEffect(() => {
-    if (secondsLeft === 0) onComplete({ finalScore: score, maxScore: rounds, completed: false });
-  }, [secondsLeft, score, rounds, onComplete]);
+    const timers = timersRef.current;
+    return () => { timers.forEach(clearTimeout); timers.clear(); };
+  }, []);
 
-  // Count empty cells to check if solved
-  const emptyCells = useMemo(() => {
-    let count = 0;
-    for (let r = 0; r < puzzle.gridSize; r++) {
-      for (let c = 0; c < puzzle.gridSize; c++) {
-        if (boardState[r][c] === null) count++;
-      }
-    }
-    return count;
-  }, [boardState, puzzle.gridSize]);
+  const cbRef = useRef({});
+  cbRef.current = { reportRound };
+  useEffect(() => { cbRef.current.reportRound?.(round + 1, rounds); }, [round, rounds]);
 
-  useEffect(() => () => clearTimeout(advanceTimerRef.current), []);
+  const board = useMemo(() => buildBoard(puzzle, placements), [puzzle, placements]);
+  const emptyCells = useMemo(() => board.reduce((n, row) => n + row.filter(v => v === null).length, 0), [board]);
 
-  // Check solved
-  useEffect(() => {
-    if (emptyCells !== 0 || solved) return;
-    setSolved(true);
+  const flashCells = useCallback((cells, tone, ms = 700) => {
+    const id = ++idRef.current;
+    setFlash({ id, cells: new Set(cells.map(([r, c]) => `${r},${c}`)), tone });
+    later(() => setFlash(f => (f?.id === id ? null : f)), ms);
+  }, [later]);
 
-    const { score: s, round: r, rounds: total, gridSize: gs, onComplete: oc, reportScore: rs, playSuccess: ps } = stateRef.current;
-    ps();
-    const newScore = s + 1;
-    setScore(newScore);
-    rs(newScore);
-
-    clearTimeout(advanceTimerRef.current);
-    advanceTimerRef.current = setTimeout(() => {
-      const nextRound = r + 1;
-      if (nextRound >= total) {
-        oc({ finalScore: newScore, maxScore: total, completed: true });
-        return;
-      }
-      setRound(nextRound);
-      const newPuzzle = generatePuzzle(gs);
-      setPuzzle(newPuzzle);
-      setBoardState(initBoard(newPuzzle));
-      setPiecesUsed(new Set());
-      setSelectedPiece(null);
-      setSolved(false);
-      setJustPlaced(new Set());
-    }, 900);
-  }, [emptyCells, solved]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Compute preview cells when hovering
-  const preview = useMemo(() => {
-    if (selectedPiece == null || hoverCell == null) return null;
-    const piece = puzzle.pieces[selectedPiece];
-    // Find top-left of piece shape to compute offsets
-    const minR = Math.min(...piece.shape.map(([r]) => r));
-    const minC = Math.min(...piece.shape.map(([, c]) => c));
-
-    const cells = piece.shape.map(([dr, dc]) => [
-      hoverCell[0] + (dr - minR),
-      hoverCell[1] + (dc - minC),
-    ]);
-
-    const valid = cells.every(
-      ([r, c]) => r >= 0 && r < puzzle.gridSize && c >= 0 && c < puzzle.gridSize && boardState[r][c] === null
-    );
-
-    return { cells, valid };
-  }, [selectedPiece, hoverCell, puzzle, boardState]);
-
-  // Remove a placed piece from the board, returning it to the tray
-  const removePiece = useCallback((pieceIdx) => {
-    if (solved) return;
-    playClick();
-    const newBoard = boardState.map(row => [...row]);
-    for (let r = 0; r < puzzle.gridSize; r++) {
-      for (let c = 0; c < puzzle.gridSize; c++) {
-        if (newBoard[r][c] === pieceIdx) newBoard[r][c] = null;
-      }
-    }
-    setBoardState(newBoard);
-    setPiecesUsed(prev => {
-      const next = new Set(prev);
-      next.delete(pieceIdx);
-      return next;
-    });
-    setSelectedPiece(pieceIdx);
-  }, [solved, boardState, puzzle.gridSize, playClick]);
-
-  // Clear all placed pieces
-  const clearAll = useCallback(() => {
-    if (solved) return;
-    playClick();
-    setBoardState(initBoard(puzzle));
-    setPiecesUsed(new Set());
-    setSelectedPiece(null);
-    setHoverCell(null);
-  }, [solved, puzzle, playClick]);
-
-  // Try to place piece `pieceIdx` anchored so its top-left lands at (r, c).
-  // Returns true if placed. Shared by tap-to-place and drag-and-drop.
-  const tryPlace = useCallback((pieceIdx, r, c) => {
-    if (solved || pieceIdx == null || piecesUsed.has(pieceIdx)) return false;
-    const piece = puzzle.pieces[pieceIdx];
-    if (!piece) return false;
-    const minR = Math.min(...piece.shape.map(([dr]) => dr));
-    const minC = Math.min(...piece.shape.map(([, dc]) => dc));
-
-    const cells = piece.shape.map(([dr, dc]) => [r + (dr - minR), c + (dc - minC)]);
-    const valid = cells.every(
-      ([cr, cc]) => cr >= 0 && cr < puzzle.gridSize && cc >= 0 && cc < puzzle.gridSize && boardState[cr][cc] === null
-    );
-
-    if (!valid) {
-      playFail();
-      return false;
-    }
-
-    playClick();
-    const newBoard = boardState.map(row => [...row]);
-    const placed = new Set();
-    cells.forEach(([cr, cc]) => {
-      newBoard[cr][cc] = pieceIdx;
-      placed.add(`${cr},${cc}`);
-    });
-    setBoardState(newBoard);
-    setJustPlaced(placed);
-    setPiecesUsed(prev => new Set([...prev, pieceIdx]));
-    setSelectedPiece(null);
-    setHoverCell(null);
-
-    // Clear animation after delay
-    setTimeout(() => setJustPlaced(new Set()), 300);
-    return true;
-  }, [solved, piecesUsed, puzzle, boardState, playClick, playFail]);
-
-  const handleCellClick = useCallback((r, c) => {
-    if (solved) return;
-
-    const state = boardState[r][c];
-    // If tapping a filled cell, remove that piece
-    if (state !== null && state !== 'inactive') {
-      removePiece(state);
+  const nextPuzzle = useCallback(() => {
+    if (doneRef.current) return;
+    const n = round + 1;
+    if (n >= rounds) {
+      doneRef.current = true;
+      onComplete({ finalScore: scoreRef.current, maxScore: rounds * STARS_MAX, completed: true });
       return;
     }
+    solvedRef.current = false;
+    hintsRef.current = 0;
+    setRound(n);
+    setPuzzle(generatePuzzle(config));
+    setPlacements({});
+    setHistory([]);
+    setSelected(null);
+    setHints(0);
+    setSolved(false);
+    setMessage(null);
+    setFlash(null);
+  }, [round, rounds, config, onComplete]);
 
-    if (selectedPiece == null) return;
-    if (state !== null) return;
+  // Commit a new arrangement; checks for a solved board.
+  const commit = useCallback((next) => {
+    setHistory(h => [...h, placementsRef.current]);
+    placementsRef.current = next;
+    setPlacements(next);
+    const full = buildBoard(puzzle, next).every(row => row.every(v => v !== null));
+    if (full && !solvedRef.current) {
+      solvedRef.current = true;
+      setSolved(true);
+      setSelected(null);
+      const stars = starsFor(hintsRef.current);
+      scoreRef.current += stars;
+      setScore(scoreRef.current);
+      reportScore(scoreRef.current);
+      const id = ++idRef.current;
+      setBanner({ id, text: `${tb.solved} ${'★'.repeat(stars)}` });
+      later(() => setBanner(b => (b?.id === id ? null : b)), 1500);
+      setMessage({ text: hintsRef.current === 0 ? tb.noHelp : tb.wellDone, tone: 'good' });
+      later(() => playSuccess(), 200);
+      later(nextPuzzle, 1900);
+    }
+  }, [puzzle, reportScore, playSuccess, later, nextPuzzle, tb.solved, tb.noHelp, tb.wellDone]);
 
-    tryPlace(selectedPiece, r, c);
-  }, [solved, selectedPiece, boardState, removePiece, tryPlace]);
+  const placePiece = useCallback((pieceIdx, r, c) => {
+    if (solvedRef.current || pieceIdx == null) return false;
+    const piece = puzzle.pieces[pieceIdx];
+    if (!piece || placementsRef.current[pieceIdx]) return false;
+    const fit = findFit(buildBoard(puzzle, placementsRef.current), piece.shape, r, c);
+    if (!fit) {
+      playFail();
+      setMessage({ text: tb.noFit, tone: 'bad' });
+      flashCells(cellsAt(piece.shape, r, c).filter(([cr, cc]) => puzzle.active[cr]?.[cc] !== undefined), 'bad');
+      return false;
+    }
+    playClick();
+    setSelected(null);
+    setHoverCell(null);
+    setMessage(null);
+    flashCells(fit, 'placed', 350);
+    commit({ ...placementsRef.current, [pieceIdx]: fit });
+    return true;
+  }, [puzzle, commit, flashCells, playClick, playFail, tb.noFit]);
 
-  // ── Drag-and-drop (pointer based, works for mouse + touch) ──────────
-  // Map a clientX/clientY to the board cell under the pointer, accounting for
-  // the piece's pointer-grab offset so the shape's top-left aligns naturally.
-  const cellFromPoint = useCallback((clientX, clientY) => {
-    const board = boardRef.current;
-    if (!board) return null;
-    const rect = board.getBoundingClientRect();
-    // 3px gap + 8px (space-2) padding — derive cell pitch from grid width.
-    const pad = 8;
-    const gap = 3;
-    const size = puzzle.gridSize;
-    const inner = rect.width - pad * 2;
-    const pitch = (inner + gap) / size; // cell + gap
-    const cx = clientX - rect.left - pad;
-    const cy = clientY - rect.top - pad;
-    if (cx < 0 || cy < 0) return null;
-    const c = Math.floor(cx / pitch);
-    const r = Math.floor(cy / pitch);
-    if (r < 0 || r >= size || c < 0 || c >= size) return null;
+  const liftPiece = useCallback((pieceIdx) => {
+    if (solvedRef.current) return;
+    playClick();
+    const next = { ...placementsRef.current };
+    delete next[pieceIdx];
+    commit(next);
+    setSelected(pieceIdx);
+    setMessage({ text: tb.liftedBack, tone: 'info' });
+  }, [commit, playClick, tb.liftedBack]);
+
+  const handleCell = useCallback((r, c) => {
+    if (solvedRef.current) return;
+    const v = board[r][c];
+    if (v === 'x') return;
+    if (v !== null) { liftPiece(v); return; }
+    if (selected == null) { setMessage({ text: tb.pickFirst, tone: 'info' }); return; }
+    placePiece(selected, r, c);
+  }, [board, selected, liftPiece, placePiece, tb.pickFirst]);
+
+  const undo = useCallback(() => {
+    if (solvedRef.current || history.length === 0) return;
+    playClick();
+    const prev = history[history.length - 1];
+    setHistory(h => h.slice(0, -1));
+    placementsRef.current = prev;
+    setPlacements(prev);
+    setSelected(null);
+    setMessage(null);
+  }, [history, playClick]);
+
+  const reset = useCallback(() => {
+    if (solvedRef.current || Object.keys(placementsRef.current).length === 0) return;
+    playClick();
+    commit({});
+    setSelected(null);
+    setMessage(null);
+  }, [commit, playClick]);
+
+  const hint = useCallback(() => {
+    if (solvedRef.current) return;
+    const move = hintMove(puzzle, placementsRef.current);
+    if (!move) return;
+    hintsRef.current += 1;
+    setHints(hintsRef.current);
+    setSelected(null);
+    setMessage({ text: move.returned.length ? tb.hintMoved : tb.hintPlaced, tone: 'info' });
+    flashCells(move.cells, 'hint', 1600);
+    playClick();
+    commit(move.placements);
+  }, [puzzle, commit, flashCells, playClick, tb.hintMoved, tb.hintPlaced]);
+
+  const pickPiece = useCallback((idx) => {
+    if (solvedRef.current || placementsRef.current[idx]) return;
+    playClick();
+    setSelected(prev => (prev === idx ? null : idx));
+    setMessage({ text: tb.nowTapBoard, tone: 'info' });
+  }, [playClick, tb.nowTapBoard]);
+
+  // ── Drag and drop (pointer based: mouse, touch, pen) ──
+  const cellFromPoint = useCallback((x, y) => {
+    const el = boardRef.current;
+    if (!el) return null;
+    const first = el.firstElementChild;
+    if (!first) return null;
+    const cr = first.getBoundingClientRect();
+    const style = getComputedStyle(el);
+    const gap = parseFloat(style.columnGap) || 0;
+    const pitch = cr.width + gap;
+    if (!pitch) return null;
+    const c = Math.floor((x - cr.left) / pitch);
+    const r = Math.floor((y - cr.top) / pitch);
+    if (r < 0 || c < 0 || r >= puzzle.gridSize || c >= puzzle.gridSize) return null;
     return [r, c];
   }, [puzzle.gridSize]);
 
-  const updateDragHover = useCallback((clientX, clientY) => {
-    const cell = cellFromPoint(clientX, clientY);
-    setHoverCell(cell);
-  }, [cellFromPoint]);
-
-  const handlePiecePointerDown = useCallback((e, idx) => {
-    if (solved || piecesUsed.has(idx)) return;
-    // Only primary button / touch / pen
+  const onPieceDown = useCallback((e, idx) => {
+    if (solvedRef.current || placementsRef.current[idx]) return;
     if (e.button != null && e.button !== 0) return;
-    e.preventDefault();
     dragMovedRef.current = false;
-    setSelectedPiece(idx);
-    setDrag({ pieceIdx: idx, x: e.clientX, y: e.clientY });
+    setDrag({ pieceIdx: idx, x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY });
     try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* noop */ }
-  }, [solved, piecesUsed]);
+  }, []);
 
-  const handlePiecePointerMove = useCallback((e) => {
+  const onPieceMove = useCallback((e) => {
     if (!drag) return;
-    e.preventDefault();
-    dragMovedRef.current = true;
-    setDrag(d => (d ? { ...d, x: e.clientX, y: e.clientY } : d));
-    updateDragHover(e.clientX, e.clientY);
-  }, [drag, updateDragHover]);
+    if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 8) dragMovedRef.current = true;
+    if (!dragMovedRef.current) return;
+    if (selected !== drag.pieceIdx) setSelected(drag.pieceIdx);
+    setDrag(d => (d ? { ...d, x: e.clientX, y: e.clientY, moved: true } : d));
+    setHoverCell(cellFromPoint(e.clientX, e.clientY));
+  }, [drag, selected, cellFromPoint]);
 
-  const endDrag = useCallback((e, idx) => {
+  const onPieceUp = useCallback((e, idx) => {
     if (!drag) return;
-    const cell = cellFromPoint(e.clientX, e.clientY);
     const moved = dragMovedRef.current;
     setDrag(null);
     setHoverCell(null);
-    if (cell) {
-      // Anchor the piece's top-left at the hovered cell.
-      const placedOk = tryPlace(idx, cell[0], cell[1]);
-      if (placedOk) return;
-    }
-    // No placement: if it was a tap (no real drag), toggle selection like before.
-    if (!moved) {
-      setSelectedPiece(prev => (prev === idx ? null : idx));
-    }
-  }, [drag, cellFromPoint, tryPlace]);
+    if (!moved) { pickPiece(idx); return; }
+    const cell = cellFromPoint(e.clientX, e.clientY);
+    if (cell && board[cell[0]][cell[1]] !== 'x') placePiece(idx, cell[0], cell[1]);
+    else { setSelected(idx); setMessage({ text: tb.nowTapBoard, tone: 'info' }); }
+  }, [drag, board, cellFromPoint, pickPiece, placePiece, tb.nowTapBoard]);
 
-  // Get the color for a filled cell
-  const getCellColor = useCallback((r, c) => {
-    const val = boardState[r][c];
-    if (val === null || val === 'inactive') return null;
-    return puzzle.pieces[val]?.color ?? '#94a3b8';
-  }, [boardState, puzzle.pieces]);
+  // Preview where the selected piece would land.
+  const preview = useMemo(() => {
+    if (selected == null || !hoverCell || placements[selected]) return null;
+    const [r, c] = hoverCell;
+    if (board[r]?.[c] !== null) return null;
+    const fit = findFit(board, puzzle.pieces[selected].shape, r, c);
+    return fit ? new Set(fit.map(([a, b]) => `${a},${b}`)) : null;
+  }, [selected, hoverCell, placements, board, puzzle.pieces]);
 
-  // Is a cell in the preview?
-  const isPreview = useCallback((r, c) => {
-    if (!preview) return false;
-    return preview.cells.some(([pr, pc]) => pr === r && pc === c);
-  }, [preview]);
+  const piecesLeft = puzzle.pieces.length - Object.keys(placements).length;
+  const n = puzzle.gridSize;
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>{t.common.puzzle} {round + 1} {t.common.of} {rounds}</span>
+        <div className={styles.hudLeft}>
+          <span className={styles.roundLabel}>{t.common.puzzle} {round + 1} {t.common.of} {rounds}</span>
+          <span className={styles.hintCount} aria-label={`${tb.hintsUsed} ${hints}`}>
+            💡 {hints}
+          </span>
         </div>
         <div className={styles.infoBadge}>
-          <span className={styles.infoBadgeNum}>{emptyCells}</span>
-          <span className={styles.infoBadgeSub}>left</span>
+          <span key={score} className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>★ / {rounds * STARS_MAX}</span>
         </div>
       </div>
 
       <div className={styles.playArea}>
-      {/* Board */}
-      <div
-        ref={boardRef}
-        className={`${styles.board} ${solved ? styles.boardSolved : ''}`}
-        style={{ gridTemplateColumns: `repeat(${puzzle.gridSize}, 40px)` }}
-      >
-        {Array.from({ length: puzzle.gridSize }, (_, r) =>
-          Array.from({ length: puzzle.gridSize }, (_, c) => {
-            const state = boardState[r][c];
-            const isInactive = state === 'inactive';
-            const isFilled = state !== null && state !== 'inactive';
-            const inPreview = isPreview(r, c);
-            const color = getCellColor(r, c);
-            const previewColor = selectedPiece != null ? puzzle.pieces[selectedPiece]?.color : null;
-            const jp = justPlaced.has(`${r},${c}`);
+        <p className={styles.status}>
+          {solved ? tb.solved : `${tb.squaresLeft}: ${emptyCells} · ${tb.piecesLeft}: ${piecesLeft}`}
+        </p>
 
-            let cellClass = styles.boardCell;
-            if (isInactive) cellClass += ` ${styles.cellInactive}`;
-            else if (isFilled) cellClass += ` ${styles.cellFilled}`;
-            else cellClass += ` ${styles.cellEmpty}`;
+        <div className={styles.boardWrap}>
+          {banner && <div key={banner.id} className={styles.banner}>{banner.text}</div>}
+          <div
+            key={`b${round}`}
+            ref={boardRef}
+            className={`${styles.board} ${solved ? styles.boardSolved : ''}`}
+            style={{ '--n': n, gridTemplateColumns: `repeat(${n}, var(--cell))` }}
+          >
+            {board.map((row, r) => row.map((v, c) => {
+              const k = `${r},${c}`;
+              if (v === 'x') return <span key={k} className={styles.cellOff} aria-hidden="true" />;
+              const piece = v !== null ? puzzle.pieces[v] : null;
+              const inPreview = preview?.has(k);
+              const fl = flash?.cells.has(k) ? flash.tone : null;
+              const cls = [
+                styles.cell,
+                piece ? styles.cellFilled : styles.cellEmpty,
+                inPreview ? styles.cellPreview : '',
+                fl ? styles[`flash_${fl}`] : '',
+              ].join(' ');
+              const sel = selected != null ? puzzle.pieces[selected] : null;
+              const style = piece
+                ? { background: piece.color.fill, borderColor: piece.color.edge }
+                : inPreview && sel ? { background: sel.color.fill, borderColor: sel.color.edge } : undefined;
+              const isAnchor = piece && placements[v]?.[0]?.[0] === r && placements[v]?.[0]?.[1] === c;
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  className={cls}
+                  style={style}
+                  onClick={() => handleCell(r, c)}
+                  onMouseEnter={() => setHoverCell([r, c])}
+                  onMouseLeave={() => setHoverCell(h => (h && h[0] === r && h[1] === c ? null : h))}
+                  disabled={solved}
+                  aria-label={piece ? `${tb.pieceLabel} ${v + 1}. ${tb.placedCell}` : `${tb.emptyCell} ${r + 1}, ${c + 1}`}
+                >
+                  {isAnchor ? v + 1 : ''}
+                </button>
+              );
+            }))}
+          </div>
+        </div>
 
-            if (inPreview && !isFilled) {
-              cellClass += preview.valid ? ` ${styles.cellPreview}` : ` ${styles.cellPreviewInvalid}`;
-            }
-            if (jp) cellClass += ` ${styles.cellJustPlaced}`;
+        <p className={`${styles.message} ${message ? styles[`msg_${message.tone}`] : ''}`} aria-live="polite">
+          {message?.text ?? (selected == null ? tb.pickFirst : tb.nowTapBoard)}
+        </p>
 
+        <div className={styles.tray}>
+          {puzzle.pieces.map((piece, idx) => {
+            const used = !!placements[idx];
             return (
               <button
-                key={`${r}-${c}`}
-                className={cellClass}
-                style={
-                  isFilled
-                    ? { background: color }
-                    : inPreview && preview?.valid
-                    ? { background: previewColor }
-                    : undefined
-                }
-                onClick={() => !isInactive && handleCellClick(r, c)}
-                onMouseEnter={() => !isInactive && !isFilled && setHoverCell([r, c])}
-                onMouseLeave={() => setHoverCell(null)}
-                disabled={isInactive || solved}
-                aria-label={
-                  isInactive
-                    ? 'Inactive cell'
-                    : isFilled
-                    ? `Placed piece, tap to remove`
-                    : `Empty cell row ${r + 1} column ${c + 1}`
-                }
-              />
+                key={`${round}-${idx}`}
+                type="button"
+                className={[
+                  styles.pieceCard,
+                  selected === idx ? styles.pieceSelected : '',
+                  used ? styles.pieceUsed : '',
+                  drag?.pieceIdx === idx && drag.moved ? styles.pieceDragging : '',
+                ].join(' ')}
+                onPointerDown={(e) => onPieceDown(e, idx)}
+                onPointerMove={onPieceMove}
+                onPointerUp={(e) => onPieceUp(e, idx)}
+                onPointerCancel={() => { setDrag(null); setHoverCell(null); }}
+                disabled={used || solved}
+                aria-pressed={selected === idx}
+                aria-label={`${tb.pieceLabel} ${idx + 1}${used ? `, ${tb.onBoard}` : ''}`}
+              >
+                <PieceShape piece={piece} idx={idx} cell={24} />
+              </button>
             );
-          })
-        )}
+          })}
+        </div>
+
+        <div className={styles.tools}>
+          <button type="button" className={styles.toolBtn} onClick={undo} disabled={solved || history.length === 0}>
+            <span aria-hidden="true">↶</span> {tb.undo}
+          </button>
+          <button type="button" className={styles.toolBtn} onClick={reset} disabled={solved || Object.keys(placements).length === 0}>
+            <span aria-hidden="true">⟲</span> {tb.reset}
+          </button>
+          <button type="button" className={`${styles.toolBtn} ${styles.hintBtn}`} onClick={hint} disabled={solved}>
+            <span aria-hidden="true">💡</span> {tb.hint}
+          </button>
+        </div>
       </div>
 
-      {/* Clear button */}
-      {piecesUsed.size > 0 && !solved && (
-        <button className={styles.clearBtn} onClick={clearAll} aria-label="Remove all placed pieces">
-          Clear All
-        </button>
+      {drag?.moved && (
+        <div className={styles.ghost} style={{ left: drag.x, top: drag.y }} aria-hidden="true">
+          <PieceShape piece={puzzle.pieces[drag.pieceIdx]} idx={drag.pieceIdx} cell={40} />
+        </div>
       )}
-
-      {/* Pieces tray */}
-      <div className={styles.pieceTray}>
-        {puzzle.pieces.map((piece, idx) => {
-          const used = piecesUsed.has(idx);
-          const selected = selectedPiece === idx;
-          const maxR = Math.max(...piece.shape.map(([r]) => r)) + 1;
-          const maxC = Math.max(...piece.shape.map(([, c]) => c)) + 1;
-          const shapeSet = new Set(piece.shape.map(([r, c]) => `${r},${c}`));
-
-          let cardClass = styles.pieceCard;
-          if (selected) cardClass += ` ${styles.pieceSelected}`;
-          if (used) cardClass += ` ${styles.pieceUsed}`;
-
-          return (
-            <button
-              key={idx}
-              className={`${cardClass} ${drag?.pieceIdx === idx ? styles.pieceDragging : ''}`}
-              onPointerDown={(e) => handlePiecePointerDown(e, idx)}
-              onPointerMove={handlePiecePointerMove}
-              onPointerUp={(e) => endDrag(e, idx)}
-              onPointerCancel={(e) => endDrag(e, idx)}
-              style={{ gridTemplateColumns: `repeat(${maxC}, 22px)`, gridTemplateRows: `repeat(${maxR}, 22px)`, touchAction: 'none' }}
-              disabled={used || solved}
-              aria-label={`Piece ${idx + 1}${used ? ', placed' : selected ? ', selected' : ''}. Drag onto the board to place.`}
-              aria-pressed={selected}
-            >
-              {Array.from({ length: maxR }, (_, r) =>
-                Array.from({ length: maxC }, (_, c) => {
-                  const filled = shapeSet.has(`${r},${c}`);
-                  return (
-                    <div
-                      key={`${r}-${c}`}
-                      className={`${styles.pieceCell} ${filled ? styles.pieceCellFilled : styles.pieceCellEmpty}`}
-                      style={filled ? { background: piece.color } : undefined}
-                    />
-                  );
-                })
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Floating drag ghost following the pointer */}
-      {drag && (() => {
-        const piece = puzzle.pieces[drag.pieceIdx];
-        if (!piece) return null;
-        const maxR = Math.max(...piece.shape.map(([r]) => r)) + 1;
-        const maxC = Math.max(...piece.shape.map(([, c]) => c)) + 1;
-        const shapeSet = new Set(piece.shape.map(([r, c]) => `${r},${c}`));
-        return (
-          <div
-            className={styles.dragGhost}
-            style={{
-              left: drag.x,
-              top: drag.y,
-              gridTemplateColumns: `repeat(${maxC}, 40px)`,
-              gridTemplateRows: `repeat(${maxR}, 40px)`,
-            }}
-            aria-hidden="true"
-          >
-            {Array.from({ length: maxR }, (_, r) =>
-              Array.from({ length: maxC }, (_, c) => {
-                const filled = shapeSet.has(`${r},${c}`);
-                return (
-                  <div
-                    key={`${r}-${c}`}
-                    className={styles.dragGhostCell}
-                    style={filled ? { background: piece.color } : undefined}
-                  />
-                );
-              })
-            )}
-          </div>
-        );
-      })()}
-      </div>
     </div>
   );
 }
@@ -508,11 +576,13 @@ BlockPuzzleGame.propTypes = {
   difficulty:  PropTypes.string.isRequired,
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
-  secondsLeft: PropTypes.number,
+  reportRound: PropTypes.func,
   playClick:   PropTypes.func.isRequired,
   playSuccess: PropTypes.func.isRequired,
   playFail:    PropTypes.func.isRequired,
 };
+
+const TIME_LIMITS = { easy: null, medium: null, hard: null };
 
 export function BlockPuzzle({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const t = useTranslation();
@@ -530,8 +600,8 @@ export function BlockPuzzle({ memberId, difficulty = 'easy', onComplete, callbac
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ difficulty: diff, onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
-        <BlockPuzzleGame difficulty={diff} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
+      {({ difficulty: diff, onComplete: sc, reportScore, reportRound, playClick, playSuccess, playFail }) => (
+        <BlockPuzzleGame difficulty={diff} onComplete={sc} reportScore={reportScore} reportRound={reportRound} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
       )}
     </GameShell>
   );
@@ -546,3 +616,5 @@ BlockPuzzle.propTypes = {
   musicMuted: PropTypes.bool,
   onToggleMusic: PropTypes.func,
 };
+
+export { DIFFICULTY_CONFIG };
