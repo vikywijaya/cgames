@@ -199,7 +199,7 @@ export default {
     'face-memory': { title: '面孔记忆', label: '面孔记忆', description: '记住面孔和名字，然后配对。', instructions: '仔细记住面孔和名字。时间到后，将每个面孔与正确的名字配对。', wrongAnswer: '✗ 那是' },
     'shopping-list': { title: '购物清单', label: '购物清单', description: '记住购物清单，然后选择物品。', instructions: '仔细记住购物清单！时间到后，从更大的网格中选择所有正确的物品。' },
     'speed-tap': { title: '快速点击', label: '快速点击', description: '目标表情出现——快速点击！', instructions: '看蓝色卡片上的图案，然后在格子里点击相同的图案。卡片上的进度条显示剩余时间——在前一半时间内点击可获得快速奖励。连续点对可以累积连击：连续5个得分翻倍，连续10个得分三倍。每第5轮，要找出所有相同的图案！', instructionsHard: '后面其他图案会越来越相似——请仔细看！', findThis: '找这个：', findAll: '全部找出来！', findAllHint: '找出全部{n}个：', quick: '真快！', itWasHere: '在这里！', combo: '连击', pts: '分', round: '回合' },
-    'stroop-colour': { title: '色彩干扰', label: '色彩干扰', description: '点击墨水颜色，而不是文字内容。', instructions: '颜色词以不同颜色的墨水显示。点击与墨水颜色匹配的按钮——不是文字内容！', wrongInk: '✗ 墨水颜色错误' },
+    'stroop-colour': { title: '色彩干扰', label: '色彩干扰', description: '点击墨水颜色，而不是文字内容。', instructions: '屏幕上会用有颜色的墨水写出一个颜色词。请点击墨水的颜色——不是字的意思！例如，如果"红色"两个字是用蓝色写的，就点"蓝色"。连续答对可以累积连击：连续5个得分翻倍，连续10个得分三倍。', instructionsHard: '注意上方的规则：有时会变成"点击字的意思"。在进度条前一半时间内作答可获得快速奖励。', ruleInk: '点击墨水的颜色', ruleWord: '点击字的意思', ruleInkShort: '现在：看墨水！', ruleWordShort: '现在：看字义！', inkWas: '墨水是{c}', wordWas: '字写的是{c}', quick: '真快！', combo: '连击', pts: '分', colours: { red: '红色', blue: '蓝色', green: '绿色', yellow: '黄色', purple: '紫色', pink: '粉色' } },
     'missing-number': { title: '缺失数字', label: '缺失数字', description: '找出序列中缺失的数字。', instructions: '看数字序列，找出缺失的数字。从选项中选择。', wrongAnswer: '✗ 答案：' },
     'quick-maths': { title: '快速数学', label: '快速数学', description: '快速解答数学题。', instructions: '尽快解答每道数学题。选择正确答案。', wrongAnswer: '✗ 答案：' },
     'spot-difference': { title: '找不同', label: '找不同', description: '找出两个网格之间不同的方块。', instructions: '比较两个表情网格，点击不同的方块。找出所有不同！' },
