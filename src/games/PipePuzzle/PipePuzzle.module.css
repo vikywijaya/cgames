@@ -2,166 +2,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
   width: 100%;
-  padding: 0;
-
-  flex: 1;
-}
-
-/* Fills the space below the pinned info header and centers gameplay in it */
-.playArea {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-4);
-  width: 100%;
-}
-
-/* ── Loading ──────────────────────────────────────── */
-.loading {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
-  padding: var(--space-8);
-}
-
-/* ── Meta bar (round counter + legend) ────────────── */
-.meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  max-width: 420px;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 1.5px solid #e2e8f0;
-  border-radius: var(--radius-xl);
-  padding: var(--space-2) var(--space-4);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.roundLabel { font-size: var(--text-sm); color: var(--color-text-muted); }
-.roundLabel strong { color: var(--color-primary); }
-
-/* ── Color legend (dot row above grid) ────────────── */
-.legend {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.legendDot {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  opacity: 0.4;
-  transition: opacity 0.25s, transform 0.25s;
-}
-
-.legendDone {
-  opacity: 1;
-  transform: scale(1.25);
-  box-shadow: 0 0 6px currentColor;
-}
-
-/* ── Grid ─────────────────────────────────────────── */
-.grid {
-  display: grid;
-  gap: 4px;
-  padding: 8px;
-  background: #c2cfe0;
-  border-radius: 20px;
-  /* width set here; height + template rows set inline so rows have definite size */
-  width: min(360px, calc(100vw - 40px));
-  transition: box-shadow 0.3s;
-}
-
-.gridWon {
-  box-shadow: 0 0 0 3px #5BAD6F, 0 0 20px rgba(91, 173, 111, 0.4);
-}
-
-/* ── Tile ─────────────────────────────────────────── */
-.tile {
-  position: relative;  /* SVG child uses position:absolute inset:0 */
-  border-radius: 10px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: background 0.12s, transform 0.1s;
-  -webkit-tap-highlight-color: transparent;
   user-select: none;
-  /* Size comes entirely from grid template — no aspect-ratio needed */
+  -webkit-user-select: none;
 }
 
-.tilePipe {
-  background: #dce6f5;
-}
-
-@media (hover: hover) and (pointer: fine) {
-.tilePipe:hover {
-  background: #cdd8ed;
-}
-}
-
-.tilePipe:active {
-  transform: scale(0.9);
-  background: #beccdf;
-}
-
-.tileEmpty {
-  background: #d4dff0;
-  cursor: default;
-}
-
-/* Endpoints are not tappable */
-.tileEndpoint {
-  cursor: default;
-  background: #dce6f5;
-}
-
-@media (hover: hover) and (pointer: fine) {
-.tileEndpoint:hover {
-  background: #dce6f5;
-  transform: none;
-}
-}
-
-/* Tap rotation flash */
-.tileRotate {
-  animation: tileFlash 0.16s ease-out;
-}
-
-@keyframes tileFlash {
-  0%   { transform: scale(1);    background: #bdd3ee; }
-  50%  { transform: scale(0.88); background: #a8c4e4; }
-  100% { transform: scale(1);    background: #dce6f5; }
-}
-
-/* Win glow on connected tiles */
-.tileWon {
-  animation: tileWinPulse 0.6s ease-out forwards;
-}
-
-@keyframes tileWinPulse {
-  0%   { background: #dce6f5; }
-  40%  { background: #c5edcf; }
-  100% { background: #dce6f5; }
-}
-
-/* ── Hint ─────────────────────────────────────────── */
-.hint {
-  font-size: var(--text-xs);
-  color: var(--color-text-muted);
-  text-align: center;
-  opacity: 0.7;
-}
-
-/* ── Info header — WordRecall style ── */
+/* ── HUD ─────────────────────────────────────────── */
 .infoHeader {
   background: var(--color-surface);
-  border-radius: 0;
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-3) var(--space-5);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -172,38 +22,163 @@
   top: 0;
   z-index: 5;
 }
-
-.infoHeaderText {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.infoHeaderSub {
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-regular);
-  color: var(--color-text-muted);
-}
-
+.roundLabel { font-size: 1.05rem; font-weight: 800; color: var(--color-text); white-space: nowrap; }
 .infoBadge {
   background: var(--color-primary-light);
   border-radius: var(--radius-xl);
   padding: var(--space-2) var(--space-4);
   display: flex;
   align-items: baseline;
-  gap: 4px;
+  gap: 6px;
   flex-shrink: 0;
 }
-
+@keyframes badgeBump { 0% { transform: scale(1.25); } 100% { transform: scale(1); } }
 .infoBadgeNum {
-  font-size: var(--text-lg);
-  font-weight: var(--font-weight-bold);
+  display: inline-block;
+  font-size: 1.35rem;
+  font-weight: 800;
   color: var(--color-primary);
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  animation: badgeBump 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.infoBadgeSub { font-size: 1rem; font-weight: 700; color: var(--color-primary); }
+
+/* ── Legend: numbered pairs with a joined / not joined label ── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.legendChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  border: 2px solid #cbd5e1;
+  color: #334155;
+  font-size: 1rem;
+  font-weight: 700;
+  transition: background 200ms ease, border-color 200ms ease;
+}
+.legendDone { background: #ffffff; border-color: #0f172a; color: #0f172a; }
+.legendDot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.05rem;
 }
 
-.infoBadgeSub {
-  font-size: var(--text-xs);
-  color: var(--color-primary);
+/* ── Board ───────────────────────────────────────── */
+.boardWrap { position: relative; }
+.grid {
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+  background: #94a3b8;
+  border-radius: 18px;
+  width: min(420px, calc(100vw - 32px));
+  aspect-ratio: 1;
+  animation: boardIn 260ms cubic-bezier(0.23, 1, 0.32, 1);
+  transition: box-shadow 300ms ease;
+}
+@keyframes boardIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+.gridWon { box-shadow: 0 0 0 4px #15803d, 0 0 22px rgba(21, 128, 61, 0.35); }
+
+.tile {
+  position: relative;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: #f8fafc;
+  cursor: pointer;
+  min-width: 0;
+  min-height: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 100ms ease, background 120ms ease;
+}
+button.tile:active { transform: scale(0.92); }
+button.tile:focus-visible { outline: 3px solid var(--color-primary); outline-offset: -3px; }
+.tile:disabled { cursor: default; }
+.tileEndpoint { cursor: default; background: #ffffff; }
+.tileEmpty { border-radius: 10px; background: #cbd5e1; }
+.tileSvg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.tileSpin .tileSvg { animation: spin 200ms cubic-bezier(0.23, 1, 0.32, 1); }
+@keyframes spin { from { transform: rotate(-90deg); } to { transform: rotate(0); } }
+
+.tileHint { background: #fef3c7; box-shadow: inset 0 0 0 4px #b45309; }
+
+.tileWon { animation: winPulse 700ms ease-out; }
+@keyframes winPulse { 0% { background: #f8fafc; } 40% { background: #dcfce7; } 100% { background: #f8fafc; } }
+
+/* ── Solved banner ───────────────────────────────── */
+.banner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 26px;
+  border-radius: 20px;
+  background: #ffffff;
+  border: 3px solid #15803d;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+  animation: bannerIn 320ms cubic-bezier(0.23, 1, 0.32, 1);
+  pointer-events: none;
+  white-space: nowrap;
+}
+@keyframes bannerIn { from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+.bannerTitle { font-size: 1.35rem; font-weight: 800; color: #14532d; }
+.bannerStars { font-size: 2rem; line-height: 1; color: #d97706; letter-spacing: 4px; }
+.starOff { color: #cbd5e1; }
+
+/* ── Status + tools ──────────────────────────────── */
+.status {
+  margin: 0;
+  min-height: 1.5em;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #334155;
+  text-align: center;
+}
+.tools {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 420px;
+}
+.toolBtn {
+  flex: 1 1 0;
+  min-height: 52px;
+  min-width: 96px;
+  padding: 0 12px;
+  border-radius: 14px;
+  border: 2px solid #94a3b8;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 100ms ease, background 120ms ease;
+}
+.toolBtn:active:not(:disabled) { transform: scale(0.96); }
+.toolBtn:disabled { opacity: 0.45; cursor: default; }
+.toolHint { border-color: #b45309; background: #fffbeb; color: #78350f; }
+
+@media (prefers-reduced-motion: reduce) {
+  .grid, .banner, .tileSpin .tileSvg, .tileWon, .infoBadgeNum { animation: none; }
 }

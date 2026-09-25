@@ -5,6 +5,18 @@ import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './PipePuzzle.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
 
+/*
+ * PipePuzzle — turn pipe tiles so each pair of numbered dots is joined.
+ *
+ * Tuned for seniors:
+ * - No clock. Turning a tile is always reversible, so a puzzle can never
+ *   get stuck; Undo and Start again are free.
+ * - Hint turns one wrong tile into place and highlights it.
+ * - 3 stars per puzzle with no hints, 2 with one hint, 1 with more.
+ * - Each dot carries a number and a distinct colour, so colour is never
+ *   the only cue.
+ */
+
 // ── Directions: N=0, E=1, S=2, W=3 ───────────────────────────────
 const DR = [-1, 0, 1, 0];
 const DC = [0, 1, 0, -1];
@@ -16,59 +28,65 @@ function dirTo(r1, c1, r2, c2) {
   return -1;
 }
 
-// ── Pipe shapes ───────────────────────────────────────────────────
-// Base openings when rotation = 0
 const SHAPE_OPENINGS = {
-  end:      [0],       // N only
-  straight: [0, 2],   // N + S
-  corner:   [0, 1],   // N + E
-  tee:      [0, 1, 2],// N + E + S
+  end:      [0],
+  straight: [0, 2],
+  corner:   [0, 1],
+  tee:      [0, 1, 2],
   cross:    [0, 1, 2, 3],
 };
 
-function getOpenings(shape, rotation) {
+export function getOpenings(shape, rotation) {
   return (SHAPE_OPENINGS[shape] ?? []).map(d => (d + rotation) % 4);
 }
 
-function getShape(openDirs) {
-  const n = openDirs.length;
-  if (n === 1) return 'end';
-  if (n === 4) return 'cross';
-  if (n === 3) return 'tee';
-  const [a, b] = openDirs;
-  return (Math.abs(a - b) === 2 || Math.abs(a - b) === 2) ? 'straight' : 'corner';
+function openKey(shape, rotation) {
+  return getOpenings(shape, rotation).sort((a, b) => a - b).join('');
 }
 
-// Brute-force: find rotation r so getOpenings(shape, r) matches openDirs
+function getShape(openDirs) {
+  if (openDirs.length === 1) return 'end';
+  return Math.abs(openDirs[0] - openDirs[1]) === 2 ? 'straight' : 'corner';
+}
+
 function getSolvedRotation(shape, openDirs) {
-  const target = [...openDirs].sort((a, b) => a - b);
-  for (let r = 0; r < 4; r++) {
-    const o = getOpenings(shape, r).sort((a, b) => a - b);
-    if (o.length === target.length && o.every((v, i) => v === target[i])) return r;
-  }
+  const target = [...openDirs].sort((a, b) => a - b).join('');
+  for (let r = 0; r < 4; r++) if (openKey(shape, r) === target) return r;
   return 0;
 }
 
-// ── Colors ────────────────────────────────────────────────────────
-const PIPE_COLORS = [
-  { id: 'yellow', pipe: '#F5A623', dark: '#C07D10' },
-  { id: 'salmon', pipe: '#E8825A', dark: '#B8522A' },
-  { id: 'blue',   pipe: '#4A9DD9', dark: '#2A6DA0' },
-  { id: 'green',  pipe: '#5BAD6F', dark: '#357A45' },
-];
+/** True when a tile's openings already match its solution (straights have two good rotations). */
+export function isTileRight(cell) {
+  return openKey(cell.shape, cell.currentRotation) === openKey(cell.shape, cell.solvedRotation);
+}
 
-function colorOf(id) {
-  return PIPE_COLORS.find(c => c.id === id) ?? { pipe: '#9BA8B5', dark: '#6B7A88' };
+// High-contrast colours on a light tile, each paired with a number.
+const PIPE_COLORS = [
+  { id: 'blue',   pipe: '#1D4ED8' },
+  { id: 'orange', pipe: '#C2410C' },
+  { id: 'purple', pipe: '#7E22CE' },
+  { id: 'teal',   pipe: '#0F766E' },
+];
+const IDLE_PIPE = '#64748B';
+
+function colorIndex(id) {
+  return Math.max(0, PIPE_COLORS.findIndex(c => c.id === id));
 }
 
 // ── Difficulty ────────────────────────────────────────────────────
-const DIFFICULTY_CONFIG = {
-  easy:   { rows: 4, cols: 4, numColors: 2, rounds: 5, timeLimitSeconds: null },
-  medium: { rows: 5, cols: 5, numColors: 3, rounds: 6, timeLimitSeconds: 240 },
-  hard:   { rows: 6, cols: 6, numColors: 4, rounds: 8, timeLimitSeconds: 150 },
+export const DIFFICULTY_CONFIG = {
+  easy:   { rows: 4, cols: 4, numColors: 2, rounds: 3 },
+  medium: { rows: 5, cols: 5, numColors: 3, rounds: 4 },
+  hard:   { rows: 6, cols: 6, numColors: 4, rounds: 5 },
 };
+const STARS_MAX = 3;
 
-// ── Utility ───────────────────────────────────────────────────────
+export function starsFor(hints) {
+  if (hints === 0) return 3;
+  if (hints === 1) return 2;
+  return 1;
+}
+
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -82,9 +100,11 @@ function shuffle(arr) {
 function randomPath(sr, sc, er, ec, rows, cols, occupied) {
   const path = [[sr, sc]];
   const inPath = new Set([`${sr},${sc}`]);
+  let budget = 4000; // keep the search bounded on crowded boards
 
   function dfs(r, c) {
     if (r === er && c === ec) return true;
+    if (--budget <= 0) return false;
     for (const d of shuffle([0, 1, 2, 3])) {
       const nr = r + DR[d];
       const nc = c + DC[d];
@@ -110,368 +130,363 @@ function generatePuzzle(rows, cols, numColors) {
 
   for (let ci = 0; ci < numColors; ci++) {
     const colorId = PIPE_COLORS[ci].id;
-    let placed = false;
-
-    for (let attempt = 0; attempt < 30 && !placed; attempt++) {
-      // Build list of free cells, prefer corners/edges for endpoints
+    for (let attempt = 0; attempt < 30; attempt++) {
       const free = [];
       for (let r = 0; r < rows; r++)
         for (let c = 0; c < cols; c++)
           if (!occupied.has(`${r},${c}`)) free.push([r, c]);
-
       if (free.length < 2) break;
 
       const sfree = shuffle(free);
       const [sr, sc] = sfree[0];
-
-      // Pick an end point that is at least half the grid away (Manhattan)
-      // Prefer far endpoints but fall back to any cell if none qualify
       const minDist = Math.max(2, Math.floor((rows + cols) / 3));
-      const farCells = sfree.slice(1).filter(
-        ([r, c]) => Math.abs(r - sr) + Math.abs(c - sc) >= minDist
-      );
-      const candidates = farCells.length ? farCells : sfree.slice(1);
-      if (!candidates.length) continue;
+      const far = sfree.slice(1).filter(([r, c]) => Math.abs(r - sr) + Math.abs(c - sc) >= minDist);
+      if (!far.length) continue;
+      const [er, ec] = far[Math.floor(Math.random() * far.length)];
 
-      const [er, ec] = candidates[Math.floor(Math.random() * candidates.length)];
-
-      // Block the start cell so the path can't loop back through it.
-      // Do NOT block the end cell yet — the DFS must be able to reach it.
       occupied.add(`${sr},${sc}`);
-
       const path = randomPath(sr, sc, er, ec, rows, cols, occupied);
-      if (!path) {
-        occupied.delete(`${sr},${sc}`);
-        continue;
-      }
+      if (!path) { occupied.delete(`${sr},${sc}`); continue; }
+      for (const [r, c] of path) occupied.add(`${r},${c}`);
 
-      // Mark all path cells (including the end endpoint) as occupied
-      occupied.add(`${er},${ec}`);
-      for (let i = 1; i < path.length - 1; i++) {
-        occupied.add(`${path[i][0]},${path[i][1]}`);
-      }
-
-      // Assign shapes to cells along the path
       for (let i = 0; i < path.length; i++) {
         const [r, c] = path[i];
         const openDirs = [];
-        if (i > 0)                openDirs.push(dirTo(r, c, path[i - 1][0], path[i - 1][1]));
+        if (i > 0) openDirs.push(dirTo(r, c, path[i - 1][0], path[i - 1][1]));
         if (i < path.length - 1) openDirs.push(dirTo(r, c, path[i + 1][0], path[i + 1][1]));
         const shape = getShape(openDirs);
         const solvedRotation = getSolvedRotation(shape, openDirs);
-        grid[r][c] = {
-          shape,
-          solvedRotation,
-          currentRotation: solvedRotation,
-          colorId,
-          isEndpoint: i === 0 || i === path.length - 1,
-        };
+        grid[r][c] = { shape, solvedRotation, currentRotation: solvedRotation, colorId, isEndpoint: i === 0 || i === path.length - 1 };
       }
-
       colorPairs.push({ colorId, endpoints: [[sr, sc], [er, ec]] });
-      placed = true;
+      break;
     }
   }
-
   return { grid, colorPairs };
 }
 
-function scramblePuzzle(grid) {
-  return grid.map(row =>
-    row.map(cell => {
-      if (!cell || cell.isEndpoint) return cell;
-      // Pick a random rotation that is NOT the solved one (guarantee at least one move needed)
-      let r;
-      do { r = Math.floor(Math.random() * 4); } while (r === cell.solvedRotation);
-      return { ...cell, currentRotation: r };
-    })
-  );
+function scrambleGrid(grid) {
+  return grid.map(row => row.map(cell => {
+    if (!cell || cell.isEndpoint) return cell;
+    // Always start in a wrong-looking position (straights have two right ones).
+    const wrong = [0, 1, 2, 3].filter(r => openKey(cell.shape, r) !== openKey(cell.shape, cell.solvedRotation));
+    return { ...cell, currentRotation: wrong[Math.floor(Math.random() * wrong.length)] };
+  }));
+}
+
+/** Always returns a solvable puzzle (the generated layout is the solution) that isn't already solved. */
+export function buildPuzzle(rows, cols, numColors) {
+  let best = null;
+  for (let i = 0; i < 300; i++) {
+    const p = generatePuzzle(rows, cols, numColors);
+    if (!best || p.colorPairs.length > best.colorPairs.length) best = p;
+    if (best.colorPairs.length === numColors) break;
+  }
+  let grid = scrambleGrid(best.grid);
+  for (let i = 0; i < 10 && checkWin(grid, best.colorPairs, rows, cols); i++) grid = scrambleGrid(best.grid);
+  return { grid, colorPairs: best.colorPairs, initial: grid };
 }
 
 // ── Connectivity ──────────────────────────────────────────────────
-function isConnected(grid, r1, c1, r2, c2, rows, cols) {
-  const visited = new Set([`${r1},${c1}`]);
-  const queue = [[r1, c1]];
+function neighbours(grid, r, c, rows, cols) {
+  const cell = grid[r][c];
+  const out = [];
+  for (const d of getOpenings(cell.shape, cell.currentRotation)) {
+    const nr = r + DR[d];
+    const nc = c + DC[d];
+    if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
+    const nb = grid[nr][nc];
+    if (!nb || !getOpenings(nb.shape, nb.currentRotation).includes((d + 2) % 4)) continue;
+    out.push([nr, nc]);
+  }
+  return out;
+}
+
+function reach(grid, r, c, rows, cols) {
+  const seen = new Set([`${r},${c}`]);
+  const queue = [[r, c]];
   while (queue.length) {
-    const [r, c] = queue.shift();
-    if (r === r2 && c === c2) return true;
-    const cell = grid[r][c];
-    if (!cell) continue;
-    for (const d of getOpenings(cell.shape, cell.currentRotation)) {
-      const nr = r + DR[d];
-      const nc = c + DC[d];
-      if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
-      const nb = grid[nr][nc];
-      if (!nb) continue;
-      if (!getOpenings(nb.shape, nb.currentRotation).includes((d + 2) % 4)) continue;
+    const [cr, cc] = queue.shift();
+    for (const [nr, nc] of neighbours(grid, cr, cc, rows, cols)) {
       const k = `${nr},${nc}`;
-      if (!visited.has(k)) { visited.add(k); queue.push([nr, nc]); }
+      if (!seen.has(k)) { seen.add(k); queue.push([nr, nc]); }
     }
   }
-  return false;
+  return seen;
 }
 
-function checkWin(grid, colorPairs, rows, cols) {
-  return colorPairs.every(({ endpoints: [[r1, c1], [r2, c2]] }) =>
-    isConnected(grid, r1, c1, r2, c2, rows, cols)
-  );
+export function isPairJoined(grid, pair, rows, cols) {
+  const [[r1, c1], [r2, c2]] = pair.endpoints;
+  return reach(grid, r1, c1, rows, cols).has(`${r2},${c2}`);
 }
 
-// Returns a Set of colorIds whose two endpoints are FULLY connected.
-// Used for rendering so that pipes only reveal their target colour once the
-// whole pair is solved — partial connections must NOT give away the answer.
-function solvedColors(grid, colorPairs, rows, cols) {
-  const solved = new Set();
-  for (const { colorId, endpoints: [[r1, c1], [r2, c2]] } of colorPairs) {
-    if (isConnected(grid, r1, c1, r2, c2, rows, cols)) solved.add(colorId);
+export function checkWin(grid, colorPairs, rows, cols) {
+  return colorPairs.every(p => isPairJoined(grid, p, rows, cols));
+}
+
+/** Map "r,c" → colourId for every tile flowing from a dot, so joined-up pipe lights up. */
+function computeLit(grid, colorPairs, rows, cols) {
+  const lit = new Map();
+  for (const p of colorPairs) {
+    for (const [r, c] of p.endpoints) {
+      for (const k of reach(grid, r, c, rows, cols)) if (!lit.has(k)) lit.set(k, p.colorId);
+    }
   }
-  return solved;
+  return lit;
+}
+
+/** The next tile a hint should fix: a wrong tile, preferring pairs not yet joined. */
+export function findHintTile(grid, colorPairs, rows, cols) {
+  const open = new Set(colorPairs.filter(p => !isPairJoined(grid, p, rows, cols)).map(p => p.colorId));
+  let fallback = null;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cell = grid[r][c];
+      if (!cell || cell.isEndpoint || isTileRight(cell)) continue;
+      if (open.has(cell.colorId)) return [r, c];
+      if (!fallback) fallback = [r, c];
+    }
+  }
+  return fallback;
 }
 
 // ── SVG Tile renderer ─────────────────────────────────────────────
-// All coordinates inside a 60×60 viewBox
 const VB = 60;
 const HALF = 30;
-const PIPE_W = 13;   // stroke-width
-const BULB_R = 11;   // endpoint circle radius
-const BULB_GLOW = 16;// outer glow circle
 
-function TileSVG({ cell, solved }) {
-  if (!cell || cell.shape === 'empty') return null;
-
+function TileSVG({ cell, litColor }) {
   const opens = getOpenings(cell.shape, cell.currentRotation);
-  const hasN = opens.includes(0);
-  const hasE = opens.includes(1);
-  const hasS = opens.includes(2);
-  const hasW = opens.includes(3);
+  const has = d => opens.includes(d);
+  const pipe = litColor ? PIPE_COLORS[colorIndex(litColor)].pipe : IDLE_PIPE;
+  const dotColor = PIPE_COLORS[colorIndex(cell.colorId)].pipe;
 
-  const info = colorOf(cell.colorId);
-  const NEUTRAL = '#9BA8B5';
-  // Pipe segments stay neutral until the WHOLE pair is solved — this avoids
-  // recolouring on partial connection, which would reveal the answer.
-  const pipe = solved ? info.pipe : NEUTRAL;
-  // Endpoint bulbs always show their own colour: they are the fixed reference
-  // dots the player must connect, not a hint about the path.
-  const bulb = info.pipe;
-
-  // Corner = exactly 2 adjacent sides open
-  const adjPairs = [
-    [0, 1, hasN && hasE],
-    [1, 2, hasE && hasS],
-    [2, 3, hasS && hasW],
-    [3, 0, hasW && hasN],
-  ];
-  const cornerMatch = opens.length === 2 ? adjPairs.find(([,, hit]) => hit) : null;
-
-  // Build pipe paths
-  let pathD = '';
-  if (cornerMatch) {
-    // Quarter-circle arc: center at the tile corner, radius = HALF (30).
-    // sweep-flag=0 (counter-clockwise in SVG screen space) takes the short
-    // 90° arc whose midpoint passes through the tile interior.
-    if (hasN && hasE) pathD = `M${HALF},0 A${HALF},${HALF} 0 0,0 ${VB},${HALF}`;
-    else if (hasE && hasS) pathD = `M${VB},${HALF} A${HALF},${HALF} 0 0,0 ${HALF},${VB}`;
-    else if (hasS && hasW) pathD = `M${HALF},${VB} A${HALF},${HALF} 0 0,0 0,${HALF}`;
-    else if (hasW && hasN) pathD = `M0,${HALF} A${HALF},${HALF} 0 0,0 ${HALF},0`;
+  let pathD;
+  if (opens.length === 2 && !(has(0) && has(2)) && !(has(1) && has(3))) {
+    if (has(0) && has(1)) pathD = `M${HALF},0 A${HALF},${HALF} 0 0,0 ${VB},${HALF}`;
+    else if (has(1) && has(2)) pathD = `M${VB},${HALF} A${HALF},${HALF} 0 0,0 ${HALF},${VB}`;
+    else if (has(2) && has(3)) pathD = `M${HALF},${VB} A${HALF},${HALF} 0 0,0 0,${HALF}`;
+    else pathD = `M0,${HALF} A${HALF},${HALF} 0 0,0 ${HALF},0`;
   } else {
-    const segs = [];
-    if (hasN) segs.push(`M${HALF},0 L${HALF},${HALF}`);
-    if (hasE) segs.push(`M${VB},${HALF} L${HALF},${HALF}`);
-    if (hasS) segs.push(`M${HALF},${VB} L${HALF},${HALF}`);
-    if (hasW) segs.push(`M0,${HALF} L${HALF},${HALF}`);
-    pathD = segs.join(' ');
+    const ends = [[HALF, 0], [VB, HALF], [HALF, VB], [0, HALF]];
+    pathD = opens.map(d => `M${ends[d][0]},${ends[d][1]} L${HALF},${HALF}`).join(' ');
   }
 
   return (
-    <svg viewBox={`0 0 ${VB} ${VB}`} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' }}>
-      {/* Pipe */}
-      <path
-        d={pathD}
-        stroke={pipe}
-        strokeWidth={PIPE_W}
-        strokeLinecap="round"
-        fill="none"
-      />
-
-      {/* Endpoint bulb */}
+    <svg viewBox={`0 0 ${VB} ${VB}`} className={styles.tileSvg} aria-hidden="true">
+      <path d={pathD} stroke={pipe} strokeWidth={14} strokeLinecap="round" fill="none" />
       {cell.isEndpoint && (
         <>
-          <circle cx={HALF} cy={HALF} r={BULB_GLOW} fill={bulb} opacity={0.18} />
-          <circle cx={HALF} cy={HALF} r={BULB_R}    fill={bulb} />
-          {/* Shine */}
-          <circle cx={HALF - 3} cy={HALF - 4} r={3.5} fill="white" opacity={0.55} />
+          <circle cx={HALF} cy={HALF} r={19} fill={dotColor} stroke="#fff" strokeWidth={3} />
+          <text x={HALF} y={HALF + 1} textAnchor="middle" dominantBaseline="central" fontSize="24" fontWeight="800" fill="#fff">
+            {colorIndex(cell.colorId) + 1}
+          </text>
         </>
       )}
     </svg>
   );
 }
 
-TileSVG.propTypes = {
-  cell:   PropTypes.object,
-  solved: PropTypes.bool,
-};
+TileSVG.propTypes = { cell: PropTypes.object.isRequired, litColor: PropTypes.string };
 
-function buildPuzzle(rows, cols, numColors) {
-  let result;
-  for (let i = 0; i < 15; i++) {
-    result = generatePuzzle(rows, cols, numColors);
-    if (result.colorPairs.length === numColors) break;
-  }
-  const scrambled = scramblePuzzle(result.grid);
-  return { grid: scrambled, colorPairs: result.colorPairs };
+function rotateAt(grid, r, c, rotation) {
+  return grid.map((row, ri) => row.map((cl, ci) => (ri === r && ci === c ? { ...cl, currentRotation: rotation(cl) } : cl)));
 }
 
 // ── Inner game ────────────────────────────────────────────────────
-function PipeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess }) {
+function PipeGame({ difficulty, onComplete, reportScore, reportRound, playClick, playSuccess, playReveal }) {
   const t = useTranslation();
+  const tp = t.games['pipe-puzzle'];
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { rows, cols, numColors, rounds } = config;
 
-  const [round,     setRound]     = useState(0);
-  const [score,     setScore]     = useState(0);
-  // `solved` is a Set of colorIds whose pair is FULLY connected — used for
-  // colouring so partial connections never reveal the answer.
-  const [[puzzle, solved], setPuzzleState] = useState(() => {
-    const p = buildPuzzle(rows, cols, numColors);
-    return [p, solvedColors(p.grid, p.colorPairs, rows, cols)];
-  });
-  const [won,       setWon]       = useState(false);
-  const [animKey,   setAnimKey]   = useState(null);
-  const doneRef        = useRef(false);
-  const advanceTimerRef = useRef(null);
-  const stateRef = useRef({ score, round, rounds, rows, cols, numColors, onComplete, reportScore, playSuccess });
-  stateRef.current = { score, round, rounds, rows, cols, numColors, onComplete, reportScore, playSuccess };
+  const [round, setRound]     = useState(0);
+  const [puzzle, setPuzzle]   = useState(() => buildPuzzle(rows, cols, numColors));
+  const [grid, setGrid]       = useState(() => puzzle.grid);
+  const [history, setHistory] = useState([]);
+  const [hints, setHints]     = useState(0);
+  const [score, setScore]     = useState(0);
+  const [won, setWon]         = useState(false);
+  const [spin, setSpin]       = useState(null);
+  const [hintAt, setHintAt]   = useState(null);
+  const [banner, setBanner]   = useState(null);
 
-  useEffect(() => () => clearTimeout(advanceTimerRef.current), []);
+  const scoreRef  = useRef(0);
+  const doneRef   = useRef(false);
+  const started   = useRef(-1);
+  const timersRef = useRef(new Set());
 
-  // ── Time up ───────────────────────────────────────────────────
+  const later = useCallback((fn, ms) => {
+    const h = setTimeout(() => { timersRef.current.delete(h); fn(); }, ms);
+    timersRef.current.add(h);
+    return h;
+  }, []);
   useEffect(() => {
-    if (secondsLeft === 0 && !doneRef.current) {
-      doneRef.current = true;
-      onComplete({ finalScore: score, maxScore: rounds, completed: false });
-    }
-  }, [secondsLeft, score, rounds, onComplete]);
+    const timers = timersRef.current;
+    return () => { timers.forEach(clearTimeout); timers.clear(); };
+  }, []);
 
-  // ── Tap a tile to rotate it ───────────────────────────────────
+  useEffect(() => {
+    if (started.current === round) return;
+    started.current = round;
+    reportRound?.(round + 1, rounds);
+  }, [round, rounds, reportRound]);
+
+  const finishPuzzle = useCallback((usedHints) => {
+    const stars = starsFor(usedHints);
+    scoreRef.current += stars;
+    setScore(scoreRef.current);
+    reportScore(scoreRef.current);
+    setWon(true);
+    setBanner({ stars });
+    playSuccess();
+    later(() => {
+      if (doneRef.current) return;
+      const next = round + 1;
+      if (next >= rounds) {
+        doneRef.current = true;
+        onComplete({ finalScore: scoreRef.current, maxScore: rounds * STARS_MAX, completed: true });
+        return;
+      }
+      const np = buildPuzzle(rows, cols, numColors);
+      setRound(next);
+      setPuzzle(np);
+      setGrid(np.grid);
+      setHistory([]);
+      setHints(0);
+      setWon(false);
+      setBanner(null);
+      setHintAt(null);
+    }, 1800);
+  }, [round, rounds, rows, cols, numColors, later, onComplete, reportScore, playSuccess]);
+
+  const applyGrid = useCallback((newGrid, usedHints) => {
+    setHistory(h => [...h, grid]);
+    setGrid(newGrid);
+    if (checkWin(newGrid, puzzle.colorPairs, rows, cols)) finishPuzzle(usedHints);
+  }, [grid, puzzle, rows, cols, finishPuzzle]);
+
   const rotateTile = useCallback((r, c) => {
-    if (doneRef.current || won || !puzzle) return;
-    const cell = puzzle.grid[r][c];
+    if (won || doneRef.current) return;
+    const cell = grid[r][c];
     if (!cell || cell.isEndpoint) return;
-
     playClick();
-    setAnimKey(`${r},${c}`);
-    setTimeout(() => setAnimKey(null), 160);
+    setSpin(`${r},${c}`);
+    later(() => setSpin(null), 200);
+    applyGrid(rotateAt(grid, r, c, cl => (cl.currentRotation + 1) % 4), hints);
+  }, [won, grid, hints, later, applyGrid, playClick]);
 
-    const newGrid = puzzle.grid.map((row, ri) =>
-      row.map((cl, ci) => {
-        if (ri !== r || ci !== c) return cl;
-        return { ...cl, currentRotation: (cl.currentRotation + 1) % 4 };
-      })
-    );
-    const newPuzzle = { ...puzzle, grid: newGrid };
-    const newSolved = solvedColors(newGrid, puzzle.colorPairs, rows, cols);
-    setPuzzleState([newPuzzle, newSolved]);
+  const giveHint = useCallback(() => {
+    if (won || doneRef.current) return;
+    const at = findHintTile(grid, puzzle.colorPairs, rows, cols);
+    if (!at) return;
+    const [r, c] = at;
+    const used = hints + 1;
+    setHints(used);
+    playReveal?.();
+    setHintAt(`${r},${c}`);
+    later(() => setHintAt(x => (x === `${r},${c}` ? null : x)), 1600);
+    applyGrid(rotateAt(grid, r, c, cl => cl.solvedRotation), used);
+  }, [won, grid, puzzle, rows, cols, hints, later, applyGrid, playReveal]);
 
-    if (!doneRef.current && checkWin(newGrid, puzzle.colorPairs, rows, cols)) {
-      const { score: s, round: rnd, rounds: total, rows: ro, cols: co, numColors: nc, onComplete: oc, reportScore: rs, playSuccess: ps } = stateRef.current;
-      ps();
-      const newScore = s + 1;
-      setScore(newScore);
-      rs(newScore);
-      setWon(true);
+  const undo = useCallback(() => {
+    if (won || !history.length) return;
+    playClick();
+    setGrid(history[history.length - 1]);
+    setHistory(h => h.slice(0, -1));
+  }, [won, history, playClick]);
 
-      clearTimeout(advanceTimerRef.current);
-      advanceTimerRef.current = setTimeout(() => {
-        if (doneRef.current) return;
-        const nextRound = rnd + 1;
-        if (nextRound >= total) {
-          doneRef.current = true;
-          oc({ finalScore: newScore, maxScore: total, completed: true });
-          return;
-        }
-        setRound(nextRound);
-        const np = buildPuzzle(ro, co, nc);
-        setPuzzleState([np, solvedColors(np.grid, np.colorPairs, ro, co)]);
-        setWon(false);
-      }, 800);
-    }
-  }, [puzzle, rows, cols, won, playClick]);
+  const reset = useCallback(() => {
+    if (won || !history.length) return;
+    playClick();
+    setHistory(h => [...h, grid]);
+    setGrid(puzzle.initial);
+  }, [won, history, grid, puzzle, playClick]);
 
-  if (!puzzle) {
-    return <div className={styles.loading}>Building puzzle…</div>;
-  }
-
-  const { grid, colorPairs } = puzzle;
+  const lit = computeLit(grid, puzzle.colorPairs, rows, cols);
+  const joined = puzzle.colorPairs.map(p => isPairJoined(grid, p, rows, cols));
+  const joinedCount = joined.filter(Boolean).length;
+  const fill = (s, vars) => Object.entries(vars).reduce((acc, [k, v]) => acc.replace(`{${k}}`, v), s);
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>{t.common.puzzle} {round + 1} {t.common.of} {rounds}</span>
-        </div>
+        <span className={styles.roundLabel}>{fill(tp.puzzleOf, { n: round + 1, total: rounds })}</span>
         <div className={styles.infoBadge}>
-          <span className={styles.infoBadgeNum}>{round + 1}</span>
-          <span className={styles.infoBadgeSub}>/ {rounds}</span>
+          <span key={score} className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>★ / {rounds * STARS_MAX}</span>
         </div>
       </div>
-      <div className={styles.playArea}>
-      {/* Color legend */}
-      <div className={styles.legend}>
-        {colorPairs.map(({ colorId }) => {
-          const info = colorOf(colorId);
-          const [[r1,c1],[r2,c2]] = colorPairs.find(p => p.colorId === colorId).endpoints;
-          const done = isConnected(grid, r1, c1, r2, c2, rows, cols);
+
+      <div className={styles.legend} aria-live="polite">
+        {puzzle.colorPairs.map((p, i) => {
+          const ci = colorIndex(p.colorId);
           return (
-            <span
-              key={colorId}
-              className={`${styles.legendDot} ${done ? styles.legendDone : ''}`}
-              style={{ background: info.pipe }}
-              aria-label={`${colorId} ${done ? 'connected' : 'not connected'}`}
-            />
+            <span key={p.colorId} className={`${styles.legendChip} ${joined[i] ? styles.legendDone : ''}`}>
+              <span className={styles.legendDot} style={{ background: PIPE_COLORS[ci].pipe }}>{ci + 1}</span>
+              <span>{joined[i] ? `✓ ${tp.joined}` : tp.notJoined}</span>
+            </span>
           );
         })}
       </div>
 
-      {/* The grid */}
-      <div
-        className={`${styles.grid} ${won ? styles.gridWon : ''}`}
-        style={{
-          gridTemplateColumns: `repeat(${cols}, 1fr)`,
-          gridTemplateRows:    `repeat(${rows}, 1fr)`,
-          height: `min(360px, calc(100vw - 40px))`,
-        }}
-        role="grid"
-        aria-label="Pipe puzzle grid"
-      >
-        {grid.map((row, r) =>
-          row.map((cell, c) => {
+      <div className={styles.boardWrap}>
+        <div
+          key={round}
+          className={`${styles.grid} ${won ? styles.gridWon : ''}`}
+          style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, gridTemplateRows: `repeat(${rows}, 1fr)` }}
+          role="group"
+          aria-label={tp.gridLabel}
+        >
+          {grid.map((row, r) => row.map((cell, c) => {
             const key = `${r},${c}`;
-            const isSolved = cell ? solved.has(cell.colorId) : false;
-            const isAnim = animKey === key;
+            if (!cell) return <div key={key} className={styles.tileEmpty} aria-hidden="true" />;
+            const litColor = lit.get(key) ?? null;
+            const cls = [
+              styles.tile,
+              cell.isEndpoint ? styles.tileEndpoint : '',
+              spin === key ? styles.tileSpin : '',
+              hintAt === key ? styles.tileHint : '',
+              won ? styles.tileWon : '',
+            ].join(' ');
+            if (cell.isEndpoint) {
+              return (
+                <div key={key} className={cls} role="img" aria-label={fill(tp.dotLabel, { n: colorIndex(cell.colorId) + 1, r: r + 1, c: c + 1 })}>
+                  <TileSVG cell={cell} litColor={litColor} />
+                </div>
+              );
+            }
             return (
-              <div
+              <button
                 key={key}
-                role="gridcell"
-                className={`${styles.tile}
-                  ${cell ? styles.tilePipe : styles.tileEmpty}
-                  ${cell?.isEndpoint ? styles.tileEndpoint : ''}
-                  ${isAnim ? styles.tileRotate : ''}
-                  ${won && isSolved ? styles.tileWon : ''}`}
+                type="button"
+                className={cls}
                 onClick={() => rotateTile(r, c)}
-                aria-label={
-                  cell
-                    ? `${cell.colorId} ${cell.shape} tile, row ${r + 1} col ${c + 1}`
-                    : `Empty tile row ${r + 1} col ${c + 1}`
-                }
+                disabled={won}
+                aria-label={fill(tp.tileLabel, { r: r + 1, c: c + 1 })}
               >
-                <TileSVG cell={cell} solved={isSolved} />
-              </div>
+                <TileSVG cell={cell} litColor={litColor} />
+              </button>
             );
-          })
+          }))}
+        </div>
+        {banner && (
+          <div className={styles.banner} role="status">
+            <span className={styles.bannerTitle}>{banner.stars === 3 ? tp.solvedPerfect : tp.solved}</span>
+            <span className={styles.bannerStars} aria-label={fill(tp.starsLabel, { n: banner.stars })}>
+              {'★'.repeat(banner.stars)}<span className={styles.starOff}>{'★'.repeat(STARS_MAX - banner.stars)}</span>
+            </span>
+          </div>
         )}
       </div>
 
-      <p className={styles.hint}>Tap tiles to rotate • connect all coloured dots</p>
+      <p className={styles.status} aria-live="polite">
+        {hintAt ? `💡 ${tp.hintDone}` : won ? ' ' : `${fill(tp.pairsJoined, { n: joinedCount, total: puzzle.colorPairs.length })} · ${tp.tapTip}`}
+      </p>
+
+      <div className={styles.tools}>
+        <button type="button" className={styles.toolBtn} onClick={undo} disabled={won || !history.length}>↶ {tp.undo}</button>
+        <button type="button" className={`${styles.toolBtn} ${styles.toolHint}`} onClick={giveHint} disabled={won}>💡 {tp.hint}</button>
+        <button type="button" className={styles.toolBtn} onClick={reset} disabled={won || !history.length}>⟲ {tp.reset}</button>
       </div>
     </div>
   );
@@ -481,52 +496,24 @@ PipeGame.propTypes = {
   difficulty:  PropTypes.oneOf(['easy', 'medium', 'hard']).isRequired,
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
-  secondsLeft: PropTypes.number,
+  reportRound: PropTypes.func,
   playClick:   PropTypes.func.isRequired,
   playSuccess: PropTypes.func.isRequired,
+  playReveal:  PropTypes.func,
 };
 
-// ── Outer wrapper ─────────────────────────────────────────────────
-const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
+const TIME_LIMITS = { easy: null, medium: null, hard: null };
 
-export function PipePuzzle({
-  memberId,
-  difficulty = 'easy',
-  onComplete,
-  callbackUrl,
-  onBack,
-  musicMuted,
-  onToggleMusic,
-}) {
+export function PipePuzzle({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const t = useTranslation();
-  const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const { fireComplete: fireCallback } = useGameCallback({
-    memberId,
-    gameId: 'pipe-puzzle',
-    callbackUrl,
-    onComplete,
-  });
-
-  const instructions = (
-    <>
-      <p>Rotate the tiles to connect the same-coloured dots with an unbroken pipe!</p>
-      <ul style={{ marginTop: 8, paddingLeft: 20, lineHeight: 1.8 }}>
-        <li><strong>Tap</strong> any tile to rotate it 90°</li>
-        <li>Connected pipes light up in their colour</li>
-        <li>All {config.numColors} pairs must be connected to win</li>
-      </ul>
-      <p style={{ marginTop: 8 }}>
-        Grid: {config.rows}×{config.cols}
-        {config.timeLimitSeconds ? ` · ${config.timeLimitSeconds}s time limit` : ' · No time limit'}
-      </p>
-    </>
-  );
+  const tp = t.games['pipe-puzzle'];
+  const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'pipe-puzzle', callbackUrl, onComplete });
 
   return (
     <GameShell
       gameId="pipe-puzzle"
-      title={t.games['pipe-puzzle'].title}
-      instructions={instructions}
+      title={tp.title}
+      instructions={`${tp.instructions} ${tp.instructionsHelp}`}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       flushTop
@@ -535,14 +522,15 @@ export function PipePuzzle({
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: shellComplete, reportScore, secondsLeft, difficulty: diff, playClick, playSuccess }) => (
+      {({ onComplete: shellComplete, reportScore, reportRound, difficulty: diff, playClick, playSuccess, playReveal }) => (
         <PipeGame
           difficulty={diff}
           onComplete={shellComplete}
           reportScore={reportScore}
-          secondsLeft={secondsLeft}
+          reportRound={reportRound}
           playClick={playClick}
           playSuccess={playSuccess}
+          playReveal={playReveal}
         />
       )}
     </GameShell>
