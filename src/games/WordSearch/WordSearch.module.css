@@ -1,196 +1,226 @@
-
 @keyframes popIn {
-  0%   { opacity: 0; transform: scale(0.5) translateY(12px); }
-  60%  { opacity: 1; transform: scale(1.08) translateY(-2px); }
-  80%  { transform: scale(0.96) translateY(1px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
+  0%   { opacity: 0; transform: scale(0.6); }
+  100% { opacity: 1; transform: scale(1); }
 }
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 3px #B45309; }
+  50%      { box-shadow: 0 0 0 6px #B45309; }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-4px); }
+  75%      { transform: translateX(4px); }
+}
+
 .container {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: var(--space-4);
-  padding: 0;
-  width: 100%;
-
-  flex: 1;
-}
-
-/* Fills the space below the pinned info header and centers gameplay in it */
-.playArea {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-4);
   width: 100%;
 }
 
-/* Word list above grid on all screens (simpler on mobile) */
+/* ── Word list ───────────────────────────────── */
 .wordChips {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
   justify-content: center;
   width: 100%;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .wordChip {
-  font-size: var(--text-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-size: 1.125rem;
   font-weight: 700;
-  font-family: monospace;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-border);
-  white-space: nowrap;
+  border-radius: var(--radius-md, 10px);
+  border: 2px solid var(--color-text-muted);
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .wordChip.wordFound {
-  color: var(--color-success);
-  background-color: var(--color-success-bg);
-  border-color: var(--color-success);
-  text-decoration: line-through;
+  background: #1E3A8A;
+  border-color: #1E3A8A;
+  color: #ffffff;
 }
 
-.wordChip.wordPending {
-  color: var(--color-text);
-  background-color: var(--color-surface);
+.chipMark { font-size: 1rem; }
+.chipTextFound { text-decoration: line-through; text-decoration-thickness: 2px; }
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
-/* ── Grid — fluid cell sizing ─────────────────── */
+/* ── Grid ────────────────────────────────────── */
 .grid {
   display: grid;
-  gap: 3px;
+  gap: 4px;
   user-select: none;
   width: 100%;
-  /* Wider board so even a 12×12 Hard grid keeps cells large and readable */
-  max-width: 560px;
+  max-width: 520px;
   margin: 0 auto;
+  --cell-font: clamp(1.1rem, 6vw, 1.75rem);
 }
+.gridMid   { --cell-font: clamp(1rem, 5.2vw, 1.6rem); }
+.gridSmall { --cell-font: clamp(1rem, 4.6vw, 1.45rem); }
 
 .cell {
-  /* Width driven by the grid column; height from aspect-ratio */
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 4px;
-  border: 1px solid var(--color-border);
-  background-color: var(--color-surface);
+  min-height: 36px;
+  border-radius: 8px;
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
   color: var(--color-text);
-  /* Scale the glyph to the cell: 560px board ÷ column count, capped for big readable letters.
-     Keeps letters legible on Hard (12 cols) while staying tidy on Easy (8 cols). */
-  font-size: clamp(0.95rem, calc(36vw / var(--cols, 10)), 1.6rem);
-  font-weight: 800;
+  font-size: var(--cell-font);
+  font-weight: 700;
   font-family: var(--font-base);
+  line-height: 1;
   cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast),
-    box-shadow var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  animation-delay: min(calc(var(--idx, 0) * 0.07s), 0.5s);
+  transition: background-color 120ms ease, color 120ms ease;
+  animation: popIn 0.3s ease-out both;
+  animation-delay: min(calc(var(--idx, 0) * 0.008s), 0.4s);
 }
 
-@media (hover: hover) and (pointer: fine) {
-.cell:hover { background-color: var(--color-surface-2); }
+@media (hover: hover) {
+  .cell:hover { border-color: var(--color-primary); }
 }
 
-/* Cells that form a valid straight line from the chosen start — shown so users
-   immediately see where they can end a selection. */
-.cell.validTarget {
-  background-color: rgba(245, 158, 11, 0.14);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-.cell.selected {
-  background-color: var(--color-primary);
-  color: var(--color-bg);
-  border-color: var(--color-primary);
-}
-
+/* Found: dark blue with white text (strong contrast, not colour-on-colour). */
 .cell.found {
-  background-color: var(--color-success-bg);
-  color: var(--color-success);
-  border-color: var(--color-success);
+  background: #1E3A8A;
+  border-color: #1E3A8A;
+  color: #ffffff;
 }
 
+/* Wrong line: brief red outline + shake, letters stay readable. */
+.cell.miss {
+  border-color: var(--color-error);
+  border-style: dashed;
+  animation: shake 0.3s ease;
+}
+
+/* Hint: amber ring that pulses. */
+.cell.hinted {
+  background: #FEF3C7;
+  color: #1A2233;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+/* First tapped letter: thick amber fill with dark text. */
 .cell.start {
-  box-shadow: 0 0 0 3px var(--color-focus);
-  background-color: var(--color-primary);
-  color: var(--color-bg);
-  border-color: var(--color-primary);
-  z-index: 1;
+  background: #F59E0B;
+  border-color: #92400E;
+  border-width: 3px;
+  color: #1A2233;
 }
 
-.cell:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 1px; }
+.cell:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
 
-/* ── Status bar ───────────────────────────────── */
-.status {
+/* ── Status & controls ───────────────────────── */
+.statusText {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--color-text);
+  text-align: center;
+  min-height: 2.8em;
+  margin: 0;
+}
+.statusGood { color: #1E3A8A; }
+.statusMiss { color: #B42318; }
+
+.controls {
   display: flex;
-  align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
   flex-wrap: wrap;
   justify-content: center;
 }
 
-.statusText {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  min-height: 1.4em;
-  font-weight: 500;
+.hintBtn,
+.ghostBtn,
+.nextBtn {
+  min-height: 52px;
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-xl);
+  font-size: var(--text-md);
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
 }
 
-.statusFound  { color: var(--color-success); }
-.statusMiss   { color: var(--color-error); }
-
-.scoreCount {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-}
-.scoreCount strong { color: var(--color-primary); }
-
-.hint {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  text-align: center;
-  font-style: italic;
+.hintBtn {
+  background: #FEF3C7;
+  color: #78350F;
+  border: 2px solid #B45309;
 }
 
-/* ── Info header — WordRecall style ── */
-.infoHeader {
+.ghostBtn {
   background: var(--color-surface);
-  border-radius: 0;
+  color: var(--color-text);
+  border: 2px solid var(--color-text-muted);
+}
+
+.nextBtn {
+  background: var(--color-primary-dk);
+  color: #ffffff;
+  border: none;
+}
+
+.banner {
+  width: 100%;
+  background: var(--color-surface);
+  border: 2px solid var(--color-primary-dk);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  animation: popIn 0.3s ease-out both;
+}
+.bannerTitle { margin: 0; font-size: var(--text-lg); font-weight: 700; color: var(--color-text); }
+.bannerStars { margin: 0; font-size: 2rem; color: #B45309; letter-spacing: 0.1em; }
+.starOff { color: var(--color-text-muted); }
+
+/* ── Info header ─────────────────────────────── */
+.infoHeader {
+  background: var(--color-primary-dk);
+  border-radius: var(--radius-xl);
   padding: var(--space-4) var(--space-5);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  width: calc(100% + var(--space-4) * 2);
-  margin: 0 calc(-1 * var(--space-4));
-  position: sticky;
-  top: 0;
-  z-index: 5;
+  width: 100%;
 }
-
-.infoHeaderText {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.infoHeaderText { display: flex; flex-direction: column; gap: 2px; }
+.infoHeaderLabel {
+  font-size: 1rem;
+  font-weight: var(--font-weight-bold);
+  color: #ffffff;
+  letter-spacing: 0.06em;
 }
-
-
-.infoHeaderSub {
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-regular);
-  color: var(--color-text-muted);
-}
-
+.infoHeaderSub { font-size: 1rem; color: #ffffff; }
 .infoBadge {
-  background: var(--color-primary-light);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: var(--radius-xl);
   padding: var(--space-2) var(--space-4);
   display: flex;
@@ -198,16 +228,10 @@
   gap: 4px;
   flex-shrink: 0;
 }
+.infoBadgeNum { font-size: var(--text-lg); font-weight: var(--font-weight-bold); color: #ffffff; line-height: 1; }
+.infoBadgeSub { font-size: 1rem; color: #ffffff; }
 
-.infoBadgeNum {
-  font-size: var(--text-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-primary);
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.infoBadgeSub {
-  font-size: var(--text-xs);
-  color: var(--color-primary);
+@media (prefers-reduced-motion: reduce) {
+  .cell, .banner, .cell.hinted, .cell.miss { animation: none; }
+  .cell.hinted { box-shadow: 0 0 0 4px #B45309; }
 }
