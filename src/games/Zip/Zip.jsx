@@ -4,440 +4,326 @@ import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './Zip.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
+import { makePuzzle, extensionError, isSolved, isStuck, nextWaypoint, hintFor, starsFor } from './zipLogic';
 
 /* ──────────────────────────────────────────────────────────
-   Zip — Hamiltonian Path puzzle
-   Draw a path from 1 → 2 → 3 → … visiting every cell exactly once.
-   Movement: horizontal/vertical only, no crossing.
+   Zip — draw one line through every square, visiting the
+   numbers in order. No clock: take as long as you like.
+   - The line starts on 1. Drag, or tap the square next to the end.
+   - Tap any square already on the line to shorten it back to there.
+   - Undo / Start over are free. A hint adds the next square for you.
+   - Stars per puzzle: 3 with no hints, 2 with 1–2, 1 with more.
+   Puzzles are generated from a random full path, so they are always solvable.
 ────────────────────────────────────────────────────────── */
 
-/*
-  Level format:
-  - size: grid dimension (size × size)
-  - numbers: { [cellIndex]: waypointNumber }  (1-based, must visit in order)
-  - walls: Set or array of "r,c|r2,c2" (blocked edge between adjacent cells)
-
-  cellIndex = row * size + col
-*/
-
-const LEVELS = {
-  easy: [
-    // 4×4 level 1
-    {
-      size: 4,
-      numbers: { 0: 1, 6: 2, 9: 3, 15: 4 },
-      walls: [],
-    },
-    // 4×4 level 2
-    {
-      size: 4,
-      numbers: { 3: 1, 5: 2, 10: 3, 12: 4 },
-      walls: [],
-    },
-    // 5×5 level 3
-    {
-      size: 5,
-      numbers: { 0: 1, 4: 2, 12: 3, 20: 4, 24: 5 },
-      walls: [],
-    },
-    // 5×5 level 4
-    {
-      size: 5,
-      numbers: { 2: 1, 10: 2, 14: 3, 22: 4, 24: 5 },
-      walls: [],
-    },
-  ],
-  medium: [
-    // 5×5 level 1
-    {
-      size: 5,
-      numbers: { 0: 1, 6: 2, 12: 3, 18: 4, 24: 5 },
-      walls: [],
-    },
-    // 5×5 level 2
-    {
-      size: 5,
-      numbers: { 4: 1, 8: 2, 12: 3, 16: 4, 20: 5 },
-      walls: [],
-    },
-    // 6×6 level 3
-    {
-      size: 6,
-      numbers: { 0: 1, 7: 2, 14: 3, 21: 4, 28: 5, 35: 6 },
-      walls: [],
-    },
-    // 6×6 level 4 — verified solvable (replaces a previously unsolvable layout)
-    {
-      size: 6,
-      numbers: { 0: 1, 25: 2, 14: 3, 15: 4, 28: 5, 5: 6 },
-      walls: [],
-    },
-  ],
-  hard: [
-    // 6×6 level 1
-    {
-      size: 6,
-      numbers: { 0: 1, 11: 2, 24: 3, 35: 4 },
-      walls: [],
-    },
-    // 6×6 level 2
-    {
-      size: 6,
-      numbers: { 2: 1, 9: 2, 14: 3, 21: 4, 26: 5, 33: 6 },
-      walls: [],
-    },
-    // 7×7 level 3
-    {
-      size: 7,
-      numbers: { 0: 1, 12: 2, 24: 3, 36: 4, 48: 5 },
-      walls: [],
-    },
-    // 7×7 level 4
-    {
-      size: 7,
-      numbers: { 6: 1, 14: 2, 24: 3, 34: 4, 42: 5, 48: 6 },
-      walls: [],
-    },
-  ],
+const DIFFICULTY_CONFIG = {
+  // sizes: one entry per puzzle; spacing: squares between numbers (smaller = more guidance)
+  easy:   { sizes: [4, 4, 5],    spacing: 3 },
+  medium: { sizes: [5, 5, 6, 6], spacing: 4 },
+  hard:   { sizes: [6, 6, 7, 7], spacing: 6 },
 };
 
-const TIME_LIMITS = { easy: null, medium: 300, hard: 240 };
+const TIME_LIMITS = { easy: null, medium: null, hard: null };
+const HINT_GLOW_MS = 1400;
+const SOLVE_PAUSE_MS = 1600;
 
-function wallKey(r1, c1, r2, c2) {
-  const a = `${r1},${c1}`;
-  const b = `${r2},${c2}`;
-  return a < b ? `${a}|${b}` : `${b}|${a}`;
+function makeSet(config) {
+  return config.sizes.map(size => makePuzzle(size, Math.ceil((size * size - 1) / config.spacing) + 1));
+}
+
+function fmt(str, vars) {
+  return Object.entries(vars).reduce((s, [k, v]) => s.replace(`{${k}}`, v), str);
 }
 
 /* ──────────────────────────────────────────────────────────
    Inner game
 ────────────────────────────────────────────────────────── */
-function ZipGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, playSuccess, playClick, playFail }) {
+function ZipGame({ difficulty, onComplete, reportScore, reportRound, playSuccess, playClick, playFail, playPop }) {
   const t = useTranslation();
-  const levels = LEVELS[difficulty] ?? LEVELS.easy;
-  const totalLevels = levels.length;
+  const tz = t.games['zip'];
+  const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
-  const [levelIdx, setLevelIdx] = useState(0);
-  const [path, setPath] = useState([]);          // array of cellIndex (visited in order)
+  // Lazy init keeps the same puzzles through StrictMode double renders.
+  const [puzzles] = useState(() => makeSet(config));
+  const total = puzzles.length;
+  const maxScore = total * 3;
+
+  const [idx, setIdx]         = useState(0);
+  const puzzle = puzzles[idx];
+  const startCell = useMemo(() => puzzle.solution[0], [puzzle]);
+  const [path, setPath]       = useState([startCell]);
+  const [hints, setHints]     = useState(0);
+  const [score, setScore]     = useState(0);
+  const [solved, setSolved]   = useState(false);
+  const [msg, setMsg]         = useState(null);   // { tone, text }
+  const [hintCell, setHintCell] = useState(null);
+  const [badCell, setBadCell] = useState(null);
+  const [banner, setBanner]   = useState(null);
   const [dragging, setDragging] = useState(false);
-  const [won, setWon] = useState(false);
-  const [score, setScore] = useState(0);
-  const [shake, setShake] = useState(false);
 
-  const boardRef = useRef(null);
-  const pathRef = useRef([]);   // mirrors path state, safe to read in event handlers
-  const level = levels[levelIdx];
-  const { size, numbers, walls } = level;
-  const wallSet = useMemo(() => new Set(walls), [walls]);
-  const totalCells = size * size;
+  // Ref mirrors for event handlers
+  const pathRef   = useRef(path);
+  const hintsRef  = useRef(0);
+  const scoreRef  = useRef(0);
+  const solvedRef = useRef(false);
+  const doneRef   = useRef(false);
+  const boardRef  = useRef(null);
+  const idRef     = useRef(0);
+  const timersRef = useRef(new Set());
 
-  // Ordered waypoints that the path must pass through
-  const maxWaypoint = useMemo(() =>
-    Math.max(...Object.values(numbers)), [numbers]);
-
+  const later = useCallback((fn, ms) => {
+    const h = setTimeout(() => { timersRef.current.delete(h); fn(); }, ms);
+    timersRef.current.add(h);
+  }, []);
   useEffect(() => {
-    if (secondsLeft === 0) onComplete({ finalScore: score, maxScore: totalLevels, completed: false });
-  }, [secondsLeft, score, totalLevels, onComplete]);
+    const timers = timersRef.current;
+    return () => { timers.forEach(clearTimeout); timers.clear(); };
+  }, []);
 
-  const loadLevel = useCallback((idx, finalScore) => {
-    if (idx >= totalLevels) {
-      onComplete({ finalScore, maxScore: totalLevels, completed: true });
+  // GameShell hands a fresh reportRound each render; read it through a ref so this
+  // effect only runs when the puzzle changes (otherwise it loops forever).
+  const reportRoundRef = useRef(reportRound);
+  reportRoundRef.current = reportRound;
+  useEffect(() => { reportRoundRef.current?.(idx + 1, total); }, [idx, total]);
+
+  const showBanner = useCallback((text, tone) => {
+    const id = ++idRef.current;
+    setBanner({ id, text, tone });
+    later(() => setBanner(b => (b?.id === id ? null : b)), SOLVE_PAUSE_MS);
+  }, [later]);
+
+  const nextPuzzle = useCallback(() => {
+    const next = idx + 1;
+    if (next >= total) {
+      if (doneRef.current) return;
+      doneRef.current = true;
+      onComplete({ finalScore: scoreRef.current, maxScore, completed: true });
       return;
     }
-    setLevelIdx(idx);
-    pathRef.current = [];
-    setPath([]);
-    setWon(false);
-  }, [totalLevels, onComplete]);
+    const first = puzzles[next].solution[0];
+    pathRef.current = [first];
+    hintsRef.current = 0;
+    solvedRef.current = false;
+    setIdx(next);
+    setPath([first]);
+    setHints(0);
+    setSolved(false);
+    setMsg(null);
+    setHintCell(null);
+  }, [idx, total, puzzles, maxScore, onComplete]);
 
-  /* Check if moving to newIdx is valid from current path end */
-  const canMove = useCallback((fromIdx, toIdx) => {
-    const fr = Math.floor(fromIdx / size);
-    const fc = fromIdx % size;
-    const tr = Math.floor(toIdx / size);
-    const tc = toIdx % size;
-    // Must be orthogonally adjacent
-    const dr = Math.abs(tr - fr);
-    const dc = Math.abs(tc - fc);
-    if (dr + dc !== 1) return false;
-    // No wall between them
-    if (wallSet.has(wallKey(fr, fc, tr, tc))) return false;
-    return true;
-  }, [size, wallSet]);
+  const flashBad = useCallback((cell, text) => {
+    setBadCell(cell);
+    setMsg({ tone: 'bad', text });
+    later(() => setBadCell(c => (c === cell ? null : c)), 450);
+  }, [later]);
 
-  /* Next required waypoint number */
-  const nextWaypoint = useCallback((currentPath) => {
-    // Find highest waypoint already in path
-    let highest = 0;
-    for (const idx of currentPath) {
-      if (numbers[idx] != null && numbers[idx] > highest) {
-        highest = numbers[idx];
-      }
+  /* Commit a new line and check for a solve / dead end */
+  const commit = useCallback((next) => {
+    pathRef.current = next;
+    setPath(next);
+    if (isSolved(next, puzzle)) {
+      solvedRef.current = true;
+      setSolved(true);
+      setDragging(false);
+      const stars = starsFor(hintsRef.current);
+      scoreRef.current += stars;
+      setScore(scoreRef.current);
+      reportScore(scoreRef.current);
+      setMsg({ tone: 'good', text: fmt(tz.starsEarned, { n: stars }) });
+      showBanner(stars === 3 ? tz.perfect : tz.solved, stars === 3 ? 'perfect' : 'solved');
+      playSuccess();
+      later(nextPuzzle, SOLVE_PAUSE_MS);
+      return;
     }
-    return highest + 1;
-  }, [numbers]);
+    if (isStuck(next, puzzle)) setMsg({ tone: 'warn', text: tz.stuck });
+    else setMsg(null);
+  }, [puzzle, reportScore, showBanner, playSuccess, later, nextPuzzle, tz]);
 
-  /* Check if extending path to toIdx is allowed */
-  const isValidExtension = useCallback((currentPath, toIdx) => {
-    if (currentPath.includes(toIdx)) return false;
-    const fromIdx = currentPath[currentPath.length - 1];
-    if (!canMove(fromIdx, toIdx)) return false;
-    // If toIdx is a waypoint, it must be the next one in sequence
-    if (numbers[toIdx] != null) {
-      const next = nextWaypoint(currentPath);
-      if (numbers[toIdx] !== next) return false;
+  /* Try to move the line to `cell` (extend, step back, or cut back) */
+  const stepTo = useCallback((cell, fromTap) => {
+    if (solvedRef.current || cell == null) return;
+    const cur = pathRef.current;
+    const head = cur[cur.length - 1];
+    if (cell === head) return;
+    const pos = cur.indexOf(cell);
+    if (pos !== -1) {
+      // Dragging backwards removes one square; tapping cuts back to that square.
+      if (!fromTap && pos !== cur.length - 2) return;
+      playClick();
+      commit(cur.slice(0, pos + 1));
+      return;
     }
-    return true;
-  }, [canMove, numbers, nextWaypoint]);
+    const err = extensionError(cur, cell, puzzle);
+    if (err === null) {
+      playPop?.();
+      setHintCell(null);
+      commit([...cur, cell]);
+      return;
+    }
+    if (!fromTap && err === 'notAdjacent') return; // dragging past a gap: just wait
+    playFail();
+    if (err === 'order') flashBad(cell, fmt(tz.wrongOrder, { n: nextWaypoint(cur, puzzle.numbers) }));
+    else flashBad(cell, tz.notAdjacent);
+  }, [puzzle, commit, playClick, playPop, playFail, flashBad, tz]);
 
-  /* Check win: path covers all cells AND all waypoints were visited in order
-     (order is already enforced by isValidExtension during drawing) */
-  const checkWin = useCallback((currentPath) => {
-    if (currentPath.length !== totalCells) return false;
-    return Object.keys(numbers).every(idx => currentPath.includes(Number(idx)));
-  }, [totalCells, numbers]);
-
-  /* Get cell index from pointer position */
-  const getCellFromPointer = useCallback((clientX, clientY) => {
+  const cellFromPoint = useCallback((clientX, clientY) => {
     const board = boardRef.current;
     if (!board) return null;
     const rect = board.getBoundingClientRect();
-    const x = clientX - rect.left;
-    const y = clientY - rect.top;
-    const cellW = rect.width / size;
-    const cellH = rect.height / size;
-    const c = Math.floor(x / cellW);
-    const r = Math.floor(y / cellH);
-    if (r < 0 || r >= size || c < 0 || c >= size) return null;
-    return r * size + c;
-  }, [size]);
+    const c = Math.floor(((clientX - rect.left) / rect.width) * puzzle.size);
+    const r = Math.floor(((clientY - rect.top) / rect.height) * puzzle.size);
+    if (r < 0 || r >= puzzle.size || c < 0 || c >= puzzle.size) return null;
+    return r * puzzle.size + c;
+  }, [puzzle.size]);
 
-  const handlePointerDown = useCallback((e, cellIdx) => {
-    // Must start on waypoint "1"
-    if (numbers[cellIdx] !== 1) return;
+  const onPointerDown = useCallback((e) => {
+    if (solvedRef.current) return;
     e.preventDefault();
-    playClick();
-    pathRef.current = [cellIdx];
-    setPath([cellIdx]);
+    boardRef.current?.setPointerCapture?.(e.pointerId);
     setDragging(true);
-    setShake(false);
-  }, [numbers, playClick]);
+    stepTo(cellFromPoint(e.clientX, e.clientY), true);
+  }, [stepTo, cellFromPoint]);
 
-  const handlePointerMove = useCallback((e) => {
+  const onPointerMove = useCallback((e) => {
     if (!dragging) return;
-    e.preventDefault();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    const toIdx = getCellFromPointer(clientX, clientY);
-    if (toIdx === null) return;
+    stepTo(cellFromPoint(e.clientX, e.clientY), false);
+  }, [dragging, stepTo, cellFromPoint]);
 
-    const prev = pathRef.current;
-    const last = prev[prev.length - 1];
-    if (toIdx === last) return;
+  const endDrag = useCallback(() => setDragging(false), []);
 
-    let next;
-    // Backtrack: if toIdx is second-to-last, remove last cell
-    if (prev.length >= 2 && prev[prev.length - 2] === toIdx) {
-      next = prev.slice(0, -1);
-    } else if (isValidExtension(prev, toIdx)) {
-      next = [...prev, toIdx];
-    } else {
-      return;
-    }
-
-    pathRef.current = next;
-    setPath(next);
-  }, [dragging, getCellFromPointer, isValidExtension]);
-
-  const handlePointerUp = useCallback(() => {
-    if (!dragging) return;
-    setDragging(false);
-
-    const current = pathRef.current;
-
-    if (checkWin(current)) {
-      const newScore = score + 1;
-      setScore(newScore);
-      reportScore(newScore);
-      setWon(true);
-      playSuccess();
-      setTimeout(() => loadLevel(levelIdx + 1, newScore), 1400);
-      return;
-    }
-
-    // Invalid path — shake and reset
-    if (current.length > 1) {
-      setShake(true);
-      playFail();
-      setTimeout(() => {
-        setShake(false);
-        pathRef.current = [];
-        setPath([]);
-      }, 600);
-      return;
-    }
-
-    pathRef.current = [];
-    setPath([]);
-  }, [dragging, checkWin, score, reportScore, playSuccess, playFail, loadLevel, levelIdx]);
-
-  useEffect(() => {
-    if (!dragging) return;
-    const onMove = (e) => handlePointerMove(e);
-    const onUp   = () => handlePointerUp();
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
-    window.addEventListener('touchmove', onMove, { passive: false });
-    window.addEventListener('touchend', onUp);
-    return () => {
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
-      window.removeEventListener('touchmove', onMove);
-      window.removeEventListener('touchend', onUp);
-    };
-  }, [dragging, handlePointerMove, handlePointerUp]);
-
-  const restart = useCallback(() => {
+  const undo = useCallback(() => {
+    const cur = pathRef.current;
+    if (solvedRef.current || cur.length <= 1) return;
     playClick();
-    pathRef.current = [];
-    setPath([]);
-    setWon(false);
-    setShake(false);
-  }, [playClick]);
+    commit(cur.slice(0, -1));
+  }, [commit, playClick]);
 
-  /* Colour gradient along path */
-  const pathLength = path.length;
-  function getPathColor(position) {
-    // Gradient: blue → purple → pink
-    const t = pathLength <= 1 ? 0 : position / (pathLength - 1);
-    const r = Math.round(17 + (219 - 17) * t);
-    const g = Math.round(85 + (0 - 85) * t);
-    const b = Math.round(204 + (180 - 204) * t);
-    return `rgb(${r},${g},${b})`;
-  }
+  const reset = useCallback(() => {
+    if (solvedRef.current) return;
+    playClick();
+    setHintCell(null);
+    commit([pathRef.current[0]]);
+  }, [commit, playClick]);
 
-  const pathSet = useMemo(() => new Set(path), [path]);
-  const pathIndexOf = useMemo(() => {
-    const map = {};
-    path.forEach((idx, pos) => { map[idx] = pos; });
-    return map;
+  const hint = useCallback(() => {
+    if (solvedRef.current) return;
+    const h = hintFor(pathRef.current, puzzle);
+    hintsRef.current += 1;
+    setHints(hintsRef.current);
+    playClick();
+    setHintCell(h.cell);
+    later(() => setHintCell(c => (c === h.cell ? null : c)), HINT_GLOW_MS);
+    commit(h.path);
+    if (!isSolved(h.path, puzzle)) setMsg({ tone: 'info', text: h.steppedBack ? tz.hintBack : tz.hintUsed });
+  }, [puzzle, commit, later, playClick, tz]);
+
+  /* ── Render helpers ── */
+  const { size, numbers, maxWaypoint } = puzzle;
+  const totalCells = size * size;
+  const pathPos = useMemo(() => {
+    const m = new Map();
+    path.forEach((c, i) => m.set(c, i));
+    return m;
   }, [path]);
+  const head = path[path.length - 1];
+  const want = nextWaypoint(path, numbers);
+  const liveStars = starsFor(hints);
 
-  /* Progress: how many waypoints have been hit in order */
-  const waypointsHit = useMemo(() => {
-    let count = 0;
-    for (let w = 1; w <= maxWaypoint; w++) {
-      const idx = Object.entries(numbers).find(([, v]) => v === w)?.[0];
-      if (idx != null && pathSet.has(Number(idx))) count++;
-      else break;
-    }
-    return count;
-  }, [numbers, maxWaypoint, pathSet]);
+  let tip;
+  if (msg) tip = msg;
+  else if (path.length === 1) tip = { tone: 'info', text: tz.startTip };
+  else if (want <= maxWaypoint) tip = { tone: 'info', text: fmt(tz.nextTip, { n: want }) };
+  else tip = { tone: 'info', text: tz.fillTip };
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>{t.common.level} {levelIdx + 1}</span>
+        <div className={styles.hudLeft}>
+          <span className={styles.roundLabel}>{fmt(tz.puzzleOf, { n: idx + 1, total })}</span>
+          <span className={styles.stars} aria-label={fmt(tz.starsLabel, { n: liveStars })}>
+            {[1, 2, 3].map(s => (
+              <span key={s} className={s <= liveStars ? styles.starOn : styles.starOff} aria-hidden="true">★</span>
+            ))}
+          </span>
         </div>
         <div className={styles.infoBadge}>
-          <span className={styles.infoBadgeNum}>{waypointsHit}</span>
-          <span className={styles.infoBadgeSub}>/ {maxWaypoint}</span>
+          <span key={score} className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>/ {maxScore}</span>
         </div>
       </div>
+
       <div className={styles.playArea}>
-      <div className={styles.topBar}>
-        <button
-          className={styles.ctrlBtn}
-          onClick={restart}
-          disabled={won}
-          aria-label="Restart"
-          title={t.games['zip'].title}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
-          </svg>
-        </button>
-      </div>
-
-      {won && <div className={styles.wonBanner}>{t.common.levelComplete} 🎉</div>}
-
-      <div
-        ref={boardRef}
-        className={`${styles.board} ${shake ? styles.shake : ''}`}
-        style={{ '--size': size }}
-        aria-label={`Zip puzzle grid, ${size} by ${size}`}
-      >
-        {/* SVG overlay for path lines */}
-        <svg className={styles.svgOverlay} viewBox={`0 0 ${size * 100} ${size * 100}`} preserveAspectRatio="none">
-          {path.length >= 2 && path.slice(1).map((toIdx, i) => {
-            const fromIdx = path[i];
-            const fr = Math.floor(fromIdx / size);
-            const fc = fromIdx % size;
-            const tr = Math.floor(toIdx / size);
-            const tc = toIdx % size;
-            const x1 = fc * 100 + 50;
-            const y1 = fr * 100 + 50;
-            const x2 = tc * 100 + 50;
-            const y2 = tr * 100 + 50;
-            const color = getPathColor(i);
-            return (
-              <line
-                key={`${fromIdx}-${toIdx}`}
-                x1={x1} y1={y1} x2={x2} y2={y2}
-                stroke={color}
-                strokeWidth="28"
-                strokeLinecap="round"
-                opacity="0.75"
-              />
-            );
-          })}
-        </svg>
-
-        {/* Cells */}
-        {Array.from({ length: totalCells }).map((_, idx) => {
-          const r = Math.floor(idx / size);
-          const c = idx % size;
-          const waypoint = numbers[idx];
-          const inPath = pathSet.has(idx);
-          const posInPath = pathIndexOf[idx];
-          const isHead = path.length > 0 && path[path.length - 1] === idx;
-          const isStart = path[0] === idx;
-          const color = inPath ? getPathColor(posInPath) : null;
-
-          return (
-            <div
-              key={idx}
-              className={`${styles.cell} ${inPath ? styles.cellInPath : ''} ${isHead ? styles.cellHead : ''} ${waypoint != null ? styles.cellWaypoint : ''}`}
-              style={{
-                '--r': r,
-                '--c': c,
-                '--path-color': color,
-              }}
-              onMouseDown={e => handlePointerDown(e, idx)}
-              onTouchStart={e => handlePointerDown(e, idx)}
-              aria-label={waypoint != null ? `Waypoint ${waypoint}` : `Cell ${r + 1},${c + 1}`}
-            >
-              {waypoint != null && (
-                <span className={`${styles.waypointNum} ${inPath ? styles.waypointNumVisited : ''}`}>
-                  {waypoint}
-                </span>
+        <div className={styles.boardWrap}>
+          {banner && <div key={banner.id} className={`${styles.banner} ${styles[`banner_${banner.tone}`] ?? ''}`}>{banner.text}</div>}
+          <div
+            ref={boardRef}
+            key={`b${idx}`}
+            className={`${styles.board} ${solved ? styles.boardSolved : ''}`}
+            style={{ '--size': size }}
+            role="grid"
+            aria-label={fmt(tz.boardLabel, { n: size })}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={endDrag}
+            onPointerCancel={endDrag}
+          >
+            <svg className={styles.svgOverlay} viewBox={`0 0 ${size * 100} ${size * 100}`} preserveAspectRatio="none" aria-hidden="true">
+              {path.length >= 2 && (
+                <polyline
+                  points={path.map(c => `${(c % size) * 100 + 50},${Math.floor(c / size) * 100 + 50}`).join(' ')}
+                  className={styles.line}
+                />
               )}
-              {isHead && !won && (
-                <span className={styles.headDot} style={{ background: color }} />
-              )}
-            </div>
-          );
-        })}
-      </div>
+            </svg>
 
-      <p className={styles.hint}>
-        {path.length === 0
-          ? 'Start from the cell marked 1'
-          : path.length === totalCells && !won
-          ? 'Connect all cells — release to check!'
-          : `${path.length} / ${totalCells} cells`}
-      </p>
+            {Array.from({ length: totalCells }).map((_, cell) => {
+              const n = numbers[cell];
+              const inPath = pathPos.has(cell);
+              const isHead = cell === head && !solved;
+              const isNext = n != null && n === want && !solved;
+              return (
+                <div
+                  key={cell}
+                  className={[
+                    styles.cell,
+                    inPath ? styles.cellInPath : '',
+                    isHead ? styles.cellHead : '',
+                    cell === hintCell ? styles.cellHint : '',
+                    cell === badCell ? styles.cellBad : '',
+                  ].join(' ')}
+                  aria-label={n != null ? fmt(tz.numberLabel, { n }) : tz.squareLabel}
+                >
+                  {n != null && (
+                    <span className={[
+                      styles.num,
+                      inPath ? styles.numVisited : '',
+                      isNext ? styles.numNext : '',
+                    ].join(' ')}>
+                      {n}
+                    </span>
+                  )}
+                  {isHead && n == null && <span className={styles.headDot} aria-hidden="true" />}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <p className={`${styles.tip} ${styles[`tip_${tip.tone}`] ?? ''}`} aria-live="polite">{tip.text}</p>
+        <p className={styles.count}>{fmt(tz.filled, { n: path.length, total: totalCells })}</p>
+
+        <div className={styles.controls}>
+          <button type="button" className={styles.ctrlBtn} onClick={undo} disabled={solved || path.length <= 1}>
+            <span aria-hidden="true">↶</span> {tz.undo}
+          </button>
+          <button type="button" className={`${styles.ctrlBtn} ${styles.ctrlHint}`} onClick={hint} disabled={solved}>
+            <span aria-hidden="true">💡</span> {tz.hint}
+          </button>
+          <button type="button" className={styles.ctrlBtn} onClick={reset} disabled={solved || path.length <= 1}>
+            <span aria-hidden="true">⟲</span> {tz.reset}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -447,8 +333,8 @@ ZipGame.propTypes = {
   difficulty:  PropTypes.string.isRequired,
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
-  secondsLeft: PropTypes.number,
-  playPop:     PropTypes.func.isRequired,
+  reportRound: PropTypes.func,
+  playPop:     PropTypes.func,
   playSuccess: PropTypes.func.isRequired,
   playClick:   PropTypes.func.isRequired,
   playFail:    PropTypes.func.isRequired,
@@ -472,12 +358,12 @@ export function Zip({ memberId, difficulty = 'easy', onComplete, callbackUrl, on
       onGameComplete={fireComplete}
       onBack={onBack}
     >
-      {({ difficulty: diff, onComplete: complete, reportScore, secondsLeft, playClick, playSuccess, playPop, playFail }) => (
+      {({ difficulty: diff, onComplete: complete, reportScore, reportRound, playClick, playSuccess, playPop, playFail }) => (
         <ZipGame
           difficulty={diff}
           onComplete={complete}
           reportScore={reportScore}
-          secondsLeft={secondsLeft}
+          reportRound={reportRound}
           playClick={playClick}
           playSuccess={playSuccess}
           playPop={playPop}
