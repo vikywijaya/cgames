@@ -165,3 +165,13 @@
   font-size: var(--text-xs);
   color: var(--color-primary);
 }
+
+/* ── Shared quiz engine visuals ── */
+.bigFlag {
+  font-size: 4.6rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.18));
+}
+.landmark { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.landmarkEmoji { font-size: 4.2rem; line-height: 1; }
+.landmarkName { font-size: 1.35rem; font-weight: 900; color: #1e293b; text-align: center; }

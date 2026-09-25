@@ -1,14 +1,18 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './CurrencyQuiz.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
+import { QuizEngine } from '../../components/QuizEngine/QuizEngine';
+import { countryName } from '../../utils/countries';
+import { GameContext } from '../../context/GameContext';
+
 
 const DIFFICULTY_CONFIG = {
-  easy:   { rounds: 8,  pool: 'basic',    timeLimitSeconds: null },
-  medium: { rounds: 12, pool: 'extended', timeLimitSeconds: 120  },
-  hard:   { rounds: 16, pool: 'all',      timeLimitSeconds: 90   },
+  easy:   { questions: 8, pool: 'basic' },
+  medium: { questions: 10, pool: 'extended' },
+  hard:   { questions: 12, pool: 'all' },
 };
 
 // { country, currency, symbol, flag }
@@ -75,145 +79,62 @@ function shuffleArr(arr) {
   return a;
 }
 
-// Distractors come from the same tier so the options are plausible.
-function buildQuestion(item, pool) {
-  const others = pool.filter(c => c.currency !== item.currency);
-  const opts = [item.currency];
-  const shuffledOthers = shuffleArr(others);
-  for (const pick of shuffledOthers) {
-    if (opts.length >= 4) break;
-    if (!opts.includes(pick.currency)) opts.push(pick.currency);
-  }
-  for (let i = opts.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [opts[i], opts[j]] = [opts[j], opts[i]];
-  }
-  return { ...item, options: opts };
-}
 
-function CurrencyQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+function CurrencyQuizGame({ difficulty, ...engineProps }) {
   const t = useTranslation();
+  const tg = t.games['currency-quiz'];
+  const { langCode } = useContext(GameContext);
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const pool   = POOL_MAP[config.pool];
+  const pool = POOL_MAP[config.pool];
+  const cn = (name) => countryName(name, langCode);
 
-  // Pre-shuffled queue of distinct currencies for this attempt, so no
-  // country repeats until the tier is exhausted.
-  const queueRef = useRef(shuffleArr(pool));
-  const cursorRef = useRef(0);
-  const nextItem = useCallback(() => {
-    if (cursorRef.current >= queueRef.current.length) {
-      queueRef.current = shuffleArr(pool);
-      cursorRef.current = 0;
+  // One question: an unused item, three others from the same tier.
+  const makeQuestion = useCallback((index, used) => {
+    const fresh = pool.filter(x => !used.has(x.country));
+    const item = (fresh.length ? fresh : pool)[Math.floor(Math.random() * (fresh.length || pool.length))];
+    const seen = new Set([item.currency]);
+    const others = [];
+    for (const x of shuffleArr(pool)) {
+      if (others.length === 3) break;
+      if (!seen.has(x.currency)) { seen.add(x.currency); others.push(x); }
     }
-    return queueRef.current[cursorRef.current++];
-  }, [pool]);
+    return {
+      id: item.country,
+      visual: <span className={styles.bigFlag} aria-hidden="true">{item.flag}</span>,
+      prompt: tg.prompt.replace('{country}', cn(item.country)),
+      options: shuffleArr([item, ...others]).map(x => ({ id: x.currency, label: x.currency })),
+      answerId: item.currency,
+      reveal: tg.reveal.replace('{country}', cn(item.country)).replace('{currency}', item.currency).replace('{symbol}', item.symbol),
+    };
+  }, [pool, tg, langCode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const [round,    setRound]    = useState(0);
-  const [score,    setScore]    = useState(0);
-  const [q,        setQ]        = useState(() => buildQuestion(nextItem(), pool));
-  const [feedback, setFeedback] = useState(null);
-  const [picked,   setPicked]   = useState(null);
-  const scoreRef = useRef(0);
-  const doneRef  = useRef(false);
-
-  useEffect(() => {
-    if (secondsLeft === 0 && !doneRef.current) {
-      doneRef.current = true;
-      onComplete({ finalScore: scoreRef.current, maxScore: config.rounds, completed: false });
-    }
-  }, [secondsLeft, onComplete, config.rounds]);
-
-  const nextRound = useCallback((newRound, newScore) => {
-    if (doneRef.current) return;
-    if (newRound >= config.rounds) {
-      doneRef.current = true;
-      onComplete({ finalScore: newScore, maxScore: config.rounds, completed: true });
-      return;
-    }
-    setRound(newRound);
-    setQ(buildQuestion(nextItem(), pool));
-    setFeedback(null);
-    setPicked(null);
-  }, [config, pool, nextItem, onComplete]);
-
-  const handlePick = useCallback((val) => {
-    if (feedback || doneRef.current) return;
-    playClick();
-    setPicked(val);
-    const correct = val === q.currency;
-    if (correct) { playSuccess(); } else { playFail(); }
-    setFeedback(correct ? 'correct' : 'wrong');
-    let newScore = scoreRef.current;
-    if (correct) {
-      newScore += 1;
-      scoreRef.current = newScore;
-      setScore(newScore);
-      reportScore(newScore);
-    }
-    setTimeout(() => nextRound(round + 1, newScore), 800);
-  }, [feedback, q, round, reportScore, nextRound, playClick, playSuccess, playFail]);
-
-  return (
-    <div className={styles.wrapper}>
-      <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
-        </div>
-        <div className={styles.infoBadge}>
-          <span className={styles.infoBadgeNum}>{score}</span>
-          <span className={styles.infoBadgeSub}>/ {config.rounds}</span>
-        </div>
-      </div>
-
-      <div className={styles.playArea}>
-        <div className={styles.questionCard}>
-          <span className={styles.flagEmoji} aria-hidden="true">{q.flag}</span>
-          <p className={styles.questionText}>
-            What is the currency of <strong>{q.country}</strong>?
-          </p>
-        </div>
-
-        <div className={styles.options}>
-          {q.options.map((opt, i) => {
-            let cls = styles.optBtn;
-            if (feedback && opt === q.currency)          cls = `${styles.optBtn} ${styles.optCorrect}`;
-            else if (feedback === 'wrong' && opt === picked) cls = `${styles.optBtn} ${styles.optWrong}`;
-            return (
-              <button key={i} className={cls} style={{ '--idx': i }} onClick={() => handlePick(opt)} disabled={!!feedback} aria-label={opt}>
-                {opt}
-              </button>
-            );
-          })}
-        </div>
-
-        <p className={feedback === 'correct' ? styles.feedbackOk : feedback === 'wrong' ? styles.feedbackBad : styles.feedbackSlot}>
-          {feedback === 'correct' ? t.common.correct : feedback === 'wrong' ? `${t.games['currency-quiz'].wrongAnswer} ${q.currency}` : '\u00A0'}
-        </p>
-      </div>
-    </div>
-  );
+  return <QuizEngine questions={config.questions} makeQuestion={makeQuestion} {...engineProps} />;
 }
 
 CurrencyQuizGame.propTypes = {
+  countingDown: PropTypes.bool,
   difficulty:  PropTypes.string.isRequired,
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
-  secondsLeft: PropTypes.number,
+  reportRound: PropTypes.func,
   playClick:   PropTypes.func.isRequired,
   playSuccess: PropTypes.func.isRequired,
   playFail:    PropTypes.func.isRequired,
+  playPop:     PropTypes.func,
 };
 
-const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
+// No overall clock: quizzes are about knowledge, not speed.
+const TIME_LIMITS = { easy: null, medium: null, hard: null };
 
 export function CurrencyQuiz({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'currency-quiz', callbackUrl, onComplete });
   return (
     <GameShell
+      startCountdown
       gameId="currency-quiz"
       title={t.games['currency-quiz'].title}
-      instructions={t.games['currency-quiz'].instructions}
+      instructions={`${t.games['currency-quiz'].instructions} ${t.quiz.howItWorks}`}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       flushTop
@@ -222,19 +143,29 @@ export function CurrencyQuiz({ memberId, difficulty = 'easy', onComplete, callba
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft, difficulty: diff, playClick, playSuccess, playFail }) => (
-        <CurrencyQuizGame difficulty={diff} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
+      {({ onComplete: sc, reportScore, reportRound, difficulty: diff, playClick, playSuccess, playFail, playPop, countingDown }) => (
+        <CurrencyQuizGame
+          countingDown={countingDown}
+          difficulty={diff}
+          onComplete={sc}
+          reportScore={reportScore}
+          reportRound={reportRound}
+          playClick={playClick}
+          playSuccess={playSuccess}
+          playFail={playFail}
+          playPop={playPop}
+        />
       )}
     </GameShell>
   );
 }
 
 CurrencyQuiz.propTypes = {
-  memberId:      PropTypes.string.isRequired,
-  difficulty:    PropTypes.oneOf(['easy', 'medium', 'hard']),
-  onComplete:    PropTypes.func.isRequired,
-  callbackUrl:   PropTypes.string,
-  onBack:        PropTypes.func,
-  musicMuted:    PropTypes.bool,
+  memberId: PropTypes.string.isRequired,
+  difficulty: PropTypes.oneOf(['easy', 'medium', 'hard']),
+  onComplete: PropTypes.func.isRequired,
+  callbackUrl: PropTypes.string,
+  onBack: PropTypes.func,
+  musicMuted: PropTypes.bool,
   onToggleMusic: PropTypes.func,
 };

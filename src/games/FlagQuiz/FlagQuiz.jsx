@@ -1,15 +1,19 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback, useContext } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './FlagQuiz.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
+import { QuizEngine } from '../../components/QuizEngine/QuizEngine';
+import { countryName } from '../../utils/countries';
+import { GameContext } from '../../context/GameContext';
+
 
 // ── Difficulty config ──────────────────────────────────────────────
 const DIFFICULTY_CONFIG = {
-  easy:   { questions: 8,  timeLimitSeconds: null, pool: 'easy'   },
-  medium: { questions: 10, timeLimitSeconds: 120,  pool: 'medium' },
-  hard:   { questions: 12, timeLimitSeconds: 90,   pool: 'hard'   },
+  easy:   { questions: 8, pool: 'easy'   },
+  medium: { questions: 10, pool: 'medium' },
+  hard:   { questions: 12, pool: 'hard'   },
 };
 
 // Unicode flag helper: country code → flag emoji
@@ -100,147 +104,58 @@ function shuffle(arr) {
   return a;
 }
 
-// Build one question for a given correct answer; distractors come from
-// the same tier so the options are plausible and consistently difficult.
-function buildQuestion(correct, pool) {
-  const distractors = shuffle(pool.filter(f => f.code !== correct.code)).slice(0, 3);
-  const options = shuffle([correct, ...distractors]);
-  return { correct, options };
-}
 
-// ── Inner game ─────────────────────────────────────────────────────
-function FlagQuizGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+
+function FlagQuizGame({ difficulty, ...engineProps }) {
   const t = useTranslation();
+  const tg = t.games['flag-quiz'];
+  const { langCode } = useContext(GameContext);
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const pool   = POOL_MAP[config.pool];
+  const pool = POOL_MAP[config.pool];
+  const cn = (name) => countryName(name, langCode);
 
-  // Pre-shuffled queue of distinct correct answers for this attempt, so no
-  // flag repeats until the tier is exhausted. Built once per mount.
-  const queueRef = useRef(shuffle(pool));
-  const cursorRef = useRef(0);
-  const nextCorrect = useCallback(() => {
-    const q = queueRef.current;
-    if (cursorRef.current >= q.length) {
-      // Tier exhausted — reshuffle for a fresh, non-adjacent-repeating pass.
-      queueRef.current = shuffle(pool);
-      cursorRef.current = 0;
-    }
-    return queueRef.current[cursorRef.current++];
-  }, [pool]);
+  // One question: an unused item, three others from the same tier.
+  const makeQuestion = useCallback((index, used) => {
+    const fresh = pool.filter(x => !used.has(x.code));
+    const item = (fresh.length ? fresh : pool)[Math.floor(Math.random() * (fresh.length || pool.length))];
+    const others = shuffle(pool.filter(x => x.code !== item.code)).slice(0, 3);
+    return {
+      id: item.code,
+      visual: <span className={styles.bigFlag} role="img" aria-label={tg.flagAlt}>{flag(item.code)}</span>,
+      prompt: tg.prompt,
+      options: shuffle([item, ...others]).map(x => ({ id: x.code, label: cn(x.name) })),
+      answerId: item.code,
+      reveal: tg.reveal.replace('{country}', cn(item.name)),
+    };
+  }, [pool, tg, langCode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const [qIndex,   setQIndex]   = useState(0);
-  const [score,    setScore]    = useState(0);
-  const [feedback, setFeedback] = useState(null);
-  const [chosen,   setChosen]   = useState(null);
-  const [question, setQuestion] = useState(() => buildQuestion(nextCorrect(), pool));
-
-  // Time-up
-  useEffect(() => {
-    if (secondsLeft === 0) {
-      onComplete({ finalScore: score, maxScore: config.questions, completed: false });
-    }
-  }, [secondsLeft, score, config.questions, onComplete]);
-
-  const nextQuestion = useCallback(() => {
-    const next = qIndex + 1;
-    if (next >= config.questions) {
-      onComplete({ finalScore: score, maxScore: config.questions, completed: true });
-      return;
-    }
-    setQIndex(next);
-    setFeedback(null);
-    setChosen(null);
-    setQuestion(buildQuestion(nextCorrect(), pool));
-  }, [qIndex, score, config.questions, pool, nextCorrect, onComplete]);
-
-  const handleChoice = useCallback((opt) => {
-    if (feedback) return;
-    playClick();
-    setChosen(opt.code);
-    const correct = opt.code === question.correct.code;
-    if (correct) { playSuccess(); } else { playFail(); }
-    setFeedback(correct ? 'correct' : 'wrong');
-    const ns = correct ? score + 1 : score;
-    if (correct) setScore(ns);
-    reportScore(ns);
-    setTimeout(() => nextQuestion(), 1000);
-  }, [feedback, question.correct.code, score, reportScore, nextQuestion, playClick, playSuccess, playFail]);
-
-  return (
-    <div className={styles.wrapper}>
-      <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>{t.common.question} {qIndex + 1} {t.common.of} {config.questions}</span>
-        </div>
-        <div className={styles.infoBadge}>
-          <span className={styles.infoBadgeNum}>{score}</span>
-          <span className={styles.infoBadgeSub}>/ {config.questions}</span>
-        </div>
-      </div>
-
-      <div className={styles.playArea}>
-      {/* Flag display */}
-      <div className={styles.flagCard}>
-        <span className={styles.flagEmoji} role="img" aria-label="Country flag">
-          {flag(question.correct.code)}
-        </span>
-        <p className={styles.prompt}>Which country does this flag belong to?</p>
-      </div>
-
-      {/* Options */}
-      <div className={styles.options}>
-        {question.options.map((opt, i) => {
-          const isChosen  = chosen === opt.code;
-          const isCorrect = opt.code === question.correct.code;
-          let cls = styles.optBtn;
-          if (feedback && isChosen  && feedback === 'correct') cls = `${styles.optBtn} ${styles.optCorrect}`;
-          else if (feedback && isChosen && feedback === 'wrong') cls = `${styles.optBtn} ${styles.optWrong}`;
-          else if (feedback && isCorrect) cls = `${styles.optBtn} ${styles.optCorrect}`;
-
-          return (
-            <button
-              key={opt.code}
-              className={cls}
-              style={{ '--idx': i }}
-              onClick={() => handleChoice(opt)}
-              disabled={!!feedback}
-            >
-                {opt.name}
-            </button>
-          );
-        })}
-      </div>
-
-      <p className={feedback === 'correct' ? styles.feedbackCorrect : feedback === 'wrong' ? styles.feedbackWrong : styles.feedbackSlot}>
-        {feedback === 'correct' ? t.common.correct : feedback ? `${t.games['flag-quiz'].wrongAnswer} ${question.correct.name}` : '\u00A0'}
-      </p>
-      </div>
-    </div>
-  );
+  return <QuizEngine questions={config.questions} makeQuestion={makeQuestion} {...engineProps} />;
 }
 
 FlagQuizGame.propTypes = {
-  difficulty:  PropTypes.oneOf(['easy', 'medium', 'hard']).isRequired,
+  countingDown: PropTypes.bool,
+  difficulty:  PropTypes.string.isRequired,
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
-  secondsLeft: PropTypes.number,
+  reportRound: PropTypes.func,
   playClick:   PropTypes.func.isRequired,
   playSuccess: PropTypes.func.isRequired,
   playFail:    PropTypes.func.isRequired,
+  playPop:     PropTypes.func,
 };
 
-// ── Outer wrapper ──────────────────────────────────────────────────
-const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
+// No overall clock: quizzes are about knowledge, not speed.
+const TIME_LIMITS = { easy: null, medium: null, hard: null };
 
 export function FlagQuiz({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'flag-quiz', callbackUrl, onComplete });
-
   return (
     <GameShell
+      startCountdown
       gameId="flag-quiz"
       title={t.games['flag-quiz'].title}
-      instructions={t.games['flag-quiz'].instructions}
+      instructions={`${t.games['flag-quiz'].instructions} ${t.quiz.howItWorks}`}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       flushTop
@@ -249,8 +164,18 @@ export function FlagQuiz({ memberId, difficulty = 'easy', onComplete, callbackUr
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft, difficulty: diff, playClick, playSuccess, playFail }) => (
-        <FlagQuizGame difficulty={diff} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
+      {({ onComplete: sc, reportScore, reportRound, difficulty: diff, playClick, playSuccess, playFail, playPop, countingDown }) => (
+        <FlagQuizGame
+          countingDown={countingDown}
+          difficulty={diff}
+          onComplete={sc}
+          reportScore={reportScore}
+          reportRound={reportRound}
+          playClick={playClick}
+          playSuccess={playSuccess}
+          playFail={playFail}
+          playPop={playPop}
+        />
       )}
     </GameShell>
   );

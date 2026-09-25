@@ -1,6 +1,7 @@
 // English (default)
 export default {
   // ─── Shell UI ───
+  quiz: { combo: 'Combo', pts: 'pts', removeTwo: 'Remove 2', next: 'Next', finish: 'Finish', howItWorks: 'There is no timer — take your time. If you are stuck, "Remove 2" takes away two wrong answers (twice per game). Answer correctly in a row for a combo: 5 doubles your points, 10 triples them.' },
   shell: {
     back: 'Back',
     howToPlay: 'How To Play',
@@ -288,8 +289,10 @@ export default {
       title: 'Flag Quiz',
       label: 'FLAG QUIZ',
       description: 'Identify countries by their flags.',
-      instructions: 'Look at the flag and choose the correct country from the options below.',
-      wrongAnswer: '✗ That was',
+      instructions: 'Look at the flag and choose the country it belongs to.',
+      prompt: 'Which country does this flag belong to?',
+      reveal: 'This is the flag of {country}.',
+      flagAlt: 'A country flag',
     },
     'colour-memory': {
       title: 'Color Memory',
@@ -339,8 +342,9 @@ export default {
       title: 'Capital City Quiz',
       label: 'CAPITAL QUIZ',
       description: 'Name the capital city of each country.',
-      instructions: 'You will be shown a country. Choose the correct capital city from the options.',
-      wrongAnswer: "✗ It's",
+      instructions: 'You will be shown a country. Choose its capital city.',
+      prompt: 'What is the capital of {country}?',
+      reveal: '{capital} is the capital of {country}.',
     },
     'number-sort': {
       title: 'Number Sort',
@@ -488,15 +492,17 @@ export default {
       title: 'Currency Quiz',
       label: 'CURRENCY QUIZ',
       description: 'Name the currency used in each country.',
-      instructions: 'You will be shown a country. Choose the correct currency from the options.',
-      wrongAnswer: "✗ It's the",
+      instructions: 'You will be shown a country. Choose the money it uses.',
+      prompt: 'Which currency is used in {country}?',
+      reveal: '{country} uses the {currency} ({symbol}).',
     },
     'landmark-quiz': {
       title: 'Landmark Quiz',
       label: 'LANDMARK QUIZ',
       description: 'Identify which country each famous landmark is in.',
-      instructions: 'You will see a famous landmark. Choose which country it is located in.',
-      wrongAnswer: "✗ It's in",
+      instructions: 'You will see a famous landmark. Choose the country it is in.',
+      prompt: 'Which country is {landmark} in?',
+      reveal: '{landmark} is in {country}.',
     },
     'snake-lite': {
       title: 'Snake',
