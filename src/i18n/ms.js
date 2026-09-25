@@ -20,6 +20,7 @@ export default {
     score: 'Skor',
     goBack: 'Kembali',
     backToGames: 'Kembali ke Permainan',
+    go: 'Mula!',
   },
   app: {
     categories: {

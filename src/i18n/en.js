@@ -21,6 +21,7 @@ export default {
     score: 'Score',
     goBack: 'Go back',
     backToGames: 'Back to Games',
+    go: 'Go!',
   },
 
   // ─── App / Home ───

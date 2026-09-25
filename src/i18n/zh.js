@@ -20,6 +20,7 @@ export default {
     score: '得分',
     goBack: '返回',
     backToGames: '返回游戏列表',
+    go: '开始！',
   },
   app: {
     categories: {

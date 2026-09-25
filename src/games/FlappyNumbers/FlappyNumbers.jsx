@@ -131,10 +131,12 @@ function nextColor(cur) {
    Inner game component
    ══════════════════════════════════════════════════════════════ */
 function FlappyNumbersGame({
-  difficulty, onComplete, reportScore,
+  countingDown = false, difficulty, onComplete, reportScore,
   playClick, playSuccess, playFail,
 }) {
   const t = useTranslation();
+  const countingDownRef = useRef(countingDown);
+  countingDownRef.current = countingDown;
   const cfg = DIFF_CFG[difficulty] || DIFF_CFG.easy;
   const gRef = useRef(null);
   const rafRef = useRef(0);
@@ -333,6 +335,7 @@ function FlappyNumbersGame({
   /* ── Input ── */
   useEffect(() => {
     const onK = (e) => {
+      if (countingDownRef.current) return;
       if (e.code === 'Space' || e.key === 'ArrowUp' || e.key === 'w') {
         e.preventDefault();
         flap();
@@ -466,6 +469,7 @@ function FlappyNumbersGame({
 }
 
 FlappyNumbersGame.propTypes = {
+  countingDown: PropTypes.bool,
   difficulty: PropTypes.string.isRequired,
   onComplete: PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
@@ -487,6 +491,7 @@ export function FlappyNumbers({
   });
   return (
     <GameShell
+      startCountdown
       gameId="flappy-numbers"
       title={t.games['flappy-numbers'].title}
       instructions={
@@ -503,8 +508,9 @@ export function FlappyNumbers({
       onToggleMusic={onToggleMusic}
     >
       {({ difficulty: d, onComplete: oc, reportScore,
-          playClick, playSuccess, playFail }) => (
+          playClick, playSuccess, playFail, countingDown }) => (
         <FlappyNumbersGame
+          countingDown={countingDown}
           difficulty={d} onComplete={oc} reportScore={reportScore}
           playClick={playClick}
           playSuccess={playSuccess} playFail={playFail}

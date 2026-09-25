@@ -30,6 +30,7 @@ export function GameShell({
   timeLimits = null,
   hideDifficulty = false,
   flushTop = false,
+  startCountdown = false,
   children,
   onGameComplete,
   onBack,
@@ -45,6 +46,9 @@ export function GameShell({
   const [round, setRound] = useState({ current: 0, total: 0 });
   const [gameKey, setGameKey] = useState(0); // bump to force full child remount on Play Again
   const [showHowToPlay, setShowHowToPlay] = useState(false);
+  // 3 → 2 → 1 → 0 ("Go!") before a fast game starts; null when not counting.
+  const [countdown, setCountdown] = useState(null);
+  const countdownTimerRef = useRef(null);
   const startTimeRef = useRef(null);
   const animTimerRef = useRef(null);
   const { playClick, playSuccess, playFail, playComplete, playPop, playReveal, playBoing, playTick } = useSoundFx();
@@ -57,7 +61,7 @@ export function GameShell({
 
   const { secondsLeft } = useCountdown({
     seconds: effectiveTimeLimit,
-    active: phase === 'playing' && !animating,
+    active: phase === 'playing' && !animating && countdown === null,
     resetKey: gameKey,
     onExpire: () => {
       if (phase === 'playing') {
@@ -67,7 +71,30 @@ export function GameShell({
   });
 
   // Clear animation lock timer on unmount
-  useEffect(() => () => clearTimeout(animTimerRef.current), []);
+  useEffect(() => () => {
+    clearTimeout(animTimerRef.current);
+    clearTimeout(countdownTimerRef.current);
+  }, []);
+
+  // Step the pre-game countdown once a second. The game isn't mounted (and
+  // the clock doesn't run) until it finishes.
+  useEffect(() => {
+    if (countdown === null) return;
+    countdownTimerRef.current = setTimeout(() => {
+      if (countdown > 0) {
+        setCountdown(countdown - 1);
+      } else {
+        // The board's entrance animations already played behind the
+        // overlay, so there's no input lock to wait out.
+        setCountdown(null);
+        startTimeRef.current = Date.now();
+      }
+    }, countdown > 0 ? 1000 : 600);
+    // Tick on 3-2-1, success chime on Go.
+    if (countdown > 0) playTick(); else playSuccess();
+    return () => clearTimeout(countdownTimerRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countdown]);
 
   // Countdown tick for the last 5 seconds
   useEffect(() => {
@@ -82,8 +109,12 @@ export function GameShell({
     setResult(null);
     setLiveScore(0);
     setRound({ current: 0, total: 0 });
-    setAnimating(true);
     setPhase('playing');
+    if (startCountdown) {
+      setCountdown(3);
+      return;
+    }
+    setAnimating(true);
     animTimerRef.current = setTimeout(() => setAnimating(false), ANIM_LOCK_MS);
   }
 
@@ -97,6 +128,8 @@ export function GameShell({
   }
 
   function handlePlayAgain() {
+    clearTimeout(countdownTimerRef.current);
+    setCountdown(null);
     setGameKey(k => k + 1); // force child remount so refs/state are fully fresh
     setPhase('idle');
     setResult(null);
@@ -256,7 +289,18 @@ export function GameShell({
               </div>
             </div>
           )}
-          <div className={`${styles.gameBody} ${flushTop ? styles.gameBodyFlush : ''} ${animating ? styles.gameBodyLocked : ''}`}>
+          <div className={styles.gameStage}>
+          {countdown !== null && (
+            <div className={styles.countdownScreen} role="status" aria-live="assertive">
+              <span className={styles.countdownReady}>{t.common.getReady}</span>
+              <span key={countdown} className={`${styles.countdownNum} ${countdown === 0 ? styles.countdownGo : ''}`}>
+                {countdown > 0 ? countdown : t.shell.go}
+              </span>
+            </div>
+          )}
+          {/* The game is mounted under the countdown so the player sees the
+              real board; it holds still until countingDown turns false. */}
+          <div inert={countdown !== null ? '' : undefined} className={`${styles.gameBody} ${flushTop ? styles.gameBodyFlush : ''} ${animating ? styles.gameBodyLocked : ''}`}>
             <div key={gameKey}>
               {children({
                 difficulty: localDifficulty,
@@ -270,8 +314,10 @@ export function GameShell({
                 playPop,
                 playReveal,
                 playBoing,
+                countingDown: countdown !== null,
               })}
             </div>
+          </div>
           </div>
         </>
       )}
@@ -325,6 +371,7 @@ GameShell.propTypes = {
   children: PropTypes.func.isRequired,
   hideDifficulty: PropTypes.bool,
   flushTop: PropTypes.bool,
+  startCountdown: PropTypes.bool,
   onGameComplete: PropTypes.func,
   onBack: PropTypes.func,
 };
