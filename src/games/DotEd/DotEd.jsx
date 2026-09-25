@@ -4,236 +4,55 @@ import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './DotEd.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
+import {
+  LEVELS, cloneGrid, findPos, isSolved, findPath, transfer, isSolvable, findHint, starsFor,
+} from './logic';
 
-/* ──────────────────────────────────────────────────────────
-   Grid-based level data (visual layout only).
-   Any source can connect to any target — no adjacency needed.
-   A single swipe from source → target gives 1 connection.
-   Win when all sources have 0 capacity AND all targets have 0 need.
-────────────────────────────────────────────────────────── */
-const S = (id, capacity) => ({ type: 'source', id, capacity });
-const T = (id, need)     => ({ type: 'target', id, need });
-const _ = null;
+const TIME_LIMITS = { easy: null, medium: null, hard: null };
+const STEP_MS = 120;
 
-/* ── Levels matching screenshots ─────────────────────── */
-const LEVELS = {
-  easy: [
-    // Level 1 — tutorial (screenshot 4): S(2) T(2)
-    { grid: [[ S('s1',2), T('t1',2) ]] },
-
-    // Level 2 — L-shape (screenshot 1): s1(1) s2(3) / _ s3(2) t1(6)
-    { grid: [
-      [ S('s1',1), S('s2',3), _          ],
-      [ _,         S('s3',2), T('t1',6) ],
-    ]},
-
-    // Level 3 — full 3×3 (screenshot 2): sources=18, targets=18
-    { grid: [
-      [ T('t1',10), S('s1',4), S('s2',3) ],
-      [ S('s3',3),  S('s4',1), S('s5',2) ],
-      [ S('s6',2),  S('s7',3), T('t2',8) ],
-    ]},
-
-    // Level 4 — C shape, 2 targets — sources=10, targets=10
-    { grid: [
-      [ S('s1',1), S('s2',2), T('t1',5) ],
-      [ S('s3',2), _,         _          ],
-      [ S('s4',1), _,         _          ],
-      [ S('s5',1), _,         _          ],
-      [ S('s6',2), S('s7',1), T('t2',5) ],
-    ]},
-
-    // Level 5 — T-shape: sources=6, targets=6
-    { grid: [
-      [ _,         _,         T('t1',1), _          ],
-      [ S('s1',1), S('s2',2), S('s3',3), T('t2',5) ],
-    ]},
-
-    // Level 6 — funnel: sources=11, targets=11
-    { grid: [
-      [ T('t1',7), S('s1',1), S('s2',2), S('s3',1) ],
-      [ _,         S('s4',2), S('s5',2), S('s6',3) ],
-      [ _,         _,         T('t2',4), _          ],
-    ]},
-  ],
-  medium: [
-    // 1: tutorial
-    { grid: [[ S('s1',2), T('t1',2) ]] },
-
-    // 2: L-shape
-    { grid: [
-      [ S('s1',1), S('s2',3), _          ],
-      [ _,         S('s3',2), T('t1',6) ],
-    ]},
-
-    // 3: 3×3 — sources=18, targets=18
-    { grid: [
-      [ T('t1',10), S('s1',4), S('s2',3) ],
-      [ S('s3',3),  S('s4',1), S('s5',2) ],
-      [ S('s6',2),  S('s7',3), T('t2',8) ],
-    ]},
-
-    // 4: C-shape wider, 2 targets — sources=14, targets=14
-    { grid: [
-      [ S('s1',3), S('s2',2), S('s3',2), T('t1',8) ],
-      [ S('s4',1), _,         _,         _          ],
-      [ S('s5',2), _,         _,         _          ],
-      [ S('s6',2), S('s7',1), S('s8',1), T('t2',6) ],
-    ]},
-
-    // 5: cross shape — sources=8, targets=8
-    { grid: [
-      [ _,         S('s1',3), _          ],
-      [ S('s2',2), T('t1',8), S('s3',2) ],
-      [ _,         S('s4',1), _          ],
-    ]},
-
-    // 6: two targets — sources=8, targets=8
-    { grid: [
-      [ T('t1',3), S('s1',2), S('s2',1) ],
-      [ S('s3',1), S('s4',1), S('s5',1) ],
-      [ S('s6',1), S('s7',1), T('t2',5) ],
-    ]},
-  ],
-  hard: [
-    // 1: L-shape
-    { grid: [
-      [ S('s1',1), S('s2',3), _          ],
-      [ _,         S('s3',2), T('t1',6) ],
-    ]},
-
-    // 2: 3×3 — sources=18, targets=18
-    { grid: [
-      [ T('t1',10), S('s1',4), S('s2',3) ],
-      [ S('s3',3),  S('s4',1), S('s5',2) ],
-      [ S('s6',2),  S('s7',3), T('t2',8) ],
-    ]},
-
-    // 3: C-shape tall, 2 targets — sources=16, targets=16
-    { grid: [
-      [ S('s1',2), S('s2',3), T('t1',7),  _          ],
-      [ S('s3',2), _,         _,          _          ],
-      [ S('s4',1), _,         _,          _          ],
-      [ S('s5',3), _,         _,          _          ],
-      [ S('s6',2), S('s7',2), S('s8',1), T('t2',9) ],
-    ]},
-
-    // 4: cross — sources=8, targets=8
-    { grid: [
-      [ _,         S('s1',3), _          ],
-      [ S('s2',2), T('t1',8), S('s3',2) ],
-      [ _,         S('s4',1), _          ],
-    ]},
-
-    // 5: two-target 3×3 — sources=9, targets=9
-    { grid: [
-      [ T('t1',4), S('s1',2), S('s2',1) ],
-      [ S('s3',1), S('s4',2), S('s5',1) ],
-      [ S('s6',1), S('s7',1), T('t2',5) ],
-    ]},
-
-    // 6: big L
-    { grid: [
-      [ S('s1',3), S('s2',2), S('s3',2), _          ],
-      [ S('s4',1), _,         _,         _          ],
-      [ T('t1',9), S('s5',1), _,         _          ],
-    ]},
-
-    // 7: T-shape with 2 targets
-    { grid: [
-      [ S('s1',2), T('t1',5), S('s2',3) ],
-      [ _,         S('s3',2), _          ],
-      [ _,         T('t2',2), _          ],
-    ]},
-
-    // 8: wide
-    { grid: [
-      [ S('s1',2), S('s2',2), T('t1',5), S('s3',1) ],
-      [ _,         _,         S('s4',2), _          ],
-      [ _,         T('t2',4), S('s5',1), S('s6',1) ],
-    ]},
-  ],
-};
-
-const TIME_LIMITS = { easy: null, medium: 180, hard: 120 };
-
-function deepCloneGrid(grid) {
-  return grid.map(row => row.map(cell => cell ? { ...cell } : null));
-}
-
-/* Compute which borders to round for merged white blobs. */
-function computeBorderClasses(grid) {
-  const rows = grid.length;
-  const cols = grid[0]?.length ?? 0;
+/* Which corners to round so neighbouring cells merge into one white blob. */
+function computeBorderRadii(grid) {
   const R = 20;
-  const result = [];
-  for (let r = 0; r < rows; r++) {
-    const rowResult = [];
-    for (let c = 0; c < cols; c++) {
-      if (!grid[r][c]) { rowResult.push(null); continue; }
-      const top    = r > 0      && !!grid[r-1]?.[c];
-      const bottom = r < rows-1 && !!grid[r+1]?.[c];
-      const left   = c > 0      && !!grid[r][c-1];
-      const right  = c < cols-1 && !!grid[r][c+1];
-      const tl = (!top && !left)   ? R : 0;
-      const tr = (!top && !right)  ? R : 0;
-      const bl = (!bottom && !left)  ? R : 0;
-      const br = (!bottom && !right) ? R : 0;
-      rowResult.push(`${tl}px ${tr}px ${br}px ${bl}px`);
-    }
-    result.push(rowResult);
-  }
-  return result;
+  return grid.map((row, r) => row.map((cell, c) => {
+    if (!cell) return null;
+    const top = !!grid[r - 1]?.[c], bottom = !!grid[r + 1]?.[c];
+    const left = !!row[c - 1], right = !!row[c + 1];
+    const tl = (!top && !left) ? R : 0, tr = (!top && !right) ? R : 0;
+    const bl = (!bottom && !left) ? R : 0, br = (!bottom && !right) ? R : 0;
+    return `${tl}px ${tr}px ${br}px ${bl}px`;
+  }));
 }
 
-/* ──────────────────────────────────────────────────────────
-   Flying circle — animates a red circle step by step along waypoints
-────────────────────────────────────────────────────────── */
+/* A red circle that hops along the line's cells, then disappears. */
 function FlyingCircle({ waypoints, capacity, delay, duration }) {
   const [pos, setPos] = useState(null);
-  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (!waypoints || waypoints.length < 2) return;
-    const steps = waypoints.length - 1;
-    const stepMs = duration / steps;
+    if (!waypoints || waypoints.length < 2) return undefined;
+    const stepMs = duration / (waypoints.length - 1);
     let step = 0;
     let timer;
-
-    const startTimer = setTimeout(() => {
+    const start = setTimeout(() => {
       setPos(waypoints[0]);
-      setVisible(true);
       timer = setInterval(() => {
         step++;
-        if (step >= waypoints.length) {
-          clearInterval(timer);
-          setVisible(false);
-          return;
-        }
+        if (step >= waypoints.length) { clearInterval(timer); setPos(null); return; }
         setPos(waypoints[step]);
       }, stepMs);
     }, delay);
-
-    return () => {
-      clearTimeout(startTimer);
-      if (timer) clearInterval(timer);
-    };
+    return () => { clearTimeout(start); if (timer) clearInterval(timer); };
   }, [waypoints, delay, duration]);
 
-  if (!visible || !pos) return null;
-
+  if (!pos) return null;
+  const stepMs = duration / (waypoints.length - 1);
   return (
     <div
       className={styles.flyingCircle}
-      style={{
-        left: pos.x,
-        top: pos.y,
-        transition: `left ${duration / (waypoints.length - 1)}ms linear, top ${duration / (waypoints.length - 1)}ms linear`,
-      }}
+      style={{ left: pos.x, top: pos.y, transition: `left ${stepMs}ms linear, top ${stepMs}ms linear` }}
+      aria-hidden="true"
     >
-      {Array.from({ length: capacity }).map((__, i) => (
-        <span key={i} className={styles.flyingCircleDot} />
-      ))}
+      {Array.from({ length: capacity }).map((__, i) => <span key={i} className={styles.flyingCircleDot} />)}
     </div>
   );
 }
@@ -245,468 +64,414 @@ FlyingCircle.propTypes = {
   duration: PropTypes.number.isRequired,
 };
 
-/* ──────────────────────────────────────────────────────────
-   Inner game component
-────────────────────────────────────────────────────────── */
-function DotEdGame({ difficulty, onComplete, reportScore, secondsLeft, playPop, playSuccess, playClick, playFail }) {
+function DotEdGame({ difficulty, onComplete, reportScore, reportRound, playPop, playSuccess, playClick, playFail }) {
   const t = useTranslation();
+  const tn = t.games['dot-ed'];
   const levels = LEVELS[difficulty] ?? LEVELS.easy;
-  const totalLevels = levels.length;
+  const total = levels.length;
+  const maxScore = total * 3;
 
   const [levelIdx, setLevelIdx]       = useState(0);
-  const [grid, setGrid]               = useState(() => deepCloneGrid(levels[0].grid));
-  const [connections, setConnections] = useState([]);
+  const [grid, setGrid]               = useState(() => cloneGrid(levels[0].grid));
+  const [history, setHistory]         = useState([]); // [{ grid, lines }] snapshots before each move
+  const [lines, setLines]             = useState([]); // [{ path }]
   const [won, setWon]                 = useState(false);
   const [score, setScore]             = useState(0);
-  // drag: { collected: [sourceId,...], path: [{r,c},...], lastR, lastC, x, y }
+  const [helps, setHelps]             = useState(0);
   const [drag, setDrag]               = useState(null);
-  const [flyingDots, setFlyingDots]   = useState([]);
+  const [selected, setSelected]       = useState(null);
+  const [hint, setHint]               = useState(null); // { from, to } | { stuck: true }
+  const [message, setMessage]         = useState(null); // { text, tone }
+  const [banner, setBanner]           = useState(null);
+  const [flying, setFlying]           = useState([]);
+  const [, forceLayout]               = useState(0);
 
-  const boardRef = useRef(null);
-  const cellRefs = useRef({});
+  const boardRef  = useRef(null);
+  const cellRefs  = useRef({});
+  const dragRef   = useRef(null);
+  dragRef.current = drag;
+  const scoreRef  = useRef(0);
+  const helpsRef  = useRef(0);
+  const doneRef   = useRef(false);
+  const idRef     = useRef(0);
+  const hintIdRef = useRef(0);
+  const timersRef = useRef(new Set());
 
+  const later = useCallback((fn, ms) => {
+    const h = setTimeout(() => { timersRef.current.delete(h); fn(); }, ms);
+    timersRef.current.add(h);
+    return h;
+  }, []);
   useEffect(() => {
-    if (secondsLeft === 0) onComplete({ finalScore: score, maxScore: totalLevels, completed: false });
-  }, [secondsLeft, score, totalLevels, onComplete]);
-
-  const loadLevel = useCallback((idx) => {
-    if (idx >= totalLevels) {
-      onComplete({ finalScore: totalLevels, maxScore: totalLevels, completed: true });
-      return;
-    }
-    setLevelIdx(idx);
-    setGrid(deepCloneGrid(levels[idx].grid));
-    setConnections([]);
-    setFlyingDots([]);
-    setWon(false);
-  }, [levels, totalLevels, onComplete]);
-
-  const checkWin = useCallback((g) => {
-    for (const row of g) {
-      for (const cell of row) {
-        if (!cell) continue;
-        if (cell.type === 'source' && cell.capacity > 0) return false;
-        if (cell.type === 'target' && cell.need > 0) return false;
-      }
-    }
-    return true;
+    const timers = timersRef.current;
+    return () => { timers.forEach(clearTimeout); timers.clear(); };
   }, []);
 
-  const getCentre = useCallback((id) => {
-    const el = cellRefs.current[id];
+  // Lines are drawn from measured cell centres, so redraw after layout/resize.
+  useEffect(() => {
+    const onResize = () => forceLayout(n => n + 1);
+    window.addEventListener('resize', onResize);
+    const raf = requestAnimationFrame(onResize);
+    return () => { window.removeEventListener('resize', onResize); cancelAnimationFrame(raf); };
+  }, [levelIdx]);
+
+  const cbRef = useRef({});
+  cbRef.current = { reportRound };
+  useEffect(() => { cbRef.current.reportRound?.(levelIdx + 1, total); }, [levelIdx, total]);
+
+  const say = useCallback((text, tone = 'info') => setMessage({ text, tone }), []);
+
+  const centre = useCallback((p) => {
+    const cell = grid[p.r]?.[p.c];
+    const el = cell && cellRefs.current[cell.id];
     const board = boardRef.current;
     if (!el || !board) return null;
     const er = el.getBoundingClientRect();
     const br = board.getBoundingClientRect();
     return { x: er.left - br.left + er.width / 2, y: er.top - br.top + er.height / 2 };
+  }, [grid]);
+
+  const segments = useCallback((path) => {
+    const out = [];
+    for (let i = 0; i < path.length - 1; i++) {
+      const a = centre(path[i]), b = centre(path[i + 1]);
+      if (a && b) out.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y });
+    }
+    return out;
+  }, [centre]);
+
+  const finish = useCallback(() => {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    onComplete({ finalScore: scoreRef.current, maxScore, completed: true });
+  }, [onComplete, maxScore]);
+
+  const goToLevel = useCallback((idx) => {
+    if (idx >= total) { finish(); return; }
+    setLevelIdx(idx);
+    setGrid(cloneGrid(levels[idx].grid));
+    setHistory([]);
+    setLines([]);
+    setFlying([]);
+    setSelected(null);
+    setHint(null);
+    setMessage(null);
+    setWon(false);
+    helpsRef.current = 0;
+    setHelps(0);
+  }, [levels, total, finish]);
+
+  const addHelp = useCallback(() => {
+    helpsRef.current += 1;
+    setHelps(helpsRef.current);
   }, []);
 
-  /* Build orthogonal line segments from stored paths */
-  const connLines = useMemo(() => {
-    const lines = [];
-    for (const conn of connections) {
-      if (!conn.path || conn.path.length < 2) {
-        // Fallback: direct line (old connections without path)
-        const from = getCentre(conn.from);
-        const to = getCentre(conn.to);
-        if (from && to) lines.push({ x1: from.x, y1: from.y, x2: to.x, y2: to.y });
-        continue;
-      }
-      for (let i = 0; i < conn.path.length - 1; i++) {
-        const cellA = grid[conn.path[i].r]?.[conn.path[i].c];
-        const cellB = grid[conn.path[i + 1].r]?.[conn.path[i + 1].c];
-        if (!cellA || !cellB) continue;
-        const from = getCentre(cellA.id);
-        const to = getCentre(cellB.id);
-        if (from && to) lines.push({ x1: from.x, y1: from.y, x2: to.x, y2: to.y });
-      }
-    }
-    return lines;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connections, grid]);
+  /* Animate red circles hopping along the path into the target. */
+  const animate = useCallback((path, moved) => {
+    const waypoints = path.map(centre);
+    if (waypoints.some(w => !w) || waypoints.length < 2) return;
+    const items = moved
+      .map(m => {
+        const p = findPos(grid, m.from);
+        const idx = path.findIndex(q => q.r === p.r && q.c === p.c);
+        return { ...m, idx };
+      })
+      .filter(m => m.idx >= 0)
+      .sort((a, b) => b.idx - a.idx);
+    let delay = 0;
+    const circles = items.map(m => {
+      const wp = waypoints.slice(m.idx);
+      const duration = Math.max(1, wp.length - 1) * STEP_MS;
+      const c = { id: `${m.from}-${++idRef.current}`, waypoints: wp, capacity: m.amount, delay, duration };
+      delay += duration + 80;
+      return c;
+    });
+    setFlying(circles);
+    later(() => setFlying([]), delay + 200);
+  }, [centre, grid, later]);
 
-  /* Find grid position {r,c} under screen coords */
-  const findGridPos = useCallback((screenX, screenY) => {
+  const makeMove = useCallback((sourceIds, targetId, path) => {
+    if (won || doneRef.current) return;
+    const next = cloneGrid(grid);
+    const moved = transfer(next, sourceIds, targetId);
+    if (moved.length === 0) return;
+    animate(path, moved);
+    setHistory(h => [...h, { grid, lines }]);
+    setLines(ls => [...ls, { path }]);
+    setGrid(next);
+    setSelected(null);
+    setHint(null);
+    playPop();
+
+    if (isSolved(next)) {
+      const stars = starsFor(helpsRef.current);
+      scoreRef.current += stars;
+      setScore(scoreRef.current);
+      reportScore(scoreRef.current);
+      setWon(true);
+      setMessage(null);
+      const id = ++idRef.current;
+      setBanner({ id, text: stars === 3 ? tn.perfect : tn.solved, stars });
+      later(() => playSuccess(), 250);
+      later(() => { setBanner(null); goToLevel(levelIdx + 1); }, 1800);
+    } else if (!isSolvable(next)) {
+      playFail();
+      say(tn.stuck, 'warn');
+    } else {
+      setMessage(null);
+    }
+  }, [won, grid, lines, animate, playPop, playSuccess, playFail, reportScore, tn, later, goToLevel, levelIdx, say]);
+
+  /* ── Drag ─────────────────────────────────────────── */
+  const pointFrom = e => (e.touches?.[0] ?? e.changedTouches?.[0] ?? e);
+
+  const gridPosAt = useCallback((x, y) => {
     const board = boardRef.current;
     if (!board) return null;
     const br = board.getBoundingClientRect();
-    const cols = grid[0]?.length ?? 0;
-    const rows = grid.length;
-    const cellW = br.width / cols;
-    const cellH = br.height / rows;
-    const c = Math.floor((screenX - br.left) / cellW);
-    const r = Math.floor((screenY - br.top) / cellH);
+    const rows = grid.length, cols = grid[0]?.length ?? 0;
+    const c = Math.floor((x - br.left) / (br.width / cols));
+    const r = Math.floor((y - br.top) / (br.height / rows));
     if (r < 0 || r >= rows || c < 0 || c >= cols) return null;
     return { r, c };
   }, [grid]);
 
-  const findSourceCell = useCallback((id) => {
-    for (const row of grid) {
-      for (const cell of row) {
-        if (cell && cell.id === id) return cell;
-      }
-    }
-    return null;
-  }, [grid]);
-
-  /* Find cell position by id */
-  const findPos = useCallback((id) => {
-    for (let r = 0; r < grid.length; r++) {
-      for (let c = 0; c < grid[r].length; c++) {
-        if (grid[r][c] && grid[r][c].id === id) return { r, c };
-      }
-    }
-    return null;
-  }, [grid]);
-
-  const handlePointerDown = useCallback((e, sourceId) => {
-    const src = findSourceCell(sourceId);
-    if (!src || src.capacity <= 0) return;
+  const onSourceDown = useCallback((e, id) => {
+    if (won) return;
+    const pos = findPos(grid, id);
+    const cell = pos && grid[pos.r][pos.c];
+    if (!cell || cell.capacity <= 0) return;
     e.preventDefault();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    const pos = findPos(sourceId);
-    if (!pos) return;
-    setDrag({ collected: [sourceId], path: [pos], lastR: pos.r, lastC: pos.c, x: clientX, y: clientY, targetId: null });
-  }, [findSourceCell, findPos]);
+    setDrag({ collected: [id], path: [pos], targetId: null, moved: false });
+  }, [grid, won]);
 
-  const handlePointerMove = useCallback((e) => {
-    if (!drag) return;
+  const onMove = useCallback((e) => {
+    if (!dragRef.current) return;
     e.preventDefault();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-    const gp = findGridPos(clientX, clientY);
-    if (!gp) { setDrag(d => d ? { ...d, x: clientX, y: clientY, targetId: null } : null); return; }
-
+    const pt = pointFrom(e);
+    const gp = gridPosAt(pt.clientX, pt.clientY);
+    if (!gp) return;
     setDrag(d => {
-      if (!d) return null;
-      const { r, c } = gp;
-      // Only accept orthogonal adjacency (no diagonal)
-      const dr = Math.abs(r - d.lastR);
-      const dc = Math.abs(c - d.lastC);
-      const isAdjacent = (dr + dc === 1);
-      const isSameCell = (r === d.lastR && c === d.lastC);
-
-      if (isSameCell) return { ...d, x: clientX, y: clientY };
-
-      if (!isAdjacent) return { ...d, x: clientX, y: clientY };
-
-      const cell = grid[r]?.[c];
-      if (!cell) return { ...d, x: clientX, y: clientY };
-
-      // Moving to a source with capacity: collect it
-      if (cell.type === 'source' && cell.capacity > 0 && !d.collected.includes(cell.id)) {
+      if (!d) return d;
+      const last = d.path[d.path.length - 1];
+      if (gp.r === last.r && gp.c === last.c) return d;
+      // Step back along the line to shorten it.
+      const prev = d.path[d.path.length - 2];
+      if (prev && prev.r === gp.r && prev.c === gp.c) {
+        const leaving = grid[last.r][last.c];
         return {
-          ...d, x: clientX, y: clientY,
-          collected: [...d.collected, cell.id],
-          path: [...d.path, { r, c }],
-          lastR: r, lastC: c, targetId: null,
+          ...d, moved: true,
+          path: d.path.slice(0, -1),
+          collected: d.collected.filter(id => id !== leaving.id || id === d.collected[0]),
+          targetId: grid[gp.r][gp.c]?.type === 'target' ? grid[gp.r][gp.c].id : null,
         };
       }
-
-      // Moving to a drained source (capacity=0): pass through without collecting
-      if (cell.type === 'source' && (cell.capacity === 0 || d.collected.includes(cell.id))) {
+      if (Math.abs(gp.r - last.r) + Math.abs(gp.c - last.c) !== 1) return d;
+      const cell = grid[gp.r]?.[gp.c];
+      if (!cell) return d;
+      if (d.path.some(p => p.r === gp.r && p.c === gp.c)) return d;
+      if (cell.type === 'source') {
+        const collect = cell.capacity > 0 && !d.collected.includes(cell.id);
         return {
-          ...d, x: clientX, y: clientY,
-          path: [...d.path, { r, c }],
-          lastR: r, lastC: c, targetId: null,
+          ...d, moved: true, targetId: null,
+          path: [...d.path, gp],
+          collected: collect ? [...d.collected, cell.id] : d.collected,
         };
       }
-
-      // Moving to a target: mark as hover target
-      if (cell.type === 'target' && cell.need > 0) {
-        return {
-          ...d, x: clientX, y: clientY,
-          path: [...d.path, { r, c }],
-          lastR: r, lastC: c, targetId: cell.id,
-        };
-      }
-
-      return { ...d, x: clientX, y: clientY };
+      if (cell.need > 0) return { ...d, moved: true, targetId: cell.id, path: [...d.path, gp] };
+      return d;
     });
-  }, [drag, findGridPos, grid]);
+  }, [grid, gridPosAt]);
 
-  const handlePointerUp = useCallback(() => {
-    if (!drag) return;
-
-    if (drag.targetId) {
-      const tgtPos = findPos(drag.targetId);
-      if (tgtPos) {
-        const next = deepCloneGrid(grid);
-        const newConns = [...connections];
-        let connected = 0;
-        for (const srcId of drag.collected) {
-          const srcPos = findPos(srcId);
-          if (!srcPos) continue;
-          const src = next[srcPos.r][srcPos.c];
-          const tgt = next[tgtPos.r][tgtPos.c];
-          if (src.capacity <= 0 || tgt.need <= 0) continue;
-          // Drain min(source capacity, target remaining need) — target can't go below 0
-          const transfer = Math.min(src.capacity, tgt.need);
-          src.capacity -= transfer;
-          tgt.need -= transfer;
-          newConns.push({ from: srcId, to: drag.targetId, amount: transfer, path: [...drag.path] });
-          connected += transfer;
-        }
-        if (connected > 0) {
-          // Spawn flying circles that follow the grid path sequentially
-          const board = boardRef.current;
-          if (board) {
-            const br = board.getBoundingClientRect();
-            // Build waypoints from the drag path (cell centres)
-            const waypoints = [];
-            for (const pt of drag.path) {
-              const cell = grid[pt.r]?.[pt.c];
-              if (!cell) continue;
-              const el = cellRefs.current[cell.id];
-              if (!el) continue;
-              const er = el.getBoundingClientRect();
-              waypoints.push({ x: er.left - br.left + er.width / 2, y: er.top - br.top + er.height / 2 });
-            }
-
-            if (waypoints.length >= 2) {
-              const circles = [];
-              // Find the path index for each collected source
-              const srcIndices = [];
-              for (const srcId of drag.collected) {
-                const pos = findPos(srcId);
-                if (!pos) continue;
-                const cap = grid[pos.r][pos.c]?.capacity ?? 0;
-                if (cap <= 0) continue;
-                const pathIdx = drag.path.findIndex(p => p.r === pos.r && p.c === pos.c);
-                if (pathIdx < 0) continue;
-                srcIndices.push({ srcId, pathIdx, capacity: cap });
-              }
-
-              // Sort by pathIdx descending — closest to target animates first
-              srcIndices.sort((a, b) => b.pathIdx - a.pathIdx);
-
-              // Each source travels from its position in the path to the end (target)
-              // Sequentially: each circle starts after the previous finishes
-              const STEP_MS = 120; // ms per grid step
-              let cumulativeDelay = 0;
-              for (const { srcId, pathIdx, capacity } of srcIndices) {
-                // Subpath from this source's position to the target (end of path)
-                const subWaypoints = waypoints.slice(pathIdx);
-                const steps = subWaypoints.length - 1;
-                const duration = steps * STEP_MS;
-                circles.push({
-                  id: `${srcId}-${Date.now()}`,
-                  waypoints: subWaypoints,
-                  capacity,
-                  delay: cumulativeDelay,
-                  duration,
-                });
-                cumulativeDelay += duration + 80; // small gap between circles
-              }
-
-              if (circles.length > 0) {
-                setFlyingDots(circles);
-                const totalTime = cumulativeDelay + 200;
-                setTimeout(() => setFlyingDots([]), totalTime);
-              }
-            }
-          }
-
-          setGrid(next);
-          setConnections(newConns);
-          playPop();
-
-          if (checkWin(next)) {
-            const newScore = score + 1;
-            setScore(newScore);
-            reportScore(newScore);
-            setWon(true);
-            playSuccess();
-            setTimeout(() => loadLevel(levelIdx + 1), 1200);
-          }
-        }
-      }
-    }
+  const onUp = useCallback(() => {
+    const d = dragRef.current;
+    if (!d) return;
     setDrag(null);
-  }, [drag, findPos, grid, connections, checkWin, score, reportScore, levelIdx, loadLevel, playPop, playSuccess]);
+    if (d.targetId) { makeMove(d.collected, d.targetId, d.path); return; }
+    if (!d.moved) {
+      // A plain tap: select this dot, then tap a square.
+      playClick();
+      setSelected(s => (s === d.collected[0] ? null : d.collected[0]));
+      say(tn.tapTarget);
+      return;
+    }
+    say(tn.endOnTarget);
+  }, [makeMove, playClick, say, tn]);
 
+  const dragging = !!drag;
   useEffect(() => {
-    if (!drag) return;
-    const onMove = (e) => handlePointerMove(e);
-    const onUp   = (e) => handlePointerUp(e);
+    if (!dragging) return undefined;
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
     window.addEventListener('touchmove', onMove, { passive: false });
     window.addEventListener('touchend', onUp);
+    window.addEventListener('touchcancel', onUp);
     return () => {
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
       window.removeEventListener('touchmove', onMove);
       window.removeEventListener('touchend', onUp);
+      window.removeEventListener('touchcancel', onUp);
     };
-  }, [drag, handlePointerMove, handlePointerUp]);
+  }, [dragging, onMove, onUp]);
 
-  /* ── Undo (1 connection per undo) ───────────────────── */
+  /* Tap a target after choosing a dot. */
+  const onTargetTap = useCallback((cell) => {
+    if (won) return;
+    if (cell.need === 0) { playFail(); say(tn.full, 'warn'); return; }
+    if (!selected) { say(tn.pickDotFirst); return; }
+    const path = findPath(grid, selected, cell.id);
+    if (!path) { playFail(); say(tn.blocked, 'warn'); return; }
+    makeMove([selected], cell.id, path);
+  }, [won, selected, grid, makeMove, playFail, say, tn]);
+
+  /* ── Help ─────────────────────────────────────────── */
   const undo = useCallback(() => {
-    if (connections.length === 0 || won) return;
+    if (history.length === 0 || won) return;
     playClick();
-    const last = connections[connections.length - 1];
-    const amount = last.amount ?? 1;
-    const next = deepCloneGrid(grid);
-    const srcPos = findPos(last.from);
-    const tgtPos = findPos(last.to);
-    if (srcPos) next[srcPos.r][srcPos.c].capacity += amount;
-    if (tgtPos) next[tgtPos.r][tgtPos.c].need += amount;
-    setGrid(next);
-    setConnections(connections.slice(0, -1));
-  }, [connections, grid, won, playClick, findPos]);
+    const prev = history[history.length - 1];
+    setGrid(prev.grid);
+    setLines(prev.lines);
+    setHistory(history.slice(0, -1));
+    setSelected(null);
+    setHint(null);
+    setMessage(null);
+  }, [history, won, playClick]);
 
-  const restart = useCallback(() => {
+  const reset = useCallback(() => {
+    if (history.length === 0 || won) return;
     playClick();
-    setGrid(deepCloneGrid(levels[levelIdx].grid));
-    setConnections([]);
-    setWon(false);
-  }, [levelIdx, levels, playClick]);
+    setGrid(cloneGrid(levels[levelIdx].grid));
+    setLines([]);
+    setHistory([]);
+    setSelected(null);
+    setHint(null);
+    setMessage(null);
+  }, [history.length, won, levels, levelIdx, playClick]);
 
-  /* ── Tutorial hand ──────────────────────────────────── */
-  const tutorialAnim = levelIdx === 0 && connections.length === 0 && !won;
-  const [handStyle, setHandStyle] = useState({});
-  useEffect(() => {
-    if (!tutorialAnim) return;
-    const update = () => {
-      const srcEl = cellRefs.current['s1'];
-      const tgtEl = cellRefs.current['t1'];
-      const board = boardRef.current;
-      if (!srcEl || !tgtEl || !board) return;
-      const br = board.getBoundingClientRect();
-      const sr = srcEl.getBoundingClientRect();
-      const tr = tgtEl.getBoundingClientRect();
-      const sx = sr.left - br.left + sr.width / 2;
-      const sy = sr.top - br.top + sr.height / 2;
-      const tx = tr.left - br.left + tr.width / 2;
-      const ty = tr.top - br.top + tr.height / 2;
-      setHandStyle({ left: sx, top: sy, '--tx': `${tx - sx}px`, '--ty': `${ty - sy}px` });
-    };
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
-  }, [tutorialAnim]);
+  const showHint = useCallback(() => {
+    if (won) return;
+    playClick();
+    addHelp();
+    const m = findHint(grid);
+    if (!m) { setHint({ stuck: true }); say(tn.hintStuck, 'warn'); return; }
+    setHint(m);
+    setSelected(m.from);
+    say(tn.hintShown);
+    const id = ++idRef.current;
+    hintIdRef.current = id;
+    later(() => { if (hintIdRef.current === id) setHint(null); }, 4000);
+  }, [won, grid, playClick, addHelp, say, tn, later]);
 
-  /* Drag lines: show path between collected cells only (no diagonal trailing line) */
-  const dragLines = useMemo(() => {
-    if (!drag || drag.path.length < 2) return [];
-    const lines = [];
-    for (let i = 0; i < drag.path.length - 1; i++) {
-      const cellA = grid[drag.path[i].r]?.[drag.path[i].c];
-      const cellB = grid[drag.path[i + 1].r]?.[drag.path[i + 1].c];
-      if (!cellA || !cellB) continue;
-      const from = getCentre(cellA.id);
-      const to = getCentre(cellB.id);
-      if (from && to) lines.push({ x1: from.x, y1: from.y, x2: to.x, y2: to.y });
-    }
-    return lines;
-  }, [drag, getCentre, grid]);
-
+  /* ── Render ───────────────────────────────────────── */
   const cols = grid[0]?.length ?? 0;
-  const borderRadii = useMemo(() => computeBorderClasses(grid), [grid]);
+  const radii = useMemo(() => computeBorderRadii(grid), [grid]);
+  const lineSegs = lines.flatMap(l => segments(l.path));
+  const dragSegs = drag ? segments(drag.path) : [];
+  const potentialStars = starsFor(helps);
+  const guide = levelIdx === 0 && history.length === 0 && !selected ? tn.guide : null;
+  const shownMessage = message?.text ?? guide ?? tn.guideShort;
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>{t.common.level} {levelIdx + 1}</span>
+          <span className={styles.infoHeaderSub}>{tn.puzzle} {levelIdx + 1} {tn.of} {total}</span>
+          <span className={styles.starsNow} aria-label={`${potentialStars} ${tn.stars}`}>
+            {[1, 2, 3].map(i => (
+              <span key={i} className={i <= potentialStars ? styles.starOn : styles.starOff} aria-hidden="true">★</span>
+            ))}
+          </span>
         </div>
         <div className={styles.infoBadge}>
-          <span className={styles.infoBadgeNum}>{levelIdx + 1}</span>
-          <span className={styles.infoBadgeSub}>/ {totalLevels}</span>
+          <span key={score} className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>/ {maxScore} ★</span>
         </div>
       </div>
+
       <div className={styles.playArea}>
-      {/* Top controls */}
-      <div className={styles.topBar}>
-        <div className={styles.controls}>
-          <button className={styles.ctrlBtn} onClick={restart} disabled={won} aria-label="Restart" title={t.games['dot-ed'].title}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+        <p className={`${styles.message} ${message?.tone === 'warn' ? styles.messageWarn : ''}`} role="status" aria-live="polite">
+          {shownMessage}
+        </p>
+
+        <div className={styles.boardWrap}>
+          {banner && (
+            <div key={banner.id} className={styles.banner}>
+              {banner.text} {'★'.repeat(banner.stars)}
+            </div>
+          )}
+          <div key={levelIdx} className={styles.board} ref={boardRef} style={{ '--cols': cols }}>
+            <svg className={styles.svgOverlay} width="100%" height="100%" aria-hidden="true">
+              {lineSegs.map((l, i) => <line key={i} className={styles.connectionLine} {...l} />)}
+              {dragSegs.map((l, i) => <line key={`d${i}`} className={styles.dragLine} {...l} />)}
             </svg>
-          </button>
-          <button className={styles.ctrlBtn} onClick={undo} disabled={connections.length === 0 || won} aria-label="Undo" title="Undo">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/>
-            </svg>
-          </button>
-        </div>
-      </div>
 
-      {/* Tutorial hint bar */}
-      {tutorialAnim && (
-        <div className={styles.tutorialBar}>
-          <div className={styles.tutorialPreview}>
-            <div className={styles.tutorialDot} />
-            <div className={styles.tutorialSquare}>2</div>
-          </div>
-          <div className={styles.tutorialHandIcon}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-              <path d="M6.5 1.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5V9h1V2.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5V9h1V4c0-.83.67-1.5 1.5-1.5S18 3.17 18 4v6.5h1V7c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v8c0 4.14-3.36 7.5-7.5 7.5h-1C9.36 22.5 6 19.14 6 15V7.5c0-.17.03-.33.08-.49L6.5 1.5z"/>
-            </svg>
-          </div>
-        </div>
-      )}
+            {grid.map((row, ri) => row.map((cell, ci) => {
+              if (!cell) return <div key={`${ri}-${ci}`} className={styles.emptyCell} />;
+              const style = { borderRadius: radii[ri][ci] };
+              const hinted = hint && (hint.from === cell.id || hint.to === cell.id);
 
-      {won && <div className={styles.wonText}>{t.common.levelComplete}</div>}
-
-      {/* Grid board */}
-      <div className={styles.board} ref={boardRef} style={{ '--cols': cols }}>
-        <svg className={styles.svgOverlay} width="100%" height="100%">
-          {connLines.map((l, i) => (
-            <line key={i} className={styles.connectionLine}
-              x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} />
-          ))}
-          {dragLines.map((l, i) => (
-            <line key={`drag-${i}`} className={styles.dragLine}
-              x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} />
-          ))}
-        </svg>
-
-        {grid.map((row, ri) =>
-          row.map((cell, ci) => {
-            if (!cell) return <div key={`${ri}-${ci}`} className={styles.emptyCell} />;
-
-            const cellStyle = { borderRadius: borderRadii[ri][ci] };
-
-            if (cell.type === 'source') {
-              const isCollected = drag && drag.collected.includes(cell.id);
-              return (
-                <div key={cell.id} className={styles.cellBg} style={cellStyle}>
-                  <div
-                    ref={el => { cellRefs.current[cell.id] = el; }}
-                    className={`${styles.source} ${cell.capacity === 0 ? styles.sourceEmpty : ''} ${isCollected ? styles.sourceCollected : ''}`}
-                    onMouseDown={e => handlePointerDown(e, cell.id)}
-                    onTouchStart={e => handlePointerDown(e, cell.id)}
-                  >
-                    {Array.from({ length: cell.capacity }).map((__, i) => (
-                      <span key={i} className={styles.sourceDot} />
-                    ))}
+              if (cell.type === 'source') {
+                const inDrag = drag?.collected.includes(cell.id);
+                const cls = [
+                  styles.source,
+                  cell.capacity === 0 && styles.sourceEmpty,
+                  (inDrag || selected === cell.id) && styles.sourceCollected,
+                  hinted && styles.hinted,
+                ].filter(Boolean).join(' ');
+                return (
+                  <div key={cell.id} className={styles.cellBg} style={style}>
+                    <div
+                      ref={el => { cellRefs.current[cell.id] = el; }}
+                      className={cls}
+                      role="button"
+                      aria-label={`${tn.dotLabel} ${cell.capacity}`}
+                      aria-pressed={selected === cell.id}
+                      onMouseDown={e => onSourceDown(e, cell.id)}
+                      onTouchStart={e => onSourceDown(e, cell.id)}
+                    >
+                      {Array.from({ length: cell.capacity }).map((__, i) => <span key={i} className={styles.sourceDot} />)}
+                    </div>
                   </div>
+                );
+              }
+
+              const cls = [
+                styles.target,
+                cell.need === 0 && styles.targetComplete,
+                drag?.targetId === cell.id && styles.targetHover,
+                hinted && styles.hinted,
+              ].filter(Boolean).join(' ');
+              return (
+                <div key={cell.id} className={styles.cellBg} style={style}>
+                  <button
+                    type="button"
+                    ref={el => { cellRefs.current[cell.id] = el; }}
+                    className={cls}
+                    aria-label={cell.need === 0 ? tn.full : `${tn.squareLabel} ${cell.need}`}
+                    onClick={() => onTargetTap(cell)}
+                  >
+                    {cell.need === 0 ? '✓' : cell.need}
+                  </button>
                 </div>
               );
-            }
+            }))}
 
-            return (
-              <div key={cell.id} className={styles.cellBg} style={cellStyle}>
-                <div
-                  ref={el => { cellRefs.current[cell.id] = el; }}
-                  className={`${styles.target} ${cell.need === 0 ? styles.targetComplete : ''}`}
-                >
-                  {cell.need}
-                </div>
-              </div>
-            );
-          })
-        )}
+            {flying.map(c => <FlyingCircle key={c.id} {...c} />)}
+          </div>
+        </div>
 
-        {/* Flying circles animation */}
-        {flyingDots.map(circle => (
-          <FlyingCircle key={circle.id} {...circle} />
-        ))}
-      </div>
+        <div className={styles.controls}>
+          <button type="button" className={`${styles.ctrlBtn} ${hint?.stuck ? styles.ctrlPulse : ''}`} onClick={undo} disabled={history.length === 0 || won}>
+            <span aria-hidden="true">↩</span> {tn.undo}
+          </button>
+          <button type="button" className={styles.ctrlBtn} onClick={reset} disabled={history.length === 0 || won}>
+            <span aria-hidden="true">⟲</span> {tn.reset}
+          </button>
+          <button type="button" className={`${styles.ctrlBtn} ${styles.hintBtn}`} onClick={showHint} disabled={won}>
+            <span aria-hidden="true">💡</span> {tn.hint}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -716,17 +481,14 @@ DotEdGame.propTypes = {
   difficulty:  PropTypes.string.isRequired,
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
-  secondsLeft: PropTypes.number,
+  reportRound: PropTypes.func,
   playPop:     PropTypes.func.isRequired,
   playSuccess: PropTypes.func.isRequired,
   playClick:   PropTypes.func.isRequired,
   playFail:    PropTypes.func.isRequired,
 };
 
-/* ──────────────────────────────────────────────────────────
-   Exported wrapper (GameShell integration)
-────────────────────────────────────────────────────────── */
-export function DotEd({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack }) {
+export function DotEd({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const t = useTranslation();
   const { fireComplete } = useGameCallback({ memberId, gameId: 'dot-ed', callbackUrl, onComplete });
 
@@ -740,13 +502,15 @@ export function DotEd({ memberId, difficulty = 'easy', onComplete, callbackUrl, 
       flushTop
       onGameComplete={fireComplete}
       onBack={onBack}
+      musicMuted={musicMuted}
+      onToggleMusic={onToggleMusic}
     >
-      {({ difficulty: diff, onComplete: complete, reportScore, secondsLeft, playClick, playSuccess, playPop, playFail }) => (
+      {({ difficulty: diff, onComplete: complete, reportScore, reportRound, playClick, playSuccess, playPop, playFail }) => (
         <DotEdGame
           difficulty={diff}
           onComplete={complete}
           reportScore={reportScore}
-          secondsLeft={secondsLeft}
+          reportRound={reportRound}
           playClick={playClick}
           playSuccess={playSuccess}
           playPop={playPop}
@@ -763,4 +527,6 @@ DotEd.propTypes = {
   onComplete: PropTypes.func,
   callbackUrl: PropTypes.string,
   onBack: PropTypes.func,
+  musicMuted: PropTypes.bool,
+  onToggleMusic: PropTypes.func,
 };
