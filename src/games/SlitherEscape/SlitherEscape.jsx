@@ -1,285 +1,52 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './SlitherEscape.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
+import { DIFFICULTY_CONFIG, applyMove, solve, generateLevel, starsFor } from './slitherLogic';
 
-/* ══════════════════════════════════════════════════════════════
-   Constants
-   ══════════════════════════════════════════════════════════════ */
-const SNAKE_COLORS = [
-  { id: 'cyan',   body: '#33ccee', head: '#22aacc', glow: 'rgba(51,204,238,0.6)', exit: '#33ccee' },
-  { id: 'green',  body: '#44dd44', head: '#2ebc2e', glow: 'rgba(68,221,68,0.6)',  exit: '#44dd44' },
-  { id: 'yellow', body: '#ddee33', head: '#ccdd22', glow: 'rgba(221,238,51,0.6)', exit: '#ccdd22' },
-  { id: 'orange', body: '#ee8833', head: '#cc6622', glow: 'rgba(238,136,51,0.6)', exit: '#ee8833' },
-  { id: 'purple', body: '#bb55ee', head: '#9933cc', glow: 'rgba(187,85,238,0.6)', exit: '#bb55ee' },
-];
-
-const DIR = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] };
-const DIR_NAMES = ['up', 'down', 'left', 'right'];
-const EXIT_ROT = { up: 0, right: 90, down: 180, left: 270 };
-
-const DIFFICULTY_CONFIG = {
-  easy:   { rounds: 8,  timeLimitSeconds: null },
-  medium: { rounds: 12, timeLimitSeconds: 300 },
-  hard:   { rounds: 16, timeLimitSeconds: 200 },
-};
-const TIME_LIMITS = { easy: null, medium: 300, hard: 200 };
-
-/* ══════════════════════════════════════════════════════════════
-   Helpers
-   ══════════════════════════════════════════════════════════════ */
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-function borderDir(r, c, rows, cols) {
-  // Which edge does this border cell face outward?
-  if (r === 0) return 'up';
-  if (r === rows - 1) return 'down';
-  if (c === 0) return 'left';
-  if (c === cols - 1) return 'right';
-  return 'right';
-}
-
-/* ══════════════════════════════════════════════════════════════
-   Movement — slide until hitting edge or another snake
-   ══════════════════════════════════════════════════════════════ */
-function buildWallSet(snakes, excludeIdx) {
-  const set = new Set();
-  snakes.forEach((s, i) => {
-    if (i !== excludeIdx) s.cells.forEach(([r, c]) => set.add(`${r},${c}`));
-  });
-  return set;
-}
-
-function slideSnake(cells, dir, rows, cols, wallSet) {
-  const [dr, dc] = DIR[dir];
-  let current = cells.map(([r, c]) => [r, c]);
-  let moved = false;
-
-  while (true) {
-    const next = current.map(([r, c]) => [r + dr, c + dc]);
-    const ownKeys = new Set(current.map(([r, c]) => `${r},${c}`));
-    const blocked = next.some(([r, c]) => {
-      if (r < 0 || r >= rows || c < 0 || c >= cols) return true;
-      const key = `${r},${c}`;
-      if (ownKeys.has(key)) return false;
-      return wallSet.has(key);
-    });
-    if (blocked) break;
-    current = next;
-    moved = true;
-  }
-  return moved ? current : null;
-}
-
-/** Snake escapes when ANY of its cells covers the exit cell. */
-function snakeAtExit(snake) {
-  return snake.cells.some(([r, c]) => r === snake.exitCell[0] && c === snake.exitCell[1]);
-}
-
-/* ══════════════════════════════════════════════════════════════
-   Solvability check — lightweight BFS (capped at 2000 states)
-   ══════════════════════════════════════════════════════════════ */
-
-/** Encode snake positions as a compact string key for BFS visited set. */
-function encodeState(snakes) {
-  return snakes.map(s => s.cells.map(([r, c]) => `${r},${c}`).join('|')).join(';');
-}
-
-/** Returns true if the puzzle can be solved from the given scrambled state. */
-function isSolvable(initSnakes, rows, cols) {
-  const MAX_STATES = 8000;
-  const visited = new Set();
-  const queue = [initSnakes.map(s => ({ ...s, cells: s.cells.map(c => [...c]) }))];
-  visited.add(encodeState(initSnakes));
-
-  while (queue.length > 0 && visited.size < MAX_STATES) {
-    const state = queue.shift();
-
-    // Check if solved: every snake at its exit
-    if (state.every(s => snakeAtExit(s))) return true;
-
-    // Try all moves
-    for (let si = 0; si < state.length; si++) {
-      const walls = buildWallSet(state, si);
-      for (const dir of DIR_NAMES) {
-        const result = slideSnake(state[si].cells, dir, rows, cols, walls);
-        if (!result) continue;
-        const nextState = state.map((s, i) =>
-          i === si ? { ...s, cells: result } : { ...s, cells: s.cells.map(c => [...c]) }
-        );
-        const key = encodeState(nextState);
-        if (!visited.has(key)) {
-          visited.add(key);
-          queue.push(nextState);
-        }
-      }
-    }
-  }
-
-  // If BFS exhausted under limit → proven unsolvable; if limit hit → assume solvable (scramble guarantees it)
-  return visited.size >= MAX_STATES;
-}
-
-/* ══════════════════════════════════════════════════════════════
-   Level generation — guaranteed solvable via scramble-from-solved
-   ══════════════════════════════════════════════════════════════ */
-
-/**
- * Build a level on a compact rectangular grid with LONG snakes.
- *  1. All cells are walkable (no internal walls).
- *  2. Each snake is a long straight bar placed at its exit (solved state).
- *  3. Random slides scramble the board — snakes block each other.
- *  4. BFS validates solvability from the scrambled state.
+/*
+ * Mechanic overview
+ * - Each snake is a straight bar with a number. Its exit door on the wall
+ *   shows the same number and colour.
+ * - Tap a snake, then an arrow (or swipe the snake). It slides until it
+ *   hits the wall or another snake. Reaching its own door, it leaves.
+ * - No clock. Hint shows the next move of a shortest solution; Undo and
+ *   Start again are always there, so a puzzle can never dead-end.
+ * - 3 stars per puzzle with no help, 2 with a little, 1 with a lot.
  */
-function generateLevel(numSnakes, roundNum) {
-  // Compact grid — snakes should fill most of the space
-  const rows = 5 + Math.min(3, Math.floor(roundNum / 5));
-  const cols = 6 + Math.min(3, Math.floor(roundNum / 4));
 
-  for (let attempt = 0; attempt < 120; attempt++) {
-    // Collect border cells grouped by edge (avoid corners for cleaner placement)
-    const borders = [];
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        if (r === 0 || r === rows - 1 || c === 0 || c === cols - 1) {
-          borders.push({ r, c, dir: borderDir(r, c, rows, cols) });
-        }
-      }
-    }
+// Deep, high-contrast colours; the number is the real cue.
+const SNAKE_COLORS = [
+  { body: '#1d4ed8', dark: '#1e3a8a' }, // blue
+  { body: '#b91c1c', dark: '#7f1d1d' }, // red
+  { body: '#7e22ce', dark: '#581c87' }, // purple
+  { body: '#0f766e', dark: '#134e4a' }, // teal
+];
+const ARROWS = { up: '▲', down: '▼', left: '◀', right: '▶' };
+const KEY_DIRS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
 
-    const shuffledBorders = shuffle(borders);
-    const snakes = [];
-    const occupiedCells = new Set();
-    let valid = true;
+const clone = (snakes) => snakes.map(s => ({ ...s, cells: s.cells.map(c => [...c]) }));
+const fmt = (str, vars) => Object.entries(vars).reduce((acc, [k, v]) => acc.replaceAll(`{${k}}`, v), str);
 
-    for (let si = 0; si < numSnakes; si++) {
-      let placed = false;
-
-      for (const border of shuffledBorders) {
-        if (occupiedCells.has(`${border.r},${border.c}`)) continue;
-
-        // Determine how far the snake extends inward
-        const inDir = { up: 'down', down: 'up', left: 'right', right: 'left' }[border.dir];
-        const inward = DIR[inDir];
-        const perpDim = (inDir === 'left' || inDir === 'right') ? cols : rows;
-
-        // Long snakes: fill 50-85% of the perpendicular dimension
-        const minLen = Math.max(3, Math.floor(perpDim * 0.5));
-        const maxLen = Math.max(minLen, perpDim - 1);
-        const snakeLen = minLen + Math.floor(Math.random() * (maxLen - minLen + 1));
-
-        const cells = [];
-        let canPlace = true;
-        for (let seg = 0; seg < snakeLen; seg++) {
-          const cr = border.r + inward[0] * seg;
-          const cc = border.c + inward[1] * seg;
-          if (cr < 0 || cr >= rows || cc < 0 || cc >= cols) { canPlace = false; break; }
-          const key = `${cr},${cc}`;
-          if (occupiedCells.has(key)) { canPlace = false; break; }
-          cells.push([cr, cc]);
-        }
-
-        if (!canPlace || cells.length < snakeLen) continue;
-
-        // Reserve cells occupied by this snake
-        cells.forEach(([r, c]) => occupiedCells.add(`${r},${c}`));
-        // Reserve exit and adjacent cells to avoid adjacent exits
-        for (const d of DIR_NAMES) {
-          const [dr, dc] = DIR[d];
-          occupiedCells.add(`${border.r + dr},${border.c + dc}`);
-        }
-
-        snakes.push({
-          colorIdx: si % SNAKE_COLORS.length,
-          cells,
-          exitCell: [border.r, border.c],
-          exitDir: border.dir,
-        });
-        placed = true;
-        break;
-      }
-
-      if (!placed) { valid = false; break; }
-    }
-
-    if (!valid) continue;
-
-    // Scramble: many random moves to push snakes away and into each other's paths
-    const scrambled = snakes.map(s => ({ ...s, cells: s.cells.map(c => [...c]) }));
-    const minScrambleMoves = numSnakes * 8 + roundNum * 3;
-    let totalMoves = 0;
-
-    for (let m = 0; m < 1000 && totalMoves < minScrambleMoves; m++) {
-      const si = Math.floor(Math.random() * numSnakes);
-      const dir = DIR_NAMES[Math.floor(Math.random() * 4)];
-      const walls = buildWallSet(scrambled, si);
-      const result = slideSnake(scrambled[si].cells, dir, rows, cols, walls);
-      if (result) {
-        scrambled[si].cells = result;
-        totalMoves++;
-      }
-    }
-
-    // Verify no snake is still at its exit
-    if (scrambled.some(s => snakeAtExit(s))) continue;
-    if (totalMoves < numSnakes * 4) continue;
-
-    // Verify every snake can make at least one move (no fully locked board)
-    const allMovable = scrambled.every((s, idx) => {
-      const walls = buildWallSet(scrambled, idx);
-      return DIR_NAMES.some(d => slideSnake(s.cells, d, rows, cols, walls) !== null);
-    });
-    if (!allMovable) continue;
-
-    // BFS to verify puzzle is solvable
-    if (!isSolvable(scrambled, rows, cols)) continue;
-
-    return { rows, cols, snakes: scrambled };
-  }
-
-  // Fallback with fewer snakes
-  return generateLevel(Math.max(1, numSnakes - 1), Math.max(0, roundNum - 2));
+function SnakeEyes({ dir }) {
+  const rot = { up: 0, right: 90, down: 180, left: 270 }[dir] ?? 0;
+  return (
+    <svg viewBox="-20 -20 40 40" className={styles.eyes} aria-hidden="true">
+      <g transform={`rotate(${rot})`}>
+        <circle cx="-6" cy="-2" r="6" fill="#fff" stroke="#111" strokeWidth="1" />
+        <circle cx="6" cy="-2" r="6" fill="#fff" stroke="#111" strokeWidth="1" />
+        <circle cx="-6" cy="-4" r="3.2" fill="#111" />
+        <circle cx="6" cy="-4" r="3.2" fill="#111" />
+      </g>
+    </svg>
+  );
 }
-
-/* ══════════════════════════════════════════════════════════════
-   Visual helpers
-   ══════════════════════════════════════════════════════════════ */
-function getSegConns(cells) {
-  return cells.map(([r, c], i) => {
-    const conn = { up: false, down: false, left: false, right: false };
-    const check = (pr, pc) => {
-      if (pr === r - 1 && pc === c) conn.up = true;
-      if (pr === r + 1 && pc === c) conn.down = true;
-      if (pr === r && pc === c - 1) conn.left = true;
-      if (pr === r && pc === c + 1) conn.right = true;
-    };
-    if (i > 0) check(cells[i - 1][0], cells[i - 1][1]);
-    if (i < cells.length - 1) check(cells[i + 1][0], cells[i + 1][1]);
-    return conn;
-  });
-}
-
-function endRadius(conn) {
-  if (!conn) return '50%';
-  const r = '50%', s = '3px';
-  if (conn.up && !conn.down) return `${s} ${s} ${r} ${r}`;
-  if (conn.down && !conn.up) return `${r} ${r} ${s} ${s}`;
-  if (conn.left && !conn.right) return `${s} ${r} ${r} ${s}`;
-  if (conn.right && !conn.left) return `${r} ${s} ${s} ${r}`;
-  return '3px';
-}
+SnakeEyes.propTypes = { dir: PropTypes.string };
 
 function headDir(cells) {
-  if (cells.length < 2) return 'right';
+  if (cells.length < 2) return 'up';
   const [hr, hc] = cells[0];
   const [nr, nc] = cells[1];
   if (hr < nr) return 'up';
@@ -288,423 +55,325 @@ function headDir(cells) {
   return 'right';
 }
 
-/* ══════════════════════════════════════════════════════════════
-   Particle burst
-   ══════════════════════════════════════════════════════════════ */
-function ParticleBurst({ color, x, y, onDone }) {
-  const pts = useMemo(() =>
-    Array.from({ length: 14 }, (_, i) => {
-      const angle = (i / 14) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
-      const dist = 25 + Math.random() * 45;
-      return { id: i, dx: Math.cos(angle) * dist, dy: Math.sin(angle) * dist,
-               size: 3 + Math.random() * 7, delay: Math.random() * 0.12 };
-    }), []);
-
-  useEffect(() => { const t = setTimeout(onDone, 900); return () => clearTimeout(t); }, [onDone]);
-
-  return (
-    <div className={styles.particleWrap} style={{ left: x, top: y }}>
-      {pts.map(p => (
-        <div key={p.id} className={styles.particle}
-          style={{ '--dx': `${p.dx}px`, '--dy': `${p.dy}px`, '--sz': `${p.size}px`,
-                   '--del': `${p.delay}s`, background: color }} />
-      ))}
-    </div>
-  );
-}
-ParticleBurst.propTypes = { color: PropTypes.string, x: PropTypes.number, y: PropTypes.number, onDone: PropTypes.func };
-
-/* ══════════════════════════════════════════════════════════════
-   Snake face — googly eyes + waggling tongue
-   ══════════════════════════════════════════════════════════════ */
-function SnakeFace({ dir }) {
-  const rot = EXIT_ROT[dir] ?? 0;
-  return (
-    <svg viewBox="-20 -20 40 40" className={styles.snakeFace}>
-      <g transform={`rotate(${rot})`}>
-        {/* Forked tongue */}
-        <g className={styles.tongue}>
-          <path d="M0,-11 L-2.5,-18 M0,-11 L2.5,-18" stroke="#dd2222" strokeWidth="1.8" fill="none" strokeLinecap="round" />
-        </g>
-        {/* Eye whites */}
-        <circle cx="-5.5" cy="-1" r="5.5" fill="white" stroke="#444" strokeWidth="0.7" />
-        <circle cx="5.5"  cy="-1" r="5.5" fill="white" stroke="#444" strokeWidth="0.7" />
-        {/* Pupils */}
-        <circle cx="-5.5" cy="-2.5" r="3" fill="#111" />
-        <circle cx="5.5"  cy="-2.5" r="3" fill="#111" />
-        {/* Shine */}
-        <circle cx="-7" cy="-3.5" r="1.5" fill="white" opacity="0.85" />
-        <circle cx="4"  cy="-3.5" r="1.5" fill="white" opacity="0.85" />
-      </g>
-    </svg>
-  );
-}
-SnakeFace.propTypes = { dir: PropTypes.string };
-
-/* ══════════════════════════════════════════════════════════════
-   Main game component
-   ══════════════════════════════════════════════════════════════ */
-function SlitherEscapeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+export function SlitherEscapeGame({ difficulty, onComplete, reportScore, reportRound, playClick, playSuccess, playFail, playReveal }) {
   const t = useTranslation();
-  const rounds = DIFFICULTY_CONFIG[difficulty]?.rounds ?? 8;
+  const ts = t.games['slither-escape'];
+  const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
+  const dirWord = (d) => ts[`dir_${d}`];
 
-  const [round, setRound] = useState(0);
-  const [score, setScore] = useState(0);
-  const [level, setLevel] = useState(null);
-  const [snakes, setSnakes] = useState([]);
-  const [moves, setMoves] = useState(0);
-  const [solved, setSolved] = useState(false);
-  const [transitioning, setTransitioning] = useState(false);
-  const [particles, setParticles] = useState([]);
-  const [escapedSet, setEscapedSet] = useState(new Set());
-  const boardRef = useRef(null);
-  const dragRef = useRef(null); // { snakeIdx, startX, startY, moved }
+  const [puzzleIdx, setPuzzleIdx] = useState(0);
+  const [level, setLevel] = useState(() => generateLevel(difficulty));
+  const [snakes, setSnakes] = useState(() => clone(level.snakes));
+  const [history, setHistory] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [hint, setHint] = useState(null); // { si, dir }
+  const [message, setMessage] = useState(null); // { text, tone }
+  const [banner, setBanner] = useState(null); // { stars }
+  const [stars, setStars] = useState(0);
+
+  const helpRef = useRef({ hints: 0, undos: 0, resets: 0 });
+  const starsRef = useRef(0);
   const doneRef = useRef(false);
-  const pidRef = useRef(0);
-  const advanceTimerRef = useRef(null);
-  const stateRef = useRef({ score, round, rounds, onComplete, reportScore, playSuccess });
-  stateRef.current = { score, round, rounds, onComplete, reportScore, playSuccess };
+  const solvedRef = useRef(false);
+  const timersRef = useRef(new Set());
+  const swipeRef = useRef(null);
 
-  // Generate level for current round
-  const genLevel = useCallback((roundNum) => {
-    // Start with 2 snakes, add more as rounds progress (max 5)
-    const numSnakes = Math.min(SNAKE_COLORS.length, 2 + Math.floor(roundNum / 3));
-    return generateLevel(numSnakes, roundNum);
+  const later = useCallback((fn, ms) => {
+    const h = setTimeout(() => { timersRef.current.delete(h); fn(); }, ms);
+    timersRef.current.add(h);
+    return h;
+  }, []);
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => { timers.forEach(clearTimeout); timers.clear(); };
   }, []);
 
-  // Init
   useEffect(() => {
-    const lv = genLevel(0);
-    setLevel(lv);
-    setSnakes(lv.snakes.map(s => ({ ...s, cells: s.cells.map(c => [...c]) })));
-  }, [genLevel]);
+    reportRound?.(puzzleIdx + 1, config.puzzles);
+  }, [puzzleIdx, config.puzzles, reportRound]);
 
-  // Time up
-  useEffect(() => {
-    if (secondsLeft === 0 && !doneRef.current) {
-      doneRef.current = true;
-      onComplete({ finalScore: score, maxScore: rounds, completed: false });
-    }
-  }, [secondsLeft, score, rounds, onComplete]);
-
-  useEffect(() => () => clearTimeout(advanceTimerRef.current), []);
-
-  // Check win
-  useEffect(() => {
-    if (solved || !snakes.length || !level || transitioning) return;
-    if (!snakes.every(s => snakeAtExit(s))) return;
-
-    setSolved(true);
-    spawnParticlesAtExits();
-
-    const { score: s, round: r, rounds: total, onComplete: oc, reportScore: rs, playSuccess: ps } = stateRef.current;
-    ps();
-    const newScore = s + 1;
-    setScore(newScore);
-    rs(newScore);
-
-    clearTimeout(advanceTimerRef.current);
-    advanceTimerRef.current = setTimeout(() => {
-      const next = r + 1;
-      if (next >= total) {
+  const finishPuzzle = useCallback(() => {
+    solvedRef.current = true;
+    const got = starsFor(helpRef.current);
+    starsRef.current += got;
+    setStars(starsRef.current);
+    reportScore(starsRef.current);
+    setBanner({ stars: got });
+    setSelected(null);
+    setHint(null);
+    playSuccess();
+    later(() => {
+      if (doneRef.current) return;
+      const next = puzzleIdx + 1;
+      if (next >= config.puzzles) {
         doneRef.current = true;
-        oc({ finalScore: newScore, maxScore: total, completed: true });
+        onComplete({ finalScore: starsRef.current, maxScore: config.puzzles * 3, completed: true });
         return;
       }
-      setTransitioning(true);
-      setTimeout(() => {
-        setRound(next);
-        const newLv = genLevel(next);
-        setLevel(newLv);
-        setSnakes(newLv.snakes.map(s => ({ ...s, cells: s.cells.map(c => [...c]) })));
-        setMoves(0);
-        setSolved(false);
-        setEscapedSet(new Set());
-        setTransitioning(false);
-      }, 350);
-    }, 1000);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [snakes, solved, transitioning]);
+      const lv = generateLevel(difficulty);
+      helpRef.current = { hints: 0, undos: 0, resets: 0 };
+      solvedRef.current = false;
+      setPuzzleIdx(next);
+      setLevel(lv);
+      setSnakes(clone(lv.snakes));
+      setHistory([]);
+      setBanner(null);
+      setMessage(null);
+    }, 1800);
+  }, [puzzleIdx, config.puzzles, difficulty, later, onComplete, reportScore, playSuccess]);
 
-  function spawnParticlesAtExits() {
-    if (!boardRef.current || !level) return;
-    const rect = boardRef.current.getBoundingClientRect();
-    const cw = rect.width / level.cols;
-    const ch = rect.height / level.rows;
-    const newP = snakes.map(s => ({
-      id: pidRef.current++,
-      color: SNAKE_COLORS[s.colorIdx].glow,
-      x: s.exitCell[1] * cw + cw / 2,
-      y: s.exitCell[0] * ch + ch / 2,
-    }));
-    setParticles(prev => [...prev, ...newP]);
-  }
-
-  function spawnParticleAt(snakeIdx) {
-    if (!boardRef.current || !level) return;
-    const s = snakes[snakeIdx];
-    const rect = boardRef.current.getBoundingClientRect();
-    const cw = rect.width / level.cols;
-    const ch = rect.height / level.rows;
-    setParticles(prev => [...prev, {
-      id: pidRef.current++,
-      color: SNAKE_COLORS[s.colorIdx].glow,
-      x: s.exitCell[1] * cw + cw / 2,
-      y: s.exitCell[0] * ch + ch / 2,
-    }]);
-  }
-
-  // Core move function
-  const moveSnake = useCallback((snakeIdx, dir) => {
-    if (solved || doneRef.current || !level) return false;
-    const walls = buildWallSet(snakes, snakeIdx);
-    const result = slideSnake(snakes[snakeIdx].cells, dir, level.rows, level.cols, walls);
-    if (!result) return false;
-
+  const move = useCallback((si, dir) => {
+    if (solvedRef.current || doneRef.current) return;
+    if (si == null) { setMessage({ text: ts.pickFirst, tone: 'info' }); return; }
+    const next = applyMove(snakes, si, dir, level.rows, level.cols);
+    if (!next) {
+      playFail();
+      setMessage({ text: fmt(ts.blocked, { n: si + 1, dir: dirWord(dir) }), tone: 'warn' });
+      return;
+    }
     playClick();
-    setMoves(m => m + 1);
-
-    const updatedSnake = { ...snakes[snakeIdx], cells: result };
-    const reached = snakeAtExit(updatedSnake);
-    setSnakes(prev => prev.map((s, i) => i === snakeIdx ? updatedSnake : s));
-
-    if (reached) {
-      setEscapedSet(prev => new Set([...prev, snakeIdx]));
-      spawnParticleAt(snakeIdx);
+    setHistory(h => [...h, snakes]);
+    setSnakes(next);
+    setHint(null);
+    if (next.every(s => s.out)) {
+      setMessage({ text: ts.solved, tone: 'good' });
+      finishPuzzle();
+    } else if (next[si].out) {
+      playReveal?.();
+      setSelected(null);
+      setMessage({ text: fmt(ts.escaped, { n: si + 1 }), tone: 'good' });
+    } else {
+      setMessage(null);
     }
-    return true;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [solved, snakes, level, playClick]);
+  }, [snakes, level, ts, finishPuzzle, playClick, playFail, playReveal]);
 
-  // Keyboard
+  const resetPuzzle = useCallback((counted = true) => {
+    if (solvedRef.current) return;
+    if (counted) helpRef.current.resets += 1;
+    setSnakes(clone(level.snakes));
+    setHistory([]);
+    setSelected(null);
+    setHint(null);
+  }, [level]);
+
+  const handleHint = useCallback(() => {
+    if (solvedRef.current) return;
+    const path = solve(snakes, level.rows, level.cols);
+    helpRef.current.hints += 1;
+    if (!path || !path.length) {
+      // Tangled beyond rescue: start the puzzle again, gently.
+      resetPuzzle(false);
+      setMessage({ text: ts.tangled, tone: 'info' });
+      return;
+    }
+    const step = path[0];
+    playReveal?.();
+    setSelected(step.si);
+    setHint(step);
+    setMessage({ text: fmt(ts.hintMsg, { n: step.si + 1, dir: dirWord(step.dir) }), tone: 'info' });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [snakes, level, ts, resetPuzzle, playReveal]);
+
+  const handleUndo = useCallback(() => {
+    if (solvedRef.current || !history.length) return;
+    helpRef.current.undos += 1;
+    playClick();
+    setSnakes(history[history.length - 1]);
+    setHistory(h => h.slice(0, -1));
+    setHint(null);
+    setMessage(null);
+  }, [history, playClick]);
+
+  const handleReset = useCallback(() => {
+    if (!history.length) return;
+    playClick();
+    resetPuzzle(true);
+    setMessage(null);
+  }, [history, playClick, resetPuzzle]);
+
+  const selectSnake = useCallback((si) => {
+    if (solvedRef.current || snakes[si]?.out) return;
+    playClick();
+    setSelected(si);
+    if (!hint || hint.si !== si) setHint(null);
+    setMessage({ text: fmt(ts.chosen, { n: si + 1 }), tone: 'info' });
+  }, [snakes, hint, ts, playClick]);
+
+  // Keyboard: arrows slide the chosen snake.
+  const keyRef = useRef(null);
+  keyRef.current = (e) => {
+    const dir = KEY_DIRS[e.key];
+    if (!dir) return;
+    e.preventDefault();
+    move(selected, dir);
+  };
   useEffect(() => {
-    function handleKey(e) {
-      const map = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
-                    w: 'up', s: 'down', a: 'left', d: 'right' };
-      const dir = map[e.key];
-      if (!dir) return;
-      e.preventDefault();
-      // Move first non-escaped snake, or the last touched one
-      const si = dragRef.current?.lastSnake ?? snakes.findIndex(s => !snakeAtExit(s));
-      if (si >= 0 && si < snakes.length) moveSnake(si, dir);
-    }
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [moveSnake, snakes]);
-
-  /* ── Drag interaction (touch + mouse) ── */
-  const findSnakeAt = useCallback((clientX, clientY) => {
-    if (!boardRef.current || !level) return -1;
-    const rect = boardRef.current.getBoundingClientRect();
-    const col = Math.floor((clientX - rect.left) / (rect.width / level.cols));
-    const row = Math.floor((clientY - rect.top) / (rect.height / level.rows));
-    const key = `${row},${col}`;
-    for (let si = 0; si < snakes.length; si++) {
-      if (snakes[si].cells.some(([r, c]) => `${r},${c}` === key)) return si;
-    }
-    return -1;
-  }, [level, snakes]);
-
-  const handleDragStart = useCallback((clientX, clientY) => {
-    const si = findSnakeAt(clientX, clientY);
-    if (si < 0) return;
-    dragRef.current = { snakeIdx: si, startX: clientX, startY: clientY, moved: false, lastSnake: si };
-  }, [findSnakeAt]);
-
-  const handleDragEnd = useCallback((clientX, clientY) => {
-    if (!dragRef.current || dragRef.current.moved) { dragRef.current = dragRef.current ? { lastSnake: dragRef.current.lastSnake } : null; return; }
-    const dx = clientX - dragRef.current.startX;
-    const dy = clientY - dragRef.current.startY;
-    const si = dragRef.current.snakeIdx;
-    dragRef.current = { lastSnake: si };
-
-    if (Math.abs(dx) < 15 && Math.abs(dy) < 15) return; // tap, not drag
-    const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
-    if (!moveSnake(si, dir)) playFail();
-  }, [moveSnake, playFail]);
-
-  const handleDragMove = useCallback((clientX, clientY) => {
-    if (!dragRef.current || dragRef.current.moved) return;
-    const dx = clientX - dragRef.current.startX;
-    const dy = clientY - dragRef.current.startY;
-    if (Math.abs(dx) < 25 && Math.abs(dy) < 25) return;
-
-    const si = dragRef.current.snakeIdx;
-    const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
-    dragRef.current.moved = true;
-    if (!moveSnake(si, dir)) playFail();
-  }, [moveSnake, playFail]);
-
-  // Touch handlers
-  const onTouchStart = useCallback((e) => {
-    const t = e.touches[0];
-    handleDragStart(t.clientX, t.clientY);
-  }, [handleDragStart]);
-
-  const onTouchMove = useCallback((e) => {
-    const t = e.touches[0];
-    handleDragMove(t.clientX, t.clientY);
-  }, [handleDragMove]);
-
-  const onTouchEnd = useCallback((e) => {
-    const t = e.changedTouches[0];
-    handleDragEnd(t.clientX, t.clientY);
-  }, [handleDragEnd]);
-
-  // Mouse handlers
-  const onMouseDown = useCallback((e) => {
-    handleDragStart(e.clientX, e.clientY);
-  }, [handleDragStart]);
-
-  const onMouseMove = useCallback((e) => {
-    if (e.buttons === 0) return;
-    handleDragMove(e.clientX, e.clientY);
-  }, [handleDragMove]);
-
-  const onMouseUp = useCallback((e) => {
-    handleDragEnd(e.clientX, e.clientY);
-  }, [handleDragEnd]);
-
-  const removeParticle = useCallback((id) => {
-    setParticles(prev => prev.filter(p => p.id !== id));
+    const h = (e) => keyRef.current(e);
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
   }, []);
 
-  /* ── Render ── */
-  if (!level) return <div className={styles.loading}>Building puzzle…</div>;
+  // Swipe on a snake slides it that way.
+  const onPointerDown = (e, si) => { swipeRef.current = { si, x: e.clientX, y: e.clientY }; };
+  const onPointerUp = (e) => {
+    const s = swipeRef.current;
+    swipeRef.current = null;
+    if (!s) return;
+    const dx = e.clientX - s.x;
+    const dy = e.clientY - s.y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+    const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : (dy > 0 ? 'down' : 'up');
+    swipeRef.current = { swiped: true };
+    setSelected(s.si);
+    move(s.si, dir);
+  };
 
   const { rows, cols } = level;
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 400;
+  const cell = Math.max(34, Math.floor(Math.min(420, vw - 32) / (Math.max(rows, cols) + 2)));
+  const W = (cols + 2) * cell;
+  const H = (rows + 2) * cell;
 
-  // Cell lookup
-  const cellMap = new Map();
-  snakes.forEach((snake, si) => {
-    const conns = getSegConns(snake.cells);
-    snake.cells.forEach(([r, c], ci) => {
-      cellMap.set(`${r},${c}`, {
-        si, ci, isHead: ci === 0, isTail: ci === snake.cells.length - 1, conn: conns[ci],
-      });
-    });
-  });
+  const doorPos = ([r, c], dir) => {
+    const pos = { top: (r + 1) * cell, left: (c + 1) * cell };
+    if (dir === 'up') pos.top -= cell;
+    if (dir === 'down') pos.top += cell;
+    if (dir === 'left') pos.left -= cell;
+    if (dir === 'right') pos.left += cell;
+    return pos;
+  };
 
-  const exitMap = new Map();
-  snakes.forEach((s, si) => exitMap.set(`${s.exitCell[0]},${s.exitCell[1]}`, si));
+  // The number sits on the body, away from the face.
+  const numStyle = (vertical, headFirst) => (vertical
+    ? { left: 0, right: 0, top: headFirst ? cell : 0, bottom: headFirst ? 0 : cell }
+    : { top: 0, bottom: 0, left: headFirst ? cell : 0, right: headFirst ? 0 : cell });
 
-  const maxPx = Math.min(420, window.innerWidth - 32);
-  const cellSize = Math.floor(maxPx / Math.max(rows, cols));
+  const remaining = snakes.filter(s => !s.out).length;
 
   return (
     <div className={styles.wrapper}>
-      {/* Background */}
-      <div className={styles.bgScene}>
-        <div className={styles.bgSky} />
-        <div className={styles.bgClouds} />
-        <div className={styles.bgHills} />
-      </div>
-
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>{t.common.level} {round + 1} {t.common.of} {rounds}</span>
+          <span className={styles.roundLabel}>{fmt(ts.puzzleOf, { n: puzzleIdx + 1, total: config.puzzles })}</span>
+          <span className={styles.infoHeaderSub}>{fmt(ts.snakesLeft, { n: remaining })}</span>
         </div>
-        <div className={styles.infoBadge}>
-          <span className={styles.infoBadgeNum}>{moves}</span>
-          <span className={styles.infoBadgeSub}>moves</span>
+        <div className={styles.infoBadge} aria-label={`${stars} ${ts.stars}`}>
+          <span className={styles.infoBadgeStar} aria-hidden="true">★</span>
+          <span key={stars} className={styles.infoBadgeNum}>{stars}</span>
+          <span className={styles.infoBadgeSub}>/ {config.puzzles * 3}</span>
         </div>
       </div>
 
       <div className={styles.playArea}>
-      {/* Board */}
-      <div className={`${styles.boardWrap} ${transitioning ? styles.boardOut : ''} ${solved ? styles.boardWin : ''}`}>
+        <p className={styles.prompt}>{ts.prompt}</p>
+
         <div
-          ref={boardRef}
-          className={styles.board}
-          style={{
-            gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`,
-            gridTemplateRows: `repeat(${rows}, ${cellSize}px)`,
-          }}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-          onMouseDown={onMouseDown}
-          onMouseMove={onMouseMove}
-          onMouseUp={onMouseUp}
-          role="grid"
-          aria-label="Puzzle board"
+          key={`b${puzzleIdx}`}
+          className={`${styles.board} ${banner ? styles.boardWin : ''}`}
+          style={{ width: W, height: H, '--cell': `${cell}px` }}
+          role="group"
+          aria-label={ts.board}
         >
-          {Array.from({ length: rows }, (_, r) =>
-            Array.from({ length: cols }, (_, c) => {
-              const key = `${r},${c}`;
-              const sc = cellMap.get(key);
-              const exi = exitMap.get(key);
-              const isExit = exi != null;
+          <div className={styles.field} style={{ top: cell, left: cell, width: cols * cell, height: rows * cell }} />
 
-              // Stone border edges
-              const noT = r === 0, noB = r === rows - 1, noL = c === 0, noR = c === cols - 1;
+          {snakes.map((s, si) => {
+            const col = SNAKE_COLORS[s.id % SNAKE_COLORS.length];
+            const pos = doorPos(s.exitCell, s.exitDir);
+            return (
+              <div
+                key={`d${s.id}`}
+                className={`${styles.door} ${s.out ? styles.doorDone : ''}`}
+                style={{ ...pos, width: cell, height: cell, background: col.body }}
+                aria-label={fmt(ts.exitLabel, { n: si + 1 })}
+              >
+                <span className={styles.doorNum}>{si + 1}</span>
+                <span className={styles.doorArrow} aria-hidden="true">{ARROWS[s.exitDir]}</span>
+              </div>
+            );
+          })}
 
-              const cls = [styles.cell];
-              if (noT) cls.push(styles.stT);
-              if (noB) cls.push(styles.stB);
-              if (noL) cls.push(styles.stL);
-              if (noR) cls.push(styles.stR);
+          {snakes.map((s, si) => {
+            const col = SNAKE_COLORS[s.id % SNAKE_COLORS.length];
+            const rs = s.cells.map(c => c[0]);
+            const cs = s.cells.map(c => c[1]);
+            const r0 = Math.min(...rs), c0 = Math.min(...cs);
+            const h = (Math.max(...rs) - r0 + 1) * cell;
+            const w = (Math.max(...cs) - c0 + 1) * cell;
+            const [hr, hc] = s.cells[0];
+            const isSel = selected === si && !s.out;
+            return (
+              <button
+                key={`s${s.id}`}
+                type="button"
+                className={[
+                  styles.snake,
+                  isSel ? styles.snakeSel : '',
+                  hint?.si === si ? styles.snakeHint : '',
+                  s.out ? styles.snakeOut : '',
+                ].join(' ')}
+                style={{
+                  top: (r0 + 1) * cell, left: (c0 + 1) * cell, width: w, height: h,
+                  '--body': col.body, '--dark': col.dark,
+                }}
+                disabled={s.out || !!banner}
+                aria-pressed={isSel}
+                aria-label={fmt(ts.snakeLabel, { n: si + 1 })}
+                onClick={() => {
+                  if (swipeRef.current?.swiped) { swipeRef.current = null; return; }
+                  selectSnake(si);
+                }}
+                onPointerDown={(e) => onPointerDown(e, si)}
+                onPointerUp={onPointerUp}
+              >
+                <span
+                  className={styles.head}
+                  style={{ top: (hr - r0) * cell, left: (hc - c0) * cell, width: cell, height: cell }}
+                >
+                  <SnakeEyes dir={headDir(s.cells)} />
+                </span>
+                <span className={styles.snakeNum} style={numStyle(h > w, hr === r0 && hc === c0)}>
+                  {si + 1}
+                </span>
+                {hint?.si === si && <span className={styles.hintArrow} aria-hidden="true">{ARROWS[hint.dir]}</span>}
+              </button>
+            );
+          })}
 
-              const snakeDef = sc ? SNAKE_COLORS[snakes[sc.si].colorIdx] : null;
-              const exitDef = isExit ? SNAKE_COLORS[snakes[exi].colorIdx] : null;
-              const exitD = isExit ? snakes[exi].exitDir : null;
-              const escaped = sc ? escapedSet.has(sc.si) : false;
-
-              // Position exit marks outside the grid border
-              const exitStyle = isExit ? (() => {
-                const sz = `${cellSize * 0.7}px`;
-                const base = { background: exitDef.exit, width: sz, height: sz };
-                switch (exitD) {
-                  case 'up':    return { ...base, left: '15%', right: '15%', width: 'auto', top: `${-cellSize * 0.75 - 7}px` };
-                  case 'down':  return { ...base, left: '15%', right: '15%', width: 'auto', bottom: `${-cellSize * 0.75 - 7}px` };
-                  case 'left':  return { ...base, top: '15%', bottom: '15%', height: 'auto', left: `${-cellSize * 0.75 - 7}px` };
-                  case 'right': return { ...base, top: '15%', bottom: '15%', height: 'auto', right: `${-cellSize * 0.75 - 7}px` };
-                  default: return base;
-                }
-              })() : null;
-
-              return (
-                <div key={key} className={cls.join(' ')} style={isExit ? { overflow: 'visible', zIndex: 5 } : undefined} role="gridcell">
-                  {/* Exit chevron (positioned outside grid border) */}
-                  {isExit && (
-                    <div
-                      className={`${styles.exitMark} ${sc ? styles.exitHidden : ''}`}
-                      style={exitStyle}
-                    >
-                      <svg viewBox="0 0 24 24" width="65%" height="65%" style={{ transform: `rotate(${EXIT_ROT[exitD]}deg)` }}>
-                        <path d="M6 14l6-5 6 5" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M6 19l6-5 6 5" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </div>
-                  )}
-
-                  {/* Snake segment */}
-                  {sc && (
-                    <div
-                      className={`${styles.seg} ${sc.isHead ? styles.segH : ''} ${escaped ? styles.segDone : ''}`}
-                      style={{
-                        background: `linear-gradient(135deg, ${snakeDef.body} 0%, ${snakeDef.head} 100%)`,
-                        borderRadius: (sc.isHead || sc.isTail) ? endRadius(sc.conn) : '3px',
-                        '--glow': snakeDef.glow,
-                      }}
-                    >
-                      <div className={styles.shine} />
-                      {sc.isHead && <SnakeFace dir={headDir(snakes[sc.si].cells)} />}
-                    </div>
-                  )}
-                </div>
-              );
-            })
+          {banner && (
+            <div className={styles.banner} role="status">
+              <span className={styles.bannerTitle}>{ts.solved}</span>
+              <span className={styles.bannerStars} aria-label={`${banner.stars} ${ts.stars}`}>
+                {[0, 1, 2].map(i => <span key={i} className={i < banner.stars ? styles.starOn : styles.starOff}>★</span>)}
+              </span>
+            </div>
           )}
+        </div>
 
-          {/* Particles */}
-          {particles.map(p => (
-            <ParticleBurst key={p.id} color={p.color} x={p.x} y={p.y} onDone={() => removeParticle(p.id)} />
+        <p className={`${styles.message} ${message ? styles[`msg_${message.tone}`] : ''}`} aria-live="polite">
+          {message ? message.text : ' '}
+        </p>
+
+        <div className={styles.pad} role="group" aria-label={ts.arrows}>
+          {['up', 'left', 'right', 'down'].map(d => (
+            <button
+              key={d}
+              type="button"
+              className={`${styles.arrowBtn} ${styles[`arrow_${d}`]} ${hint?.dir === d && hint.si === selected ? styles.arrowHint : ''}`}
+              onClick={() => move(selected, d)}
+              disabled={!!banner}
+              aria-label={fmt(ts.slide, { dir: dirWord(d) })}
+            >
+              {ARROWS[d]}
+            </button>
           ))}
         </div>
-      </div>
 
-      <p className={styles.hint}>Drag a snake to slide it to its matching exit</p>
+        <div className={styles.tools}>
+          <button type="button" className={styles.toolBtn} onClick={handleHint} disabled={!!banner}>💡 {ts.hint}</button>
+          <button type="button" className={styles.toolBtn} onClick={handleUndo} disabled={!!banner || !history.length}>↶ {ts.undo}</button>
+          <button type="button" className={styles.toolBtn} onClick={handleReset} disabled={!!banner || !history.length}>⟲ {ts.reset}</button>
+        </div>
       </div>
     </div>
   );
@@ -714,15 +383,15 @@ SlitherEscapeGame.propTypes = {
   difficulty: PropTypes.string.isRequired,
   onComplete: PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
-  secondsLeft: PropTypes.number,
+  reportRound: PropTypes.func,
   playClick: PropTypes.func.isRequired,
   playSuccess: PropTypes.func.isRequired,
   playFail: PropTypes.func.isRequired,
+  playReveal: PropTypes.func,
 };
 
-/* ══════════════════════════════════════════════════════════════
-   Outer wrapper
-   ══════════════════════════════════════════════════════════════ */
+const TIME_LIMITS = { easy: null, medium: null, hard: null };
+
 export function SlitherEscape({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'slither-escape', callbackUrl, onComplete });
@@ -739,8 +408,11 @@ export function SlitherEscape({ memberId, difficulty = 'easy', onComplete, callb
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ difficulty: diff, onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
-        <SlitherEscapeGame difficulty={diff} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
+      {({ difficulty: diff, onComplete: sc, reportScore, reportRound, playClick, playSuccess, playFail, playReveal }) => (
+        <SlitherEscapeGame
+          difficulty={diff} onComplete={sc} reportScore={reportScore} reportRound={reportRound}
+          playClick={playClick} playSuccess={playSuccess} playFail={playFail} playReveal={playReveal}
+        />
       )}
     </GameShell>
   );
