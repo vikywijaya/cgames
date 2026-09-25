@@ -5,183 +5,280 @@ import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './SpotDifference.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
 
+/*
+ * SpotDifference — two picture grids, one on top of the other; find the
+ * pictures that changed. Tap the change in either grid.
+ *
+ * Kinds of change: swapped for another picture, a different colour
+ * (🍎 → 🍏), missing, and (hard) flipped the other way.
+ *
+ * Tuned for seniors:
+ * - Grids are stacked, not side by side, so cells stay large on a phone.
+ * - Stuck? After a while the row holding a difference glows.
+ * - +2 per difference found, +2 more for a round with no wrong taps.
+ * - No overall clock.
+ */
 const DIFFICULTY_CONFIG = {
-  easy:   { rounds: 6,  gridSize: 3, changes: 1, timeLimitSeconds: null },
-  medium: { rounds: 8,  gridSize: 4, changes: 2, timeLimitSeconds: 120  },
-  hard:   { rounds: 10, gridSize: 4, changes: 3, timeLimitSeconds: 90   },
+  easy:   { rounds: 6, cols: 3, rows: 3, changes: 1, kinds: ['swap', 'colour', 'missing'],         hintMs: 10000 },
+  medium: { rounds: 7, cols: 4, rows: 3, changes: 2, kinds: ['swap', 'colour', 'missing'],         hintMs: 12000 },
+  hard:   { rounds: 8, cols: 4, rows: 4, changes: 3, kinds: ['swap', 'colour', 'missing', 'flip'], hintMs: 14000 },
 };
+const FOUND_POINTS = 2;
+const PERFECT_BONUS = 2;
 
-// Pool of emoji for grid cells
-const EMOJI_POOL = [
-  '🌸','🌻','🌈','⭐','🎈','🎯','🍀','🦋',
-  '🌙','☀️','❄️','🌊','🔥','🎵','🎪','🌺',
-  '🍁','🦄','🐬','🦁','🐼','🦊','🌿','🍄',
-];
+// Pictures with a clear colour twin (for the colour kind).
+const COLOUR_PAIRS = [['🍎', '🍏'], ['❤️', '💙'], ['🟥', '🟩'], ['📕', '📘'], ['🔴', '🟡'], ['💚', '💜'], ['🟧', '🟦']];
+// Pictures that face one way (for the flip kind).
+const FACING = ['🐟', '🚗', '🐌', '🐘', '🦆', '🐎', '🐢', '🚲'];
+const POOL = ['🌸', '🌻', '⭐', '🎈', '🍀', '🦋', '🌙', '☀️', '🍄', '🐼', '🦊', '🍓', '🍌', '☂️', '🔔', '🎵', '🏠', '⚽', '🍩', '🌵'];
 
-function buildPuzzle(gridSize, changes) {
-  const total = gridSize * gridSize;
-  const pool = [...EMOJI_POOL].sort(() => Math.random() - 0.5).slice(0, total);
-  const left  = [...pool];
-  const right = [...pool];
-
-  // Pick `changes` distinct positions to alter in the right grid
-  const positions = [];
-  while (positions.length < changes) {
-    const p = Math.floor(Math.random() * total);
-    if (!positions.includes(p)) positions.push(p);
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
   }
+  return a;
+}
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-  for (const pos of positions) {
-    // Replace with a different emoji not currently in either grid
-    const used = new Set([...left, ...right]);
-    const available = EMOJI_POOL.filter(e => !used.has(e));
-    right[pos] = available.length > 0
-      ? available[Math.floor(Math.random() * available.length)]
-      : '❓';
-  }
-
-  return { left, right, diffPositions: new Set(positions) };
+// Cells are { e: emoji, flip?: bool } or null (missing).
+export function buildPuzzle(config) {
+  const total = config.cols * config.rows;
+  const positions = shuffle([...Array(total).keys()]).slice(0, config.changes);
+  const kinds = positions.map(() => pick(config.kinds));
+  // Fill with distinct pictures; seed changed cells so their kind works.
+  const base = shuffle(POOL).slice(0, total).map(e => ({ e }));
+  const used = new Set(base.map(c => c.e));
+  const top = [...base];
+  const bottom = [...base];
+  positions.forEach((pos, i) => {
+    const kind = kinds[i];
+    if (kind === 'colour') {
+      const [a, b] = shuffle(pick(COLOUR_PAIRS));
+      top[pos] = { e: a };
+      bottom[pos] = { e: b };
+    } else if (kind === 'flip') {
+      const e = pick(FACING);
+      top[pos] = { e };
+      bottom[pos] = { e, flip: true };
+    } else if (kind === 'missing') {
+      bottom[pos] = null;
+    } else {
+      const other = POOL.filter(x => !used.has(x));
+      const e = other.length ? pick(other) : '❓';
+      used.add(e);
+      bottom[pos] = { e };
+    }
+  });
+  // Randomly show the changed version on top instead, so "missing" can
+  // also mean a picture appeared.
+  if (Math.random() < 0.5) return { top: bottom, bottom: top, diffs: new Set(positions) };
+  return { top, bottom, diffs: new Set(positions) };
 }
 
-/**
- * SpotDifference — two emoji grids side by side.
- * Player taps a cell in the RIGHT grid that differs from the left.
- */
-function SpotDifferenceGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+export function perfectScore(config) {
+  return config.rounds * (config.changes * FOUND_POINTS + PERFECT_BONUS);
+}
+
+function Cell({ cell }) {
+  if (!cell) return <span className={styles.empty} aria-hidden="true" />;
+  return <span className={`${styles.emoji} ${cell.flip ? styles.flip : ''}`}>{cell.e}</span>;
+}
+Cell.propTypes = { cell: PropTypes.shape({ e: PropTypes.string, flip: PropTypes.bool }) };
+
+function SpotDifferenceGame({ countingDown = false, difficulty, onComplete, reportScore, reportRound, playClick, playSuccess, playFail, playPop, playReveal }) {
   const t = useTranslation();
+  const td = t.games['spot-difference'];
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const [round,    setRound]    = useState(0);
-  const [score,    setScore]    = useState(0);
-  const [puzzle,   setPuzzle]   = useState(() => buildPuzzle(config.gridSize, config.changes));
-  const [found,    setFound]    = useState(new Set());      // positions already found
-  const [wrong,    setWrong]    = useState(null);           // idx of wrong tap (flash)
-  const [feedback, setFeedback] = useState(null);           // 'correct' | null
-  const scoreRef = useRef(0);
-  const doneRef  = useRef(false);
+
+  const [round, setRound]   = useState(0);
+  const [puzzle, setPuzzle] = useState(() => buildPuzzle(config));
+  const [found, setFound]   = useState(new Set());
+  const [wrong, setWrong]   = useState(null);  // { grid, idx }
+  const [misses, setMisses] = useState(0);
+  const [hintRow, setHintRow] = useState(null);
+  const [phase, setPhase]   = useState('playing'); // playing | done
+  const [score, setScore]   = useState(0);
+  const [popup, setPopup]   = useState(null);
+
+  const scoreRef  = useRef(0);
+  const foundRef  = useRef(new Set());
+  const doneRef   = useRef(false);
+  const timersRef = useRef(new Set());
+  const hintTimer = useRef(null);
+  const reportedRound = useRef(-1);
+
+  const later = useCallback((fn, ms) => {
+    const h = setTimeout(() => { timersRef.current.delete(h); fn(); }, ms);
+    timersRef.current.add(h);
+    return h;
+  }, []);
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => { timers.forEach(clearTimeout); timers.clear(); };
+  }, []);
+
+  const finish = useCallback(() => {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    onComplete({ finalScore: scoreRef.current, maxScore: Math.max(perfectScore(config), scoreRef.current), completed: true });
+  }, [onComplete, config]);
+
+  // Each round: report it, and schedule a hint for when the player is stuck.
+  const scheduleHint = useCallback(() => {
+    clearTimeout(hintTimer.current);
+    hintTimer.current = later(() => {
+      const left = [...puzzle.diffs].filter(p => !foundRef.current.has(p));
+      if (!left.length) return;
+      setHintRow(Math.floor(left[0] / config.cols));
+      playReveal?.();
+    }, config.hintMs);
+  }, [puzzle, config, later, playReveal]);
 
   useEffect(() => {
-    if (secondsLeft === 0 && !doneRef.current) {
-      doneRef.current = true;
-      onComplete({ finalScore: scoreRef.current, maxScore: config.rounds, completed: false });
+    if (countingDown || phase !== 'playing') return;
+    if (reportedRound.current !== round) {
+      reportedRound.current = round;
+      reportRound?.(round + 1, config.rounds);
     }
-  }, [secondsLeft, onComplete, config.rounds]);
+    scheduleHint();
+  }, [countingDown, phase, round, config.rounds, reportRound, scheduleHint]);
 
-  const nextRound = useCallback((newRound, newScore) => {
-    if (doneRef.current) return;
-    if (newRound >= config.rounds) {
-      doneRef.current = true;
-      onComplete({ finalScore: newScore, maxScore: config.rounds, completed: true });
+  const tap = useCallback((grid, idx) => {
+    if (countingDown || phase !== 'playing' || doneRef.current || foundRef.current.has(idx)) return;
+    if (puzzle.diffs.has(idx)) {
+      const nf = new Set(foundRef.current);
+      nf.add(idx);
+      foundRef.current = nf;
+      setFound(nf);
+      setHintRow(null);
+      scoreRef.current += FOUND_POINTS;
+      setPopup({ id: Date.now(), idx, text: `+${FOUND_POINTS}` });
+      playPop?.();
+      if (nf.size === puzzle.diffs.size) {
+        clearTimeout(hintTimer.current);
+        const perfect = misses === 0;
+        if (perfect) scoreRef.current += PERFECT_BONUS;
+        setPhase('done');
+        later(() => playSuccess(), 250);
+        later(() => {
+          if (doneRef.current) return;
+          const nr = round + 1;
+          if (nr >= config.rounds) { finish(); return; }
+          foundRef.current = new Set();
+          setRound(nr);
+          setPuzzle(buildPuzzle(config));
+          setFound(new Set());
+          setMisses(0);
+          setPopup(null);
+          setPhase('playing');
+        }, 1600);
+      } else {
+        scheduleHint();
+      }
+      setScore(scoreRef.current);
+      reportScore(scoreRef.current);
       return;
     }
-    setRound(newRound);
-    setPuzzle(buildPuzzle(config.gridSize, config.changes));
-    setFound(new Set());
-    setWrong(null);
-    setFeedback(null);
-  }, [config, onComplete]);
-
-  const handleRightTap = useCallback((idx) => {
-    if (doneRef.current || found.has(idx)) return;
     playClick();
-    if (puzzle.diffPositions.has(idx)) {
-      const newFound = new Set(found);
-      newFound.add(idx);
-      setFound(newFound);
-      if (newFound.size === puzzle.diffPositions.size) {
-        // All differences found
-        playSuccess();
-        const newScore = scoreRef.current + 1;
-        scoreRef.current = newScore;
-        setScore(newScore);
-        reportScore(newScore);
-        setFeedback('correct');
-        setTimeout(() => nextRound(round + 1, newScore), 800);
-      }
-    } else {
-      playFail();
-      setWrong(idx);
-      setTimeout(() => setWrong(null), 500);
-    }
-  }, [found, puzzle, round, reportScore, nextRound, playClick, playSuccess, playFail]);
+    playFail();
+    setMisses(m => m + 1);
+    setWrong({ grid, idx, id: Date.now() });
+    later(() => setWrong(w => (w && w.idx === idx && w.grid === grid ? null : w)), 450);
+  }, [countingDown, phase, puzzle, misses, round, config, later, finish, scheduleHint, playClick, playFail, playPop, playSuccess, reportScore]);
 
-  const total = config.gridSize * config.gridSize;
+  const renderGrid = (cells, grid) => (
+    <div className={styles.grid} style={{ '--cols': config.cols }}>
+      {cells.map((cell, i) => {
+        const row = Math.floor(i / config.cols);
+        const isFound = found.has(i);
+        return (
+          <button
+            key={`${round}-${grid}-${i}`}
+            type="button"
+            className={[
+              styles.cell,
+              isFound ? styles.cellFound : '',
+              wrong && wrong.grid === grid && wrong.idx === i ? styles.cellWrong : '',
+              hintRow === row && !isFound ? styles.cellHint : '',
+            ].join(' ')}
+            style={{ '--idx': i }}
+            onPointerDown={() => tap(grid, i)}
+            aria-label={cell ? cell.e : td.emptySpot}
+          >
+            <Cell cell={cell} />
+            {isFound && <span className={styles.ring} aria-hidden="true" />}
+            {popup && popup.idx === i && grid === 'bottom' && (
+              <span key={popup.id} className={styles.floatText} aria-hidden="true">{popup.text}</span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const left = puzzle.diffs.size - found.size;
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
+        <div className={styles.hudLeft}>
+          <span className={styles.roundLabel}>{t.common.round} {round + 1}/{config.rounds}</span>
+          <span className={styles.leftChip} aria-hidden="true">
+            {Array.from({ length: puzzle.diffs.size }).map((_, i) => (
+              <span key={i} className={i < found.size ? styles.dotOn : styles.dotOff}>●</span>
+            ))}
+          </span>
         </div>
         <div className={styles.infoBadge}>
-          <span className={styles.infoBadgeNum}>{score}</span>
-          <span className={styles.infoBadgeSub}>/ {config.rounds}</span>
+          <span key={score} className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>{td.pts}</span>
         </div>
       </div>
 
       <div className={styles.playArea}>
-      <div className={styles.gridsRow}>
-        {/* Left grid — reference */}
-        <div className={styles.gridWrap}>
-          <p className={styles.gridLabel}>Original</p>
-          <div className={styles.grid} style={{ '--cols': config.gridSize }}>
-            {puzzle.left.map((emoji, i) => (
-              <span key={i} className={styles.cell} style={{ '--idx': i }}>{emoji}</span>
-            ))}
-          </div>
+        <p className={styles.prompt} aria-live="polite">
+          {phase === 'done'
+            ? (misses === 0 ? `🎉 ${td.perfect}` : `✓ ${td.allFound}`)
+            : hintRow !== null
+              ? `💡 ${td.hint}`
+              : `🔍 ${td.find.replace('{n}', left)}`}
+        </p>
+        <div className={styles.panel}>
+          <span className={styles.panelLabel}>{td.pictureA}</span>
+          {renderGrid(puzzle.top, 'top')}
         </div>
-
-        <span className={styles.vs}>vs</span>
-
-        {/* Right grid — tap differences */}
-        <div className={styles.gridWrap}>
-          <p className={styles.gridLabel}>Changed</p>
-          <div className={styles.grid} style={{ '--cols': config.gridSize }}>
-            {puzzle.right.map((emoji, i) => {
-              let cls = styles.cell;
-              if (found.has(i))  cls = `${styles.cell} ${styles.cellFound}`;
-              if (wrong === i)   cls = `${styles.cell} ${styles.cellWrong}`;
-              return (
-                <button key={i} className={cls} style={{ '--idx': i }} onClick={() => handleRightTap(i)} aria-label={emoji}>
-                  {emoji}
-                  {found.has(i) && <span className={styles.tick} aria-hidden="true">✓</span>}
-                </button>
-              );
-            })}
-          </div>
+        <div className={styles.panel}>
+          <span className={styles.panelLabel}>{td.pictureB}</span>
+          {renderGrid(puzzle.bottom, 'bottom')}
         </div>
-      </div>
-
-      <div className={styles.progress}>
-        {Array.from({ length: config.changes }, (_, i) => (
-          <span key={i} className={i < found.size ? styles.dotFilled : styles.dot} aria-hidden="true" />
-        ))}
-      </div>
-
-      <p className={feedback === 'correct' ? styles.feedbackOk : styles.feedbackSlot}>
-        {feedback === 'correct' ? t.common.allPairsFound : '\u00A0'}
-      </p>
       </div>
     </div>
   );
 }
 
 SpotDifferenceGame.propTypes = {
+  countingDown: PropTypes.bool,
   difficulty:  PropTypes.string.isRequired,
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
-  secondsLeft: PropTypes.number,
+  reportRound: PropTypes.func,
   playClick:   PropTypes.func.isRequired,
   playSuccess: PropTypes.func.isRequired,
   playFail:    PropTypes.func.isRequired,
+  playPop:     PropTypes.func,
+  playReveal:  PropTypes.func,
 };
 
-const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
+const TIME_LIMITS = { easy: null, medium: null, hard: null };
 
 export function SpotDifference({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const t = useTranslation();
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'spot-difference', callbackUrl, onComplete });
   return (
     <GameShell
+      startCountdown
       gameId="spot-difference"
       title={t.games['spot-difference'].title}
       instructions={t.games['spot-difference'].instructions}
@@ -193,8 +290,19 @@ export function SpotDifference({ memberId, difficulty = 'easy', onComplete, call
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft, difficulty: diff, playClick, playSuccess, playFail }) => (
-        <SpotDifferenceGame difficulty={diff} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
+      {({ onComplete: sc, reportScore, reportRound, difficulty: diff, playClick, playSuccess, playFail, playPop, playReveal, countingDown }) => (
+        <SpotDifferenceGame
+          countingDown={countingDown}
+          difficulty={diff}
+          onComplete={sc}
+          reportScore={reportScore}
+          reportRound={reportRound}
+          playClick={playClick}
+          playSuccess={playSuccess}
+          playFail={playFail}
+          playPop={playPop}
+          playReveal={playReveal}
+        />
       )}
     </GameShell>
   );
