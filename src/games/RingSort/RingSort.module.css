@@ -1,216 +1,27 @@
-@keyframes popIn {
-  0%   { opacity: 0; transform: scale(0.5) translateY(12px); }
-  60%  { opacity: 1; transform: scale(1.08) translateY(-2px); }
-  80%  { transform: scale(0.96) translateY(1px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
-}
-
 .wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
   width: 100%;
-  padding: 0;
-
   flex: 1;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-/* Fills the space below the pinned info header and centers gameplay in it */
 .playArea {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
   width: 100%;
 }
 
-.meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  max-width: 420px;
-  font-size: var(--text-sm);
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 1.5px solid #e2e8f0;
-  border-radius: var(--radius-xl);
-  padding: var(--space-2) var(--space-4);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-.roundLabel { color: var(--color-text-muted); }
-.roundLabel strong { color: var(--color-primary); }
-
-/* ── Rods area — bottom-aligned so all bases sit on the same line ── */
-.rodsArea {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: flex-end;        /* ← key: all rods share the same baseline */
-  gap: var(--space-5);
-  padding: var(--space-3) var(--space-2);
-  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-
-/* ── Single rod wrapper (button) ── */
-.rod {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  cursor: pointer;
-  border-radius: var(--radius-xl);
-  padding: var(--space-2) var(--space-3);
-  padding-bottom: var(--space-1);
-  transition: background var(--transition-fast), box-shadow var(--transition-fast);
-  border: 3px solid transparent;
-  background: none;
-}
-@media (hover: hover) and (pointer: fine) {
-.rod:hover {
-  background: rgba(0, 0, 0, 0.03);
-}
-}
-.rodSelected {
-  background: rgba(17, 85, 204, 0.06);
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(17, 85, 204, 0.15);
-}
-.rodOnTrack {
-  background: rgba(34, 197, 94, 0.06);
-  border-color: rgba(34, 197, 94, 0.35);
-}
-.rodSolved {
-  background: rgba(34, 197, 94, 0.12);
-  border-color: #22c55e;
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25), 0 0 12px rgba(34, 197, 94, 0.3);
-  animation: rodComplete 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-
-@keyframes rodComplete {
-  0%   { transform: scale(1); }
-  40%  { transform: scale(1.06); }
-  70%  { transform: scale(0.97); }
-  100% { transform: scale(1); }
-}
-
-/* ── Rod body: fixed height, peg runs full length as absolute element ── */
-.rodBody {
-  position: relative;
-  width: 68px;
-  height: 140px;            /* fixed: enough for max 4 rings + breathing room */
-  display: flex;
-  align-items: flex-end;   /* rings stack from the bottom up */
-  justify-content: center;
-}
-
-/* The stick — absolute, centred, full body height */
-.pegStick {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 10px;
-  height: 100%;
-  background: linear-gradient(to right, #c49060, #e0b887, #c49060);
-  border-radius: 5px 5px 0 0;
-  z-index: 0;
-}
-
-/* Ring stack — sits at the bottom of rodBody, on top of the peg */
-.ringStack {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column-reverse;   /* index 0 = bottom ring */
-  align-items: center;
-  width: 100%;
-}
-
-/* Individual ring — donut shape */
-.ring {
-  height: 20px;
-  border-radius: 10px;
-  margin-bottom: -2px;           /* rings overlap slightly */
-  border: 2px solid rgba(0, 0, 0, 0.12);
-  position: relative;
-  flex-shrink: 0;
-  transition: transform 0.15s ease, opacity 0.15s ease;
-}
-/* shine highlight on each ring */
-.ring::after {
-  content: '';
-  position: absolute;
-  top: 4px;
-  left: 12%;
-  width: 30%;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.40);
-  border-radius: 3px;
-}
-/* hole in the middle of the ring */
-.ring::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 12px;
-  height: 12px;
-  background: rgba(0, 0, 0, 0.08);
-  border-radius: 50%;
-}
-
-.ringLifted {
-  transform: translateY(-14px);
-  opacity: 0.85;
-  z-index: 10;
-}
-
-/* ── Base platform ── */
-.base {
-  width: 76px;
-  height: 12px;
-  background: linear-gradient(to right, #c49060, #e0b887, #c49060);
-  border-radius: 6px;
-  flex-shrink: 0;
-  margin-top: 0;
-}
-
-/* ── Moves counter ── */
-.movesLabel {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
-}
-.movesLabel strong { color: var(--color-text); }
-
-/* ── Solved animation ── */
-@keyframes solvedPulse {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.03); }
-  100% { transform: scale(1); }
-}
-.areasSolved { animation: solvedPulse 0.5s ease; }
-
-@keyframes ringDrop {
-  0%   { transform: translateY(-8px) scale(1.08); opacity: 0.7; }
-  60%  { transform: translateY(2px) scale(0.97); opacity: 1; }
-  100% { transform: translateY(0) scale(1); opacity: 1; }
-}
-.ringJustMoved { animation: ringDrop 0.25s ease; }
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25%       { transform: translateX(-4px); }
-  75%       { transform: translateX(4px); }
-}
-.rodShake { animation: shake 0.3s ease; }
-
-/* ── Info header — WordRecall style ── */
+/* ── HUD ─────────────────────────────────────────── */
 .infoHeader {
   background: var(--color-surface);
-  border-radius: 0;
   padding: var(--space-4) var(--space-5);
   display: flex;
   align-items: center;
@@ -222,18 +33,11 @@
   top: 0;
   z-index: 5;
 }
-
-.infoHeaderText {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.infoHeaderSub {
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-regular);
-  color: var(--color-text-muted);
-}
+.hudLeft { display: flex; align-items: center; gap: var(--space-3); min-width: 0; flex-wrap: wrap; }
+.roundLabel { font-size: 1rem; font-weight: 700; color: var(--color-text-muted); white-space: nowrap; }
+.helpStars { display: inline-flex; gap: 2px; font-size: 1.35rem; line-height: 1; }
+.starOn  { color: #d97706; }
+.starOff { color: #cbd5e1; }
 
 .infoBadge {
   background: var(--color-primary-light);
@@ -244,16 +48,216 @@
   gap: 4px;
   flex-shrink: 0;
 }
-
+@keyframes badgeBump { 0% { transform: scale(1.25); } 100% { transform: scale(1); } }
 .infoBadgeNum {
+  display: inline-block;
   font-size: var(--text-lg);
   font-weight: var(--font-weight-bold);
   color: var(--color-primary);
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  animation: badgeBump 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.infoBadgeSub { font-size: 1rem; color: var(--color-primary); }
+
+/* ── Message line ───────────────────────────────── */
+@keyframes msgIn { from { opacity: 0.3; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.message {
+  margin: 0;
+  min-height: 2.6em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #1e293b;
+  padding: 0 var(--space-2);
+  animation: msgIn 200ms ease-out;
+}
+.msg_warn { color: #b91c1c; }
+.msg_good { color: #166534; }
+.msg_hint { color: #92400e; }
+
+/* ── Board ──────────────────────────────────────── */
+.board { position: relative; width: 100%; max-width: 480px; }
+@keyframes areaIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.rodsArea {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 8px;
+  padding: var(--space-3) var(--space-2);
+  border-radius: 24px;
+  background: #f1f5f9;
+  animation: areaIn 300ms cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
-.infoBadgeSub {
-  font-size: var(--text-xs);
-  color: var(--color-primary);
+.rod {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 56px;
+  max-width: 92px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 26px 4px 6px;
+  border-radius: 18px;
+  border: 3px solid transparent;
+  background: #ffffff;
+  box-shadow: 0 3px 0 #dbe4f0;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color 150ms ease, background 150ms ease, transform 120ms ease;
+}
+.rod:disabled { cursor: default; }
+.rod:active:not(:disabled) { transform: translateY(2px); }
+.rodSelected { border-color: #1d4ed8; background: #eff6ff; }
+.rodDone { border-color: #166534; background: #f0fdf4; }
+@keyframes hintGlow {
+  0%, 100% { box-shadow: 0 3px 0 #f59e0b, 0 0 0 0 rgba(245, 158, 11, 0.6); }
+  50%      { box-shadow: 0 3px 0 #f59e0b, 0 0 0 9px rgba(245, 158, 11, 0); }
+}
+.rodHintFrom, .rodHintTo { border-color: #d97706; background: #fffbeb; animation: hintGlow 1s ease-in-out infinite; }
+.hintTag {
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #92400e;
+  line-height: 1;
+}
+
+@keyframes shake {
+  0%, 100% { translate: 0 0; }
+  25% { translate: -6px 0; }
+  75% { translate: 6px 0; }
+}
+.rodShake { animation: shake 320ms ease-out; border-color: #dc2626; }
+
+.rodBody {
+  position: relative;
+  width: 100%;
+  height: calc(var(--cap, 4) * 36px + 18px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.peg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  border-radius: 5px 5px 0 0;
+  background: linear-gradient(to right, #92653a, #c4935f, #92653a);
+}
+.stack {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+}
+.ring {
+  width: 92%;
+  height: 34px;
+  border-radius: 17px;
+  border: 2px solid rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 900;
+  line-height: 1;
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.ringLifted { transform: translateY(-16px); box-shadow: 0 8px 12px rgba(15, 23, 42, 0.3); }
+@keyframes ringHint { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.ringHint { animation: ringHint 900ms ease-in-out infinite; }
+@keyframes ringDrop {
+  0%   { transform: translateY(-14px); }
+  60%  { transform: translateY(2px); }
+  100% { transform: translateY(0); }
+}
+.ringDrop { animation: ringDrop 260ms ease-out; }
+
+.base {
+  width: 100%;
+  height: 22px;
+  margin-top: 2px;
+  border-radius: 8px;
+  background: linear-gradient(to right, #92653a, #c4935f, #92653a);
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 1rem;
+  line-height: 22px;
+  text-align: center;
+}
+.rodDone .base { background: #166534; }
+
+@keyframes solvedPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+.areaSolved { animation: solvedPulse 500ms ease; }
+
+/* ── Tools ──────────────────────────────────────── */
+.tools { display: flex; gap: var(--space-2); flex-wrap: wrap; justify-content: center; }
+.toolBtn {
+  min-height: 52px;
+  padding: 0 18px;
+  border-radius: 14px;
+  border: 2px solid #cbd5e1;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #cbd5e1;
+  touch-action: manipulation;
+}
+.toolBtn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #cbd5e1; }
+.toolBtn:disabled { opacity: 0.45; cursor: default; }
+.helpNote { margin: 0; font-size: 1rem; color: var(--color-text-muted); text-align: center; }
+
+/* ── Solved banner ──────────────────────────────── */
+@keyframes bannerIn {
+  0%   { transform: translate(-50%, -50%) scale(0.6); opacity: 0; }
+  18%  { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+  30%  { transform: translate(-50%, -50%) scale(1); }
+  85%  { opacity: 1; }
+  100% { transform: translate(-50%, -60%) scale(1); opacity: 0; }
+}
+.banner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 8;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 26px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #16a34a, #166534);
+  color: #ffffff;
+  font-size: 1.6rem;
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  animation: bannerIn 1800ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+.bannerStars { color: #fde047; font-size: 1.7rem; letter-spacing: 2px; }
+.bannerStarsOff { color: rgba(255, 255, 255, 0.35); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rodsArea, .rodShake, .rodHintFrom, .rodHintTo, .ringHint, .ringDrop, .areaSolved, .message, .banner { animation: none; }
+  .banner { transform: translate(-50%, -50%); }
 }
