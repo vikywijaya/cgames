@@ -1,29 +1,39 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './ShoppingList.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
 
+/*
+ * ShoppingList — remember a shopping list, then pick the items off the
+ * shop shelf into your basket.
+ *
+ * Tuned for seniors:
+ * - Everyday local items (rice, noodles, fish…), with translated names.
+ * - The player sets the pace: "I'm ready" ends the study time early.
+ * - Partial credit: +1 per item picked correctly, -1 per item that wasn't
+ *   on the list (never below 0 for a round), +2 for a perfect round. It
+ *   used to be all-or-nothing per round.
+ * - After each round the shelf shows what was got, forgotten and extra.
+ * - The list grows by one item partway through the game.
+ * - No overall clock.
+ */
 const DIFFICULTY_CONFIG = {
-  easy:   { rounds: 6, listSize: 4, studySec: 10, choicesSize: 8  },
-  medium: { rounds: 8, listSize: 6, studySec: 12, choicesSize: 10 },
-  hard:   { rounds: 10,listSize: 8, studySec: 12, choicesSize: 12 },
+  easy:   { rounds: 6, listSize: [3, 4], extra: 4, studySec: 12 },
+  medium: { rounds: 7, listSize: [4, 5], extra: 5, studySec: 14 },
+  hard:   { rounds: 8, listSize: [5, 6], extra: 6, studySec: 16 },
 };
+const PERFECT_BONUS = 2;
 
-const ALL_ITEMS = [
-  { emoji: '🍎', name: 'Apples' },    { emoji: '🍞', name: 'Bread' },
-  { emoji: '🥛', name: 'Milk' },      { emoji: '🧀', name: 'Cheese' },
-  { emoji: '🥚', name: 'Eggs' },      { emoji: '🍗', name: 'Chicken' },
-  { emoji: '🥦', name: 'Broccoli' },  { emoji: '🍅', name: 'Tomatoes' },
-  { emoji: '🫙', name: 'Jam' },       { emoji: '🍋', name: 'Lemons' },
-  { emoji: '🧅', name: 'Onions' },    { emoji: '🥕', name: 'Carrots' },
-  { emoji: '🧈', name: 'Butter' },    { emoji: '🫒', name: 'Olives' },
-  { emoji: '🍇', name: 'Grapes' },    { emoji: '🥩', name: 'Beef' },
-  { emoji: '🍓', name: 'Strawberries'},{ emoji: '🫐', name: 'Blueberries' },
-  { emoji: '🥑', name: 'Avocado' },   { emoji: '🥬', name: 'Lettuce' },
-  { emoji: '🍊', name: 'Oranges' },   { emoji: '🥜', name: 'Peanuts' },
-  { emoji: '🍕', name: 'Pizza' },     { emoji: '🧃', name: 'Juice' },
+// id → emoji; names come from i18n (games['shopping-list'].items).
+const ITEMS = [
+  ['rice', '🍚'], ['noodles', '🍜'], ['bread', '🍞'], ['eggs', '🥚'], ['milk', '🥛'],
+  ['fish', '🐟'], ['chicken', '🍗'], ['salt', '🧂'], ['bananas', '🍌'], ['apples', '🍎'],
+  ['oranges', '🍊'], ['mangoes', '🥭'], ['tomatoes', '🍅'], ['carrots', '🥕'], ['onions', '🧅'],
+  ['cabbage', '🥬'], ['corn', '🌽'], ['coconut', '🥥'], ['tea', '🍵'], ['coffee', '☕'],
+  ['sweets', '🍬'], ['chilli', '🌶️'], ['garlic', '🧄'], ['potatoes', '🥔'], ['juice', '🧃'],
+  ['biscuits', '🍪'], ['cheese', '🧀'], ['grapes', '🍇'],
 ];
 
 function shuffle(arr) {
@@ -35,164 +45,273 @@ function shuffle(arr) {
   return a;
 }
 
-function buildRound(listSize, choicesSize) {
-  const pool = shuffle(ALL_ITEMS);
-  const list = pool.slice(0, listSize);
-  const distractors = pool.slice(listSize, choicesSize);
-  const choices = shuffle([...list, ...distractors]);
-  return { list, choices };
+export function listSizeFor(config, round) {
+  return round < Math.ceil(config.rounds / 2) ? config.listSize[0] : config.listSize[1];
 }
 
-// phase: 'study' | 'recall'
-function ShoppingListGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+export function buildRound(config, round) {
+  const size = listSizeFor(config, round);
+  const pool = shuffle(ITEMS).map(([id, emoji]) => ({ id, emoji }));
+  const list = pool.slice(0, size);
+  const shelf = shuffle(pool.slice(0, size + config.extra));
+  return { list, shelf };
+}
+
+export function perfectScore(config) {
+  let total = 0;
+  for (let r = 0; r < config.rounds; r++) total += listSizeFor(config, r) + PERFECT_BONUS;
+  return total;
+}
+
+function ShoppingListGame({ countingDown = false, difficulty, onComplete, reportScore, reportRound, playClick, playSuccess, playFail, playPop, playReveal }) {
   const t = useTranslation();
+  const ts = t.games['shopping-list'];
+  const name = (id) => ts.items[id];
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const [round,   setRound]   = useState(0);
-  const [score,   setScore]   = useState(0);
-  const [phase,   setPhase]   = useState('study');
-  const [timer,   setTimer]   = useState(config.studySec);
-  const [data,    setData]    = useState(() => buildRound(config.listSize, config.choicesSize));
-  const [ticked,  setTicked]  = useState(new Set());
-  const [submitted, setSubmitted] = useState(false);
-  const [result,  setResult]  = useState(null);
 
-  // Study countdown
+  const [round, setRound]   = useState(0);
+  const [data, setData]     = useState(() => buildRound(config, 0));
+  const [phase, setPhase]   = useState('study'); // study | shop | review
+  const [timer, setTimer]   = useState(config.studySec);
+  const [basket, setBasket] = useState([]);      // item ids
+  const [result, setResult] = useState(null);
+  const [score, setScore]   = useState(0);
+
+  const scoreRef = useRef(0);
+  const doneRef  = useRef(false);
+  const timersRef = useRef(new Set());
+  const reportedRound = useRef(-1);
+
+  const later = useCallback((fn, ms) => {
+    const h = setTimeout(() => { timersRef.current.delete(h); fn(); }, ms);
+    timersRef.current.add(h);
+  }, []);
   useEffect(() => {
-    if (phase !== 'study') return;
-    if (timer <= 0) { setPhase('recall'); return; }
-    const id = setTimeout(() => setTimer(t => t - 1), 1000);
+    const timers = timersRef.current;
+    return () => { timers.forEach(clearTimeout); timers.clear(); };
+  }, []);
+
+  useEffect(() => {
+    if (reportedRound.current === round) return;
+    reportedRound.current = round;
+    reportRound?.(round + 1, config.rounds);
+  }, [round, config.rounds, reportRound]);
+
+  // Study countdown, held during the shell's 3-2-1.
+  useEffect(() => {
+    if (countingDown || phase !== 'study') return undefined;
+    if (timer <= 0) { setPhase('shop'); playReveal?.(); return undefined; }
+    const id = setTimeout(() => setTimer(s => s - 1), 1000);
     return () => clearTimeout(id);
-  }, [phase, timer]);
+  }, [countingDown, phase, timer, playReveal]);
 
-  // Global time-up
-  useEffect(() => {
-    if (secondsLeft === 0) onComplete({ finalScore: score, maxScore: config.rounds, completed: false });
-  }, [secondsLeft, score, config.rounds, onComplete]);
+  const finish = useCallback(() => {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    onComplete({ finalScore: scoreRef.current, maxScore: Math.max(perfectScore(config), scoreRef.current), completed: true });
+  }, [onComplete, config]);
 
-  const handleTick = useCallback((name) => {
-    if (submitted) return;
-    playClick();
-    setTicked(prev => {
-      const n = new Set(prev);
-      n.has(name) ? n.delete(name) : n.add(name);
-      return n;
+  const toggle = useCallback((id) => {
+    if (phase !== 'shop') return;
+    setBasket(b => {
+      if (b.includes(id)) { playClick(); return b.filter(x => x !== id); }
+      playPop?.();
+      return [...b, id];
     });
-  }, [submitted, playClick]);
+  }, [phase, playClick, playPop]);
 
-  const handleSubmit = useCallback(() => {
-    if (submitted) return;
-    setSubmitted(true);
-    const listNames = new Set(data.list.map(i => i.name));
-    const correct = [...ticked].filter(n => listNames.has(n)).length;
-    const missed  = [...listNames].filter(n => !ticked.has(n)).length;
-    const wrong   = [...ticked].filter(n => !listNames.has(n)).length;
-    const roundScore = Math.max(0, correct - wrong - missed);
-    const newScore = score + (roundScore > 0 ? 1 : 0);
-    if (roundScore > 0) { playSuccess(); } else { playFail(); }
-    setResult({ correct, missed, wrong, roundScore });
-    setScore(newScore);
-    reportScore(newScore);
+  const checkout = useCallback(() => {
+    if (phase !== 'shop') return;
+    const listIds = new Set(data.list.map(i => i.id));
+    const got = basket.filter(id => listIds.has(id)).length;
+    const extra = basket.filter(id => !listIds.has(id)).length;
+    const missed = data.list.length - got;
+    const perfect = missed === 0 && extra === 0;
+    const gained = Math.max(0, got - extra) + (perfect ? PERFECT_BONUS : 0);
+    scoreRef.current += gained;
+    setScore(scoreRef.current);
+    reportScore(scoreRef.current);
+    setResult({ got, missed, extra, perfect, gained });
+    setPhase('review');
+    if (got > 0) playSuccess(); else playFail();
+  }, [phase, data, basket, reportScore, playSuccess, playFail]);
 
-    setTimeout(() => {
-      const next = round + 1;
-      if (next >= config.rounds) {
-        onComplete({ finalScore: newScore, maxScore: config.rounds, completed: true });
-      } else {
-        setRound(next);
-        setPhase('study');
-        setTimer(config.studySec);
-        setData(buildRound(config.listSize, config.choicesSize));
-        setTicked(new Set());
-        setSubmitted(false);
-        setResult(null);
-      }
-    }, 1100);
-  }, [submitted, ticked, data, score, round, config, reportScore, onComplete, playSuccess, playFail]);
+  const nextRound = useCallback(() => {
+    const nr = round + 1;
+    if (nr >= config.rounds) { finish(); return; }
+    setRound(nr);
+    setData(buildRound(config, nr));
+    setBasket([]);
+    setResult(null);
+    setTimer(config.studySec);
+    setPhase('study');
+  }, [round, config, finish]);
+
+  const header = (
+    <div className={styles.infoHeader}>
+      <div className={styles.hudLeft}>
+        <span className={styles.roundLabel}>{t.common.round} {round + 1}/{config.rounds}</span>
+      </div>
+      <div className={styles.infoBadge}>
+        <span key={score} className={styles.infoBadgeNum}>{score}</span>
+        <span className={styles.infoBadgeSub}>{ts.pts}</span>
+      </div>
+    </div>
+  );
 
   if (phase === 'study') {
     return (
       <div className={styles.wrapper}>
-        <div className={styles.infoHeader}>
-          <div className={styles.infoHeaderText}>
-            <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
-          </div>
-          <div className={styles.infoBadge}>
-            <span className={styles.infoBadgeNum}>{timer}</span>
-            <span className={styles.infoBadgeSub}>s</span>
-          </div>
-        </div>
+        {header}
         <div className={styles.playArea}>
-          <p className={styles.prompt}>Remember these items!</p>
-          <div className={styles.studyList}>
-            {data.list.map((item, i) => (
-              <div key={i} className={styles.studyItem}>
-                <span>{item.emoji}</span> {item.name}
-              </div>
-            ))}
+          <p className={styles.prompt}>📝 {ts.remember}</p>
+          <div className={styles.paper}>
+            <span className={styles.paperTitle}>{ts.listTitle}</span>
+            <ul className={styles.paperList}>
+              {data.list.map((item, i) => (
+                <li key={item.id} className={styles.paperItem} style={{ '--idx': i }}>
+                  <span className={styles.paperEmoji} aria-hidden="true">{item.emoji}</span>
+                  {name(item.id)}
+                </li>
+              ))}
+            </ul>
           </div>
+          <div className={styles.studyBar} aria-hidden="true">
+            <span className={styles.studyFill} style={{ transform: `scaleX(${timer / config.studySec})` }} />
+          </div>
+          <button type="button" className={styles.primaryBtn} onClick={() => { playClick(); setTimer(0); }} disabled={countingDown}>
+            {ts.ready} <span className={styles.btnChip}>{timer}s</span>
+          </button>
         </div>
       </div>
     );
   }
 
+  const listIds = new Set(data.list.map(i => i.id));
+  const reviewing = phase === 'review';
+
   return (
     <div className={styles.wrapper}>
-      <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>{t.common.round} {round + 1} {t.common.of} {config.rounds}</span>
-        </div>
-        <div className={styles.infoBadge}>
-          <span className={styles.infoBadgeNum}>{ticked.size}</span>
-          <span className={styles.infoBadgeSub}>ticked</span>
-        </div>
-      </div>
+      {header}
       <div className={styles.playArea}>
-      <p className={styles.prompt}>Tick everything that was on the list</p>
-      <div className={styles.choiceGrid}>
-        {data.choices.map((item, i) => {
-          const isTicked = ticked.has(item.name);
-          const listNames = new Set(data.list.map(x => x.name));
-          let cls = styles.choiceBtn;
-          if (submitted && isTicked && listNames.has(item.name))  cls = `${styles.choiceBtn} ${styles.choiceCorrect}`;
-          if (submitted && isTicked && !listNames.has(item.name)) cls = `${styles.choiceBtn} ${styles.choiceWrong}`;
-          if (submitted && !isTicked && listNames.has(item.name)) cls = `${styles.choiceBtn} ${styles.choiceMissed}`;
-          return (
-            <button key={i} className={cls} style={{ '--idx': i }} onClick={() => handleTick(item.name)} disabled={submitted}>
-              <span className={styles.choiceEmoji}>{item.emoji}</span>
-              <span className={styles.choiceName}>{item.name}</span>
-              {isTicked && <span className={styles.tick}>✓</span>}
+        <p className={styles.prompt}>🛒 {reviewing ? ts.howYouDid : ts.pick}</p>
+
+        <div className={styles.shelf}>
+          {data.shelf.map((item, i) => {
+            const inBasket = basket.includes(item.id);
+            const onList = listIds.has(item.id);
+            const cls = [
+              styles.item,
+              inBasket && !reviewing ? styles.itemPicked : '',
+              reviewing && inBasket && onList ? styles.itemGot : '',
+              reviewing && inBasket && !onList ? styles.itemExtra : '',
+              reviewing && !inBasket && onList ? styles.itemMissed : '',
+              reviewing && !inBasket && !onList ? styles.itemIdle : '',
+            ].join(' ');
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className={cls}
+                style={{ '--idx': i }}
+                onClick={() => toggle(item.id)}
+                disabled={reviewing}
+                aria-pressed={inBasket}
+              >
+                <span className={styles.itemEmoji} aria-hidden="true">{item.emoji}</span>
+                <span className={styles.itemName}>{name(item.id)}</span>
+                {inBasket && !reviewing && <span className={styles.badge} aria-hidden="true">✓</span>}
+                {reviewing && inBasket && onList && <span className={`${styles.badge} ${styles.badgeGood}`} aria-hidden="true">✓</span>}
+                {reviewing && inBasket && !onList && <span className={`${styles.badge} ${styles.badgeBad}`} aria-hidden="true">✕</span>}
+                {reviewing && !inBasket && onList && <span className={styles.missTag}>{ts.forgot}</span>}
+              </button>
+            );
+          })}
+        </div>
+
+        {!reviewing && (
+          <>
+            <p className={styles.basketCount}>🧺 {ts.inBasket.replace('{n}', basket.length).replace('{total}', data.list.length)}</p>
+            <button type="button" className={styles.primaryBtn} onClick={() => { playClick(); checkout(); }}>
+              {ts.checkout}
             </button>
-          );
-        })}
-      </div>
-      {!submitted && (
-        <button className={styles.submitBtn} onClick={handleSubmit}>Done</button>
-      )}
-      <p className={result ? (result.roundScore > 0 ? styles.feedbackOk : styles.feedbackBad) : styles.feedbackSlot}>
-        {result ? `${result.correct} correct · ${result.missed} missed · ${result.wrong} wrong` : '\u00A0'}
-      </p>
+          </>
+        )}
+        {reviewing && result && (
+          <>
+            <div className={`${styles.summary} ${result.perfect ? styles.summaryPerfect : ''}`} aria-live="polite">
+              {result.perfect && <strong className={styles.perfect}>{ts.perfect}</strong>}
+              <span>✓ {ts.got.replace('{n}', result.got)}</span>
+              {result.missed > 0 && <span>• {ts.missed.replace('{n}', result.missed)}</span>}
+              {result.extra > 0 && <span>• {ts.extra.replace('{n}', result.extra)}</span>}
+              <span className={styles.gained}>+{result.gained}</span>
+            </div>
+            <button type="button" className={styles.primaryBtn} onClick={() => { playClick(); nextRound(); }}>
+              {round + 1 >= config.rounds ? ts.finish : ts.next}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
 }
 
-ShoppingListGame.propTypes = { difficulty: PropTypes.string.isRequired, onComplete: PropTypes.func.isRequired, reportScore: PropTypes.func.isRequired, secondsLeft: PropTypes.number, playClick: PropTypes.func.isRequired, playSuccess: PropTypes.func.isRequired, playFail: PropTypes.func.isRequired };
+ShoppingListGame.propTypes = {
+  countingDown: PropTypes.bool,
+  difficulty: PropTypes.string.isRequired,
+  onComplete: PropTypes.func.isRequired,
+  reportScore: PropTypes.func.isRequired,
+  reportRound: PropTypes.func,
+  playClick: PropTypes.func.isRequired,
+  playSuccess: PropTypes.func.isRequired,
+  playFail: PropTypes.func.isRequired,
+  playPop: PropTypes.func,
+  playReveal: PropTypes.func,
+};
 
 const TIME_LIMITS = { easy: null, medium: null, hard: null };
 
 export function ShoppingList({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const t = useTranslation();
-  const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'shopping-list', callbackUrl, onComplete });
   return (
-    <GameShell gameId="shopping-list" title={t.games['shopping-list'].title}
+    <GameShell
+      startCountdown
+      gameId="shopping-list"
+      title={t.games['shopping-list'].title}
       instructions={t.games['shopping-list'].instructions}
-      difficulty={difficulty} timeLimits={TIME_LIMITS} flushTop onGameComplete={fireCallback}
-      onBack={onBack} musicMuted={musicMuted} onToggleMusic={onToggleMusic}>
-      {({ onComplete: sc, reportScore, secondsLeft, difficulty: diff, playClick, playSuccess, playFail }) => (
-        <ShoppingListGame difficulty={diff} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
+      difficulty={difficulty}
+      timeLimits={TIME_LIMITS}
+      flushTop
+      onGameComplete={fireCallback}
+      onBack={onBack}
+      musicMuted={musicMuted}
+      onToggleMusic={onToggleMusic}
+    >
+      {({ onComplete: sc, reportScore, reportRound, difficulty: diff, playClick, playSuccess, playFail, playPop, playReveal, countingDown }) => (
+        <ShoppingListGame
+          countingDown={countingDown}
+          difficulty={diff}
+          onComplete={sc}
+          reportScore={reportScore}
+          reportRound={reportRound}
+          playClick={playClick}
+          playSuccess={playSuccess}
+          playFail={playFail}
+          playPop={playPop}
+          playReveal={playReveal}
+        />
       )}
     </GameShell>
   );
 }
-ShoppingList.propTypes = { memberId: PropTypes.string.isRequired, difficulty: PropTypes.oneOf(['easy','medium','hard']), onComplete: PropTypes.func.isRequired, callbackUrl: PropTypes.string, onBack: PropTypes.func, musicMuted: PropTypes.bool, onToggleMusic: PropTypes.func };
+
+ShoppingList.propTypes = {
+  memberId: PropTypes.string.isRequired,
+  difficulty: PropTypes.oneOf(['easy', 'medium', 'hard']),
+  onComplete: PropTypes.func.isRequired,
+  callbackUrl: PropTypes.string,
+  onBack: PropTypes.func,
+  musicMuted: PropTypes.bool,
+  onToggleMusic: PropTypes.func,
+};
