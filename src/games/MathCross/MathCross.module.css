@@ -1,8 +1,15 @@
 @keyframes popIn {
-  0%   { opacity: 0; transform: scale(0.5) translateY(12px); }
-  60%  { opacity: 1; transform: scale(1.08) translateY(-2px); }
-  80%  { transform: scale(0.96) translateY(1px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
+  0%   { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes slotPop {
+  0%   { transform: scale(0.85); }
+  60%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+@keyframes bannerIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .wrapper {
@@ -11,237 +18,220 @@
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  padding: 0;
-
-  flex: 1;
+  max-width: 560px;
+  margin: 0 auto;
 }
 
-/* Fills the space below the pinned info header and centers gameplay in it */
-.playArea {
-  flex: 1;
+/* ── HUD ── */
+.hud {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: var(--space-3);
   width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
 }
-
-.roundLabel { color: var(--color-text-muted); font-size: var(--text-sm); }
-.roundLabel strong { color: var(--color-primary); }
-
-/* ── Hint bar — tells seniors what to do next ── */
-.hint {
-  font-size: 17px;
+.hudBlock { display: flex; flex-direction: column; gap: 2px; }
+.hudBlock:last-child { text-align: right; }
+.hudLabel {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   color: var(--color-text-muted);
+}
+.hudValue {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.guide {
+  margin: 0;
+  min-height: 1.5em;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
   text-align: center;
-  min-height: 1.6em;
-  padding: 0 var(--space-3);
 }
 
-/* ── Grid ── */
+/* ── Board ── */
 .grid {
-  display: inline-grid;
-  gap: 3px;
+  display: grid;
+  gap: 4px;
   padding: var(--space-2);
-  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: popIn 0.3s ease-out both;
 }
+.gridSolved { filter: none; }
 
-/* Every cell: fluid size, smaller on mobile */
 .cell {
-  width: clamp(40px, 10vw, 54px);
-  height: clamp(40px, 10vw, 54px);
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(var(--text-sm), 3vw, var(--text-md));
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  border-radius: var(--radius-md);
-}
-
-/* Invisible spacer */
-.cellBlank {
-  background: transparent;
-}
-
-/* Given number — strong contrast */
-.cellGiven {
-  background: #e8edf4;
-  color: #1a1a1a;
-  border: 2px solid #b0bec5;
-  font-size: var(--text-md);
-}
-
-/* Operator (+, -, x, =) — much darker for readability */
-.cellOp {
-  background: transparent;
-  color: #475569;
-  font-weight: 700;
-  font-size: var(--text-md);
-}
-
-/* Droppable empty slot — dashed border, inviting */
-.cellSlot {
-  background: #fff;
-  border: 2.5px dashed #93a3b8;
-  cursor: pointer;
-  transition: border-color var(--transition-fast), background var(--transition-fast),
-    transform 80ms ease, box-shadow var(--transition-fast);
-}
-@media (hover: hover) and (pointer: fine) {
-.cellSlot:hover {
-  border-color: var(--color-primary);
-  background: #f0f4ff;
-  transform: scale(1.06);
-}
-}
-.cellSlotSelected {
-  border-color: var(--color-primary);
-  border-style: solid;
-  box-shadow: 0 0 0 3px rgba(17, 85, 204, 0.25);
-  background: #dbeafe;
-}
-
-/* Filled slot (player placed a number) */
-.cellFilled {
-  background: #dbeafe;
-  border: 2.5px solid #60a5fa;
-  color: #1e40af;
-  cursor: pointer;
-  font-size: var(--text-md);
-}
-@media (hover: hover) and (pointer: fine) {
-.cellFilled:hover {
-  opacity: 0.8;
-  transform: scale(1.06);
-}
-}
-
-/* Correct slot after solve — green */
-.cellCorrect {
-  background: #dcfce7;
-  border: 2.5px solid #4ade80;
-  color: #166534;
-}
-
-/* ── Tray separator ── */
-.trayLabel {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--color-text-muted);
-  text-align: center;
   width: 100%;
-  max-width: 420px;
+  height: 100%;
+  border-radius: var(--radius-md);
+  font-size: 24px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.cellBlank { background: transparent; }
+
+.cellOp {
+  color: var(--color-text);
+  font-size: 26px;
+  background: transparent;
 }
 
-/* ── Number tray — large touch targets ── */
+/* Printed clue: dark text on pale grey, solid border */
+.cellGiven {
+  background: #E8EDF4;
+  color: #1A2233;
+  border: 2px solid #8A97AD;
+}
+
+/* Blank the player fills: white with dashed blue outline */
+.slot {
+  background: #FFFFFF;
+  color: #1A2233;
+  border: 3px dashed #3D72E8;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+}
+.slot:disabled { cursor: default; }
+.slotFilled {
+  border-style: solid;
+  background: #EBF2FF;
+  color: #1E3F8F;
+}
+.slotSelected {
+  outline: 4px solid #E07820;
+  outline-offset: 2px;
+}
+.slotHint {
+  border: 3px solid #7B5EA7;
+  background: #F0EBF8;
+  color: #3F2A66;
+}
+.slotPop { animation: slotPop 0.3s ease-out; }
+
+.cellWrong {
+  border: 3px solid #C0392B;
+  background: #FEF0EF;
+  color: #7A1D14;
+}
+.wrongMark, .hintMark {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+.wrongMark { background: #C0392B; color: #FFFFFF; }
+.hintMark  { background: #FFFFFF; border: 2px solid #7B5EA7; font-size: 12px; }
+
+/* Solved: dark text on white with a thick dark-green border (no green on green) */
+.cellDone {
+  background: #FFFFFF;
+  color: #1A2233;
+  border: 3px solid #1E7A52;
+}
+
+/* ── Banner ── */
+.bannerSlot {
+  min-height: 56px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-lg);
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  animation: bannerIn 0.25s ease-out both;
+}
+.banner_good { background: #1E7A52; color: #FFFFFF; }
+.banner_bad  { background: #FEF0EF; color: #7A1D14; border: 2px solid #C0392B; }
+.banner_info { background: #F0EBF8; color: #3F2A66; border: 2px solid #7B5EA7; }
+.bannerStars { font-size: 22px; color: #FFD34D; letter-spacing: 2px; }
+
+/* ── Tray ── */
+.trayLabel {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
 .tray {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: var(--space-2);
-  padding: var(--space-2);
-  max-width: 420px;
 }
-
 .trayNum {
-  width: clamp(44px, 11vw, 56px);
-  height: clamp(44px, 11vw, 56px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(var(--text-sm), 3vw, var(--text-md));
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  background: #fff;
-  border: 2.5px solid #b0bec5;
-  border-radius: var(--radius-lg);
+  min-width: 60px;
+  height: 60px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-md);
+  border: 2px solid #3D72E8;
+  background: #FFFFFF;
+  color: #1A2233;
+  font-family: inherit;
+  font-size: 24px;
+  font-weight: 800;
   cursor: pointer;
-  transition: transform 80ms ease, border-color var(--transition-fast),
-    box-shadow var(--transition-fast), background var(--transition-fast);
-  color: var(--color-text);
+  transition: transform 0.12s ease;
 }
-@media (hover: hover) and (pointer: fine) {
-.trayNum:hover:not(:disabled) {
-  border-color: var(--color-primary);
-  transform: scale(1.08);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-}
+.trayNum:active:not(:disabled) { transform: scale(0.95); }
 .trayNumSelected {
-  border-color: var(--color-primary);
-  background: #dbeafe;
-  box-shadow: 0 0 0 3px rgba(17, 85, 204, 0.25);
-  transform: scale(1.10);
+  background: #3D72E8;
+  color: #FFFFFF;
+  outline: 4px solid #E07820;
+  outline-offset: 2px;
 }
 .trayNumUsed {
-  opacity: 0.2;
-  pointer-events: none;
-  transform: scale(0.85);
+  background: #F1F3F7;
+  color: #8A97AD;
+  border: 2px dashed #B8C2D3;
+  text-decoration: line-through;
+  cursor: default;
 }
 
-/* ── Solved ── */
-@keyframes solvedPulse {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.03); }
-  100% { transform: scale(1); }
+/* ── Help buttons ── */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
 }
-.gridSolved { animation: solvedPulse 0.5s ease; }
-
-@keyframes placePop {
-  0%   { transform: scale(1.15); }
-  100% { transform: scale(1); }
-}
-.cellJustPlaced { animation: placePop 0.2s ease; }
-
-/* ── Info header — WordRecall style ── */
-.infoHeader {
+.actionBtn {
+  min-height: 52px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--color-border);
   background: var(--color-surface);
-  border-radius: 0;
-  padding: var(--space-4) var(--space-5);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  width: calc(100% + var(--space-4) * 2);
-  margin: 0 calc(-1 * var(--space-4));
-  position: sticky;
-  top: 0;
-  z-index: 5;
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
 }
+.actionBtn:disabled { opacity: 0.45; cursor: default; }
 
-.infoHeaderText {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.infoHeaderSub {
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-regular);
-  color: var(--color-text-muted);
-}
-
-.infoBadge {
-  background: var(--color-primary-light);
-  border-radius: var(--radius-xl);
-  padding: var(--space-2) var(--space-4);
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.infoBadgeNum {
-  font-size: var(--text-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-primary);
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.infoBadgeSub {
-  font-size: var(--text-xs);
-  color: var(--color-primary);
+@media (prefers-reduced-motion: reduce) {
+  .grid, .slotPop, .banner { animation: none; }
 }

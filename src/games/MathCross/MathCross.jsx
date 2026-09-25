@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
@@ -6,23 +6,27 @@ import styles from './MathCross.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
 
 /*
- * Layout: equations laid out on a grid. Each equation is either horizontal or
- * vertical:  A op B = C.   Intersections share a cell.
+ * Math Cross — a small crossword of equations on a 5 x 5 board.
  *
- * Easy:   2 horizontal + 1 vertical (cross shape)
- * Medium: 2 horizontal + 2 vertical (plus/grid)
- * Hard:   3 horizontal + 3 vertical (large grid)
+ * Easy:   a "plus" shape — one equation across, one down, sharing the middle number.
+ * Medium: a square frame — two across, two down, sharing the four corners (+ and − only).
+ * Hard:   the same frame with ×, bigger numbers and more blanks.
+ *
+ * The puzzle is built from real equations first and blanks are punched out
+ * afterwards, so every puzzle is always solvable with the numbers in the tray.
+ * A puzzle counts as solved when every equation is true (so swapping two
+ * numbers that both work is fine).
  */
 
-const OPS = ['+', '-', 'x'];
-
 const DIFFICULTY_CONFIG = {
-  easy:   { hCount: 2, vCount: 1, maxNum: 12,  rounds: 5, timeLimitSeconds: null },
-  medium: { hCount: 2, vCount: 2, maxNum: 20,  rounds: 6, timeLimitSeconds: 180  },
-  hard:   { hCount: 3, vCount: 3, maxNum: 25,  rounds: 8, timeLimitSeconds: 120  },
+  easy:   { shape: 'cross', ops: ['+', '-'],      max: 10, blanks: 2, puzzles: 4 },
+  medium: { shape: 'frame', ops: ['+', '-'],      max: 20, blanks: 4, puzzles: 5 },
+  hard:   { shape: 'frame', ops: ['+', '-', 'x'], max: 40, blanks: 6, puzzles: 5 },
 };
 
-const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
+const TIME_LIMITS = { easy: null, medium: null, hard: null };
+const STARS_PER_PUZZLE = 3;
+const OP_SYMBOL = { '+': '+', '-': '−', x: '×', '=': '=' };
 
 function randInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -37,511 +41,474 @@ function shuffle(arr) {
   return a;
 }
 
-/**
- * Generate a single equation: a op b = c
- * Returns { a, op, b, c } where all values are positive integers.
- */
-function makeEquation(maxNum) {
-  const op = OPS[randInt(0, 2)];
-  let a, b, c;
-  if (op === '+') {
-    a = randInt(1, Math.floor(maxNum / 2));
-    b = randInt(1, Math.floor(maxNum / 2));
-    c = a + b;
-  } else if (op === '-') {
-    c = randInt(1, Math.floor(maxNum / 2));
-    b = randInt(1, Math.floor(maxNum / 2));
-    a = b + c;
-  } else {
-    a = randInt(2, Math.min(9, maxNum));
-    b = randInt(2, Math.min(9, maxNum));
-    c = a * b;
-  }
-  return { a, op, b, c };
-}
-
-/**
- * Build puzzle: place horizontal & vertical equations on a grid.
- * Horizontals at rows 0, 4, 8, ... (spaced by 4 rows for operator rows between)
- * Verticals at cols 0, 4, 8, ... — column of the first operand aligns with
- * horizontal's first operand (col 0).
- *
- * Grid cell types: 'number', 'op', 'eq', 'blank'
- * Some number cells are 'given' (shown), others are 'slot' (player fills).
- */
-function generatePuzzle(hCount, vCount, maxNum) {
-  const eqSpacing = 4; // rows/cols between equation starts: A op B = C
-
-  // Grid dimensions
-  const gridRows = hCount * eqSpacing - (eqSpacing - 5);
-  const hLen = 5; // A op B = C
-  const vLen = hCount * eqSpacing - (eqSpacing - 5);
-
-  // We lay out equations carefully:
-  // Horizontals at row i*4, from col 0..4
-  // Verticals at col j*4, from row 0..gridRows-1 (but only occupying eq positions)
-
-  // Generate equations with intersection constraints
-  const hEqs = [];
-  const vEqs = [];
-
-  // Simple approach: generate all equations independently, then assign
-  // which cells are blanks vs given.
-
-  // For each horizontal equation
-  for (let i = 0; i < hCount; i++) hEqs.push(makeEquation(maxNum));
-  for (let j = 0; j < vCount; j++) vEqs.push(makeEquation(maxNum));
-
-  // Now build vertical equations that pass through horizontal equations.
-  // Vertical equation j occupies column j * eqSpacing.
-  // At row i * eqSpacing it intersects horizontal equation i.
-  // The vertical equation's value at that intersection must match.
-
-  // Rebuild equations to fit intersections:
-  // vEq[j] passes through rows 0, 4, 8, ... at column j*eqSpacing
-  // hEq[i] sits at row i*eqSpacing, columns 0..4
-
-  // For the cross to work, we need:
-  //   hEq[i].values[j_col_index] == vEq[j].values[i_row_index]
-  // where j_col_index is the position in hEq that column j*eqSpacing maps to
-  // and i_row_index is the position in vEq that row i*eqSpacing maps to.
-
-  // H eq at row R: cells at (R, 0), (R, 1), (R, 2), (R, 3), (R, 4)
-  //   which are:    A         op       B         =         C
-
-  // V eq at col C: cells at (0, C), (1, C), (2, C), (3, C), (4, C), ...
-  // For vCount equations, the v-eq spans the same rows as the grid height.
-  // V eq j: at column j * eqSpacing
-  //   row 0: first operand, row 1: op, row 2: second operand, row 3: =, row 4: result
-  //   If hCount > 2 then continues: row 4 is also start of next segment
-  //   Actually simpler: V equation j has its A,op,B,=,C laid out every row from
-  //   row 0 to row 4 at column j*eqSpacing.
-
-  // With hCount=2, vCount=2:
-  //   H0 at row 0:  cols 0,1,2,3,4
-  //   H1 at row 4:  cols 0,1,2,3,4
-  //   V0 at col 0:  rows 0,1,2,3,4
-  //   V1 at col 4:  rows 0,1,2,3,4
-
-  //   Intersection: H0[col0] = V0[row0] → hEqs[0].a == vEqs[0].a
-  //                 H0[col4] = V1[row0] → hEqs[0].c == vEqs[1].a
-  //                 H1[col0] = V0[row4] → hEqs[1].a == vEqs[0].c
-  //                 H1[col4] = V1[row4] → hEqs[1].c == vEqs[1].c
-
-  // So we need to generate equations that share values at intersections.
-  // Strategy: pick intersection values first, then build equations around them.
-
-  const totalRows = (hCount - 1) * eqSpacing + 1;
-  const totalCols = Math.max(hLen, (vCount - 1) * eqSpacing + 1);
-
-  // Intersection values: intVal[i][j] = the number at row i*eqSpacing, col j*eqSpacing
-  // For h equation i: positions are col 0 (a), col 2 (b), col 4 (c)
-  // At col j*eqSpacing, position in h eq = j * eqSpacing (0, 4, 8...)
-  // position 0 = a, position 2 = b, position 4 = c
-
-  // For v equation j: positions are row 0 (a), row 2 (b), row 4 (c)
-  // At row i*eqSpacing, position = i * eqSpacing
-  // position 0 = a, position 2 = b, position 4 = c
-
-  // Simplified: generate equations that share intersection values
-  // by building from scratch.
-
-  const attempts = 300;
-  for (let attempt = 0; attempt < attempts; attempt++) {
-    // Generate intersection grid values
-    const vals = Array.from({ length: hCount }, () => Array(vCount).fill(0));
-
-    // h eq i values: a = vals[i][0_mapped], b = ..., c = ...
-    // Horizontal eq i spans cols. V equations at cols 0, 4, 8...
-    // In h eq at row i*4: the number positions are col 0 (a), col 2 (b), col 4 (c)
-    // V eq j is at col j*4.
-    // So the intersection of h_i and v_j is at (i*4, j*4).
-    // In h_i: col j*4 — if j*4 == 0 → a, j*4 == 2 → b, j*4 == 4 → c
-    //   j=0 → col 0 → a   j=1 → col 4 → c   (for eqSpacing=4)
-    // In v_j: row i*4 — if i*4 == 0 → a, i*4 == 4 → c   (for 2 h-eqs)
-
-    // Actually for eqSpacing=4, vCount can be at most 2 (col 0 and col 4).
-    // For 3, we'd need cols 0, 4, 8 → hLen needs to be 9 (too wide).
-    // Let's simplify: for hard mode, use eqSpacing=4, hLen=5 per eq,
-    // and just have 2 vCols max. For 3h+3v, stack them differently.
-
-    // SIMPLIFICATION: generate independent cross patterns.
-    // Each cross: 1 horizontal + 1 vertical sharing the center number.
-    // For easy: 1 cross. For medium: 2 crosses. For hard: 3 crosses.
-
-    // Each cross is 5x5: h eq at row 2, v eq at col 2, sharing center cell.
-    break; // exit attempts loop, use simplified approach below
-  }
-
-  return generateSimpleCrossPuzzle(hCount, vCount, maxNum);
-}
-
-/**
- * Simplified approach: generate crosses (each is 2 intersecting equations).
- */
-function generateSimpleCrossPuzzle(hCount, vCount, maxNum) {
-  const crossCount = Math.min(hCount, vCount);
-  const crosses = [];
-
-  for (let i = 0; i < crossCount; i++) {
-    // Keep trying until we get a valid cross
-    for (let attempt = 0; attempt < 100; attempt++) {
-      const hEq = makeEquation(maxNum);
-      // Vertical equation must share the center value (hEq.b)
-      const shared = hEq.b;
-      const vOp = OPS[randInt(0, 2)];
-      let vA, vB, vC;
-      vB = shared;
-
-      if (vOp === '+') {
-        vA = randInt(1, Math.floor(maxNum / 2));
-        vC = vA + vB;
-      } else if (vOp === '-') {
-        vA = vB + randInt(1, Math.floor(maxNum / 2));
-        vC = vA - vB;
-      } else {
-        vA = randInt(2, Math.min(9, maxNum));
-        vC = vA * vB;
-      }
-
-      if (vC > 0 && vA > 0) {
-        crosses.push({
-          h: hEq,
-          v: { a: vA, op: vOp, b: vB, c: vC },
-        });
-        break;
+/** Build `a op b = c` starting from a known first number `a`. */
+function extendFrom(a, ops, max) {
+  for (const op of shuffle(ops)) {
+    if (op === '+' && max - a >= 1) {
+      const b = randInt(1, Math.min(max - a, Math.max(1, Math.ceil(max * 0.6))));
+      return { op, b, c: a + b };
+    }
+    if (op === '-' && a >= 2) {
+      const b = randInt(1, a - 1);
+      return { op, b, c: a - b };
+    }
+    if (op === 'x' && a >= 2 && a <= 9) {
+      const hi = Math.min(9, Math.floor(max / a));
+      if (hi >= 2) {
+        const b = randInt(2, hi);
+        return { op, b, c: a * b };
       }
     }
   }
-
-  // Also generate standalone horizontal equations if hCount > vCount
-  const extraH = [];
-  for (let i = crossCount; i < hCount; i++) extraH.push(makeEquation(maxNum));
-  // Standalone verticals
-  const extraV = [];
-  for (let j = crossCount; j < vCount; j++) extraV.push(makeEquation(maxNum));
-
-  // Layout on a grid.
-  // Each cross occupies a 5-row x 5-col block. Extra h/v equations are appended.
-  // Cross i is placed starting at row i*6, col 0 (6 = 5 + 1 gap).
-
-  const crossBlockH = 5;
-  const crossBlockW = 5;
-  const gap = 1;
-
-  const gridRows = Math.max(
-    crosses.length * (crossBlockH + gap) - gap + extraH.length * 2,
-    extraV.length * (crossBlockH + gap)
-  );
-  const gridCols = crossBlockW + (extraV.length > 0 ? 6 : 0);
-
-  // Use a sparse cell map: key = "r,c" → { type, value }
-  const cells = {};
-  const slotPositions = []; // positions the player must fill
-  const allValues = [];     // all answer values for the tray
-
-  function setCell(r, c, type, value) {
-    cells[`${r},${c}`] = { type, value };
-  }
-
-  // Place each cross
-  crosses.forEach((cross, idx) => {
-    const startR = idx * (crossBlockH + gap);
-    const startC = 0;
-
-    // Horizontal: row startR+2, cols startC..startC+4
-    const hr = startR + 2;
-    setCell(hr, startC,     'number', cross.h.a);
-    setCell(hr, startC + 1, 'op',     cross.h.op);
-    setCell(hr, startC + 2, 'number', cross.h.b); // shared with vertical
-    setCell(hr, startC + 3, 'op',     '=');
-    setCell(hr, startC + 4, 'number', cross.h.c);
-
-    // Vertical: col startC+2, rows startR..startR+4
-    const vc = startC + 2;
-    setCell(startR,     vc, 'number', cross.v.a);
-    setCell(startR + 1, vc, 'op',     cross.v.op);
-    // startR+2, vc is already set (shared cell = cross.h.b == cross.v.b)
-    setCell(startR + 3, vc, 'op',     '=');
-    setCell(startR + 4, vc, 'number', cross.v.c);
-  });
-
-  // Place extra horizontal equations
-  extraH.forEach((eq, idx) => {
-    const r = crosses.length * (crossBlockH + gap) + idx * 2;
-    setCell(r, 0, 'number', eq.a);
-    setCell(r, 1, 'op',     eq.op);
-    setCell(r, 2, 'number', eq.b);
-    setCell(r, 3, 'op',     '=');
-    setCell(r, 4, 'number', eq.c);
-  });
-
-  // Determine actual grid bounds
-  let maxR = 0, maxC = 0;
-  for (const key of Object.keys(cells)) {
-    const [r, c] = key.split(',').map(Number);
-    if (r > maxR) maxR = r;
-    if (c > maxC) maxC = c;
-  }
-  const rows = maxR + 1;
-  const cols = maxC + 1;
-
-  // Decide which number cells are slots (blanks) vs given.
-  // We want roughly 40-50% of number cells to be slots.
-  const numberCells = [];
-  for (const [key, cell] of Object.entries(cells)) {
-    if (cell.type === 'number') numberCells.push(key);
-  }
-  const shuffled = shuffle(numberCells);
-  const slotCount = Math.max(2, Math.ceil(numberCells.length * 0.45));
-  const slotKeys = new Set(shuffled.slice(0, slotCount));
-
-  for (const key of slotKeys) {
-    const cell = cells[key];
-    allValues.push(cell.value);
-    slotPositions.push(key);
-    cells[key] = { ...cell, type: 'slot', answer: cell.value };
-  }
-
-  return { cells, rows, cols, slotPositions, trayValues: shuffle(allValues) };
+  return null;
 }
 
-function MathCrossGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail, playPop }) {
+/** Find `op, b` so that `d op b = e`. */
+function closeBetween(d, e, ops) {
+  for (const op of shuffle(ops)) {
+    if (op === '+' && e > d) return { op, b: e - d };
+    if (op === '-' && d > e) return { op, b: d - e };
+    if (op === 'x' && d >= 2 && e % d === 0 && e / d >= 2 && e / d <= 9) return { op, b: e / d };
+  }
+  return null;
+}
+
+export function evaluate(x, op, y) {
+  if (op === '+') return x + y;
+  if (op === '-') return x - y;
+  return x * y;
+}
+
+/** Returns { equations: [{ op, cells:[k1,k2,k3] }], values: { key: number } } */
+function buildShape(shape, ops, max) {
+  for (let attempt = 0; attempt < 500; attempt++) {
+    if (shape === 'cross') {
+      // Across: (2,0) op (2,2) = (2,4); Down: (0,2) op (2,2) = (4,2)
+      const a = randInt(2, Math.max(2, max - 2));
+      const h = extendFrom(a, ops, max);
+      if (!h) continue;
+      const mid = h.b;
+      const op = ops[randInt(0, ops.length - 1)];
+      let va, vc;
+      if (op === '+') {
+        if (max - mid < 1) continue;
+        va = randInt(1, max - mid);
+        vc = va + mid;
+      } else {
+        vc = randInt(1, Math.max(1, max - mid));
+        va = vc + mid;
+        if (va > max) continue;
+      }
+      return {
+        equations: [
+          { op: h.op, cells: ['2,0', '2,2', '2,4'] },
+          { op,       cells: ['0,2', '2,2', '4,2'] },
+        ],
+        values: { '2,0': a, '2,2': mid, '2,4': h.c, '0,2': va, '4,2': vc },
+      };
+    }
+
+    // Frame: top (0,0)(0,2)(0,4), left (0,0)(2,0)(4,0), right (0,4)(2,4)(4,4), bottom (4,0)(4,2)(4,4)
+    const hasTimes = ops.includes('x');
+    const a0 = hasTimes ? randInt(2, 9) : randInt(2, Math.max(2, Math.floor(max * 0.7)));
+    const top = extendFrom(a0, ops, max);
+    if (!top) continue;
+    const left = extendFrom(a0, ops, max);
+    const right = extendFrom(top.c, ops, max);
+    if (!left || !right) continue;
+    const bottom = closeBetween(left.c, right.c, ops);
+    if (!bottom || bottom.b > max) continue;
+    // Avoid the dull case of all four equations using the same sign on hard
+    if (hasTimes && ![top, left, right, bottom].some(e => e.op === 'x')) continue;
+    return {
+      equations: [
+        { op: top.op,    cells: ['0,0', '0,2', '0,4'] },
+        { op: left.op,   cells: ['0,0', '2,0', '4,0'] },
+        { op: right.op,  cells: ['0,4', '2,4', '4,4'] },
+        { op: bottom.op, cells: ['4,0', '4,2', '4,4'] },
+      ],
+      values: {
+        '0,0': a0, '0,2': top.b, '0,4': top.c,
+        '2,0': left.b, '4,0': left.c,
+        '2,4': right.b, '4,4': right.c,
+        '4,2': bottom.b,
+      },
+    };
+  }
+  // Guaranteed fallback (never expected to be reached)
+  return {
+    equations: [
+      { op: '+', cells: ['2,0', '2,2', '2,4'] },
+      { op: '+', cells: ['0,2', '2,2', '4,2'] },
+    ],
+    values: { '2,0': 2, '2,2': 3, '2,4': 5, '0,2': 1, '4,2': 4 },
+  };
+}
+
+/** Lay out a full puzzle on a 5 x 5 board. */
+export function generatePuzzle(difficulty) {
+  const cfg = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
+  const { equations, values } = buildShape(cfg.shape, cfg.ops, cfg.max);
+
+  const cells = {};
+  equations.forEach(({ op, cells: [k1, k2, k3] }) => {
+    const [r1, c1] = k1.split(',').map(Number);
+    const [r3, c3] = k3.split(',').map(Number);
+    const across = r1 === r3;
+    const opKey = across ? `${r1},${c1 + 1}` : `${r1 + 1},${c1}`;
+    const eqKey = across ? `${r3},${c3 - 1}` : `${r3 - 1},${c3}`;
+    cells[opKey] = { type: 'op', value: op };
+    cells[eqKey] = { type: 'op', value: '=' };
+    [k1, k2, k3].forEach(k => { cells[k] = { type: 'number', answer: values[k] }; });
+  });
+
+  // Choose blanks: each equation must keep at least one printed clue.
+  const numberKeys = Object.keys(values);
+  let blanks = [];
+  for (let n = cfg.blanks; n >= 1 && blanks.length === 0; n--) {
+    for (let attempt = 0; attempt < 200; attempt++) {
+      const pick = shuffle(numberKeys).slice(0, n);
+      const set = new Set(pick);
+      if (equations.every(eq => eq.cells.some(k => !set.has(k)))) { blanks = pick; break; }
+    }
+  }
+  blanks.forEach(k => { cells[k] = { ...cells[k], type: 'slot' }; });
+
+  return {
+    cells,
+    equations,
+    slots: blanks,
+    tray: shuffle(blanks.map(k => values[k])),
+  };
+}
+
+function valueAt(puzzle, placed, key) {
+  const cell = puzzle.cells[key];
+  if (cell.type === 'number') return cell.answer;
+  const idx = placed[key];
+  return idx == null ? null : puzzle.tray[idx];
+}
+
+/** Indices of equations that are fully filled but false. */
+function wrongEquations(puzzle, placed) {
+  const out = [];
+  puzzle.equations.forEach((eq, i) => {
+    const [x, y, z] = eq.cells.map(k => valueAt(puzzle, placed, k));
+    if (x == null || y == null || z == null) return;
+    if (evaluate(x, eq.op, y) !== z) out.push(i);
+  });
+  return out;
+}
+
+export function starsFor(helpUsed) {
+  if (helpUsed === 0) return 3;
+  if (helpUsed <= 2) return 2;
+  return 1;
+}
+
+function fill(template, vars) {
+  return Object.entries(vars).reduce((s, [k, v]) => s.replace(`{${k}}`, v), template);
+}
+
+function MathCrossGame({ difficulty, onComplete, reportScore, reportRound, playClick, playSuccess, playFail, playPop }) {
   const t = useTranslation();
+  const tx = t.games['math-cross'];
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const { rounds } = config;
+  const total = config.puzzles;
 
   const [round, setRound] = useState(0);
   const [score, setScore] = useState(0);
-  const [puzzle, setPuzzle] = useState(() =>
-    generatePuzzle(config.hCount, config.vCount, config.maxNum)
-  );
-  const [placed, setPlaced] = useState({});       // slotKey → trayIndex
-  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [puzzle, setPuzzle] = useState(() => generatePuzzle(difficulty));
+  const [placed, setPlaced] = useState({});          // slotKey -> tray index
+  const [hinted, setHinted] = useState(() => new Set()); // locked slot keys
+  const [history, setHistory] = useState([]);        // snapshots for Undo
   const [selectedTray, setSelectedTray] = useState(null);
-  const [usedTray, setUsedTray] = useState(new Set());
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [help, setHelp] = useState(0);               // hints + wrong full attempts
+  const [wrong, setWrong] = useState([]);            // wrong equation indices
+  const [flashKey, setFlashKey] = useState(null);
+  const [banner, setBanner] = useState(null);        // { kind, text }
   const [solved, setSolved] = useState(false);
-  const [justPlacedKey, setJustPlacedKey] = useState(null);
-  const advanceTimerRef = useRef(null);
+
+  // Ref mirrors so timer callbacks always see fresh values
+  const scoreRef = useRef(0);
   const doneRef = useRef(false);
-  const stateRef = useRef({ score, round, rounds, config, onComplete, reportScore, playSuccess });
-  stateRef.current = { score, round, rounds, config, onComplete, reportScore, playSuccess };
+  const timersRef = useRef(new Set());
 
-  useEffect(() => () => clearTimeout(advanceTimerRef.current), []);
-
-  useEffect(() => {
-    if (secondsLeft === 0 && !doneRef.current) {
-      doneRef.current = true;
-      onComplete({ finalScore: score, maxScore: rounds, completed: false });
-    }
-  }, [secondsLeft, score, rounds, onComplete]);
-
-  // Check if all slots are correctly filled
-  const isSolved = useMemo(() => {
-    if (Object.keys(placed).length < puzzle.slotPositions.length) return false;
-    return puzzle.slotPositions.every(key => {
-      const trayIdx = placed[key];
-      if (trayIdx == null) return false;
-      return puzzle.trayValues[trayIdx] === puzzle.cells[key].answer;
-    });
-  }, [placed, puzzle]);
+  const later = useCallback((fn, ms) => {
+    const id = setTimeout(() => { timersRef.current.delete(id); fn(); }, ms);
+    timersRef.current.add(id);
+  }, []);
 
   useEffect(() => {
-    if (!isSolved || solved || doneRef.current) return;
-    setSolved(true);
+    const timers = timersRef.current;
+    return () => { timers.forEach(clearTimeout); timers.clear(); };
+  }, []);
 
-    const { score: s, round: r, rounds: total, config: cfg, onComplete: oc, reportScore: rs, playSuccess: ps } = stateRef.current;
-    ps();
-    const newScore = s + 1;
+  useEffect(() => { reportRound?.(round + 1, total); }, [round, total, reportRound]);
+
+  const usedTray = new Set(Object.values(placed));
+
+  const finishPuzzle = useCallback((helpUsed) => {
+    const stars = starsFor(helpUsed);
+    const newScore = scoreRef.current + stars;
+    scoreRef.current = newScore;
     setScore(newScore);
-    rs(newScore);
-
-    clearTimeout(advanceTimerRef.current);
-    advanceTimerRef.current = setTimeout(() => {
+    reportScore(newScore);
+    setSolved(true);
+    setWrong([]);
+    playSuccess();
+    const last = round + 1 >= total;
+    setBanner({ kind: 'good', text: last ? tx.allSolved : tx.solved, stars });
+    later(() => {
       if (doneRef.current) return;
-      const nextRound = r + 1;
-      if (nextRound >= total) {
+      if (last) {
         doneRef.current = true;
-        oc({ finalScore: newScore, maxScore: total, completed: true });
+        onComplete({ finalScore: newScore, maxScore: total * STARS_PER_PUZZLE, completed: true });
         return;
       }
-      setRound(nextRound);
-      setPuzzle(generatePuzzle(cfg.hCount, cfg.vCount, cfg.maxNum));
+      setRound(r => r + 1);
+      setPuzzle(generatePuzzle(difficulty));
       setPlaced({});
-      setSelectedSlot(null);
+      setHinted(new Set());
+      setHistory([]);
       setSelectedTray(null);
-      setUsedTray(new Set());
+      setSelectedSlot(null);
+      setHelp(0);
+      setBanner(null);
       setSolved(false);
-      setJustPlacedKey(null);
-    }, 900);
-  }, [isSolved, solved]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, 1600);
+  }, [round, total, tx, difficulty, later, onComplete, reportScore, playSuccess]);
 
-  // Place a number: either select tray then slot, or slot then tray
-  const placeNumber = useCallback((slotKey, trayIdx) => {
-    playPop();
-    setPlaced(prev => ({ ...prev, [slotKey]: trayIdx }));
-    setUsedTray(prev => new Set([...prev, trayIdx]));
-    setSelectedSlot(null);
+  /** Apply a new placement map and check the board. */
+  const commit = useCallback((nextPlaced, nextHinted, helpUsed, { countMistake = true } = {}) => {
+    setHistory(h => [...h, { placed, hinted }]);
+    setPlaced(nextPlaced);
+    setHinted(nextHinted);
     setSelectedTray(null);
-    setJustPlacedKey(slotKey);
-    setTimeout(() => setJustPlacedKey(null), 250);
-  }, [playPop]);
+    setSelectedSlot(null);
 
-  // Remove a placed number
-  const removePlaced = useCallback((slotKey) => {
-    if (solved) return;
-    const trayIdx = placed[slotKey];
-    if (trayIdx == null) return;
-    playClick();
-    setPlaced(prev => {
-      const next = { ...prev };
-      delete next[slotKey];
-      return next;
-    });
-    setUsedTray(prev => {
-      const next = new Set(prev);
-      next.delete(trayIdx);
-      return next;
-    });
-    setSelectedTray(trayIdx);
-  }, [solved, placed, playClick]);
+    const bad = wrongEquations(puzzle, nextPlaced);
+    const full = puzzle.slots.every(k => nextPlaced[k] != null);
+    if (full && bad.length === 0) {
+      finishPuzzle(helpUsed);
+      return;
+    }
+    setWrong(full ? bad : []);
+    if (full) {
+      playFail();
+      setBanner({ kind: 'bad', text: tx.notQuite });
+      if (countMistake) setHelp(helpUsed + 1);
+    } else {
+      setBanner(null);
+    }
+  }, [placed, hinted, puzzle, finishPuzzle, playFail, tx]);
 
-  const handleSlotClick = useCallback((key) => {
-    if (solved) return;
-    // If slot already has a number placed, remove it
+  const place = useCallback((slotKey, trayIdx) => {
+    playPop();
+    setFlashKey(slotKey);
+    later(() => setFlashKey(null), 300);
+    commit({ ...placed, [slotKey]: trayIdx }, hinted, help);
+  }, [placed, hinted, help, commit, later, playPop]);
+
+  const handleSlot = useCallback((key) => {
+    if (solved || hinted.has(key)) return;
     if (placed[key] != null) {
-      removePlaced(key);
+      playClick();
+      const next = { ...placed };
+      delete next[key];
+      commit(next, hinted, help, { countMistake: false });
       return;
     }
-    // If a tray number is selected, place it
-    if (selectedTray != null) {
-      placeNumber(key, selectedTray);
-      return;
-    }
-    // Otherwise select/deselect this slot
+    if (selectedTray != null) { place(key, selectedTray); return; }
     playClick();
-    setSelectedSlot(prev => prev === key ? null : key);
-  }, [solved, placed, selectedTray, playClick, placeNumber, removePlaced]);
+    setSelectedSlot(s => (s === key ? null : key));
+  }, [solved, hinted, placed, selectedTray, help, commit, place, playClick]);
 
-  const handleTrayClick = useCallback((idx) => {
+  const handleTray = useCallback((idx) => {
     if (solved || usedTray.has(idx)) return;
-    // If a slot is selected, place into it
-    if (selectedSlot != null) {
-      placeNumber(selectedSlot, idx);
-      return;
-    }
-    // Otherwise select/deselect this tray number
+    if (selectedSlot != null) { place(selectedSlot, idx); return; }
     playClick();
-    setSelectedTray(prev => prev === idx ? null : idx);
-  }, [solved, usedTray, selectedSlot, playClick, placeNumber]);
+    setSelectedTray(s => (s === idx ? null : idx));
+  }, [solved, usedTray, selectedSlot, place, playClick]);
 
-  // Contextual hint for seniors
-  const slotsLeft = puzzle.slotPositions.length - Object.keys(placed).length;
-  const hintText = solved
-    ? 'Solved!'
+  const handleHint = useCallback(() => {
+    if (solved) return;
+    const valOf = k => (placed[k] == null ? null : puzzle.tray[placed[k]]);
+    const answer = k => puzzle.cells[k].answer;
+    // Prefer an empty slot, otherwise one holding the wrong number
+    const target =
+      shuffle(puzzle.slots.filter(k => !hinted.has(k) && placed[k] == null))[0] ??
+      shuffle(puzzle.slots.filter(k => !hinted.has(k) && valOf(k) !== answer(k)))[0];
+    if (!target) return;
+    const want = answer(target);
+    const next = { ...placed };
+    delete next[target];
+    const inUse = new Set(Object.values(next));
+    let idx = puzzle.tray.findIndex((v, i) => v === want && !inUse.has(i));
+    if (idx === -1) {
+      // Take it back from a slot that holds it but needs something else
+      const donor = puzzle.slots.find(k => next[k] != null && puzzle.tray[next[k]] === want && answer(k) !== want && !hinted.has(k));
+      if (!donor) return;
+      idx = next[donor];
+      delete next[donor];
+    }
+    next[target] = idx;
+    const nextHinted = new Set(hinted);
+    nextHinted.add(target);
+    const helpUsed = help + 1;
+    setHelp(helpUsed);
+    playPop();
+    setFlashKey(target);
+    later(() => setFlashKey(null), 300);
+    commit(next, nextHinted, helpUsed, { countMistake: false });
+    if (!puzzle.slots.every(k => next[k] != null)) setBanner({ kind: 'info', text: tx.hintGiven });
+  }, [solved, placed, hinted, puzzle, help, commit, later, playPop, tx]);
+
+  const handleUndo = useCallback(() => {
+    if (solved || history.length === 0) return;
+    playClick();
+    const prev = history[history.length - 1];
+    setHistory(h => h.slice(0, -1));
+    setPlaced(prev.placed);
+    setHinted(prev.hinted);
+    setSelectedTray(null);
+    setSelectedSlot(null);
+    setWrong([]);
+    setBanner(null);
+  }, [solved, history, playClick]);
+
+  const handleReset = useCallback(() => {
+    if (solved) return;
+    playClick();
+    const keep = {};
+    hinted.forEach(k => { if (placed[k] != null) keep[k] = placed[k]; });
+    setHistory(h => [...h, { placed, hinted }]);
+    setPlaced(keep);
+    setSelectedTray(null);
+    setSelectedSlot(null);
+    setWrong([]);
+    setBanner(null);
+  }, [solved, hinted, placed, playClick]);
+
+  const wrongCells = new Set(wrong.flatMap(i => puzzle.equations[i].cells));
+  const emptyCount = puzzle.slots.filter(k => placed[k] == null).length;
+  const guide = solved
+    ? ' '
     : selectedTray != null
-    ? 'Now tap an empty slot on the grid'
+    ? tx.tapEmptySlot
     : selectedSlot != null
-    ? 'Now pick a number below'
-    : slotsLeft === puzzle.slotPositions.length
-    ? 'Tap a number below, then tap an empty slot'
-    : `${slotsLeft} slot${slotsLeft !== 1 ? 's' : ''} remaining`;
+    ? tx.pickNumber
+    : emptyCount === puzzle.slots.length
+    ? tx.tapNumberThenSlot
+    : emptyCount > 0
+    ? fill(tx.slotsLeft, { n: emptyCount })
+    : tx.tapToTakeBack;
+
+  const cellSize = 'clamp(52px, 16vw, 64px)';
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>{hintText}</span>
+      <div className={styles.hud}>
+        <div className={styles.hudBlock}>
+          <span className={styles.hudLabel}>{tx.label}</span>
+          <span className={styles.hudValue}>{fill(tx.puzzleOf, { n: round + 1, total })}</span>
         </div>
-        <div className={styles.infoBadge}>
-          <span className={styles.infoBadgeNum}>{round + 1}</span>
-          <span className={styles.infoBadgeSub}>/ {rounds}</span>
+        <div className={styles.hudBlock} aria-live="polite">
+          <span className={styles.hudLabel}>{tx.starsLabel}</span>
+          <span className={styles.hudValue}>★ {score} / {total * STARS_PER_PUZZLE}</span>
         </div>
       </div>
 
-      <div className={styles.playArea}>
-      {/* Grid */}
+      <p className={styles.guide} aria-live="polite">{guide}</p>
+
       <div
         className={`${styles.grid} ${solved ? styles.gridSolved : ''}`}
-        style={{ gridTemplateColumns: `repeat(${puzzle.cols}, clamp(40px, 10vw, 54px))` }}
-        role="grid"
-        aria-label="Math cross puzzle grid"
+        style={{ gridTemplateColumns: `repeat(5, ${cellSize})`, gridTemplateRows: `repeat(5, ${cellSize})` }}
+        role="group"
+        aria-label={tx.gridAria}
+        key={round}
       >
-        {Array.from({ length: puzzle.rows }, (_, r) =>
-          Array.from({ length: puzzle.cols }, (_, c) => {
-            const key = `${r},${c}`;
-            const cell = puzzle.cells[key];
-            if (!cell) {
-              return <div key={key} className={`${styles.cell} ${styles.cellBlank}`} />;
-            }
-            if (cell.type === 'op') {
-              return (
-                <div key={key} className={`${styles.cell} ${styles.cellOp}`} aria-label={cell.value === 'x' ? 'times' : cell.value === '=' ? 'equals' : cell.value === '+' ? 'plus' : 'minus'}>
-                  {cell.value}
-                </div>
-              );
-            }
-            if (cell.type === 'number') {
-              return (
-                <div key={key} className={`${styles.cell} ${solved ? styles.cellCorrect : styles.cellGiven}`} aria-label={`${cell.value}`}>
-                  {cell.value}
-                </div>
-              );
-            }
-            // slot
-            const placedIdx = placed[key];
-            const isFilled = placedIdx != null;
-            const isSelected = selectedSlot === key;
-            const isJust = justPlacedKey === key;
-            const value = isFilled ? puzzle.trayValues[placedIdx] : '';
-
-            let cls = `${styles.cell}`;
-            if (solved) cls += ` ${styles.cellCorrect}`;
-            else if (isFilled) cls += ` ${styles.cellFilled}`;
-            else cls += ` ${styles.cellSlot}`;
-            if (isSelected) cls += ` ${styles.cellSlotSelected}`;
-            if (isJust) cls += ` ${styles.cellJustPlaced}`;
-
+        {Array.from({ length: 25 }, (_, i) => {
+          const r = Math.floor(i / 5);
+          const c = i % 5;
+          const key = `${r},${c}`;
+          const cell = puzzle.cells[key];
+          if (!cell) return <div key={key} className={styles.cellBlank} />;
+          if (cell.type === 'op') {
+            return <div key={key} className={`${styles.cell} ${styles.cellOp}`} aria-hidden="true">{OP_SYMBOL[cell.value]}</div>;
+          }
+          const isWrong = wrongCells.has(key);
+          if (cell.type === 'number') {
             return (
-              <button
-                key={key}
-                className={cls}
-                onClick={() => handleSlotClick(key)}
-                disabled={solved}
-                aria-label={isFilled ? `Placed ${value}, tap to remove` : `Empty slot row ${r + 1} col ${c + 1}`}
-              >
-                {value}
-              </button>
+              <div key={key} className={`${styles.cell} ${styles.cellGiven} ${solved ? styles.cellDone : ''} ${isWrong ? styles.cellWrong : ''}`}>
+                {cell.answer}
+              </div>
             );
-          })
+          }
+          const idx = placed[key];
+          const filled = idx != null;
+          const value = filled ? puzzle.tray[idx] : '';
+          const isHint = hinted.has(key);
+          let cls = `${styles.cell} ${styles.slot}`;
+          if (filled) cls += ` ${styles.slotFilled}`;
+          if (isHint) cls += ` ${styles.slotHint}`;
+          if (selectedSlot === key) cls += ` ${styles.slotSelected}`;
+          if (isWrong && filled) cls += ` ${styles.cellWrong}`;
+          if (solved) cls += ` ${styles.cellDone}`;
+          if (flashKey === key) cls += ` ${styles.slotPop}`;
+          return (
+            <button
+              key={key}
+              type="button"
+              className={cls}
+              onClick={() => handleSlot(key)}
+              disabled={solved || isHint}
+              aria-label={filled ? fill(tx.slotFilledAria, { value }) : tx.slotEmptyAria}
+            >
+              {value}
+              {isWrong && filled && <span className={styles.wrongMark} aria-hidden="true">✗</span>}
+              {isHint && <span className={styles.hintMark} aria-hidden="true">💡</span>}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className={styles.bannerSlot} aria-live="assertive">
+        {banner && (
+          <div className={`${styles.banner} ${styles[`banner_${banner.kind}`]}`}>
+            {banner.kind === 'good' && <span className={styles.bannerStars}>{'★'.repeat(banner.stars)}{'☆'.repeat(3 - banner.stars)}</span>}
+            <span>{banner.text}</span>
+          </div>
         )}
       </div>
 
-      {/* Tray label */}
-      <div className={styles.trayLabel}>Available Numbers</div>
-
-      {/* Number tray */}
-      <div className={styles.tray} role="group" aria-label="Available numbers to place">
-        {puzzle.trayValues.map((val, idx) => {
+      <div className={styles.trayLabel}>{tx.numbersLabel}</div>
+      <div className={styles.tray} role="group" aria-label={tx.numbersLabel}>
+        {puzzle.tray.map((val, idx) => {
           const used = usedTray.has(idx);
-          const selected = selectedTray === idx;
           let cls = styles.trayNum;
-          if (selected) cls += ` ${styles.trayNumSelected}`;
+          if (selectedTray === idx) cls += ` ${styles.trayNumSelected}`;
           if (used) cls += ` ${styles.trayNumUsed}`;
-
           return (
             <button
               key={idx}
+              type="button"
               className={cls}
-              onClick={() => handleTrayClick(idx)}
+              onClick={() => handleTray(idx)}
               disabled={used || solved}
-              aria-label={`Number ${val}${used ? ', used' : selected ? ', selected' : ''}`}
+              aria-pressed={selectedTray === idx}
             >
               {val}
             </button>
           );
         })}
       </div>
+
+      <div className={styles.actions}>
+        <button type="button" className={styles.actionBtn} onClick={handleHint} disabled={solved}>💡 {tx.hint}</button>
+        <button type="button" className={styles.actionBtn} onClick={handleUndo} disabled={solved || history.length === 0}>↶ {tx.undo}</button>
+        <button type="button" className={styles.actionBtn} onClick={handleReset} disabled={solved || emptyCount === puzzle.slots.length}>⟲ {tx.reset}</button>
       </div>
     </div>
   );
@@ -551,7 +518,7 @@ MathCrossGame.propTypes = {
   difficulty:  PropTypes.string.isRequired,
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
-  secondsLeft: PropTypes.number,
+  reportRound: PropTypes.func,
   playClick:   PropTypes.func.isRequired,
   playSuccess: PropTypes.func.isRequired,
   playFail:    PropTypes.func.isRequired,
@@ -574,12 +541,12 @@ export function MathCross({ memberId, difficulty = 'easy', onComplete, callbackU
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ difficulty: diff, onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail, playPop }) => (
+      {({ difficulty: diff, onComplete: sc, reportScore, reportRound, playClick, playSuccess, playFail, playPop }) => (
         <MathCrossGame
           difficulty={diff}
           onComplete={sc}
           reportScore={reportScore}
-          secondsLeft={secondsLeft}
+          reportRound={reportRound}
           playClick={playClick}
           playSuccess={playSuccess}
           playFail={playFail}
