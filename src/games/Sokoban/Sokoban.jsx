@@ -1,42 +1,21 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './Sokoban.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
+import { DIRS, parseLevel, tryMove, isSolved, walkPath, nextHint, starsFor } from './sokobanLogic';
 
-/* ── Tile types ── */
-const WALL  = '#';
-const FLOOR = ' ';
-const BOX   = '$';
-const GOAL  = '.';
-const BOX_ON_GOAL = '*';
-const PLAYER = '@';
-const PLAYER_ON_GOAL = '+';
+/*
+ * Sokoban for seniors: no clock, a few hand-picked puzzles per difficulty
+ * (every one checked solvable by the solver in sokobanLogic.test.js).
+ * Hint shows the next step, Undo / Start over are always available, and
+ * each puzzle earns 1-3 stars depending on how much help was used.
+ */
 
-/* ── Level packs by difficulty ── */
-const LEVELS = {
+/* '#' wall, ' ' floor, '$' box, '.' target, '@' you */
+export const LEVELS = {
   easy: [
-    // 1 – straight push
-    [
-      '######',
-      '#    #',
-      '# $  #',
-      '# .@ #',
-      '#    #',
-      '######',
-    ],
-    // 2 – two boxes
-    [
-      '#######',
-      '#     #',
-      '# $.$ #',
-      '#  @  #',
-      '#  .  #',
-      '#     #',
-      '#######',
-    ],
-    // 3 – L-shape
     [
       '  ####',
       '###  #',
@@ -46,16 +25,15 @@ const LEVELS = {
       '#    #',
       '######',
     ],
-    // 4 – corridor
     [
       '########',
-      '#      #',
-      '# $ $  #',
-      '# .@.  #',
-      '#      #',
+      '#  #   #',
+      '# $  $ #',
+      '#  ##  #',
+      '# .  . #',
+      '#   @  #',
       '########',
     ],
-    // 5 – corner push
     [
       '#####',
       '#   #',
@@ -68,52 +46,14 @@ const LEVELS = {
     ],
   ],
   medium: [
-    // 1
     [
-      '  #####',
-      '###   #',
-      '# $ # #',
-      '# #.  #',
-      '# $.# #',
-      '##    #',
-      ' #@ ###',
-      ' ####',
-    ],
-    // 2
-    [
-      '########',
-      '#   #  #',
-      '# $  $ #',
-      '## ## ##',
-      ' #.@. #',
-      ' # $  #',
-      ' #  . #',
-      ' ######',
-    ],
-    // 3
-    [
-      '  ####',
-      '  #  ###',
-      '  #  $ #',
-      '### .# #',
-      '#  .$ ##',
-      '# #.$ #',
-      '#   @ #',
+      ' #####',
+      '##   #',
+      '# $# ##',
+      '# $ . #',
+      '#. @  #',
       '#######',
     ],
-    // 4
-    [
-      '#######',
-      '#  .  #',
-      '# #$# #',
-      '#  $  #',
-      '##.@.##',
-      '#  $  #',
-      '# #$# #',
-      '#  .  #',
-      '#######',
-    ],
-    // 5
     [
       ' ######',
       '##    #',
@@ -124,62 +64,26 @@ const LEVELS = {
       '  # @##',
       '  ####',
     ],
-    // 6
     [
-      '######',
-      '#    ##',
-      '# ## .#',
-      '# $  .#',
-      '## $#.#',
-      ' #$ @ #',
-      ' #  ###',
-      ' ####',
+      '#######',
+      '#. .  #',
+      '# $$  #',
+      '## #$ #',
+      '#  . @#',
+      '#######',
     ],
-  ],
-  hard: [
-    // 1
     [
       '  #####',
       '###   #',
-      '#.$$  #',
-      '#.# $ #',
-      '#.  $ #',
-      '#.@ ###',
-      '#  ##',
-      '####',
+      '# $ $ #',
+      '# #.# #',
+      '# .@. #',
+      '## $ ##',
+      ' #   #',
+      ' #####',
     ],
-    // 2
-    [
-      '  ######',
-      '  #    #',
-      '###$## #',
-      '#  $ ..#',
-      '# $  ..#',
-      '### $# #',
-      '  #  @ #',
-      '  ######',
-    ],
-    // 3
-    [
-      ' #######',
-      ' #  .  #',
-      ' #  $  #',
-      '##$.$##',
-      '#  $  #',
-      '#  .. @#',
-      '########',
-    ],
-    // 4
-    [
-      '  ######',
-      '###    #',
-      '#  $.$ #',
-      '# .#.  #',
-      '# $#$  #',
-      '##  .@##',
-      ' ######',
-    ],
-    // 5
+  ],
+  hard: [
     [
       '########',
       '#  . . #',
@@ -188,7 +92,6 @@ const LEVELS = {
       '#  @  #',
       '#######',
     ],
-    // 6
     [
       '  ####',
       '###  ####',
@@ -199,369 +102,343 @@ const LEVELS = {
       '####  @ #',
       '   ######',
     ],
-    // 7
     [
-      '#######',
-      '#     #',
-      '# .#. #',
-      '# $$$ #',
-      '##.#.##',
-      '# $$$ #',
-      '# .#. #',
-      '#  @  #',
+      ' #######',
+      ' #  .  #',
+      ' #  $  #',
+      '##$.$##',
+      '#  $  #',
+      '#  .. @#',
+      '########',
+    ],
+    [
+      '########',
+      '#   #  #',
+      '# $   .#',
+      '# #$## #',
+      '#.  $ .#',
+      '# #@ $ #',
+      '#   . ##',
       '#######',
     ],
   ],
 };
 
-const TIME_LIMITS = {
-  easy:   null,
-  medium: null,
-  hard:   null,
+const TIME_LIMITS = { easy: null, medium: null, hard: null };
+const ARROWS = { up: '⬆', down: '⬇', left: '⬅', right: '➡' };
+const KEY_DIRS = {
+  ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+  w: 'up', s: 'down', a: 'left', d: 'right', W: 'up', S: 'down', A: 'left', D: 'right',
 };
-
-/* ── Parse a level string array into a grid ── */
-function parseLevel(lines) {
-  const height = lines.length;
-  const width = Math.max(...lines.map(l => l.length));
-  const grid = [];
-  let playerR = 0, playerC = 0;
-
-  for (let r = 0; r < height; r++) {
-    const row = [];
-    for (let c = 0; c < width; c++) {
-      const ch = (lines[r] || '')[c] || ' ';
-      if (ch === PLAYER || ch === PLAYER_ON_GOAL) {
-        playerR = r;
-        playerC = c;
-      }
-      row.push(ch);
-    }
-    grid.push(row);
-  }
-
-  return { grid, playerR, playerC, height, width };
-}
-
-/* ── Check if all goals are covered ── */
-function isSolved(grid) {
-  for (const row of grid) {
-    for (const cell of row) {
-      if (cell === GOAL || cell === PLAYER_ON_GOAL) return false;
-    }
-  }
-  return true;
-}
-
-/* ── Detect a box pushed into an unwinnable corner ──
-   A box (not on a goal) is unrecoverable when two perpendicular neighbours are
-   walls/edges — it can never be pushed out. Used to warn the player so they can
-   undo instead of being stuck without realising it. */
-function hasDeadlockedBox(grid) {
-  const rows = grid.length;
-  const cols = grid[0].length;
-  const blocked = (r, c) => {
-    if (r < 0 || r >= rows || c < 0 || c >= cols) return true; // outside = wall
-    return grid[r][c] === WALL;
-  };
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      if (grid[r][c] !== BOX) continue; // BOX_ON_GOAL is fine
-      const up = blocked(r - 1, c);
-      const down = blocked(r + 1, c);
-      const left = blocked(r, c - 1);
-      const right = blocked(r, c + 1);
-      // Cornered: a vertical wall AND a horizontal wall meet at the box.
-      if ((up || down) && (left || right)) return true;
-    }
-  }
-  return false;
-}
-
-/* ── Try to move in a direction; returns new state or null ── */
-function tryMove(grid, playerR, playerC, dr, dc) {
-  const rows = grid.length;
-  const cols = grid[0].length;
-  const nr = playerR + dr;
-  const nc = playerC + dc;
-
-  if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) return null;
-
-  const target = grid[nr][nc];
-
-  // Wall – can't move
-  if (target === WALL) return null;
-
-  // Box or box-on-goal – try to push
-  if (target === BOX || target === BOX_ON_GOAL) {
-    const br = nr + dr;
-    const bc = nc + dc;
-    if (br < 0 || br >= rows || bc < 0 || bc >= cols) return null;
-    const behind = grid[br][bc];
-    if (behind !== FLOOR && behind !== GOAL) return null;
-
-    // Clone grid
-    const newGrid = grid.map(row => [...row]);
-
-    // Move box
-    newGrid[br][bc] = behind === GOAL ? BOX_ON_GOAL : BOX;
-    // Player moves to box's old spot
-    const boxWasOnGoal = target === BOX_ON_GOAL;
-    newGrid[nr][nc] = boxWasOnGoal ? PLAYER_ON_GOAL : PLAYER;
-    // Player's old spot
-    const playerWasOnGoal = grid[playerR][playerC] === PLAYER_ON_GOAL;
-    newGrid[playerR][playerC] = playerWasOnGoal ? GOAL : FLOOR;
-
-    return { grid: newGrid, playerR: nr, playerC: nc, pushed: true };
-  }
-
-  // Floor or goal – just walk
-  if (target === FLOOR || target === GOAL) {
-    const newGrid = grid.map(row => [...row]);
-    newGrid[nr][nc] = target === GOAL ? PLAYER_ON_GOAL : PLAYER;
-    const playerWasOnGoal = grid[playerR][playerC] === PLAYER_ON_GOAL;
-    newGrid[playerR][playerC] = playerWasOnGoal ? GOAL : FLOOR;
-    return { grid: newGrid, playerR: nr, playerC: nc, pushed: false };
-  }
-
-  return null;
-}
-
-/* ── Direction helpers ── */
-const DIR_MAP = {
-  ArrowUp:    [-1,  0],
-  ArrowDown:  [ 1,  0],
-  ArrowLeft:  [ 0, -1],
-  ArrowRight: [ 0,  1],
-  w: [-1, 0], W: [-1, 0],
-  s: [ 1, 0], S: [ 1, 0],
-  a: [ 0,-1], A: [ 0,-1],
-  d: [ 0, 1], D: [ 0, 1],
-};
-
-/* ── Tile rendering helpers ── */
-function tileClass(ch, s) {
-  switch (ch) {
-    case WALL:           return s.tileWall;
-    case FLOOR:          return s.tileFloor;
-    case BOX:            return s.tileBox;
-    case GOAL:           return s.tileGoal;
-    case BOX_ON_GOAL:    return s.tileBoxOnGoal;
-    case PLAYER:         return s.tilePlayer;
-    case PLAYER_ON_GOAL: return s.tilePlayer;
-    default:             return s.tileOutside;
-  }
-}
-
-// Direction → rotation degrees for the player SVG (default faces up)
-const DIR_ROTATION = { up: 0, down: 180, left: 270, right: 90 };
 
 function PlayerSVG({ direction }) {
-  const rot = DIR_ROTATION[direction] ?? 0;
+  const rot = { up: 0, right: 90, down: 180, left: 270 }[direction] ?? 180;
   return (
-    <svg viewBox="0 0 32 32" width="82%" height="82%" style={{ display: 'block', overflow: 'visible' }}>
+    <svg viewBox="0 0 32 32" width="84%" height="84%" aria-hidden="true" style={{ display: 'block', overflow: 'visible' }}>
       <g transform={`rotate(${rot}, 16, 16)`}>
-        {/* Body (torso) — top-down oval */}
-        <ellipse cx="16" cy="18" rx="5.5" ry="6" fill="#3B82F6" />
-        {/* Head — top-down circle, above body */}
-        <circle cx="16" cy="11" r="5.5" fill="#FBBF24" stroke="#D97706" strokeWidth="0.8" />
-        {/* Face eyes */}
-        <circle cx="14" cy="10.5" r="1" fill="#1e1e1e" />
-        <circle cx="18" cy="10.5" r="1" fill="#1e1e1e" />
-        {/* Arms stretched forward (upward in default/up direction) */}
-        <line x1="11" y1="17" x2="7"  y2="10" stroke="#FBBF24" strokeWidth="2.8" strokeLinecap="round" />
-        <line x1="21" y1="17" x2="25" y2="10" stroke="#FBBF24" strokeWidth="2.8" strokeLinecap="round" />
-        {/* Hands */}
-        <circle cx="7"  cy="9.5" r="2" fill="#FBBF24" stroke="#D97706" strokeWidth="0.8" />
-        <circle cx="25" cy="9.5" r="2" fill="#FBBF24" stroke="#D97706" strokeWidth="0.8" />
-
+        <ellipse cx="16" cy="19" rx="6.5" ry="7" fill="#1d4ed8" stroke="#1e3a8a" strokeWidth="1" />
+        <line x1="10.5" y1="17" x2="7" y2="10" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" />
+        <line x1="21.5" y1="17" x2="25" y2="10" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" />
+        <circle cx="16" cy="11.5" r="6" fill="#fcd34d" stroke="#b45309" strokeWidth="1" />
+        <circle cx="13.8" cy="10.5" r="1.1" fill="#111827" />
+        <circle cx="18.2" cy="10.5" r="1.1" fill="#111827" />
       </g>
     </svg>
   );
 }
+PlayerSVG.propTypes = { direction: PropTypes.string };
 
 function BoxSVG({ onGoal }) {
+  const fill = onGoal ? '#f59e0b' : '#b7834a';
+  const edge = onGoal ? '#78350f' : '#5b3a1a';
   return (
-    <svg viewBox="0 0 32 32" width="78%" height="78%" style={{ display: 'block' }}>
-      <rect x="3" y="3" width="26" height="26" rx="4" fill={onGoal ? '#68d391' : '#c8a96e'} stroke={onGoal ? '#276749' : '#8B6340'} strokeWidth="1.5" />
-      {/* Cross straps */}
-      <line x1="3" y1="16" x2="29" y2="16" stroke={onGoal ? '#276749' : '#8B6340'} strokeWidth="1.5" />
-      <line x1="16" y1="3" x2="16" y2="29" stroke={onGoal ? '#276749' : '#8B6340'} strokeWidth="1.5" />
-      {/* Shine */}
-      <rect x="5" y="5" width="8" height="4" rx="2" fill="white" opacity="0.25" />
-      {onGoal && <text x="16" y="21" textAnchor="middle" fontSize="12" fill="#276749">✓</text>}
+    <svg viewBox="0 0 32 32" width="86%" height="86%" aria-hidden="true" style={{ display: 'block' }}>
+      <rect x="2.5" y="2.5" width="27" height="27" rx="4" fill={fill} stroke={edge} strokeWidth="2" />
+      <rect x="6.5" y="6.5" width="19" height="19" rx="2" fill="none" stroke={edge} strokeWidth="1.5" opacity="0.6" />
+      {!onGoal && (
+        <>
+          <line x1="6.5" y1="6.5" x2="25.5" y2="25.5" stroke={edge} strokeWidth="1.5" opacity="0.6" />
+          <line x1="25.5" y1="6.5" x2="6.5" y2="25.5" stroke={edge} strokeWidth="1.5" opacity="0.6" />
+        </>
+      )}
+      {onGoal && (
+        <>
+          <circle cx="16" cy="16" r="8.5" fill="#ffffff" stroke={edge} strokeWidth="1.5" />
+          <path d="M11.5 16.3 L14.8 19.5 L20.8 12.8" fill="none" stroke="#111827" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" />
+        </>
+      )}
     </svg>
   );
 }
+BoxSVG.propTypes = { onGoal: PropTypes.bool };
 
 function GoalSVG() {
   return (
-    <svg viewBox="0 0 32 32" width="60%" height="60%" style={{ display: 'block' }}>
-      <circle cx="16" cy="16" r="10" fill="none" stroke="#e05252" strokeWidth="2.5" strokeDasharray="4 2" />
-      <circle cx="16" cy="16" r="3.5" fill="#e05252" opacity="0.7" />
+    <svg viewBox="0 0 32 32" width="70%" height="70%" aria-hidden="true" style={{ display: 'block' }}>
+      <circle cx="16" cy="16" r="11" fill="none" stroke="#b91c1c" strokeWidth="3" />
+      <circle cx="16" cy="16" r="5" fill="#b91c1c" />
     </svg>
   );
 }
 
-PlayerSVG.propTypes = { direction: PropTypes.string };
-BoxSVG.propTypes    = { onGoal: PropTypes.bool };
-
-function tileContent(ch, direction) {
-  switch (ch) {
-    case BOX:            return <BoxSVG onGoal={false} />;
-    case BOX_ON_GOAL:    return <BoxSVG onGoal={true} />;
-    case GOAL:           return <GoalSVG />;
-    case PLAYER:         return <PlayerSVG direction={direction} />;
-    case PLAYER_ON_GOAL: return <PlayerSVG direction={direction} />;
-    default:             return null;
-  }
+function useCellSize(width, height) {
+  const [vw, setVw] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 420));
+  useEffect(() => {
+    const onResize = () => setVw(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  const maxBoard = Math.min(480, vw - 32);
+  return Math.max(34, Math.min(60, Math.floor(maxBoard / Math.max(width, height))));
 }
 
-/* ══════════════════════════════════════════════════════ */
-/*  Inner game component                                */
-/* ══════════════════════════════════════════════════════ */
-function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+function freshStats() {
+  return { hints: 0, undos: 0, resets: 0 };
+}
+
+function SokobanGame({ difficulty, onComplete, reportScore, reportRound, playClick, playSuccess, playFail }) {
   const t = useTranslation();
-  const levels = LEVELS[difficulty] || LEVELS.easy;
-  const totalLevels = levels.length;
+  const tg = t.games['sokoban'];
+  const puzzles = LEVELS[difficulty] || LEVELS.easy;
+  const total = puzzles.length;
+  const maxScore = total * 3;
 
-  const [levelIdx, setLevelIdx] = useState(0);
-  const [state, setState] = useState(() => parseLevel(levels[0]));
-  const [moves, setMoves] = useState(0);
-  const [pushes, setPushes] = useState(0);
-  const [score, setScore] = useState(0);
-  const [solved, setSolved] = useState(false);
+  const [idx, setIdx] = useState(0);
+  const level = useMemo(() => parseLevel(puzzles[idx]), [puzzles, idx]);
+  const [pos, setPos] = useState(() => ({ player: level.player, boxes: level.boxes }));
   const [history, setHistory] = useState([]);
-  const [direction, setDirection] = useState('down');
-  const [stuck, setStuck] = useState(false);
+  const [moves, setMoves] = useState(0);
+  const [facing, setFacing] = useState('down');
+  const [stars, setStars] = useState(0);
+  const [message, setMessage] = useState(null); // { kind, text }
+  const [hint, setHint] = useState(null);       // { dir, box, pushDir, walking }
+  const [solved, setSolved] = useState(null);   // stars for the solved puzzle
+  const [bump, setBump] = useState(0);
+
+  const posRef = useRef(pos);
+  const historyRef = useRef(history);
+  const statsRef = useRef(freshStats());
+  const starsRef = useRef(0);
+  const busyRef = useRef(false);
+  const doneRef = useRef(false);
   const wrapperRef = useRef(null);
+  const touchRef = useRef(null);
+  const timersRef = useRef(new Set());
+  posRef.current = pos;
+  historyRef.current = history;
 
-  // Swipe handling
-  const touchStartRef = useRef(null);
-
-  // Focus for keyboard
+  const later = useCallback((fn, ms) => {
+    const h = setTimeout(() => { timersRef.current.delete(h); fn(); }, ms);
+    timersRef.current.add(h);
+    return h;
+  }, []);
   useEffect(() => {
-    wrapperRef.current?.focus();
-  }, [levelIdx]);
-
-
-  const doMove = useCallback((dr, dc) => {
-    if (solved) return;
-
-    // Update facing direction
-    if (dr === -1) setDirection('up');
-    else if (dr === 1) setDirection('down');
-    else if (dc === -1) setDirection('left');
-    else if (dc === 1) setDirection('right');
-
-    const result = tryMove(state.grid, state.playerR, state.playerC, dr, dc);
-    if (!result) {
-      playFail();
-      return;
-    }
-
-    playClick();
-    setHistory(prev => [...prev, { grid: state.grid, playerR: state.playerR, playerC: state.playerC, moves, pushes }]);
-    setState({ grid: result.grid, playerR: result.playerR, playerC: result.playerC, height: state.height, width: state.width });
-    setMoves(m => m + 1);
-    if (result.pushed) setPushes(p => p + 1);
-
-    // Warn if a box was just pushed into an unrecoverable corner.
-    if (result.pushed) setStuck(hasDeadlockedBox(result.grid));
-
-    // Check solved
-    if (isSolved(result.grid)) {
-      setSolved(true);
-      playSuccess();
-      const newScore = score + 1;
-      setScore(newScore);
-      reportScore(newScore);
-
-      setTimeout(() => {
-        const nextIdx = levelIdx + 1;
-        if (nextIdx >= totalLevels) {
-          onComplete({ finalScore: newScore, maxScore: totalLevels, completed: true });
-          return;
-        }
-        setLevelIdx(nextIdx);
-        setState(parseLevel(levels[nextIdx]));
-        setMoves(0);
-        setPushes(0);
-        setSolved(false);
-        setHistory([]);
-        setStuck(false);
-      }, 1200);
-    }
-  }, [state, solved, moves, pushes, score, levelIdx, totalLevels, levels, playClick, playFail, playSuccess, reportScore, onComplete]);
-
-  const handleKey = useCallback((e) => {
-    const dir = DIR_MAP[e.key];
-    if (dir) {
-      e.preventDefault();
-      doMove(dir[0], dir[1]);
-    }
-    // Undo with Z
-    if ((e.key === 'z' || e.key === 'Z') && !solved) {
-      e.preventDefault();
-      setHistory(prev => {
-        if (prev.length === 0) return prev;
-        const last = prev[prev.length - 1];
-        setState({ grid: last.grid, playerR: last.playerR, playerC: last.playerC, height: state.height, width: state.width });
-        setMoves(last.moves);
-        setPushes(last.pushes);
-        setStuck(hasDeadlockedBox(last.grid));
-        return prev.slice(0, -1);
-      });
-    }
-  }, [doMove, solved, state.height, state.width]);
-
-  const handleTouchStart = useCallback((e) => {
-    const touch = e.touches[0];
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+    const timers = timersRef.current;
+    return () => { timers.forEach(clearTimeout); timers.clear(); };
   }, []);
 
-  const handleTouchEnd = useCallback((e) => {
-    if (!touchStartRef.current) return;
-    const touch = e.changedTouches[0];
-    const dx = touch.clientX - touchStartRef.current.x;
-    const dy = touch.clientY - touchStartRef.current.y;
-    const minSwipe = 30;
+  const reportRoundRef = useRef(reportRound);
+  reportRoundRef.current = reportRound;
+  useEffect(() => { reportRoundRef.current?.(idx + 1, total); }, [idx, total]);
+  useEffect(() => { wrapperRef.current?.focus({ preventScroll: true }); }, [idx]);
 
-    if (Math.abs(dx) < minSwipe && Math.abs(dy) < minSwipe) return;
+  const say = useCallback((kind, text) => setMessage({ kind, text, id: Date.now() }), []);
 
-    if (Math.abs(dx) > Math.abs(dy)) {
-      doMove(0, dx > 0 ? 1 : -1);
-    } else {
-      doMove(dy > 0 ? 1 : -1, 0);
+  const finishPuzzle = useCallback(() => {
+    busyRef.current = true;
+    const earned = starsFor(statsRef.current);
+    starsRef.current += earned;
+    setStars(starsRef.current);
+    reportScore(starsRef.current);
+    setSolved(earned);
+    setHint(null);
+    setMessage(null);
+    playSuccess();
+    later(() => {
+      if (idx + 1 >= total) {
+        if (doneRef.current) return;
+        doneRef.current = true;
+        onComplete({ finalScore: starsRef.current, maxScore, completed: true });
+        return;
+      }
+      const next = parseLevel(puzzles[idx + 1]);
+      statsRef.current = freshStats();
+      setIdx(idx + 1);
+      setPos({ player: next.player, boxes: next.boxes });
+      setHistory([]);
+      setMoves(0);
+      setFacing('down');
+      setSolved(null);
+      busyRef.current = false;
+    }, 1800);
+  }, [idx, total, maxScore, puzzles, later, onComplete, playSuccess, reportScore]);
+
+  /* One or more steps in a row (a tap on a far tile walks several). */
+  const applySteps = useCallback((dirs) => {
+    if (busyRef.current || dirs.length === 0) return;
+    let cur = posRef.current;
+    const snapshots = [];
+    let pushedAny = false;
+    let blocked = null;
+    for (const dir of dirs) {
+      const r = tryMove(level, cur, dir);
+      setFacing(dir);
+      if (r.blocked) { blocked = r.blocked; break; }
+      snapshots.push(cur);
+      if (r.pushed) pushedAny = true;
+      cur = { player: r.player, boxes: r.boxes };
     }
-    touchStartRef.current = null;
-  }, [doMove]);
+    if (snapshots.length === 0) {
+      playFail();
+      say('warn', blocked === 'box' ? tg.blocked : tg.wall);
+      return;
+    }
+    playClick();
+    setHint(null);
+    setMessage(null);
+    setPos(cur);
+    setHistory(h => [...h, ...snapshots]);
+    setMoves(m => m + snapshots.length);
+    if (isSolved(level, cur.boxes)) { finishPuzzle(); return; }
+    if (pushedAny && cur.boxes.some(b => !level.goals.has(b) && isDeadCell(level, b))) {
+      say('warn', tg.deadBox);
+    }
+  }, [level, finishPuzzle, playClick, playFail, say, tg]);
+
+  const move = useCallback((dir) => applySteps([dir]), [applySteps]);
 
   const handleUndo = useCallback(() => {
-    if (solved || history.length === 0) return;
+    if (busyRef.current) return;
+    const h = historyRef.current;
+    if (h.length === 0) return;
     playClick();
-    const last = history[history.length - 1];
-    setState({ grid: last.grid, playerR: last.playerR, playerC: last.playerC, height: state.height, width: state.width });
-    setMoves(last.moves);
-    setPushes(last.pushes);
-    setStuck(hasDeadlockedBox(last.grid));
-    setHistory(prev => prev.slice(0, -1));
-  }, [solved, history, state.height, state.width, playClick]);
+    statsRef.current.undos += 1;
+    setPos(h[h.length - 1]);
+    setHistory(h.slice(0, -1));
+    setMoves(m => Math.max(0, m - 1));
+    setHint(null);
+    setMessage(null);
+  }, [playClick]);
 
-  const handleRestart = useCallback(() => {
-    if (solved) return;
+  const handleReset = useCallback(() => {
+    if (busyRef.current || historyRef.current.length === 0) return;
     playClick();
-    setState(parseLevel(levels[levelIdx]));
-    setMoves(0);
-    setPushes(0);
+    statsRef.current.resets += 1;
+    setPos({ player: level.player, boxes: level.boxes });
     setHistory([]);
-    setStuck(false);
-  }, [solved, levels, levelIdx, playClick]);
+    setMoves(0);
+    setFacing('down');
+    setHint(null);
+    setMessage(null);
+  }, [level, playClick]);
 
-  // Compute cell size based on grid dimensions and screen width
-  // Reserve 32px side padding (2×16px) so board fits on 320px screens
-  const maxBoard = Math.min(420, (typeof window !== 'undefined' ? window.innerWidth : 420) - 32);
-  const cellSize = Math.max(30, Math.min(52, Math.floor(maxBoard / Math.max(state.width, state.height))));
+  const handleHint = useCallback(() => {
+    if (busyRef.current) return;
+    const h = nextHint(level, posRef.current);
+    if (!h) {
+      playFail();
+      setHint(null);
+      say('warn', tg.stuck);
+      return;
+    }
+    playClick();
+    statsRef.current.hints += 1;
+    setHint(h);
+    setBump(b => b + 1);
+    say('hint', (h.walking ? tg.hintWalk : tg.hintPush).replace('{arrow}', ARROWS[h.walking ? h.dir : h.pushDir]));
+  }, [level, playClick, playFail, say, tg]);
+
+  const handleTile = useCallback((cell) => {
+    if (busyRef.current) return;
+    const { player, boxes } = posRef.current;
+    const w = level.width;
+    const dr = Math.floor(cell / w) - Math.floor(player / w);
+    const dc = (cell % w) - (player % w);
+    if (Math.abs(dr) + Math.abs(dc) === 1) {
+      move(dr === -1 ? 'up' : dr === 1 ? 'down' : dc === -1 ? 'left' : 'right');
+      return;
+    }
+    if (cell === player || !level.inside.has(cell)) return;
+    if (boxes.includes(cell)) { say('info', tg.tapNextTo); return; }
+    const path = walkPath(level, boxes, player, cell);
+    if (path) applySteps(path);
+    else say('info', tg.cantReach);
+  }, [level, move, applySteps, say, tg]);
+
+  const handleKey = useCallback((e) => {
+    const dir = KEY_DIRS[e.key];
+    if (dir) { e.preventDefault(); move(dir); return; }
+    if (e.key === 'z' || e.key === 'Z' || e.key === 'Backspace') { e.preventDefault(); handleUndo(); }
+  }, [move, handleUndo]);
+
+  const onTouchStart = (e) => {
+    const p = e.touches[0];
+    touchRef.current = { x: p.clientX, y: p.clientY };
+  };
+  const onTouchEnd = (e) => {
+    const start = touchRef.current;
+    touchRef.current = null;
+    if (!start) return;
+    const p = e.changedTouches[0];
+    const dx = p.clientX - start.x;
+    const dy = p.clientY - start.y;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 40) return; // a tap, handled by onClick
+    if (Math.abs(dx) > Math.abs(dy)) move(dx > 0 ? 'right' : 'left');
+    else move(dy > 0 ? 'down' : 'up');
+  };
+
+  const cellSize = useCellSize(level.width, level.height);
+  const boxSet = new Set(pos.boxes);
+  const onTarget = pos.boxes.filter(b => level.goals.has(b)).length;
+
+  const cells = [];
+  for (let r = 0; r < level.height; r++) {
+    for (let c = 0; c < level.width; c++) {
+      const i = r * level.width + c;
+      const isInside = level.inside.has(i);
+      const isGoal = level.goals.has(i);
+      const isBox = boxSet.has(i);
+      const isPlayer = pos.player === i;
+      let cls = styles.tileOutside;
+      if (level.walls.has(i)) cls = styles.tileWall;
+      else if (isInside) cls = isGoal ? styles.tileGoal : styles.tileFloor;
+      const hinted = hint && hint.box === i;
+      const stepCell = hint && hint.dir && i === stepFrom(level, pos.player, hint.dir);
+      const content = isPlayer ? <PlayerSVG direction={facing} />
+        : isBox ? <BoxSVG onGoal={isGoal} />
+        : isGoal ? <GoalSVG /> : null;
+      const label = isPlayer ? tg.you : isBox ? (isGoal ? tg.boxOnTarget : tg.box) : isGoal ? tg.target : tg.floor;
+      if (isInside) {
+        cells.push(
+          <button
+            key={i}
+            type="button"
+            className={`${styles.tile} ${cls} ${hinted ? styles.tileHint : ''} ${stepCell && !hinted ? styles.tileStep : ''}`}
+            style={{ width: cellSize, height: cellSize }}
+            onClick={() => handleTile(i)}
+            aria-label={label}
+            tabIndex={-1}
+          >
+            {content}
+            {hinted && <span key={bump} className={styles.hintArrow} aria-hidden="true">{ARROWS[hint.pushDir]}</span>}
+          </button>
+        );
+      } else {
+        cells.push(<div key={i} className={`${styles.tile} ${cls}`} style={{ width: cellSize, height: cellSize }} aria-hidden="true" />);
+      }
+    }
+  }
+
+  const dpad = (dir, aria) => (
+    <button
+      type="button"
+      className={`${styles.dpadBtn} ${hint?.dir === dir ? styles.dpadHint : ''}`}
+      onClick={() => move(dir)}
+      aria-label={aria}
+    >
+      {ARROWS[dir]}
+    </button>
+  );
 
   return (
     <div
@@ -569,104 +446,104 @@ function SokobanGame({ difficulty, onComplete, reportScore, secondsLeft, playCli
       ref={wrapperRef}
       tabIndex={0}
       onKeyDown={handleKey}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+      aria-label={tg.ariaGame}
     >
       <div className={styles.infoHeader}>
         <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>{t.common.level} {levelIdx + 1} {t.common.of} {totalLevels} · {moves} {t.common.movesLeft}</span>
+          <span className={styles.infoHeaderMain}>
+            {tg.puzzleOf.replace('{n}', idx + 1).replace('{total}', total)}
+          </span>
+          <span className={styles.infoHeaderSub}>
+            {tg.onTarget.replace('{n}', onTarget).replace('{total}', pos.boxes.length)} · {tg.moves.replace('{n}', moves)}
+          </span>
         </div>
-        <div className={styles.infoBadge}>
-          <span className={styles.infoBadgeNum}>{pushes}</span>
-          <span className={styles.infoBadgeSub}>pushes</span>
+        <div className={styles.infoBadge} aria-label={`${stars} / ${maxScore} ${tg.stars}`}>
+          <span key={stars} className={styles.infoBadgeNum}>★ {stars}</span>
+          <span className={styles.infoBadgeSub}>/ {maxScore}</span>
         </div>
       </div>
 
       <div className={styles.playArea}>
-      {/* Grid */}
-      <div
-        className={`${styles.board} ${solved ? styles.boardSolved : ''}`}
-        style={{
-          gridTemplateColumns: `repeat(${state.width}, ${cellSize}px)`,
-          gridTemplateRows: `repeat(${state.height}, ${cellSize}px)`,
-        }}
-      >
-        {state.grid.map((row, r) =>
-          row.map((ch, c) => {
-            const cls = tileClass(ch, styles);
-            const content = tileContent(ch, direction);
-            return (
-              <div
-                key={`${r}-${c}`}
-                className={`${styles.tile} ${cls}`}
-                style={{ width: cellSize, height: cellSize }}
-              >
-                {content}
-              </div>
-            );
-          })
-        )}
-      </div>
+        <div className={styles.boardWrap}>
+          <div
+            className={`${styles.board} ${solved ? styles.boardSolved : ''}`}
+            style={{ gridTemplateColumns: `repeat(${level.width}, ${cellSize}px)` }}
+            key={idx}
+          >
+            {cells}
+          </div>
+          {solved && (
+            <div className={styles.banner} role="status">
+              <span>{tg.solved}</span>
+              <span className={styles.bannerStars} aria-label={`${solved} ${tg.stars}`}>
+                {'★'.repeat(solved)}<span className={styles.starOff}>{'★'.repeat(3 - solved)}</span>
+              </span>
+            </div>
+          )}
+        </div>
 
-      {/* D-pad controls for mobile */}
-      <div className={styles.controls}>
-        <div className={styles.dpadRow}>
-          <button className={styles.dpadBtn} onClick={() => doMove(-1, 0)} aria-label="Move up">▲</button>
-        </div>
-        <div className={styles.dpadRow}>
-          <button className={styles.dpadBtn} onClick={() => doMove(0, -1)} aria-label="Move left">◀</button>
-          <div className={styles.dpadCenter} />
-          <button className={styles.dpadBtn} onClick={() => doMove(0, 1)} aria-label="Move right">▶</button>
-        </div>
-        <div className={styles.dpadRow}>
-          <button className={styles.dpadBtn} onClick={() => doMove(1, 0)} aria-label="Move down">▼</button>
-        </div>
-      </div>
-
-      {/* Stuck-corner warning */}
-      {stuck && !solved && (
-        <div className={styles.stuckWarning} role="status">
-          ⚠️ A box is stuck in a corner — use Undo or Restart
-        </div>
-      )}
-
-      {/* Action buttons */}
-      <div className={styles.actions}>
-        <button
-          className={styles.actionBtn}
-          onClick={handleUndo}
-          disabled={solved || history.length === 0}
-          aria-label="Undo last move"
+        <p
+          key={message?.id}
+          className={`${styles.message} ${message ? styles[`msg_${message.kind}`] : ''}`}
+          role="status"
+          aria-live="polite"
         >
-          {t.common.undo}
-        </button>
-        <button
-          className={styles.actionBtn}
-          onClick={handleRestart}
-          disabled={solved}
-          aria-label="Restart level"
-        >
-          {t.common.restart}
-        </button>
-      </div>
+          {message ? message.text : tg.tip}
+        </p>
+
+        <div className={styles.controlsRow}>
+          <div className={styles.dpad}>
+            <span />{dpad('up', tg.ariaUp)}<span />
+            {dpad('left', tg.ariaLeft)}<span className={styles.dpadCenter} aria-hidden="true" />{dpad('right', tg.ariaRight)}
+            <span />{dpad('down', tg.ariaDown)}<span />
+          </div>
+          <div className={styles.actions}>
+            <button type="button" className={`${styles.actionBtn} ${styles.hintBtn}`} onClick={handleHint} disabled={!!solved}>
+              💡 {tg.hint}
+            </button>
+            <button type="button" className={styles.actionBtn} onClick={handleUndo} disabled={!!solved || history.length === 0}>
+              ↩ {tg.undo}
+            </button>
+            <button type="button" className={styles.actionBtn} onClick={handleReset} disabled={!!solved || history.length === 0}>
+              ⟲ {tg.reset}
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.legend} aria-hidden="true">
+          <span className={styles.legendItem}><span className={styles.legendIcon}><PlayerSVG direction="down" /></span>{tg.you}</span>
+          <span className={styles.legendItem}><span className={styles.legendIcon}><BoxSVG onGoal={false} /></span>{tg.box}</span>
+          <span className={styles.legendItem}><span className={`${styles.legendIcon} ${styles.legendGoal}`}><GoalSVG /></span>{tg.target}</span>
+          <span className={styles.legendItem}><span className={styles.legendIcon}><BoxSVG onGoal /></span>{tg.boxOnTarget}</span>
+        </div>
       </div>
     </div>
   );
+}
+
+function stepFrom(level, i, dir) {
+  const [dr, dc] = DIRS[dir];
+  return i + dr * level.width + dc;
+}
+
+/* A box stuck against walls so it can never reach any target (cheap check). */
+function isDeadCell(level, cell) {
+  const blocked = (dir) => !level.inside.has(stepFrom(level, cell, dir));
+  return (blocked('up') || blocked('down')) && (blocked('left') || blocked('right'));
 }
 
 SokobanGame.propTypes = {
   difficulty:  PropTypes.string.isRequired,
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
-  secondsLeft: PropTypes.number,
+  reportRound: PropTypes.func,
   playClick:   PropTypes.func.isRequired,
   playSuccess: PropTypes.func.isRequired,
   playFail:    PropTypes.func.isRequired,
 };
 
-/* ══════════════════════════════════════════════════════ */
-/*  Outer wrapper with GameShell                         */
-/* ══════════════════════════════════════════════════════ */
 export function Sokoban({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const t = useTranslation();
   const { fireComplete } = useGameCallback({ memberId, gameId: 'sokoban', callbackUrl, onComplete });
@@ -684,12 +561,13 @@ export function Sokoban({ memberId, difficulty = 'easy', onComplete, callbackUrl
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ difficulty: diff, onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
+      {({ difficulty: diff, onComplete: sc, reportScore, reportRound, playClick, playSuccess, playFail }) => (
         <SokobanGame
+          key={diff}
           difficulty={diff}
           onComplete={sc}
           reportScore={reportScore}
-          secondsLeft={secondsLeft}
+          reportRound={reportRound}
           playClick={playClick}
           playSuccess={playSuccess}
           playFail={playFail}

@@ -1,8 +1,6 @@
 @keyframes popIn {
-  0%   { opacity: 0; transform: scale(0.5) translateY(12px); }
-  60%  { opacity: 1; transform: scale(1.08) translateY(-2px); }
-  80%  { transform: scale(0.96) translateY(1px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
+  0%   { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 .wrapper {
@@ -11,205 +9,17 @@
   align-items: center;
   gap: var(--space-3);
   width: 100%;
-  padding: 0;
   box-sizing: border-box;
   outline: none;
   -webkit-user-select: none;
   user-select: none;
   touch-action: none;
-
   flex: 1;
 }
 
-/* Fills the space below the pinned info header and centers gameplay in it */
-.playArea {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3);
-  width: 100%;
-}
-
-/* ── Meta bar ── */
-.meta {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: var(--space-3);
-  width: 100%;
-  max-width: 460px;
-  font-size: 14px;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 1.5px solid #e2e8f0;
-  border-radius: var(--radius-xl);
-  padding: var(--space-2) var(--space-3);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  box-sizing: border-box;
-}
-.metaLabel { color: var(--color-text-muted); white-space: nowrap; }
-.metaLabel strong { color: var(--color-primary); }
-
-/* ── Board grid ── */
-.board {
-  display: inline-grid;
-  gap: 0;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
-  border: 3px solid #4a5568;
-}
-
-.tile {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  transition: background 0.15s ease;
-}
-
-/* ── Tile types ── */
-.tileOutside {
-  background: #1a202c;
-}
-
-.tileWall {
-  background: linear-gradient(135deg, #5a6478 0%, #3d4556 50%, #5a6478 100%);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.3),
-              inset 2px 2px 0 rgba(255, 255, 255, 0.12);
-}
-
-.tileFloor {
-  background: #f0ece4;
-  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.06);
-}
-
-.tileGoal {
-  background: #fce4e4;
-  box-shadow: inset 0 0 0 2px #e88e8e;
-  border-radius: 4px;
-}
-
-.tileBox {
-  background: #f0ece4;
-}
-
-.tileBoxOnGoal {
-  background: #c6f6d5;
-  box-shadow: inset 0 0 0 2px #68d391;
-  border-radius: 4px;
-}
-
-.tilePlayer {
-  background: #e0edff;
-}
-
-
-/* ── Solved animation ── */
-@keyframes solvedPulse {
-  0%   { transform: scale(1); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2); }
-  50%  { transform: scale(1.03); box-shadow: 0 8px 28px rgba(46, 204, 113, 0.35); }
-  100% { transform: scale(1); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2); }
-}
-.boardSolved {
-  animation: solvedPulse 0.6s ease;
-  border-color: #27ae60;
-}
-
-/* ── D-pad ── */
-.controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  margin-top: var(--space-2);
-}
-
-.dpadRow {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.dpadCenter {
-  width: 52px;
-  height: 52px;
-}
-
-.dpadBtn {
-  width: 52px;
-  height: 52px;
-  border: 2px solid #a0aec0;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(180deg, #edf2f7 0%, #cbd5e0 100%);
-  color: #2d3748;
-  font-size: 1.2rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 80ms ease, background 0.15s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-  -webkit-tap-highlight-color: transparent;
-}
-@media (hover: hover) and (pointer: fine) {
-.dpadBtn:hover {
-  background: linear-gradient(180deg, #fff 0%, #e2e8f0 100%);
-  transform: scale(1.08);
-}
-}
-.dpadBtn:active {
-  transform: scale(0.95);
-  background: #cbd5e0;
-}
-
-/* ── Action buttons ── */
-.actions {
-  display: flex;
-  gap: var(--space-3);
-}
-
-.stuckWarning {
-  font-size: 13px;
-  font-weight: 600;
-  color: #92400e;
-  background: #fef3c7;
-  border: 1.5px solid #fcd34d;
-  border-radius: var(--radius-lg);
-  padding: var(--space-2) var(--space-3);
-  text-align: center;
-  max-width: 460px;
-}
-
-.actionBtn {
-  padding: var(--space-2) var(--space-3);
-  font-size: 14px;
-  font-weight: 600;
-  color: #2d3748;
-  background: var(--color-surface);
-  border: 2px solid #a0aec0;
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast), transform 80ms ease;
-}
-@media (hover: hover) and (pointer: fine) {
-.actionBtn:hover:not(:disabled) {
-  background: #edf2f7;
-  transform: scale(1.04);
-}
-}
-.actionBtn:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-/* ── Info header — WordRecall style ── */
+/* ── Info header ── */
 .infoHeader {
   background: var(--color-surface);
-  border-radius: 0;
   padding: var(--space-4) var(--space-5);
   display: flex;
   align-items: center;
@@ -220,20 +30,18 @@
   position: sticky;
   top: 0;
   z-index: 5;
+  box-sizing: border-box;
 }
-
-.infoHeaderText {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.infoHeaderText { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.infoHeaderMain {
+  font-size: 1.125rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
 }
-
 .infoHeaderSub {
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-regular);
+  font-size: 1rem;
   color: var(--color-text-muted);
 }
-
 .infoBadge {
   background: var(--color-primary-light);
   border-radius: var(--radius-xl);
@@ -243,16 +51,252 @@
   gap: 4px;
   flex-shrink: 0;
 }
-
+@keyframes badgeBump {
+  0% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
 .infoBadgeNum {
+  display: inline-block;
   font-size: var(--text-lg);
   font-weight: var(--font-weight-bold);
   color: var(--color-primary);
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  animation: badgeBump 300ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.infoBadgeSub { font-size: 1rem; color: var(--color-primary); }
+
+.playArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  width: 100%;
 }
 
-.infoBadgeSub {
-  font-size: var(--text-xs);
-  color: var(--color-primary);
+/* ── Board ── */
+.boardWrap { position: relative; }
+.board {
+  display: inline-grid;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 3px solid #334155;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  background: #1e293b;
+  animation: popIn 280ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+.tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+button.tile { cursor: pointer; }
+.tileOutside { background: #1e293b; }
+.tileWall {
+  background: #475569;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35), inset 2px 2px 0 rgba(255, 255, 255, 0.14);
+}
+.tileFloor {
+  background: #f5f0e6;
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+}
+.tileGoal {
+  background: #fde2e2;
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+}
+
+/* Hint: glowing box + arrow, and the tile to step on */
+@keyframes hintGlow {
+  0%, 100% { box-shadow: inset 0 0 0 4px #2563eb; }
+  50%      { box-shadow: inset 0 0 0 4px #2563eb, 0 0 0 4px rgba(37, 99, 235, 0.35); }
+}
+.tileHint { animation: hintGlow 1s ease-in-out infinite; z-index: 1; }
+.tileStep { box-shadow: inset 0 0 0 3px #2563eb; }
+@keyframes arrowIn {
+  0%   { opacity: 0; transform: scale(0.5); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.hintArrow {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: arrowIn 220ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+@keyframes solvedPulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.03); }
+}
+.boardSolved { animation: solvedPulse 600ms ease; border-color: #1d4ed8; }
+
+@keyframes bannerIn {
+  0%   { opacity: 0; transform: translate(-50%, -40%) scale(0.85); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+.banner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 24px;
+  border-radius: 18px;
+  background: #1e3a8a;
+  color: #fff;
+  font-weight: 900;
+  font-size: 1.5rem;
+  white-space: nowrap;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.3);
+  animation: bannerIn 320ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+.bannerStars { color: #fcd34d; font-size: 1.75rem; letter-spacing: 4px; }
+.starOff { color: rgba(255, 255, 255, 0.3); }
+
+/* ── Message line ── */
+@keyframes msgIn {
+  0%   { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.message {
+  margin: 0;
+  min-height: 3em;
+  max-width: 460px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 14px;
+  border-radius: var(--radius-lg);
+  font-size: 1rem;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.msg_warn, .msg_hint, .msg_info { animation: msgIn 200ms ease-out both; font-weight: 600; }
+.msg_warn { background: #fef3c7; color: #78350f; border: 2px solid #f59e0b; }
+.msg_hint { background: #dbeafe; color: #1e3a8a; border: 2px solid #2563eb; }
+.msg_info { background: #f1f5f9; color: #1e293b; border: 2px solid #94a3b8; }
+
+/* ── Controls ── */
+.controlsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+}
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 60px);
+  grid-template-rows: repeat(3, 60px);
+  gap: 4px;
+}
+.dpadCenter { border-radius: 50%; background: #e2e8f0; margin: 14px; }
+.dpadBtn {
+  width: 60px;
+  height: 60px;
+  border: 2px solid #64748b;
+  border-radius: var(--radius-lg);
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 1.6rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 0 #64748b;
+  transition: transform 100ms ease, background 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.dpadBtn:active { transform: translateY(2px); box-shadow: none; background: #e2e8f0; }
+@keyframes dpadPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.5); }
+  50%      { box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.25); }
+}
+.dpadHint {
+  background: #1d4ed8;
+  border-color: #1e3a8a;
+  color: #fff;
+  animation: dpadPulse 1s ease-in-out infinite;
+}
+
+.actions { display: flex; flex-direction: column; gap: var(--space-2); }
+.actionBtn {
+  min-height: 52px;
+  min-width: 150px;
+  padding: 0 var(--space-4);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  background: var(--color-surface);
+  border: 2px solid #64748b;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: background 150ms ease, transform 100ms ease;
+}
+.actionBtn:active:not(:disabled) { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) {
+  .actionBtn:hover:not(:disabled) { background: #f1f5f9; }
+}
+.actionBtn:disabled { opacity: 0.45; cursor: default; }
+.hintBtn { background: #fef3c7; border-color: #b45309; color: #78350f; }
+@media (hover: hover) and (pointer: fine) {
+  .hintBtn:hover:not(:disabled) { background: #fde68a; }
+}
+
+/* ── Legend ── */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-2);
+  max-width: 480px;
+}
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: var(--color-surface);
+  border: 1.5px solid #cbd5e1;
+  font-size: 1rem;
+  color: var(--color-text);
+}
+.legendIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: #f5f0e6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.legendGoal { background: #fde2e2; }
+
+@media (prefers-reduced-motion: reduce) {
+  .board, .banner, .tileHint, .dpadHint, .hintArrow, .infoBadgeNum, .message { animation: none !important; }
 }
