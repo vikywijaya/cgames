@@ -198,7 +198,7 @@ export default {
     'number-sort': { title: '数字排序', label: '数字排序', description: '从小到大点击数字。', instructions: '尽快从最小到最大点击数字。' },
     'face-memory': { title: '面孔记忆', label: '面孔记忆', description: '记住面孔和名字，然后配对。', instructions: '仔细记住面孔和名字。时间到后，将每个面孔与正确的名字配对。', wrongAnswer: '✗ 那是' },
     'shopping-list': { title: '购物清单', label: '购物清单', description: '记住购物清单，然后选择物品。', instructions: '仔细记住购物清单！时间到后，从更大的网格中选择所有正确的物品。' },
-    'speed-tap': { title: '快速点击', label: '快速点击', description: '目标表情出现——快速点击！', instructions: '在干扰物中尽快找到并点击目标表情。' },
+    'speed-tap': { title: '快速点击', label: '快速点击', description: '目标表情出现——快速点击！', instructions: '看蓝色卡片上的图案，然后在格子里点击相同的图案。卡片上的进度条显示剩余时间——在前一半时间内点击可获得快速奖励。连续点对可以累积连击：连续5个得分翻倍，连续10个得分三倍。每第5轮，要找出所有相同的图案！', instructionsHard: '后面其他图案会越来越相似——请仔细看！', findThis: '找这个：', findAll: '全部找出来！', findAllHint: '找出全部{n}个：', quick: '真快！', itWasHere: '在这里！', combo: '连击', pts: '分', round: '回合' },
     'stroop-colour': { title: '色彩干扰', label: '色彩干扰', description: '点击墨水颜色，而不是文字内容。', instructions: '颜色词以不同颜色的墨水显示。点击与墨水颜色匹配的按钮——不是文字内容！', wrongInk: '✗ 墨水颜色错误' },
     'missing-number': { title: '缺失数字', label: '缺失数字', description: '找出序列中缺失的数字。', instructions: '看数字序列，找出缺失的数字。从选项中选择。', wrongAnswer: '✗ 答案：' },
     'quick-maths': { title: '快速数学', label: '快速数学', description: '快速解答数学题。', instructions: '尽快解答每道数学题。选择正确答案。', wrongAnswer: '✗ 答案：' },
