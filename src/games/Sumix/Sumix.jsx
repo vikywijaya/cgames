@@ -1,228 +1,354 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './Sumix.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
 
-const DIFFICULTY_CONFIG = {
-  easy:   { rows: 3, cols: 3, rounds: 5, maxVal: 9,  timeLimitSeconds: null },
-  medium: { rows: 4, cols: 4, rounds: 6, maxVal: 9,  timeLimitSeconds: 180  },
-  hard:   { rows: 4, cols: 4, rounds: 8, maxVal: 9,  timeLimitSeconds: 120  },
-};
-
-const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
-
-/**
- * Generate a Sumix puzzle.
- * 1. Create a grid of random numbers.
- * 2. Pick a random subset of cells as "solution" (activated).
- * 3. Compute row/col targets from the solution.
- * This guarantees at least one valid solution exists.
+/*
+ * Sumix — tap numbers on or off so every row and every column adds up to
+ * its target.
+ *
+ * Tuned for seniors:
+ * - No clock. Each target box shows what is still needed ("+3"), a tick
+ *   when it is right, or how much it is over ("−2").
+ * - Every puzzle has exactly one answer, so a hint can always point at a
+ *   cell to change. Undo and Reset are free; only hints cost stars.
+ * - 3 stars per puzzle with no hints, 2 with one or two, 1 with more.
  */
-function generatePuzzle(rows, cols, maxVal) {
-  // Fill grid with random numbers 1..maxVal
-  const grid = [];
-  for (let r = 0; r < rows; r++) {
-    const row = [];
-    for (let c = 0; c < cols; c++) {
-      row.push(Math.floor(Math.random() * maxVal) + 1);
-    }
-    grid.push(row);
-  }
+export const DIFFICULTY_CONFIG = {
+  easy:   { rows: 3, cols: 3, rounds: 4, maxVal: 5, density: 0.45 },
+  medium: { rows: 4, cols: 4, rounds: 5, maxVal: 9, density: 0.5 },
+  hard:   { rows: 4, cols: 4, rounds: 6, maxVal: 9, density: 0.55 },
+};
+const MAX_STARS = 3;
+const HINT_SHOW_MS = 2600;
 
-  // Pick a random solution: each cell has ~50% chance of being active
-  // Ensure at least one cell per row and column is active for interesting targets
-  const solution = Array.from({ length: rows }, () => Array(cols).fill(false));
-
-  // First ensure at least one per row
-  for (let r = 0; r < rows; r++) {
-    const c = Math.floor(Math.random() * cols);
-    solution[r][c] = true;
-  }
-  // Ensure at least one per col
-  for (let c = 0; c < cols; c++) {
-    const hasActive = solution.some(row => row[c]);
-    if (!hasActive) {
-      const r = Math.floor(Math.random() * rows);
-      solution[r][c] = true;
-    }
-  }
-  // Randomly activate more cells
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      if (!solution[r][c] && Math.random() < 0.35) {
-        solution[r][c] = true;
-      }
-    }
-  }
-
-  // Compute targets
-  const rowTargets = [];
-  for (let r = 0; r < rows; r++) {
-    let sum = 0;
-    for (let c = 0; c < cols; c++) {
-      if (solution[r][c]) sum += grid[r][c];
-    }
-    rowTargets.push(sum);
-  }
-  const colTargets = [];
-  for (let c = 0; c < cols; c++) {
-    let sum = 0;
-    for (let r = 0; r < rows; r++) {
-      if (solution[r][c]) sum += grid[r][c];
-    }
-    colTargets.push(sum);
-  }
-
-  return { grid, rowTargets, colTargets };
+export function starsFor(hints) {
+  if (hints === 0) return 3;
+  if (hints <= 2) return 2;
+  return 1;
 }
 
-function SumixGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+export function sums(grid, on) {
+  const rowSums = grid.map((row, r) => row.reduce((s, v, c) => s + (on[r][c] ? v : 0), 0));
+  const colSums = grid[0].map((_, c) => grid.reduce((s, row, r) => s + (on[r][c] ? row[c] : 0), 0));
+  return { rowSums, colSums };
+}
+
+/** Count solutions (stopping at `limit`) by trying every on/off pattern. */
+export function countSolutions(grid, rowTargets, colTargets, limit = 2) {
+  const rows = grid.length;
+  const cols = grid[0].length;
+  const n = rows * cols;
+  let found = 0;
+  for (let mask = 0; mask < (1 << n); mask++) {
+    let ok = true;
+    for (let r = 0; r < rows && ok; r++) {
+      let s = 0;
+      for (let c = 0; c < cols; c++) if (mask & (1 << (r * cols + c))) s += grid[r][c];
+      if (s !== rowTargets[r]) ok = false;
+    }
+    for (let c = 0; c < cols && ok; c++) {
+      let s = 0;
+      for (let r = 0; r < rows; r++) if (mask & (1 << (r * cols + c))) s += grid[r][c];
+      if (s !== colTargets[c]) ok = false;
+    }
+    if (ok && ++found >= limit) return found;
+  }
+  return found;
+}
+
+function randomPuzzle({ rows, cols, maxVal, density }) {
+  const grid = Array.from({ length: rows }, () =>
+    Array.from({ length: cols }, () => 1 + Math.floor(Math.random() * maxVal)));
+  const solution = Array.from({ length: rows }, () =>
+    Array.from({ length: cols }, () => Math.random() < density));
+  // Every row and column needs at least one number turned on, and at least
+  // one left off, so no line is trivially "all" or "nothing".
+  for (let r = 0; r < rows; r++) {
+    if (!solution[r].some(Boolean)) solution[r][Math.floor(Math.random() * cols)] = true;
+    if (solution[r].every(Boolean)) solution[r][Math.floor(Math.random() * cols)] = false;
+  }
+  for (let c = 0; c < cols; c++) {
+    if (!solution.some(row => row[c])) solution[Math.floor(Math.random() * rows)][c] = true;
+  }
+  const { rowSums, colSums } = sums(grid, solution);
+  return { grid, solution, rowTargets: rowSums, colTargets: colSums };
+}
+
+/** A puzzle with exactly one answer (falls back to any valid one). */
+export function generatePuzzle(config) {
+  let p = randomPuzzle(config);
+  for (let tries = 0; tries < 60; tries++) {
+    if (countSolutions(p.grid, p.rowTargets, p.colTargets) === 1) return p;
+    p = randomPuzzle(config);
+  }
+  return p;
+}
+
+const emptyBoard = (rows, cols) => Array.from({ length: rows }, () => Array(cols).fill(false));
+
+function statusOf(left) {
+  if (left === 0) return { cls: 'done', text: '✓' };
+  if (left > 0) return { cls: 'need', text: `+${left}` };
+  return { cls: 'over', text: `−${-left}` };
+}
+
+function SumixGame({ difficulty, onComplete, reportScore, reportRound, playClick, playSuccess, playFail, playReveal }) {
   const t = useTranslation();
+  const tm = t.games['sumix'];
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const { rows, cols, rounds } = config;
 
-  const [round, setRound] = useState(0);
-  const [score, setScore] = useState(0);
-  const [puzzle, setPuzzle] = useState(() => generatePuzzle(rows, cols, config.maxVal));
-  const [active, setActive] = useState(() => Array.from({ length: rows }, () => Array(cols).fill(false)));
-  const [solved, setSolved] = useState(false);
-  const advanceTimerRef = useRef(null);
-  // Keep latest values accessible in the advance callback without re-scheduling
-  const stateRef = useRef({ score, round, rounds, rows, cols, maxVal: config.maxVal, onComplete, reportScore, playSuccess });
-  stateRef.current = { score, round, rounds, rows, cols, maxVal: config.maxVal, onComplete, reportScore, playSuccess };
+  const [round, setRound]   = useState(0);
+  const [puzzle, setPuzzle] = useState(() => generatePuzzle(config));
+  const [active, setActive] = useState(() => emptyBoard(rows, cols));
+  const [history, setHistory] = useState([]);
+  const [hints, setHints]   = useState(0);
+  const [hintCell, setHintCell] = useState(null);
+  const [score, setScore]   = useState(0);
+  const [solved, setSolved] = useState(null); // stars earned, when solved
+  const [message, setMessage] = useState(null);
 
-  useEffect(() => () => clearTimeout(advanceTimerRef.current), []);
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  const scoreRef  = useRef(0);
+  const doneRef   = useRef(false);
+  const lockRef   = useRef(false);
+  const hintsRef  = useRef(0);
+  const hintTimer = useRef(null);
+  const timersRef = useRef(new Set());
+  const reported  = useRef(-1);
+
+  const later = useCallback((fn, ms) => {
+    const h = setTimeout(() => { timersRef.current.delete(h); fn(); }, ms);
+    timersRef.current.add(h);
+    return h;
+  }, []);
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => { timers.forEach(clearTimeout); timers.clear(); };
+  }, []);
 
   useEffect(() => {
-    if (secondsLeft === 0) onComplete({ finalScore: score, maxScore: rounds, completed: false });
-  }, [secondsLeft, score, rounds, onComplete]);
+    if (reported.current === round) return;
+    reported.current = round;
+    reportRound?.(round + 1, rounds);
+  }, [round, rounds, reportRound]);
 
-  // Check if current state matches targets
-  const { rowRemainders, colRemainders, isSolved } = useMemo(() => {
-    const rr = puzzle.rowTargets.map((target, r) => {
-      let sum = 0;
-      for (let c = 0; c < cols; c++) {
-        if (active[r][c]) sum += puzzle.grid[r][c];
-      }
-      return target - sum;
-    });
-    const cr = puzzle.colTargets.map((target, c) => {
-      let sum = 0;
-      for (let r = 0; r < rows; r++) {
-        if (active[r][c]) sum += puzzle.grid[r][c];
-      }
-      return target - sum;
-    });
-    const done = rr.every(v => v === 0) && cr.every(v => v === 0);
-    return { rowRemainders: rr, colRemainders: cr, isSolved: done };
-  }, [active, puzzle, rows, cols]);
+  const { rowSums, colSums } = sums(puzzle.grid, active);
+  const rowLeft = puzzle.rowTargets.map((tg, r) => tg - rowSums[r]);
+  const colLeft = puzzle.colTargets.map((tg, c) => tg - colSums[c]);
 
-  // Handle puzzle solved
-  useEffect(() => {
-    if (!isSolved || solved) return;
-    setSolved(true);
+  const clearHint = useCallback(() => {
+    clearTimeout(hintTimer.current);
+    timersRef.current.delete(hintTimer.current);
+    setHintCell(null);
+  }, []);
 
-    const { score: s, round: r, rounds: total, rows: ro, cols: co, maxVal, onComplete: oc, reportScore: rs, playSuccess: ps } = stateRef.current;
-    ps();
-    const newScore = s + 1;
-    setScore(newScore);
-    rs(newScore);
-
-    clearTimeout(advanceTimerRef.current);
-    advanceTimerRef.current = setTimeout(() => {
-      const nextRound = r + 1;
-      if (nextRound >= total) {
-        oc({ finalScore: newScore, maxScore: total, completed: true });
-        return;
-      }
-      setRound(nextRound);
-      setPuzzle(generatePuzzle(ro, co, maxVal));
-      setActive(Array.from({ length: ro }, () => Array(co).fill(false)));
-      setSolved(false);
-    }, 800);
-  }, [isSolved, solved]); // eslint-disable-line react-hooks/exhaustive-deps
+  const checkBoard = useCallback((next, changed) => {
+    const { rowSums: rs, colSums: cs } = sums(puzzle.grid, next);
+    const done = rs.every((s, r) => s === puzzle.rowTargets[r]) && cs.every((s, c) => s === puzzle.colTargets[c]);
+    if (done) {
+      lockRef.current = true;
+      const stars = starsFor(hintsRef.current);
+      scoreRef.current += stars;
+      setScore(scoreRef.current);
+      reportScore(scoreRef.current);
+      setSolved(stars);
+      setMessage(null);
+      playSuccess();
+      later(() => {
+        if (doneRef.current) return;
+        const nextRound = round + 1;
+        if (nextRound >= rounds) {
+          doneRef.current = true;
+          onComplete({ finalScore: scoreRef.current, maxScore: rounds * MAX_STARS, completed: true });
+          return;
+        }
+        const p = generatePuzzle(config);
+        const empty = emptyBoard(rows, cols);
+        activeRef.current = empty;
+        hintsRef.current = 0;
+        lockRef.current = false;
+        setRound(nextRound);
+        setPuzzle(p);
+        setActive(empty);
+        setHistory([]);
+        setHints(0);
+        setSolved(null);
+      }, 1800);
+      return;
+    }
+    if (!changed) { setMessage(null); return; }
+    const [r, c] = changed;
+    const rowOver = rs[r] - puzzle.rowTargets[r];
+    const colOver = cs[c] - puzzle.colTargets[c];
+    if (next[r][c] && (rowOver > 0 || colOver > 0)) {
+      playFail();
+      setMessage(rowOver > 0
+        ? tm.rowOver.replace('{n}', r + 1).replace('{x}', rowOver)
+        : tm.colOver.replace('{n}', c + 1).replace('{x}', colOver));
+    } else {
+      setMessage(null);
+    }
+  }, [puzzle, round, rounds, config, rows, cols, later, onComplete, reportScore, playSuccess, playFail, tm]);
 
   const toggleCell = useCallback((r, c) => {
-    if (solved) return;
+    if (lockRef.current) return;
     playClick();
-    setActive(prev => {
-      const next = prev.map(row => [...row]);
-      next[r][c] = !next[r][c];
-      return next;
-    });
-  }, [solved, playClick]);
+    clearHint();
+    const prev = activeRef.current;
+    const next = prev.map(row => [...row]);
+    next[r][c] = !next[r][c];
+    activeRef.current = next;
+    setActive(next);
+    setHistory(h => [...h, prev]);
+    checkBoard(next, [r, c]);
+  }, [playClick, clearHint, checkBoard]);
+
+  const undo = useCallback(() => {
+    if (lockRef.current || history.length === 0) return;
+    playClick();
+    clearHint();
+    const prev = history[history.length - 1];
+    activeRef.current = prev;
+    setActive(prev);
+    setHistory(h => h.slice(0, -1));
+    setMessage(null);
+  }, [history, playClick, clearHint]);
+
+  const reset = useCallback(() => {
+    if (lockRef.current) return;
+    playClick();
+    clearHint();
+    const empty = emptyBoard(rows, cols);
+    setHistory(h => [...h, activeRef.current]);
+    activeRef.current = empty;
+    setActive(empty);
+    setMessage(null);
+  }, [rows, cols, playClick, clearHint]);
+
+  const hint = useCallback(() => {
+    if (lockRef.current) return;
+    const cur = activeRef.current;
+    // Prefer turning off a wrong number first, then turning on a missing one.
+    let cell = null;
+    for (let r = 0; r < rows && !cell; r++) for (let c = 0; c < cols && !cell; c++) {
+      if (cur[r][c] && !puzzle.solution[r][c]) cell = [r, c];
+    }
+    for (let r = 0; r < rows && !cell; r++) for (let c = 0; c < cols && !cell; c++) {
+      if (!cur[r][c] && puzzle.solution[r][c]) cell = [r, c];
+    }
+    if (!cell) return;
+    playReveal?.();
+    hintsRef.current += 1;
+    setHints(hintsRef.current);
+    clearHint();
+    setHintCell(cell);
+    setMessage(cur[cell[0]][cell[1]] ? tm.hintOff : tm.hintOn);
+    hintTimer.current = later(() => setHintCell(null), HINT_SHOW_MS);
+  }, [rows, cols, puzzle, later, clearHint, playReveal, tm]);
+
+  const nextStars = starsFor(hints + 1);
+  const stars = (n) => '★'.repeat(n) + '☆'.repeat(MAX_STARS - n);
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>{t.common.puzzle} {round + 1} {t.common.of} {rounds}</span>
+        <div className={styles.hudLeft}>
+          <span className={styles.roundLabel}>{tm.puzzleOf.replace('{n}', round + 1).replace('{total}', rounds)}</span>
+          <span className={styles.starsNow} aria-label={tm.starsNow.replace('{n}', starsFor(hints))}>{stars(starsFor(hints))}</span>
         </div>
         <div className={styles.infoBadge}>
-          <span className={styles.infoBadgeNum}>{round + 1}</span>
-          <span className={styles.infoBadgeSub}>/ {rounds}</span>
+          <span key={score} className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>/ {rounds * MAX_STARS} ★</span>
         </div>
       </div>
 
-      <div className={styles.playArea}>
-      <div className={`${styles.board} ${solved ? styles.boardSolved : ''}`}>
-        {/* Column targets */}
-        <div className={styles.colTargets}>
-          <div className={styles.colTargetSpacer} />
-          {puzzle.colTargets.map((t, c) => (
-            <div key={c} className={styles.colTarget}>{t}</div>
-          ))}
-          <div className={styles.colTargetSpacer} />
-        </div>
+      <p className={styles.prompt}>{tm.prompt}</p>
 
-        {/* Grid rows */}
+      <div key={round} className={`${styles.board} ${solved ? styles.boardSolved : ''}`} style={{ '--cols': cols + 1 }}>
         {puzzle.grid.map((row, r) => (
           <div key={r} className={styles.row}>
-            <div className={styles.rowTarget}>{puzzle.rowTargets[r]}</div>
-            {row.map((val, c) => (
-              <button
-                key={c}
-                className={`${styles.cell} ${active[r][c] ? styles.cellActive : ''}`}
-                onClick={() => toggleCell(r, c)}
-                disabled={solved}
-                aria-label={`Row ${r + 1} column ${c + 1}, value ${val}${active[r][c] ? ', selected' : ''}`}
-                aria-pressed={active[r][c]}
-              >
-                {val}
-              </button>
-            ))}
-            <div className={`${styles.rowRemainder} ${rowRemainders[r] === 0 ? styles.remainderDone : ''}`}>
-              {rowRemainders[r]}
-            </div>
+            {row.map((val, c) => {
+              const on = active[r][c];
+              const isHint = hintCell && hintCell[0] === r && hintCell[1] === c;
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  className={`${styles.cell} ${on ? styles.cellOn : ''} ${isHint ? styles.cellHint : ''}`}
+                  onClick={() => toggleCell(r, c)}
+                  disabled={solved !== null}
+                  aria-label={tm.cellLabel.replace('{r}', r + 1).replace('{c}', c + 1).replace('{v}', val)}
+                  aria-pressed={on}
+                >
+                  {val}
+                  {on && <span className={styles.tick} aria-hidden="true">✓</span>}
+                </button>
+              );
+            })}
+            <Target target={puzzle.rowTargets[r]} left={rowLeft[r]} label={tm.rowTarget.replace('{n}', r + 1)} />
           </div>
         ))}
-
-        {/* Column remainders */}
-        <div className={styles.colRemainders}>
-          <div className={styles.colRemainderSpacer} />
-          {colRemainders.map((rem, c) => (
-            <div key={c} className={`${styles.colRemainder} ${rem === 0 ? styles.remainderDone : ''}`}>
-              {rem}
-            </div>
+        <div className={styles.row}>
+          {puzzle.colTargets.map((tg, c) => (
+            <Target key={c} target={tg} left={colLeft[c]} label={tm.colTarget.replace('{n}', c + 1)} />
           ))}
+          <span className={styles.corner} aria-hidden="true">Σ</span>
         </div>
       </div>
+
+      <p className={styles.legend}>{tm.legend}</p>
+
+      <div className={styles.message} aria-live="polite">
+        {solved !== null
+          ? <span className={styles.banner}>{tm.solved} <span className={styles.bannerStars}>{stars(solved)}</span></span>
+          : message && <span className={styles.msgText}>{message}</span>}
+      </div>
+
+      <div className={styles.tools}>
+        <button type="button" className={styles.toolBtn} onClick={undo} disabled={solved !== null || history.length === 0}>{tm.undo}</button>
+        <button type="button" className={styles.toolBtn} onClick={reset} disabled={solved !== null || !active.some(row => row.some(Boolean))}>{tm.reset}</button>
+        <button type="button" className={`${styles.toolBtn} ${styles.hintBtn}`} onClick={hint} disabled={solved !== null}>
+          {tm.hint}
+          <span className={styles.hintCost}>{nextStars < starsFor(hints) ? tm.hintCost : tm.hintFree}</span>
+        </button>
       </div>
     </div>
   );
 }
 
+function Target({ target, left, label }) {
+  const st = statusOf(left);
+  return (
+    <div className={`${styles.target} ${styles[st.cls]}`} aria-label={`${label}: ${target}, ${st.text}`}>
+      <span className={styles.targetNum}>{target}</span>
+      <span className={styles.targetLeft}>{st.text}</span>
+    </div>
+  );
+}
+
+Target.propTypes = {
+  target: PropTypes.number.isRequired,
+  left:   PropTypes.number.isRequired,
+  label:  PropTypes.string.isRequired,
+};
+
 SumixGame.propTypes = {
   difficulty:  PropTypes.string.isRequired,
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
-  secondsLeft: PropTypes.number,
+  reportRound: PropTypes.func,
   playClick:   PropTypes.func.isRequired,
   playSuccess: PropTypes.func.isRequired,
   playFail:    PropTypes.func.isRequired,
+  playReveal:  PropTypes.func,
 };
+
+const TIME_LIMITS = { easy: null, medium: null, hard: null };
 
 export function Sumix({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const t = useTranslation();
@@ -240,8 +366,17 @@ export function Sumix({ memberId, difficulty = 'easy', onComplete, callbackUrl, 
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ difficulty: diff, onComplete: sc, reportScore, secondsLeft, playClick, playSuccess, playFail }) => (
-        <SumixGame difficulty={diff} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
+      {({ difficulty: diff, onComplete: sc, reportScore, reportRound, playClick, playSuccess, playFail, playReveal }) => (
+        <SumixGame
+          difficulty={diff}
+          onComplete={sc}
+          reportScore={reportScore}
+          reportRound={reportRound}
+          playClick={playClick}
+          playSuccess={playSuccess}
+          playFail={playFail}
+          playReveal={playReveal}
+        />
       )}
     </GameShell>
   );
