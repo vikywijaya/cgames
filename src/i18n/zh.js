@@ -216,7 +216,7 @@ export default {
     'math-cross': { title: '数学填字', label: '数学填字', description: '将数字放入方程式填字格。', instructions: '将给定的数字放入填字网格，使每个方程式都正确。', tapEmptySlot: '点击网格上的空位', pickNumber: '选择下面的数字', tapNumberThenSlot: '点击数字，然后点击空位' },
     'tangram': { title: '七巧板', label: '七巧板', description: '拖动七块几何形状填满轮廓。', instructions: '拖动并旋转七块七巧板精确填满轮廓形状。' },
     'slither-escape': { title: '蛇形逃脱', label: '蛇形逃脱', description: '滑动彩蛇到匹配的出口！', instructions: '将彩蛇滑到匹配的出口。蛇只能前后移动。' },
-    'flappy-numbers': { title: '飞翔数字', label: '飞翔数字', description: '飞过匹配你数字的方块！', instructions: '飞过匹配目标数字和颜色的方块。避开错误的方块！' },
+    'flappy-numbers': { title: '飞翔数字', label: '飞翔数字', description: '飞过匹配你数字的方块！', instructions: '点击屏幕或按空格键向上飞。飞过显示你的数字的方块——其他方块会挡路。你有3条命：撞到后，点击继续。连续飞过方块可以累积连击：连续5个得分翻倍，连续10个得分三倍。', instructionsHard: '数字和颜色都要对上！有两个方块显示你的数字，但只有一个颜色是对的。', goal: '飞过写着你的数字的方块', ouch: '哎哟！', tapToContinue: '点击继续', combo: '连击', pts: '分' },
     'dot-ed': { title: 'Dot.ed', label: 'DOT ED', description: '连接红点到蓝色目标。', instructions: '将红色源点连接到蓝色目标点。每个源有容量，每个目标有需求——全部匹配！' },
     'zip': { title: 'Zip', label: 'ZIP', description: '画出经过每个格子的路径。', instructions: '在网格上画一条经过每个格子的连续路径，按顺序通过编号的路标。' },
     'sokoban': { title: '推箱子', label: '推箱子', description: '把所有箱子推到目标位置！', instructions: '把所有箱子推到目标位置。一次只能推一个箱子——不能拉！' },

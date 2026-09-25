@@ -33,15 +33,25 @@ const PSZ = 48;       // player tile size
 const TH = 70;        // tile height (GH / 8)
 const WW = 78;        // wall column width
 const PX = 65;        // player fixed X position
-const GRAV = 0.35;    // gravity
-const FLAP_V = -6.5;  // flap upward push
+const GRAV = 0.28;    // gravity (gentle, for seniors)
+const FLAP_V = -6;    // flap upward push
 const TILES_N = 8;    // tiles per wall column
 
+// lives: crashes allowed before the game ends. par: a good score for the
+// level, used as maxScore (it used to be the player's own score, so every
+// game read as 100%). guide: glow the matching tile to help find it.
 const DIFF_CFG = {
-  easy:   { baseSpd: 1.3, colorMatch: false },
-  medium: { baseSpd: 1.6, colorMatch: true },
-  hard:   { baseSpd: 2.2, colorMatch: true },
+  easy:   { baseSpd: 1.3, colorMatch: false, lives: 3, par: 20, guide: true },
+  medium: { baseSpd: 1.6, colorMatch: true,  lives: 3, par: 30, guide: false },
+  hard:   { baseSpd: 2.0, colorMatch: true,  lives: 3, par: 40, guide: false },
 };
+const RESPAWN_CLEAR = 220; // walls closer than this to the bird are cleared after a crash
+
+export function comboMultiplier(streak) {
+  if (streak >= 10) return 3;
+  if (streak >= 5) return 2;
+  return 1;
+}
 const TIME_LIMITS = { easy: null, medium: null, hard: null };
 
 /* ══════════════════════════════════════════════════════════════
@@ -61,8 +71,9 @@ function getScaling(score, difficulty) {
   // Speed increases gently, capped at ~1.6x base speed
   const spdMult = 1 + Math.min(score * 0.03, 0.6);
   const spd = cfg.baseSpd * spdMult;
-  // Wall gap starts wide and shrinks slowly — stays comfortable
-  const gap = Math.max(300, 440 - score * 6);
+  // Wall gap starts comfortable and shrinks slowly. With the slower,
+  // gentler physics a wider gap left long, dull stretches between walls.
+  const gap = Math.max(270, 360 - score * 5);
   // Number pool grows with score — more numbers to scan
   const poolSize = Math.min(POWERS.length, 3 + Math.floor(score / 2));
   return { spd, gap, poolSize };
@@ -143,6 +154,9 @@ function FlappyNumbersGame({
   const tRef = useRef(0);
   const doneRef = useRef(false);
   const [, bump] = useState(0);
+  const [hurt, setHurt] = useState(0);
+  const [popups, setPopups] = useState([]);
+  const popIdRef = useRef(0);
 
   // Initialize game state
   if (!gRef.current) {
@@ -155,7 +169,10 @@ function FlappyNumbersGame({
       pn: pick(POWERS.slice(0, 3)),
       pc: initColor,       // player color (medium/hard only)
       walls: [],
-      sc: 0,
+      sc: 0,        // points (with combo)
+      walls_: 0,    // walls passed
+      streak: 0,
+      lives: cfg.lives,
       floatT: 0,
       tunnel: null,
     };
@@ -164,30 +181,54 @@ function FlappyNumbersGame({
   const re = useCallback(() => bump(n => n + 1), []);
 
   /* ── Actions ── */
+  const finish = useCallback(() => {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    const g = gRef.current;
+    onComplete({ finalScore: g.sc, maxScore: Math.max(cfg.par, g.sc), completed: true });
+  }, [onComplete, cfg.par]);
+
+  // A crash costs a life. With lives left, the bird floats back to the
+  // middle, nearby walls are cleared, and it waits for a tap to go again.
   const die = useCallback(() => {
     const g = gRef.current;
-    g.ph = 'dead';
     playFail();
-    if (!doneRef.current) {
-      doneRef.current = true;
-      onComplete({ finalScore: g.sc, maxScore: g.sc, completed: false });
+    g.lives -= 1;
+    g.streak = 0;
+    g.tunnel = null;
+    setHurt(h => h + 1);
+    if (g.lives <= 0) {
+      g.ph = 'dead';
+      re();
+      setTimeout(() => finish(), 900);
+      return;
     }
+    g.ph = 'waiting';
+    g.pv = 0;
+    g.pr = 0;
+    g.walls = g.walls.filter(w => w.x > PX + RESPAWN_CLEAR);
     re();
-  }, [playFail, onComplete, re]);
+  }, [playFail, finish, re]);
 
   const pass = useCallback(() => {
     const g = gRef.current;
-    g.sc++;
+    g.walls_ += 1;
+    g.streak += 1;
+    const m = comboMultiplier(g.streak);
+    g.sc += m;
     reportScore(g.sc);
     playSuccess();
-    g.pn = nextNum(g.pn, g.sc);
+    const id = ++popIdRef.current;
+    setPopups(prev => [...prev, { id, y: g.py, text: `+${m}`, tone: m > 1 ? `x${m}` : 'good' }]);
+    setTimeout(() => setPopups(prev => prev.filter(p => p.id !== id)), 900);
+    g.pn = nextNum(g.pn, g.walls_);
     if (cfg.colorMatch) {
       g.pc = nextColor(g.pc);
     }
     // Update any already-spawned unpassed walls to match the new player number/color
     for (const w of g.walls) {
       if (!w.passed) {
-        const updated = mkWall(g.pn, g.sc, cfg.colorMatch, g.pc);
+        const updated = mkWall(g.pn, g.walls_, cfg.colorMatch, g.pc);
         w.tiles = updated.tiles;
         w.mi = updated.mi;
         w.matchColor = updated.matchColor;
@@ -204,7 +245,7 @@ function FlappyNumbersGame({
     if (g.ph === 'dead') return;
     if (g.ph === 'waiting') {
       g.ph = 'playing';
-      g.walls = [{ x: GW + 80, passed: false, ...mkWall(g.pn, 0, cfg.colorMatch, g.pc) }];
+      if (!g.walls.length) g.walls = [{ x: GW + 80, passed: false, ...mkWall(g.pn, g.walls_, cfg.colorMatch, g.pc) }];
     }
     g.pv = FLAP_V;
     playClick();
@@ -228,7 +269,7 @@ function FlappyNumbersGame({
     }
 
     if (g.ph === 'playing') {
-      const { spd, gap } = getScaling(g.sc, difficulty);
+      const { spd, gap } = getScaling(g.walls_, difficulty);
 
       // Move walls
       const s = spd * dt;
@@ -238,7 +279,7 @@ function FlappyNumbersGame({
       // Spawn new wall
       const lastX = g.walls.length ? g.walls[g.walls.length - 1].x : -999;
       if (lastX < GW - gap) {
-        g.walls.push({ x: GW + 10, passed: false, ...mkWall(g.pn, g.sc, cfg.colorMatch, g.pc) });
+        g.walls.push({ x: GW + 10, passed: false, ...mkWall(g.pn, g.walls_, cfg.colorMatch, g.pc) });
       }
 
       const pL = PX + 4;
@@ -350,18 +391,36 @@ function FlappyNumbersGame({
   /* ── Render ── */
   const g = gRef.current;
   const hasColor = cfg.colorMatch && g.pc;
+  const tf = t.games['flappy-numbers'];
+  const mult = comboMultiplier(g.streak);
+  const nextAt = g.streak >= 10 ? null : g.streak >= 5 ? 10 : 5;
+  const prevAt = g.streak >= 10 ? 10 : g.streak >= 5 ? 5 : 0;
+  const comboFill = nextAt ? (g.streak - prevAt) / (nextAt - prevAt) : 1;
+  const crashed = hurt > 0 && g.ph === 'waiting';
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>{hasColor ? t.common.matchNumberColor : t.common.tapOrSpaceToFlap}</span>
+        <div className={styles.hudLeft}>
+          <span key={hurt} className={`${styles.livesRow} ${hurt ? styles.livesHurt : ''}`} aria-label={`${g.lives} ${t.common.livesRemaining}`}>
+            {Array.from({ length: cfg.lives }).map((_, i) => (
+              <span key={i} className={i < g.lives ? styles.heartFull : styles.heartEmpty} aria-hidden="true">❤️</span>
+            ))}
+          </span>
+          <div className={`${styles.combo} ${mult > 1 ? styles[`combo${mult}`] : ''}`} aria-label={`${tf.combo} ${g.streak}`}>
+            <span className={styles.comboMult}>x{mult}</span>
+            <span className={styles.comboTrack} aria-hidden="true">
+              <span className={styles.comboFill} style={{ transform: `scaleX(${comboFill})` }} />
+            </span>
+          </div>
         </div>
         <div className={styles.infoBadge}>
-          <span className={styles.infoBadgeNum}>{g.sc}</span>
-          <span className={styles.infoBadgeSub}>pts</span>
+          <span key={g.sc} className={styles.infoBadgeNum}>{g.sc}</span>
+          <span className={styles.infoBadgeSub}>{tf.pts}</span>
         </div>
       </div>
+
+      <p className={styles.goal}>{hasColor ? t.common.matchNumberColor : tf.goal}</p>
 
       <div className={styles.playArea}>
       <div
@@ -432,7 +491,7 @@ function FlappyNumbersGame({
                 return (
                   <div
                     key={ti}
-                    className={`${styles.wTile}${isOpen ? ` ${styles.wOpen}` : ''}`}
+                    className={`${styles.wTile}${isOpen ? ` ${styles.wOpen}` : ''}${cfg.guide && isMatch && !isOpen && !w.passed ? ` ${styles.wGuide}` : ''}`}
                     style={{
                       height: TH,
                       background: bg,
@@ -450,10 +509,16 @@ function FlappyNumbersGame({
 
         {/* Tap to start */}
         {g.ph === 'waiting' && (
-          <div className={styles.tapPrompt}>{t.common.tapToStart}</div>
+          <div className={`${styles.tapPrompt} ${crashed ? styles.tapPromptCrash : ''}`}>
+            {crashed ? <><span className={styles.ouch}>{tf.ouch}</span>{tf.tapToContinue}</> : t.common.tapToStart}
+          </div>
         )}
 
-        {/* Game over overlay */}
+        {popups.map(p => (
+          <span key={p.id} className={`${styles.floatText} ${styles[`tone_${p.tone}`] ?? ''}`} style={{ left: PX + PSZ / 2, top: p.y }} aria-hidden="true">{p.text}</span>
+        ))}
+
+        {/* Out of lives */}
         {g.ph === 'dead' && (
           <div className={styles.ov}>
             <div className={styles.ovBox}>
@@ -494,11 +559,9 @@ export function FlappyNumbers({
       startCountdown
       gameId="flappy-numbers"
       title={t.games['flappy-numbers'].title}
-      instructions={
-        difficulty === 'easy'
-          ? 'Tap or press Space to flap upward. Fly through the tile that matches your number. Avoid all other tiles. It gets faster the longer you survive!'
-          : 'Tap or press Space to flap. Match BOTH your number AND your color! Watch out — there are two tiles with your number, but only one has the right color.'
-      }
+      instructions={difficulty === 'easy'
+        ? t.games['flappy-numbers'].instructions
+        : `${t.games['flappy-numbers'].instructions} ${t.games['flappy-numbers'].instructionsHard}`}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       flushTop

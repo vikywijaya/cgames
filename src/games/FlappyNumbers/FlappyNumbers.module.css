@@ -256,3 +256,117 @@
   font-size: var(--text-xs);
   color: var(--color-primary);
 }
+
+/* ── Revamp: lives, combo, guide, crash prompt ───── */
+.hudLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.livesRow { display: flex; gap: 2px; font-size: 1.2rem; line-height: 1; }
+.heartFull  { transition: opacity 0.25s ease, transform 0.25s ease; }
+.heartEmpty { opacity: 0.25; filter: grayscale(1); transform: scale(0.85); transition: opacity 0.25s ease, transform 0.25s ease; }
+@keyframes livesHurt {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-2px); }
+}
+.livesHurt { animation: livesHurt 320ms ease-out; }
+
+.combo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.comboMult {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: 32px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: #e2e8f0;
+  color: #475569;
+  font-weight: 800;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  transition: background 200ms ease, color 200ms ease, transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.combo2 .comboMult { background: #fde68a; color: #92400e; transform: scale(1.06); }
+.combo3 .comboMult { background: linear-gradient(135deg, #fb923c, #ef4444); color: #fff; transform: scale(1.12); }
+.comboTrack {
+  display: block;
+  width: 52px;
+  height: 6px;
+  border-radius: 3px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+.comboFill {
+  display: block;
+  height: 100%;
+  background: #22c55e;
+  transform-origin: left;
+  transition: transform 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.combo2 .comboFill { background: #f59e0b; }
+.combo3 .comboFill { background: #ef4444; }
+
+@keyframes badgeBump {
+  0% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+.infoBadgeNum { display: inline-block; animation: badgeBump 220ms cubic-bezier(0.23, 1, 0.32, 1); }
+
+.goal {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* Easy: the tile to fly through glows, so it's easy to find. */
+@keyframes guideGlow {
+  0%, 100% { box-shadow: inset 0 0 0 3px #fff, 0 0 0 0 rgba(255, 255, 255, 0.8); }
+  50%      { box-shadow: inset 0 0 0 3px #fff, 0 0 14px 4px rgba(255, 255, 255, 0.9); }
+}
+.wGuide { position: relative; z-index: 1; animation: guideGlow 900ms ease-in-out infinite; }
+
+.tapPromptCrash {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.ouch {
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #dc2626;
+}
+
+@keyframes floatUp {
+  0%   { transform: translate(-50%, 0) scale(0.7); opacity: 0; }
+  20%  { transform: translate(-50%, -12px) scale(1.12); opacity: 1; }
+  100% { transform: translate(-50%, -50px) scale(1); opacity: 0; }
+}
+.floatText {
+  position: absolute;
+  z-index: 20;
+  pointer-events: none;
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.45);
+  animation: floatUp 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.tone_x2 { color: #fde68a; font-size: 1.65rem; }
+.tone_x3 { color: #fca5a5; font-size: 1.8rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wGuide { animation: none; box-shadow: inset 0 0 0 3px #fff; }
+}
