@@ -1,89 +1,105 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { shuffle } from '../../utils/shuffle';
 
+/*
+ * Memory Match rules (tuned for seniors):
+ * - All cards are shown face up for a few seconds at the start (peekMs).
+ * - Each match is worth up to MATCH_POINTS, minus one for every wrong
+ *   guess since the previous match (never less than 1). Careful play
+ *   scores more; it used to be 100% for any finished game.
+ * - One "Peek" per game shows every unmatched card for a moment.
+ * - No overall clock.
+ */
 const DIFFICULTY_CONFIG = {
-  easy:   { cols: 4, rows: 3, pairs: 6,  timeLimitSeconds: null },
-  medium: { cols: 4, rows: 4, pairs: 8,  timeLimitSeconds: 120 },
-  hard:   { cols: 5, rows: 4, pairs: 10, timeLimitSeconds: 90 },
+  easy:   { cols: 4, pairs: 6,  peekMs: 3500, peeks: 1 },
+  medium: { cols: 4, pairs: 8,  peekMs: 3000, peeks: 1 },
+  hard:   { cols: 4, pairs: 10, peekMs: 2500, peeks: 1 },
 };
+export const MATCH_POINTS = 3;
+const PEEK_MS = 1600;
+const MATCH_DELAY = 450;
+const MISMATCH_DELAY = 1100;
 
-// Emoji symbols used as card faces
-const SYMBOLS = [
-  '🌸', '🎵', '⭐', '🌙', '🍎', '🦋', '🌈', '🎈',
-  '🐢', '🌻', '🎨', '🏡', '🌿', '🦁', '🎭', '🔔',
+// A different theme each game so the pictures don't become familiar.
+const THEMES = [
+  ['🌸', '🌻', '🌷', '🌹', '🌼', '🌺', '🍀', '🌵', '🌴', '🍁'],
+  ['🐶', '🐱', '🐰', '🐼', '🦁', '🐸', '🐢', '🦋', '🐟', '🦉'],
+  ['🍎', '🍌', '🍇', '🍓', '🍉', '🍍', '🥭', '🍒', '🥥', '🍋'],
+  ['🎈', '⭐', '🌙', '🔔', '🎵', '🏡', '☂️', '⚽', '🎁', '🚲'],
 ];
 
 export function useMemoryMatch(difficulty = 'easy') {
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
 
   const [cards] = useState(() => {
-    const symbols = SYMBOLS.slice(0, config.pairs);
-    const pairs = symbols.flatMap((symbol, idx) => [
-      { id: idx * 2,     symbol, isFlipped: false, isMatched: false },
-      { id: idx * 2 + 1, symbol, isFlipped: false, isMatched: false },
-    ]);
-    return shuffle(pairs);
+    const symbols = shuffle(THEMES[Math.floor(Math.random() * THEMES.length)]).slice(0, config.pairs);
+    return shuffle(symbols.flatMap((symbol, idx) => [
+      { id: idx * 2, symbol },
+      { id: idx * 2 + 1, symbol },
+    ]));
   });
 
-  const [cardState, setCardState] = useState(() =>
-    cards.map((c) => ({ isFlipped: false, isMatched: false }))
-  );
-  const [flippedIndices, setFlippedIndices] = useState([]);
-  const [lockBoard, setLockBoard] = useState(false);
+  const [cardState, setCardState] = useState(() => cards.map(() => ({ isFlipped: false, isMatched: false })));
   const [matchCount, setMatchCount] = useState(0);
+  const [score, setScore] = useState(0);
+  const [moves, setMoves] = useState(0);
+  const [peeking, setPeeking] = useState(false);
+  const [peeksLeft, setPeeksLeft] = useState(config.peeks);
+  const [lastMatch, setLastMatch] = useState(null); // { id, points }
 
-  const flipCard = useCallback(
-    (index) => {
-      if (lockBoard) return;
-      if (cardState[index].isFlipped || cardState[index].isMatched) return;
-      if (flippedIndices.length >= 2) return;
+  // Refs so taps in quick succession see each other's effect.
+  const flippedRef = useRef([]);
+  const lockRef = useRef(false);
+  const wrongSinceMatch = useRef(0);
+  const scoreRef = useRef(0);
 
-      const newFlipped = [...flippedIndices, index];
-      setFlippedIndices(newFlipped);
-      setCardState((prev) =>
-        prev.map((c, i) => (i === index ? { ...c, isFlipped: true } : c))
-      );
+  const flipCard = useCallback((index) => {
+    if (lockRef.current || peeking) return false;
+    const st = cardState[index];
+    if (st.isFlipped || st.isMatched || flippedRef.current.includes(index)) return false;
+    if (flippedRef.current.length >= 2) return false;
 
-      if (newFlipped.length === 2) {
-        const [a, b] = newFlipped;
-        const symbolA = cards[a].symbol;
-        const symbolB = cards[b].symbol;
+    const flipped = [...flippedRef.current, index];
+    flippedRef.current = flipped;
+    setCardState(prev => prev.map((c, i) => (i === index ? { ...c, isFlipped: true } : c)));
+    if (flipped.length < 2) return true;
 
-        setLockBoard(true);
+    const [a, b] = flipped;
+    lockRef.current = true;
+    setMoves(m => m + 1);
+    if (cards[a].symbol === cards[b].symbol) {
+      const points = Math.max(1, MATCH_POINTS - wrongSinceMatch.current);
+      wrongSinceMatch.current = 0;
+      scoreRef.current += points;
+      setTimeout(() => {
+        setCardState(prev => prev.map((c, i) => (i === a || i === b ? { ...c, isMatched: true } : c)));
+        setMatchCount(m => m + 1);
+        setScore(scoreRef.current);
+        setLastMatch({ id: Date.now(), points, cards: [a, b] });
+        flippedRef.current = [];
+        lockRef.current = false;
+      }, MATCH_DELAY);
+    } else {
+      wrongSinceMatch.current += 1;
+      setCardState(prev => prev.map((c, i) => (i === a || i === b ? { ...c, isMismatched: true } : c)));
+      setTimeout(() => {
+        setCardState(prev => prev.map((c, i) => (i === a || i === b ? { ...c, isFlipped: false, isMismatched: false } : c)));
+        flippedRef.current = [];
+        lockRef.current = false;
+      }, MISMATCH_DELAY);
+    }
+    return true;
+  }, [cardState, cards, peeking]);
 
-        if (symbolA === symbolB) {
-          // Match found
-          setTimeout(() => {
-            setCardState((prev) =>
-              prev.map((c, i) =>
-                i === a || i === b ? { ...c, isMatched: true } : c
-              )
-            );
-            setMatchCount((m) => m + 1);
-            setFlippedIndices([]);
-            setLockBoard(false);
-          }, 600);
-        } else {
-          // No match — briefly flag as mismatched then flip back
-          setCardState((prev) =>
-            prev.map((c, i) =>
-              i === a || i === b ? { ...c, isMismatched: true } : c
-            )
-          );
-          setTimeout(() => {
-            setCardState((prev) =>
-              prev.map((c, i) =>
-                i === a || i === b ? { ...c, isFlipped: false, isMismatched: false } : c
-              )
-            );
-            setFlippedIndices([]);
-            setLockBoard(false);
-          }, 1000);
-        }
-      }
-    },
-    [lockBoard, cardState, flippedIndices, cards]
-  );
+  // Show every card (start of game, or the Peek button).
+  const peek = useCallback((ms = PEEK_MS, free = false) => {
+    if (!free) {
+      if (peeksLeft <= 0 || lockRef.current || flippedRef.current.length) return;
+      setPeeksLeft(p => p - 1);
+    }
+    setPeeking(true);
+    setTimeout(() => setPeeking(false), ms);
+  }, [peeksLeft]);
 
   return {
     cards,
@@ -91,8 +107,15 @@ export function useMemoryMatch(difficulty = 'easy') {
     flipCard,
     matchCount,
     maxMatches: config.pairs,
+    maxScore: config.pairs * MATCH_POINTS,
+    score,
+    moves,
     cols: config.cols,
-    timeLimitSeconds: config.timeLimitSeconds,
+    peekMs: config.peekMs,
+    peeking,
+    peeksLeft,
+    peek,
+    lastMatch,
     done: matchCount === config.pairs,
   };
 }

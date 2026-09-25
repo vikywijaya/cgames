@@ -183,7 +183,7 @@ export default {
     clickFirstLetter: '点击单词的第一个字母',
   },
   games: {
-    'memory-match': { title: '记忆配对', label: '记忆配对', description: '翻卡找配对。', instructions: '翻开卡片找到配对。点击卡片将其翻开，然后找到它的配对。配对成功的卡片保持翻开。找到所有配对即可获胜！' },
+    'memory-match': { title: '记忆配对', label: '记忆配对', description: '翻卡找配对。', instructions: '开始时所有卡片会显示几秒钟——试着记住图案的位置！然后点击两张卡片把它们翻过来，找出相同的一对。每找到一对最多得3分，自上次配对以来每猜错一次就少1分。想不起来？用"偷看"再看一次所有卡片。', pts: '分', moves: '步数', lookCarefully: '仔细看…', peeking: '偷看中…', findPairs: '找出相同的一对', peek: '偷看', tip: '每对最多{n}分——猜错越少，得分越多。', perfectMatch: '完美配对！', faceDown: '卡片，背面朝上', ariaGrid: '记忆卡片格子' },
     'word-recall': { title: '单词回忆', label: '单词回忆', description: '学习列表，然后回忆。', instructions: '你将看到一组单词。仔细记住！时间到后，单词会消失，你需要输入尽可能多的记住的单词。', placeholder: '输入单词后按回车…' },
     'daily-arithmetic': { title: '每日算术', label: '每日挑战', description: '按自己的节奏解答数学题。', instructions: '选择正确答案来回答每道算术题。慢慢来——没有时间限制。' },
     'word-search': { title: '找字游戏', label: '找字游戏', description: '在字母网格中找到隐藏的单词。', instructions: '在字母网格中找到所有隐藏的单词。点击起始字母然后点击结束字母。', clearSelection: '取消选择' },
