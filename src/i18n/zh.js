@@ -207,7 +207,7 @@ export default {
     'currency-quiz': { title: '货币测验', label: '货币测验', description: '说出每个国家的货币。', instructions: '你将看到一个国家。选择正确的货币。', wrongAnswer: '✗ 正确答案是' },
     'landmark-quiz': { title: '地标测验', label: '地标测验', description: '识别著名地标所在的国家。', instructions: '你将看到一个著名地标。选择它所在的国家。', wrongAnswer: '✗ 它在' },
     'snake-lite': { title: '贪吃蛇', label: '贪吃蛇', description: '引导蛇吃水果。别撞墙！', instructions: '用方向按钮、滑动或方向键引导小蛇去吃水果。每吃一个水果，小蛇就会变长。连续吃水果且不碰撞可以累积连击：连续5个得分翻倍，连续10个得分三倍。金色星星值3分，但几秒后会消失。', rulesEasy: '小蛇可以穿过墙壁，从另一边出来。咬到自己的尾巴只会让它变短。', rulesMedium: '撞墙会失去3条命中的一条。咬到自己的尾巴只会让它变短。', rulesHard: '撞墙或咬到自己的尾巴都会失去3条命中的一条。', combo: '连击', pts: '分', ouch: '哎哟！', bite: '咬断了！', ariaBoard: '贪吃蛇游戏板', ariaControls: '方向按钮', up: '上', down: '下', left: '左', right: '右' },
-    'tile-flip': { title: '翻方块', label: '翻方块', description: '记住亮起的方块，然后点击。', instructions: '观察哪些方块亮起，记住位置，然后凭记忆点击它们。' },
+    'tile-flip': { title: '翻方块', label: '翻方块', description: '记住亮起的方块，然后点击。', instructions: '有些方块会翻过来显示星星，然后再翻回去。点击每个藏着星星的方块。全部答对，下一轮就会多一颗星星。每轮可以错一次。完美的一轮有奖励，连续3轮完美得分翻倍。', pts: '分', perfect: '完美！', streakOn: '连续3轮完美——x2！', moreStars: '下一轮：{n}颗星', oneMore: '哎呀——还有一次机会', watch: '记住星星的位置…', tapStars: '点击星星——还剩{n}个', hereTheyWere: '星星原来在这里', getReady: '准备…', perfectStreak: '连续完美轮数', starsThisRound: '{n}颗星', tile: '方块', chances: '机会：' },
     'lumeno': { title: 'Lumeno', label: 'LUMENO', description: '拖动3个或更多相同颜色的球来消除。', instructions: '拖动3个或更多相同颜色的球来消除它们。链越长分数越高！' },
     'pipe-puzzle': { title: '管道拼图', label: '管道拼图', description: '旋转方块连接相同颜色的点。', instructions: '旋转管道方块，使每对相同颜色的点通过不间断的管道连接。' },
     'sumix': { title: 'Sumix', label: 'SUMIX', description: '激活数字使每行每列总和达标。', instructions: '切换数字单元格的开关，使每行每列的总和等于目标值。' },
