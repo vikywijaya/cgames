@@ -1,288 +1,308 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './RightTime.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
 
-// ── Difficulty config ──────────────────────────────────────────────
+/*
+ * RightTime — reading an analogue clock, an everyday skill.
+ *
+ * Question kinds:
+ *   read  — "What time does the clock show?" (every level)
+ *   pick  — "Which clock shows 3:15?" with four clocks (medium, hard)
+ *   later — "It's 2:30. What time will it be in 1 hour?" (hard)
+ *
+ * Tuned for seniors:
+ * - A bright clock face with the numbers 1–12, a short dark hour hand and a
+ *   long red minute hand (the old face was dark, numberless and thin).
+ * - Easy starts on o'clock and half past before quarter times.
+ * - No overall clock. Combo: correct answers in a row, x2 at 5, x3 at 10.
+ * - A wrong answer shows the right time on the clock.
+ */
 const DIFFICULTY_CONFIG = {
-  easy:   { questions: 8,  timeLimitSeconds: null, minuteStep: 15 }, // times on the hour/quarter
-  medium: { questions: 10, timeLimitSeconds: 120,  minuteStep: 5  }, // times on 5-min marks
-  hard:   { questions: 12, timeLimitSeconds: 90,   minuteStep: 1  }, // any minute
+  easy:   { questions: 8,  steps: [30, 15], kinds: ['read'] },
+  medium: { questions: 10, steps: [15, 5],  kinds: ['read', 'read', 'pick'] },
+  hard:   { questions: 12, steps: [5, 5],   kinds: ['read', 'pick', 'later'] },
 };
+const LATER_OFFSETS = [15, 30, 45, 60, 90, 120]; // minutes
 
-function randomTime(minuteStep) {
-  const h = Math.floor(Math.random() * 12) + 1; // 1–12
-  const steps = Math.floor(60 / minuteStep);
-  const m = Math.floor(Math.random() * steps) * minuteStep;
-  return { h, m };
+export function comboMultiplier(streak) {
+  if (streak >= 10) return 3;
+  if (streak >= 5) return 2;
+  return 1;
 }
 
-function formatTime({ h, m }) {
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const toMin = ({ h, m }) => (h % 12) * 60 + m;
+const fromMin = (t) => {
+  const v = ((t % 720) + 720) % 720;
+  return { h: Math.floor(v / 60) || 12, m: v % 60 };
+};
+const same = (a, b) => toMin(a) === toMin(b);
+export const fmt = ({ h, m }) => `${h}:${String(m).padStart(2, '0')}`;
+
+function randomTime(step) {
+  return { h: 1 + Math.floor(Math.random() * 12), m: Math.floor(Math.random() * (60 / step)) * step };
 }
 
-function timesEqual(a, b) {
-  return a.h === b.h && a.m === b.m;
+// Distinct, readable wrong answers: the classic mix-ups (hands swapped,
+// hour off by one, minutes off by a quarter) plus fillers.
+function distractors(correct) {
+  const out = [];
+  const add = (t) => {
+    if (!same(t, correct) && !out.some(o => same(o, t)) && Math.abs(toMin(t) - toMin(correct)) >= 5) out.push(t);
+  };
+  const swapped = { h: Math.round(correct.m / 5) || 12, m: (correct.h % 12) * 5 };
+  add(swapped);
+  add({ h: correct.h % 12 + 1, m: correct.m });
+  add(fromMin(toMin(correct) - 60));
+  add(fromMin(toMin(correct) + 15));
+  add(fromMin(toMin(correct) - 15));
+  add(fromMin(toMin(correct) + 30));
+  return out.slice(0, 3);
 }
 
-// Distractors must be visually distinguishable on a clock face. Two options that
-// share an hour must differ by at least this many minutes, so we never produce
-// near-duplicate times like 2:30 vs 2:31 on Hard.
-const MIN_MINUTE_GAP = 5;
-
-// Snap distractor minutes to a 5-min grid regardless of difficulty, so every
-// option lands on a readable clock position.
-const OPTION_MINUTE_STEP = 5;
-
-// Total absolute minutes (0–719) for a 12-hour clock, used to compare spacing.
-function totalMinutes({ h, m }) {
-  return (h % 12) * 60 + m;
-}
-
-// True if `candidate` is far enough from every already-chosen option.
-function isWellSpaced(candidate, options) {
-  return options.every((opt) => {
-    if (opt.h === candidate.h) {
-      return Math.abs(opt.m - candidate.m) >= MIN_MINUTE_GAP;
-    }
-    // Different hour — also reject if the overall times are within the gap
-    // (e.g. 2:58 vs 3:00) so the answers never read as near-identical.
-    return Math.abs(totalMinutes(opt) - totalMinutes(candidate)) >= MIN_MINUTE_GAP;
-  });
-}
-
-function generateOptions(correct) {
-  const options = [correct];
-
-  let guard = 0;
-  while (options.length < 4 && guard < 500) {
-    guard += 1;
-    let candidate;
-    const varyHour = Math.random() < 0.5;
-    if (varyHour) {
-      let h = correct.h + (Math.random() < 0.5 ? 1 : -1) * (Math.floor(Math.random() * 3) + 1);
-      h = ((h - 1 + 12) % 12) + 1;
-      candidate = { h, m: correct.m };
-    } else {
-      const steps = Math.floor(60 / OPTION_MINUTE_STEP);
-      let m = (Math.floor(Math.random() * steps) * OPTION_MINUTE_STEP) % 60;
-      candidate = { h: correct.h, m };
-    }
-    if (isWellSpaced(candidate, options)) options.push(candidate);
+export function makeQuestion(config, index) {
+  const step = index < config.questions / 2 ? config.steps[0] : config.steps[1];
+  const kind = pick(config.kinds);
+  const time = randomTime(step);
+  if (kind === 'later') {
+    const offset = pick(LATER_OFFSETS);
+    const answer = fromMin(toMin(time) + offset);
+    return { kind, time, offset, answer, options: shuffle([answer, ...distractors(answer)]) };
   }
+  return { kind, time, answer: time, options: shuffle([time, ...distractors(time)]) };
+}
 
-  // Fallback: if random spacing failed to fill 4, fan out by fixed +15-min hops.
-  let hop = 1;
-  while (options.length < 4) {
-    const base = totalMinutes(correct);
-    const tm = (((base + hop * 15) % 720) + 720) % 720;
-    const candidate = { h: (Math.floor(tm / 60) % 12) || 12, m: tm % 60 };
-    if (isWellSpaced(candidate, options)) options.push(candidate);
-    hop += 1;
-    if (hop > 48) break;
-  }
-
-  // shuffle
-  for (let i = options.length - 1; i > 0; i--) {
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [options[i], options[j]] = [options[j], options[i]];
+    [a[i], a[j]] = [a[j], a[i]];
   }
-  return options;
+  return a;
 }
 
-// ── SVG Clock face ─────────────────────────────────────────────────
-function ClockFace({ h, m, size = 200 }) {
-  const cx = size / 2;
-  const cy = size / 2;
-  const r  = size / 2 - 8;
+export function perfectScore(config) {
+  let total = 0;
+  for (let i = 1; i <= config.questions; i++) total += comboMultiplier(i);
+  return total;
+}
 
-  // Angles: 0 = 12 o'clock, clockwise
-  const minuteAngle = (m / 60) * 360 - 90;
-  const hourAngle   = ((h % 12) / 12) * 360 + (m / 60) * 30 - 90;
-
-  function hand(angleDeg, length, width, color) {
-    const rad = (angleDeg * Math.PI) / 180;
-    const x2  = cx + Math.cos(rad) * length;
-    const y2  = cy + Math.sin(rad) * length;
-    return <line x1={cx} y1={cy} x2={x2} y2={y2} stroke={color} strokeWidth={width} strokeLinecap="round" />;
-  }
-
-  // Minute ticks (60) — thin marks except on the hour, which are drawn bolder below
-  const minuteTicks = Array.from({ length: 60 }, (_, i) => {
-    if (i % 5 === 0) return null; // hour positions handled by bold markers
-    const angle = (i / 60) * 2 * Math.PI - Math.PI / 2;
-    const innerR = r - 5;
-    const outerR = r - 2;
-    return (
-      <line
-        key={`mt-${i}`}
-        x1={cx + Math.cos(angle) * innerR}
-        y1={cy + Math.sin(angle) * innerR}
-        x2={cx + Math.cos(angle) * outerR}
-        y2={cy + Math.sin(angle) * outerR}
-        stroke="rgba(228,228,231,0.3)"
-        strokeWidth={1}
-      />
-    );
-  });
-
-  // Hour markers (bolder)
-  const markers = Array.from({ length: 12 }, (_, i) => {
-    const angle = (i / 12) * 2 * Math.PI - Math.PI / 2;
-    const innerR = r - 12;
-    const outerR = r - 2;
-    return (
-      <line
-        key={i}
-        x1={cx + Math.cos(angle) * innerR}
-        y1={cy + Math.sin(angle) * innerR}
-        x2={cx + Math.cos(angle) * outerR}
-        y2={cy + Math.sin(angle) * outerR}
-        stroke="rgba(228,228,231,0.6)"
-        strokeWidth={3}
-      />
-    );
-  });
-
+// ── Clock face ─────────────────────────────────────────────────────
+function ClockFace({ h, m, size = 220, numbers = true }) {
+  const c = size / 2;
+  const r = size / 2 - 6;
+  const minuteAngle = (m / 60) * 360;
+  const hourAngle = ((h % 12) / 12) * 360 + (m / 60) * 30;
+  const polar = (deg, len) => {
+    const rad = ((deg - 90) * Math.PI) / 180;
+    return [c + Math.cos(rad) * len, c + Math.sin(rad) * len];
+  };
+  const hand = (deg, len, width, color) => {
+    const [x, y] = polar(deg, len);
+    const [bx, by] = polar(deg + 180, len * 0.12);
+    return <line x1={bx} y1={by} x2={x} y2={y} stroke={color} strokeWidth={width} strokeLinecap="round" />;
+  };
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
-      {/* Face */}
-      <circle cx={cx} cy={cy} r={r} fill="#1a1a25" stroke="rgba(255,255,255,0.15)" strokeWidth={3} />
-      {minuteTicks}
-      {markers}
-      {/* Hour hand */}
-      {hand(hourAngle,   r * 0.52, 5, '#60a5fa')}
-      {/* Minute hand */}
-      {hand(minuteAngle, r * 0.72, 3, '#f87171')}
-      {/* Centre dot */}
-      <circle cx={cx} cy={cy} r={4} fill="#e4e4e7" />
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true" className={styles.clockSvg}>
+      <circle cx={c} cy={c} r={r} fill="#fffdf7" stroke="#334155" strokeWidth={size > 120 ? 6 : 4} />
+      {Array.from({ length: 60 }, (_, i) => {
+        const hourMark = i % 5 === 0;
+        const [x1, y1] = polar(i * 6, r - (hourMark ? (size > 120 ? 14 : 9) : 6));
+        const [x2, y2] = polar(i * 6, r - 3);
+        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke={hourMark ? '#334155' : '#cbd5e1'} strokeWidth={hourMark ? 3 : 1.5} strokeLinecap="round" />;
+      })}
+      {numbers && Array.from({ length: 12 }, (_, i) => {
+        const n = i + 1;
+        // Small clocks show only 12, 3, 6 and 9, which stay readable.
+        if (size <= 120 && n % 3 !== 0) return null;
+        const [x, y] = polar(n * 30, r - (size > 120 ? 32 : 20));
+        return (
+          <text key={n} x={x} y={y} textAnchor="middle" dominantBaseline="central" fontSize={size > 120 ? size * 0.1 : size * 0.15} fontWeight="800" fill="#1e293b">{n}</text>
+        );
+      })}
+      {hand(hourAngle, r * 0.5, size > 120 ? 9 : 6, '#1e293b')}
+      {hand(minuteAngle, r * 0.78, size > 120 ? 5 : 3.5, '#dc2626')}
+      <circle cx={c} cy={c} r={size > 120 ? 7 : 4.5} fill="#1e293b" />
+      <circle cx={c} cy={c} r={size > 120 ? 3 : 2} fill="#fff" />
     </svg>
   );
 }
+ClockFace.propTypes = { h: PropTypes.number.isRequired, m: PropTypes.number.isRequired, size: PropTypes.number, numbers: PropTypes.bool };
 
-ClockFace.propTypes = { h: PropTypes.number.isRequired, m: PropTypes.number.isRequired, size: PropTypes.number };
-
-// ── Inner game ─────────────────────────────────────────────────────
-function RightTimeGame({ difficulty, onComplete, reportScore, secondsLeft, playClick, playSuccess, playFail }) {
+function RightTimeGame({ countingDown = false, difficulty, onComplete, reportScore, reportRound, playClick, playSuccess, playFail }) {
   const t = useTranslation();
+  const tr = t.games['right-time'];
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const [qIndex, setQIndex]     = useState(0);
-  const [score, setScore]       = useState(0);
-  const [feedback, setFeedback] = useState(null); // null | 'correct' | 'wrong'
-  const [chosen, setChosen]     = useState(null);
-  const [question, setQuestion] = useState(() => {
-    const t = randomTime(config.minuteStep);
-    return { correct: t, options: generateOptions(t) };
-  });
 
-  // Time-up
+  const [qIndex, setQIndex] = useState(0);
+  const [q, setQ]           = useState(() => makeQuestion(config, 0));
+  const [chosen, setChosen] = useState(null);
+  const [score, setScore]   = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [popup, setPopup]   = useState(null);
+
+  const scoreRef  = useRef(0);
+  const streakRef = useRef(0);
+  const doneRef   = useRef(false);
+  const timersRef = useRef(new Set());
+  const reported  = useRef(-1);
+
   useEffect(() => {
-    if (secondsLeft === 0) {
-      onComplete({ finalScore: score, maxScore: config.questions, completed: false });
-    }
-  }, [secondsLeft, score, config.questions, onComplete]);
-
-  const nextQuestion = useCallback(() => {
-    const nextIdx = qIndex + 1;
-    if (nextIdx >= config.questions) {
-      onComplete({ finalScore: score, maxScore: config.questions, completed: true });
-      return;
-    }
-    setQIndex(nextIdx);
-    setFeedback(null);
-    setChosen(null);
-    const t = randomTime(config.minuteStep);
-    setQuestion({ correct: t, options: generateOptions(t) });
-  }, [qIndex, score, config.questions, config.minuteStep, onComplete]);
+    const timers = timersRef.current;
+    return () => { timers.forEach(clearTimeout); timers.clear(); };
+  }, []);
+  useEffect(() => {
+    if (countingDown || reported.current === qIndex) return;
+    reported.current = qIndex;
+    reportRound?.(qIndex + 1, config.questions);
+  }, [countingDown, qIndex, config.questions, reportRound]);
 
   const handleChoice = useCallback((opt) => {
-    if (feedback) return;
+    if (countingDown || chosen || doneRef.current) return;
     playClick();
     setChosen(opt);
-    const correct = timesEqual(opt, question.correct);
-    if (correct) { playSuccess(); } else { playFail(); }
-    setFeedback(correct ? 'correct' : 'wrong');
-    const newScore = correct ? score + 1 : score;
-    if (correct) setScore(newScore);
-    reportScore(newScore);
+    const correct = same(opt, q.answer);
+    if (correct) {
+      streakRef.current += 1;
+      const m = comboMultiplier(streakRef.current);
+      scoreRef.current += m;
+      setScore(scoreRef.current);
+      reportScore(scoreRef.current);
+      setPopup({ id: Date.now(), text: `+${m}` });
+      playSuccess();
+    } else {
+      streakRef.current = 0;
+      playFail();
+    }
+    setStreak(streakRef.current);
+    const h = setTimeout(() => {
+      timersRef.current.delete(h);
+      if (doneRef.current) return;
+      const next = qIndex + 1;
+      if (next >= config.questions) {
+        doneRef.current = true;
+        onComplete({ finalScore: scoreRef.current, maxScore: Math.max(perfectScore(config), scoreRef.current), completed: true });
+        return;
+      }
+      setQIndex(next);
+      setQ(makeQuestion(config, next));
+      setChosen(null);
+      setPopup(null);
+    }, correct ? 900 : 2200);
+    timersRef.current.add(h);
+  }, [countingDown, chosen, q, qIndex, config, onComplete, reportScore, playClick, playSuccess, playFail]);
 
-    setTimeout(() => nextQuestion(), 900);
-  }, [feedback, question.correct, score, reportScore, nextQuestion, playClick, playSuccess, playFail]);
+  const answered = !!chosen;
+  const correct = answered && same(chosen, q.answer);
+  const mult = comboMultiplier(streak);
+  const nextAt = streak >= 10 ? null : streak >= 5 ? 10 : 5;
+  const prevAt = streak >= 10 ? 10 : streak >= 5 ? 5 : 0;
+  const comboFill = nextAt ? (streak - prevAt) / (nextAt - prevAt) : 1;
+
+  const optClass = (opt) => [
+    styles.optBtn,
+    answered && same(opt, q.answer) ? styles.optCorrect : '',
+    answered && same(opt, chosen) && !correct ? styles.optWrong : '',
+    answered && !same(opt, q.answer) && !same(opt, chosen) ? styles.optDim : '',
+  ].join(' ');
+
+  const laterText = q.kind === 'later'
+    ? tr.laterQ.replace('{time}', fmt(q.time)).replace('{wait}', q.offset % 60 === 0
+      ? (q.offset === 60 ? tr.oneHour : tr.hours.replace('{n}', q.offset / 60))
+      : q.offset > 60 ? tr.hoursMinutes.replace('{h}', Math.floor(q.offset / 60)).replace('{m}', q.offset % 60) : tr.minutes.replace('{n}', q.offset))
+    : '';
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>{t.common.question} {qIndex + 1} {t.common.of} {config.questions}</span>
+        <div className={styles.hudLeft}>
+          <span className={styles.roundLabel}>{t.common.question} {qIndex + 1}/{config.questions}</span>
+          <div className={`${styles.combo} ${mult > 1 ? styles[`combo${mult}`] : ''}`} aria-label={`${tr.combo} ${streak}`}>
+            <span className={styles.comboMult}>x{mult}</span>
+            <span className={styles.comboTrack} aria-hidden="true">
+              <span className={styles.comboFill} style={{ transform: `scaleX(${comboFill})` }} />
+            </span>
+          </div>
         </div>
         <div className={styles.infoBadge}>
-          <span className={styles.infoBadgeNum}>{score}</span>
-          <span className={styles.infoBadgeSub}>/ {config.questions}</span>
+          <span key={score} className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>{tr.pts}</span>
         </div>
       </div>
 
       <div className={styles.playArea}>
-      <div className={styles.clockWrap}>
-        <ClockFace h={question.correct.h} m={question.correct.m} size={200} />
-        <p className={styles.prompt}>What time does the clock show?</p>
-      </div>
+        {q.kind === 'pick' ? (
+          <>
+            <p className={styles.prompt}>{tr.pickQ.split('{time}')[0]}<strong className={styles.bigTime}>{fmt(q.answer)}</strong>{tr.pickQ.split('{time}')[1]}</p>
+            <div key={`p${qIndex}`} className={styles.clockOptions}>
+              {q.options.map((opt, i) => (
+                <button key={i} type="button" className={optClass(opt)} style={{ '--idx': i }} onClick={() => handleChoice(opt)} disabled={answered} aria-label={fmt(opt)}>
+                  <ClockFace h={opt.h} m={opt.m} size={120} />
+                  {answered && <span className={styles.clockCaption}>{fmt(opt)}</span>}
+                </button>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <p className={styles.prompt}>{q.kind === 'later' ? laterText : tr.readQ}</p>
+            <div key={`c${qIndex}`} className={`${styles.clockWrap} ${answered ? (correct ? styles.clockGood : styles.clockSoft) : ''}`}>
+              <ClockFace h={q.time.h} m={q.time.m} size={210} />
+              {popup && <span key={popup.id} className={styles.floatText} aria-hidden="true">{popup.text}</span>}
+            </div>
+            {q.kind === 'read' && (
+              <p className={styles.legend} aria-hidden="true">
+                <span className={styles.legendHour} /> {tr.hourHand}
+                <span className={styles.legendMinute} /> {tr.minuteHand}
+              </p>
+            )}
+            <div key={`o${qIndex}`} className={styles.options}>
+              {q.options.map((opt, i) => (
+                <button key={i} type="button" className={optClass(opt)} style={{ '--idx': i }} onClick={() => handleChoice(opt)} disabled={answered} aria-label={fmt(opt)}>
+                  {fmt(opt)}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
 
-      <div className={styles.options}>
-        {question.options.map((opt, i) => {
-          const isChosen  = chosen && timesEqual(opt, chosen);
-          const isCorrect = timesEqual(opt, question.correct);
-          let cls = styles.optBtn;
-          if (feedback && isChosen && feedback === 'correct') cls = `${styles.optBtn} ${styles.optCorrect}`;
-          else if (feedback && isChosen && feedback === 'wrong') cls = `${styles.optBtn} ${styles.optWrong}`;
-          else if (feedback && isCorrect) cls = `${styles.optBtn} ${styles.optCorrect}`;
-
-          return (
-            <button
-              key={i}
-              className={cls}
-              style={{ '--idx': i }}
-              onClick={() => handleChoice(opt)}
-              disabled={!!feedback}
-              aria-label={`Answer ${formatTime(opt)}`}
-            >
-              {formatTime(opt)}
-            </button>
-          );
-        })}
-      </div>
-
-      <p className={feedback === 'correct' ? styles.feedbackCorrect : feedback === 'wrong' ? styles.feedbackWrong : styles.feedbackSlot}>
-        {feedback === 'correct' ? t.common.correct : feedback ? `${t.games['right-time'].wrongAnswer} ${formatTime(question.correct)}` : '\u00A0'}
-      </p>
+        <p className={styles.feedback} aria-live="polite">
+          {answered && correct && <span className={styles.fbGood}>{t.common.correct}</span>}
+          {answered && !correct && <span className={styles.fbSoft}>{tr.itWas.replace('{time}', fmt(q.answer))}</span>}
+          {!answered && ' '}
+        </p>
       </div>
     </div>
   );
 }
 
 RightTimeGame.propTypes = {
+  countingDown: PropTypes.bool,
   difficulty:  PropTypes.oneOf(['easy', 'medium', 'hard']).isRequired,
   onComplete:  PropTypes.func.isRequired,
   reportScore: PropTypes.func.isRequired,
-  secondsLeft: PropTypes.number,
+  reportRound: PropTypes.func,
   playClick:   PropTypes.func.isRequired,
   playSuccess: PropTypes.func.isRequired,
   playFail:    PropTypes.func.isRequired,
 };
 
-// ── Outer wrapper ──────────────────────────────────────────────────
-const TIME_LIMITS = { easy: DIFFICULTY_CONFIG.easy.timeLimitSeconds ?? null, medium: DIFFICULTY_CONFIG.medium.timeLimitSeconds ?? null, hard: DIFFICULTY_CONFIG.hard.timeLimitSeconds ?? null };
+const TIME_LIMITS = { easy: null, medium: null, hard: null };
 
 export function RightTime({ memberId, difficulty = 'easy', onComplete, callbackUrl, onBack, musicMuted, onToggleMusic }) {
   const t = useTranslation();
+  const tr = t.games['right-time'];
   const { fireComplete: fireCallback } = useGameCallback({ memberId, gameId: 'right-time', callbackUrl, onComplete });
 
   return (
     <GameShell
+      startCountdown
       gameId="right-time"
-      title={t.games['right-time'].title}
-      instructions={t.games['right-time'].instructions}
+      title={tr.title}
+      instructions={difficulty === 'easy' ? tr.instructions : `${tr.instructions} ${tr.instructionsHard}`}
       difficulty={difficulty}
       timeLimits={TIME_LIMITS}
       flushTop
@@ -291,8 +311,17 @@ export function RightTime({ memberId, difficulty = 'easy', onComplete, callbackU
       musicMuted={musicMuted}
       onToggleMusic={onToggleMusic}
     >
-      {({ onComplete: sc, reportScore, secondsLeft, difficulty: diff, playClick, playSuccess, playFail }) => (
-        <RightTimeGame difficulty={diff} onComplete={sc} reportScore={reportScore} secondsLeft={secondsLeft} playClick={playClick} playSuccess={playSuccess} playFail={playFail} />
+      {({ onComplete: sc, reportScore, reportRound, difficulty: diff, playClick, playSuccess, playFail, countingDown }) => (
+        <RightTimeGame
+          countingDown={countingDown}
+          difficulty={diff}
+          onComplete={sc}
+          reportScore={reportScore}
+          reportRound={reportRound}
+          playClick={playClick}
+          playSuccess={playSuccess}
+          playFail={playFail}
+        />
       )}
     </GameShell>
   );
