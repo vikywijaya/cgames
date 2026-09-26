@@ -25,6 +25,8 @@ const SNAKE_COLORS = [
   { body: '#0f766e', dark: '#134e4a' }, // teal
 ];
 const ARROWS = { up: '▲', down: '▼', left: '◀', right: '▶' };
+// Height taken by the shell header, HUD, message, arrow row and tool row.
+const CHROME_H = 380;
 const KEY_DIRS = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
 
 const clone = (snakes) => snakes.map(s => ({ ...s, cells: s.cells.map(c => [...c]) }));
@@ -58,6 +60,15 @@ function headDir(cells) {
 export function SlitherEscapeGame({ difficulty, onComplete, reportScore, reportRound, playClick, playSuccess, playFail, playReveal }) {
   const t = useTranslation();
   const ts = t.games['slither-escape'];
+  const [viewport, setViewport] = useState(() => ({
+    w: typeof window !== 'undefined' ? window.innerWidth : 400,
+    h: typeof window !== 'undefined' ? window.innerHeight : 800,
+  }));
+  useEffect(() => {
+    const onResize = () => setViewport({ w: window.innerWidth, h: window.innerHeight });
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
   const dirWord = (d) => ts[`dir_${d}`];
 
@@ -230,8 +241,11 @@ export function SlitherEscapeGame({ difficulty, onComplete, reportScore, reportR
   };
 
   const { rows, cols } = level;
-  const vw = typeof window !== 'undefined' ? window.innerWidth : 400;
-  const cell = Math.max(34, Math.floor(Math.min(420, vw - 32) / (Math.max(rows, cols) + 2)));
+  // Size the board from the space left over, so nothing scrolls while playing.
+  const avail = Math.min(420, viewport.w - 32);
+  const byW = Math.floor(avail / (Math.max(rows, cols) + 2));
+  const byH = Math.floor((viewport.h - CHROME_H) / (rows + 2));
+  const cell = Math.max(30, Math.min(byW, byH, 56));
   const W = (cols + 2) * cell;
   const H = (rows + 2) * cell;
 
@@ -254,20 +268,17 @@ export function SlitherEscapeGame({ difficulty, onComplete, reportScore, reportR
   return (
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
+        <div className={styles.hudLeft}>
           <span className={styles.roundLabel}>{fmt(ts.puzzleOf, { n: puzzleIdx + 1, total: config.puzzles })}</span>
-          <span className={styles.infoHeaderSub}>{fmt(ts.snakesLeft, { n: remaining })}</span>
+          <span className={styles.hudSub}>{fmt(ts.snakesLeft, { n: remaining })}</span>
         </div>
         <div className={styles.infoBadge} aria-label={`${stars} ${ts.stars}`}>
-          <span className={styles.infoBadgeStar} aria-hidden="true">★</span>
           <span key={stars} className={styles.infoBadgeNum}>{stars}</span>
-          <span className={styles.infoBadgeSub}>/ {config.puzzles * 3}</span>
+          <span className={styles.infoBadgeSub} aria-hidden="true">★</span>
         </div>
       </div>
 
       <div className={styles.playArea}>
-        <p className={styles.prompt}>{ts.prompt}</p>
-
         <div
           key={`b${puzzleIdx}`}
           className={`${styles.board} ${banner ? styles.boardWin : ''}`}
@@ -351,15 +362,15 @@ export function SlitherEscapeGame({ difficulty, onComplete, reportScore, reportR
         </div>
 
         <p className={`${styles.message} ${message ? styles[`msg_${message.tone}`] : ''}`} aria-live="polite">
-          {message ? message.text : ' '}
+          {message ? message.text : ts.prompt}
         </p>
 
         <div className={styles.pad} role="group" aria-label={ts.arrows}>
-          {['up', 'left', 'right', 'down'].map(d => (
+          {['left', 'up', 'down', 'right'].map(d => (
             <button
               key={d}
               type="button"
-              className={`${styles.arrowBtn} ${styles[`arrow_${d}`]} ${hint?.dir === d && hint.si === selected ? styles.arrowHint : ''}`}
+              className={`${styles.arrowBtn} ${hint?.dir === d && hint.si === selected ? styles.arrowHint : ''}`}
               onClick={() => move(selected, d)}
               disabled={!!banner}
               aria-label={fmt(ts.slide, { dir: dirWord(d) })}
