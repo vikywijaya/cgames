@@ -198,23 +198,23 @@ function TangramGame({ difficulty, onComplete, reportScore, reportRound, playCli
   const viewBox = `${b.minX - pad} ${b.minY - pad} ${b.maxX - b.minX + pad * 2} ${b.maxY - b.minY + pad * 2}`;
   const placedCount = Object.keys(placed).length;
   const puzzleName = tt.names?.[puzzle.name] ?? puzzle.name;
-  const stars = starsFor(hints);
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.header}>
-        <div className={styles.headerText}>
-          <span className={styles.headerLabel}>
+      <div className={styles.infoHeader}>
+        <div className={styles.hudLeft}>
+          <span className={styles.roundLabel}>
             {tt.progress.replace('{n}', idx + 1).replace('{total}', puzzles.length)}
           </span>
-          <span className={styles.headerName}>{tt.makeThe.replace('{name}', puzzleName)}</span>
+          <span className={styles.puzzleName}>{tt.makeThe.replace('{name}', puzzleName)}</span>
         </div>
-        <div className={styles.headerBadge} aria-label={tt.placedCount.replace('{n}', placedCount).replace('{total}', puzzle.slots.length)}>
-          <span className={styles.badgeNum}>{placedCount}/{puzzle.slots.length}</span>
-          <span className={styles.badgeSub}>{tt.pieces}</span>
+        <div className={styles.infoBadge} aria-label={tt.total.replace('{n}', score).replace('{total}', maxScore)}>
+          <span key={score} className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>/ {maxScore} ★</span>
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <div className={styles.boardWrap}>
         <svg
           className={styles.board}
@@ -285,9 +285,6 @@ function TangramGame({ difficulty, onComplete, reportScore, reportRound, playCli
         </button>
       </div>
 
-      <div className={styles.footer}>
-        <span>{tt.starsNow.replace('{n}', stars)}</span>
-        <span>{tt.total.replace('{n}', score).replace('{total}', maxScore)}</span>
       </div>
     </div>
   );
