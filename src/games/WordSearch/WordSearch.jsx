@@ -142,19 +142,19 @@ function WordSearchGame({ difficulty, onComplete, reportScore, reportRound, play
   const fontScale = size >= 9 ? styles.gridSmall : size >= 8 ? styles.gridMid : '';
 
   return (
-    <div className={styles.container}>
+    <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>
-            {fill(tx.puzzleOf, { n: puzzleIdx + 1, total: config.puzzles })} · {fill(tx.wordsFound, { n: found.size, total: placed.length })}
-          </span>
+        <div className={styles.hudLeft}>
+          <span className={styles.roundLabel}>{fill(tx.puzzleOf, { n: puzzleIdx + 1, total: config.puzzles })}</span>
+          <span className={styles.hudSub}>{fill(tx.wordsFound, { n: found.size, total: placed.length })}</span>
         </div>
         <div className={styles.infoBadge} aria-label={`${score} / ${maxScore}`}>
-          <span className={styles.infoBadgeNum}>★ {score}</span>
-          <span className={styles.infoBadgeSub}>/ {maxScore}</span>
+          <span key={score} className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>★</span>
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <ul className={styles.wordChips} aria-label={tx.wordsToFind}>
         {placed.map(({ word }) => {
           const isFound = found.has(word);
@@ -168,6 +168,7 @@ function WordSearchGame({ difficulty, onComplete, reportScore, reportRound, play
         })}
       </ul>
 
+      <div className={styles.boardBox}>
       <div
         className={`${styles.grid} ${fontScale}`}
         style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))` }}
@@ -201,6 +202,7 @@ function WordSearchGame({ difficulty, onComplete, reportScore, reportRound, play
           })
         )}
       </div>
+      </div>
 
       <p className={`${styles.statusText} ${toneClass}`} aria-live="polite" aria-atomic="true">
         {statusText}
@@ -228,6 +230,7 @@ function WordSearchGame({ difficulty, onComplete, reportScore, reportRound, play
           </button>
         </div>
       )}
+      </div>
     </div>
   );
 }
