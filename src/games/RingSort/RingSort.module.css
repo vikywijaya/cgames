@@ -29,6 +29,7 @@
   gap: var(--space-4);
   width: calc(100% + var(--space-4) * 2);
   margin: 0 calc(-1 * var(--space-4));
+  border-radius: 0;
   position: sticky;
   top: 0;
   z-index: 5;
@@ -64,7 +65,8 @@
 @keyframes msgIn { from { opacity: 0.3; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 .message {
   margin: 0;
-  min-height: 2.6em;
+  min-height: 2.4em;
+  line-height: 1.2;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -208,15 +210,23 @@
 .areaSolved { animation: solvedPulse 500ms ease; }
 
 /* ── Tools ──────────────────────────────────────── */
-.tools { display: flex; gap: var(--space-2); flex-wrap: wrap; justify-content: center; }
+.tools { display: flex; gap: var(--space-2); justify-content: center; width: 100%; max-width: 480px; }
 .toolBtn {
+  flex: 1 1 0;
+  min-width: 0;
   min-height: 52px;
-  padding: 0 18px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1.1;
+  text-align: center;
   border-radius: 14px;
   border: 2px solid #cbd5e1;
   background: #ffffff;
   color: #1e293b;
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 800;
   cursor: pointer;
   box-shadow: 0 3px 0 #cbd5e1;

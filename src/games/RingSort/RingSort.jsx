@@ -216,7 +216,7 @@ function RingSortGame({ difficulty, onComplete, reportScore, reportRound, playCl
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.hudLeft}>
-          <span className={styles.roundLabel}>{t.common.puzzle} {roundIdx + 1} {t.common.of} {rounds}</span>
+          <span className={styles.roundLabel}>{t.common.puzzle} {roundIdx + 1}/{rounds}</span>
           <span className={styles.helpStars} aria-label={`${starsFor(help)} ${tr.stars}`}>
             {[0, 1, 2].map(i => (
               <span key={i} className={i < starsFor(help) ? styles.starOn : styles.starOff} aria-hidden="true">★</span>
@@ -225,7 +225,7 @@ function RingSortGame({ difficulty, onComplete, reportScore, reportRound, playCl
         </div>
         <div className={styles.infoBadge}>
           <span key={score} className={styles.infoBadgeNum}>{score}</span>
-          <span className={styles.infoBadgeSub}>/ {maxScore} ★</span>
+          <span className={styles.infoBadgeSub} aria-label={tr.stars}>★</span>
         </div>
       </div>
 
