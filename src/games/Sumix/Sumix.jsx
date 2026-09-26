@@ -10,8 +10,8 @@ import { useTranslation } from '../../i18n/useTranslation';
  * its target.
  *
  * Tuned for seniors:
- * - No clock. Each target box shows what is still needed ("+3"), a tick
- *   when it is right, or how much it is over ("−2").
+ * - No clock. Each target box shows its target, then a tick when the
+ *   sum is right, or how much it is over ("−2").
  * - Every puzzle has exactly one answer, so a hint can always point at a
  *   cell to change. Undo and Reset are free; only hints cost stars.
  * - 3 stars per puzzle with no hints, 2 with one or two, 1 with more.
@@ -91,7 +91,7 @@ const emptyBoard = (rows, cols) => Array.from({ length: rows }, () => Array(cols
 
 function statusOf(left) {
   if (left === 0) return { cls: 'done', text: '✓' };
-  if (left > 0) return { cls: 'need', text: `+${left}` };
+  if (left > 0) return { cls: 'need', text: '' };
   return { cls: 'over', text: `−${-left}` };
 }
 
@@ -251,7 +251,6 @@ function SumixGame({ difficulty, onComplete, reportScore, reportRound, playClick
     hintTimer.current = later(() => setHintCell(null), HINT_SHOW_MS);
   }, [rows, cols, puzzle, later, clearHint, playReveal, tm]);
 
-  const nextStars = starsFor(hints + 1);
   const stars = (n) => '★'.repeat(n) + '☆'.repeat(MAX_STARS - n);
 
   return (
@@ -301,7 +300,6 @@ function SumixGame({ difficulty, onComplete, reportScore, reportRound, playClick
         </div>
       </div>
 
-      <p className={styles.legend}>{tm.legend}</p>
 
       <div className={styles.message} aria-live="polite">
         {solved !== null
@@ -314,7 +312,6 @@ function SumixGame({ difficulty, onComplete, reportScore, reportRound, playClick
         <button type="button" className={styles.toolBtn} onClick={reset} disabled={solved !== null || !active.some(row => row.some(Boolean))}>{tm.reset}</button>
         <button type="button" className={`${styles.toolBtn} ${styles.hintBtn}`} onClick={hint} disabled={solved !== null}>
           {tm.hint}
-          <span className={styles.hintCost}>{nextStars < starsFor(hints) ? tm.hintCost : tm.hintFree}</span>
         </button>
       </div>
     </div>
@@ -324,9 +321,9 @@ function SumixGame({ difficulty, onComplete, reportScore, reportRound, playClick
 function Target({ target, left, label }) {
   const st = statusOf(left);
   return (
-    <div className={`${styles.target} ${styles[st.cls]}`} aria-label={`${label}: ${target}, ${st.text}`}>
+    <div className={`${styles.target} ${styles[st.cls]}`} aria-label={st.text ? `${label}: ${target}, ${st.text}` : `${label}: ${target}`}>
       <span className={styles.targetNum}>{target}</span>
-      <span className={styles.targetLeft}>{st.text}</span>
+      {st.text && <span className={styles.targetLeft}>{st.text}</span>}
     </div>
   );
 }
