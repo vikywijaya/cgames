@@ -249,7 +249,7 @@ function ZipGame({ difficulty, onComplete, reportScore, reportRound, playSuccess
         </div>
         <div className={styles.infoBadge}>
           <span key={score} className={styles.infoBadgeNum}>{score}</span>
-          <span className={styles.infoBadgeSub}>/ {maxScore}</span>
+          <span className={styles.infoBadgeSub}>/ {maxScore} ★</span>
         </div>
       </div>
 

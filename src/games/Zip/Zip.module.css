@@ -15,15 +15,17 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   width: 100%;
-  padding-bottom: var(--space-4);
+  min-height: 0;
+  padding-bottom: var(--space-2);
 }
 
 /* ── HUD ── */
 .infoHeader {
   background: var(--color-surface);
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-3) var(--space-5);
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -35,7 +37,7 @@
   z-index: 5;
 }
 .hudLeft { display: flex; align-items: center; gap: var(--space-3); min-width: 0; flex-wrap: wrap; }
-.roundLabel { font-size: 1.05rem; font-weight: 700; color: var(--color-text); white-space: nowrap; }
+.roundLabel { font-size: var(--text-sm); font-weight: 700; color: var(--color-text-muted); white-space: nowrap; }
 .stars { display: inline-flex; gap: 2px; font-size: 1.4rem; line-height: 1; }
 .starOn  { color: #d97706; }
 .starOff { color: #cbd5e1; }
@@ -59,7 +61,7 @@
   line-height: 1;
   animation: badgeBump 220ms cubic-bezier(0.23, 1, 0.32, 1);
 }
-.infoBadgeSub { font-size: 1rem; color: var(--color-primary); }
+.infoBadgeSub { font-size: var(--text-xs); color: var(--color-primary); }
 
 /* ── Board ── */
 .boardWrap { position: relative; }
@@ -69,8 +71,9 @@
   display: grid;
   grid-template-columns: repeat(var(--size), 1fr);
   grid-template-rows: repeat(var(--size), 1fr);
-  width: min(92vw, 440px);
-  height: min(92vw, 440px);
+  /* Sized from the space left after HUD, tip and buttons so nothing scrolls */
+  width: min(92vw, 440px, calc(100dvh - 350px));
+  height: min(92vw, 440px, calc(100dvh - 350px));
   border-radius: var(--radius-lg);
   background: #94a3b8;
   gap: 3px;
@@ -188,13 +191,16 @@
 /* ── Tips ── */
 .tip {
   margin: 0;
-  min-height: 2.8em;
+  min-height: 2.7em;
   max-width: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   font-size: 1.1rem;
   font-weight: 700;
   line-height: 1.35;
-  padding: 6px 14px;
+  padding: 4px 12px;
   border-radius: 12px;
 }
 .tip_info { color: #1e293b; background: #f1f5f9; }
@@ -204,19 +210,22 @@
 .count { margin: 0; font-size: 1rem; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
 
 /* ── Controls ── */
-.controls { display: flex; gap: var(--space-3); flex-wrap: wrap; justify-content: center; }
+.controls { display: flex; gap: var(--space-2); flex-wrap: nowrap; justify-content: center; width: 100%; max-width: 440px; }
 .ctrlBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 52px;
-  min-width: 96px;
-  padding: 0 18px;
+  flex: 1 1 0;
+  justify-content: center;
+  min-height: 50px;
+  min-width: 0;
+  padding: 0 8px;
+  white-space: nowrap;
   border-radius: 14px;
   border: 2px solid #1d4ed8;
   background: #fff;
   color: #1d4ed8;
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 800;
   cursor: pointer;
   transition: transform 120ms ease, background 150ms ease;
