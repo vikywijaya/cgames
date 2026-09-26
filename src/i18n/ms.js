@@ -375,6 +375,7 @@ export default {
       description: 'Tolak semua kotak ke sasaran!',
       instructions: 'Tolak setiap kotak ke sasaran merah. Anda boleh menolak kotak, tetapi tidak boleh menariknya, jadi fikir dahulu. Bergerak dengan butang anak panah, atau ketik petak untuk berjalan ke sana. Tiada jam — ambil masa anda. Jika buntu: ketik Petunjuk untuk melihat langkah seterusnya, Buat asal untuk membatalkan langkah, atau Mula semula. Selesai dengan kurang bantuan memberi lebih banyak bintang.',
       puzzleOf: 'Teka-teki {n} daripada {total}',
+      puzzleShort: 'Teka-teki {n}/{total}',
       onTarget: '{n} daripada {total} kotak di sasaran',
       moves: 'Langkah: {n}',
       stars: 'bintang',

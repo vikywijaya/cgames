@@ -375,6 +375,7 @@ export default {
       description: 'Dorong semua kotak ke target!',
       instructions: 'Dorong setiap kotak ke target merah. Kotak bisa didorong, tetapi tidak bisa ditarik, jadi pikirkan dulu. Bergerak dengan tombol panah, atau ketuk kotak lantai untuk berjalan ke sana. Tidak ada batas waktu — santai saja. Kalau buntu: ketuk Petunjuk untuk melihat langkah berikutnya, Urungkan untuk membatalkan langkah, atau Ulangi dari awal. Selesai dengan sedikit bantuan memberi lebih banyak bintang.',
       puzzleOf: 'Teka-teki {n} dari {total}',
+      puzzleShort: 'Teka-teki {n}/{total}',
       onTarget: '{n} dari {total} kotak di target',
       moves: 'Langkah: {n}',
       stars: 'bintang',

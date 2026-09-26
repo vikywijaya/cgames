@@ -375,6 +375,7 @@ export default {
       description: '把所有箱子推到目标位置！',
       instructions: '把每个箱子推到红色目标上。箱子只能推，不能拉，所以要先想好。用方向按钮移动，或点一下格子就能走过去。没有时间限制，慢慢来。卡住了：点“提示”看下一步，点“撤销”退回一步，或点“重新开始”。用的帮助越少，得到的星星越多。',
       puzzleOf: '第 {n} 题，共 {total} 题',
+      puzzleShort: '第 {n}/{total} 题',
       onTarget: '{n} / {total} 个箱子已到目标',
       moves: '步数：{n}',
       stars: '星',

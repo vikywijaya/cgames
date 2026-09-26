@@ -181,15 +181,22 @@ function GoalSVG() {
   );
 }
 
-function useCellSize(width, height) {
-  const [vw, setVw] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 420));
+/* Largest cell size that lets the whole board fit inside the slot element. */
+function useCellSize(slotRef, width, height) {
+  const [box, setBox] = useState({ w: 360, h: 360 });
   useEffect(() => {
-    const onResize = () => setVw(window.innerWidth);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-  const maxBoard = Math.min(480, vw - 32);
-  return Math.max(34, Math.min(60, Math.floor(maxBoard / Math.max(width, height))));
+    const el = slotRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const ro = new ResizeObserver(([entry]) => {
+      const { width: w, height: h } = entry.contentRect;
+      setBox(prev => (prev.w === w && prev.h === h ? prev : { w, h }));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [slotRef]);
+  const border = 6;
+  const fit = Math.floor(Math.min((box.w - border) / width, (box.h - border) / height));
+  return Math.max(24, Math.min(60, fit));
 }
 
 function freshStats() {
@@ -222,6 +229,7 @@ function SokobanGame({ difficulty, onComplete, reportScore, reportRound, playCli
   const busyRef = useRef(false);
   const doneRef = useRef(false);
   const wrapperRef = useRef(null);
+  const slotRef = useRef(null);
   const touchRef = useRef(null);
   const timersRef = useRef(new Set());
   posRef.current = pos;
@@ -387,7 +395,7 @@ function SokobanGame({ difficulty, onComplete, reportScore, reportRound, playCli
     else move(dy > 0 ? 'down' : 'up');
   };
 
-  const cellSize = useCellSize(level.width, level.height);
+  const cellSize = useCellSize(slotRef, level.width, level.height);
   const boxSet = new Set(pos.boxes);
   const onTarget = pos.boxes.filter(b => level.goals.has(b)).length;
 
@@ -451,21 +459,20 @@ function SokobanGame({ difficulty, onComplete, reportScore, reportRound, playCli
       aria-label={tg.ariaGame}
     >
       <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderMain}>
-            {tg.puzzleOf.replace('{n}', idx + 1).replace('{total}', total)}
-          </span>
-          <span className={styles.infoHeaderSub}>
-            {tg.onTarget.replace('{n}', onTarget).replace('{total}', pos.boxes.length)} · {tg.moves.replace('{n}', moves)}
+        <div className={styles.hudLeft}>
+          <span className={styles.roundLabel}>{tg.puzzleShort.replace('{n}', idx + 1).replace('{total}', total)}</span>
+          <span className={styles.hudStat} aria-label={tg.onTarget.replace('{n}', onTarget).replace('{total}', pos.boxes.length)}>
+            📦 {onTarget}/{pos.boxes.length}
           </span>
         </div>
         <div className={styles.infoBadge} aria-label={`${stars} / ${maxScore} ${tg.stars}`}>
-          <span key={stars} className={styles.infoBadgeNum}>★ {stars}</span>
-          <span className={styles.infoBadgeSub}>/ {maxScore}</span>
+          <span key={stars} className={styles.infoBadgeNum}>{stars}</span>
+          <span className={styles.infoBadgeSub}>/ {maxScore} ★</span>
         </div>
       </div>
 
       <div className={styles.playArea}>
+        <div className={styles.boardSlot} ref={slotRef}>
         <div className={styles.boardWrap}>
           <div
             className={`${styles.board} ${solved ? styles.boardSolved : ''}`}
@@ -482,6 +489,7 @@ function SokobanGame({ difficulty, onComplete, reportScore, reportRound, playCli
               </span>
             </div>
           )}
+        </div>
         </div>
 
         <p
@@ -512,12 +520,6 @@ function SokobanGame({ difficulty, onComplete, reportScore, reportRound, playCli
           </div>
         </div>
 
-        <div className={styles.legend} aria-hidden="true">
-          <span className={styles.legendItem}><span className={styles.legendIcon}><PlayerSVG direction="down" /></span>{tg.you}</span>
-          <span className={styles.legendItem}><span className={styles.legendIcon}><BoxSVG onGoal={false} /></span>{tg.box}</span>
-          <span className={styles.legendItem}><span className={`${styles.legendIcon} ${styles.legendGoal}`}><GoalSVG /></span>{tg.target}</span>
-          <span className={styles.legendItem}><span className={styles.legendIcon}><BoxSVG onGoal /></span>{tg.boxOnTarget}</span>
-        </div>
       </div>
     </div>
   );

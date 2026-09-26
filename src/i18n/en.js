@@ -832,6 +832,7 @@ export default {
       description: 'Push all the boxes onto the targets in this classic warehouse puzzle!',
       instructions: 'Push every box onto a red target. You can push a box, but you can\'t pull it, so think ahead. Move with the arrow buttons, or tap a square to walk there. There is no clock — take your time. Stuck: tap Hint to see the next step, Undo to take back a move, or Start over. Solving with less help earns more stars.',
       puzzleOf: 'Puzzle {n} of {total}',
+      puzzleShort: 'Puzzle {n}/{total}',
       onTarget: '{n} of {total} boxes on targets',
       moves: 'Moves: {n}',
       stars: 'stars',
