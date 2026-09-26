@@ -205,7 +205,7 @@ function PieceShape({ piece, idx, cell }) {
   const cols = Math.max(...piece.shape.map(([, c]) => c)) + 1;
   const set = new Set(piece.shape.map(([r, c]) => `${r},${c}`));
   return (
-    <span className={styles.shape} style={{ gridTemplateColumns: `repeat(${cols}, ${cell}px)`, gridTemplateRows: `repeat(${rows}, ${cell}px)` }}>
+    <span className={styles.shape} style={{ '--pc': `${cell}px`, gridTemplateColumns: `repeat(${cols}, var(--pc))`, gridTemplateRows: `repeat(${rows}, var(--pc))` }}>
       {Array.from({ length: rows }, (_, r) => Array.from({ length: cols }, (_, c) => {
         const on = set.has(`${r},${c}`);
         return (
@@ -459,7 +459,7 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, reportRound, pla
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
         <div className={styles.hudLeft}>
-          <span className={styles.roundLabel}>{t.common.puzzle} {round + 1} {t.common.of} {rounds}</span>
+          <span className={styles.roundLabel}>{t.common.puzzle} {round + 1}/{rounds}</span>
           <span className={styles.hintCount} aria-label={`${tb.hintsUsed} ${hints}`}>
             💡 {hints}
           </span>
@@ -544,7 +544,7 @@ function BlockPuzzleGame({ difficulty, onComplete, reportScore, reportRound, pla
                 aria-pressed={selected === idx}
                 aria-label={`${tb.pieceLabel} ${idx + 1}${used ? `, ${tb.onBoard}` : ''}`}
               >
-                <PieceShape piece={piece} idx={idx} cell={24} />
+                <PieceShape piece={piece} idx={idx} cell={20} />
               </button>
             );
           })}
