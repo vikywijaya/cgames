@@ -22,7 +22,7 @@
   top: 0;
   z-index: 5;
 }
-.roundLabel { font-size: 1.05rem; font-weight: 800; color: var(--color-text); white-space: nowrap; }
+.roundLabel { font-size: 1rem; font-weight: 700; color: var(--color-text-muted); white-space: nowrap; }
 .infoBadge {
   background: var(--color-primary-light);
   border-radius: var(--radius-xl);
@@ -54,8 +54,8 @@
 .legendChip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 12px 4px 4px;
+  gap: 6px;
+  padding: 3px 10px 3px 3px;
   border-radius: 999px;
   background: #f1f5f9;
   border: 2px solid #cbd5e1;
@@ -85,7 +85,10 @@
   padding: 6px;
   background: #94a3b8;
   border-radius: 18px;
-  width: min(420px, calc(100vw - 32px));
+  /* Fit on one screen: leave room for HUD, legend, status and the tool row */
+  width: min(420px, calc(100vw - 32px), calc(100vh - 318px));
+  width: min(420px, calc(100vw - 32px), calc(100dvh - 318px));
+  min-width: 240px;
   aspect-ratio: 1;
   animation: boardIn 260ms cubic-bezier(0.23, 1, 0.32, 1);
   transition: box-shadow 300ms ease;

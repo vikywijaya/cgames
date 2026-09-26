@@ -241,6 +241,7 @@ export default {
       description: "旋转方块连接相同颜色的点。",
       instructions: "点击管道方块即可旋转。用一条不间断的管道，把数字和颜色相同的每对圆点连接起来。",
       instructionsHelp: "没有计时。“提示”会帮您转好一块，“撤销”可退回一步，“重新开始”会还原本题。不用提示解开可得3颗星。",
+      puzzleShort: "第 {n}/{total} 题",
       puzzleOf: "第 {n} 题，共 {total} 题",
       pairsJoined: "已连接 {n}/{total} 对",
       tapTip: "点击管道即可旋转",

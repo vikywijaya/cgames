@@ -593,6 +593,7 @@ export default {
       description: "Rotate tiles to connect the same-coloured dots with an unbroken pipe.",
       instructions: "Tap a pipe tile to turn it. Join each pair of dots with the same number and colour using one unbroken pipe.",
       instructionsHelp: "There is no clock. Hint turns one tile for you, Undo takes back a turn and Start again resets the puzzle. Solve without hints for 3 stars.",
+      puzzleShort: "Puzzle {n}/{total}",
       puzzleOf: "Puzzle {n} of {total}",
       pairsJoined: "{n} of {total} pairs joined",
       tapTip: "Tap a pipe to turn it",

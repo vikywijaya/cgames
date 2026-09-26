@@ -241,6 +241,7 @@ export default {
       description: "Putar kotak untuk menghubungkan titik berwarna sama.",
       instructions: "Ketuk kotak pipa untuk memutarnya. Hubungkan setiap pasang titik dengan nomor dan warna yang sama menggunakan satu pipa yang tidak terputus.",
       instructionsHelp: "Tidak ada waktu. Petunjuk memutar satu kotak untuk Anda, Batalkan mengembalikan satu putaran, dan Ulangi mengatur ulang teka-teki. Selesaikan tanpa petunjuk untuk 3 bintang.",
+      puzzleShort: "Teka-teki {n}/{total}",
       puzzleOf: "Teka-teki {n} dari {total}",
       pairsJoined: "{n} dari {total} pasang terhubung",
       tapTip: "Ketuk pipa untuk memutarnya",

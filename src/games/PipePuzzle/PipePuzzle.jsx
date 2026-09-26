@@ -410,10 +410,10 @@ function PipeGame({ difficulty, onComplete, reportScore, reportRound, playClick,
   return (
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
-        <span className={styles.roundLabel}>{fill(tp.puzzleOf, { n: round + 1, total: rounds })}</span>
-        <div className={styles.infoBadge}>
-          <span key={score} className={styles.infoBadgeNum}>{score}</span>
-          <span className={styles.infoBadgeSub}>★ / {rounds * STARS_MAX}</span>
+        <span className={styles.roundLabel}>{fill(tp.puzzleShort, { n: round + 1, total: rounds })}</span>
+        <div className={styles.infoBadge} aria-label={`${score} / ${rounds * STARS_MAX} ★`}>
+          <span key={score} className={styles.infoBadgeNum} aria-hidden="true">{score}</span>
+          <span className={styles.infoBadgeSub} aria-hidden="true">★</span>
         </div>
       </div>
 
@@ -421,9 +421,13 @@ function PipeGame({ difficulty, onComplete, reportScore, reportRound, playClick,
         {puzzle.colorPairs.map((p, i) => {
           const ci = colorIndex(p.colorId);
           return (
-            <span key={p.colorId} className={`${styles.legendChip} ${joined[i] ? styles.legendDone : ''}`}>
+            <span
+              key={p.colorId}
+              className={`${styles.legendChip} ${joined[i] ? styles.legendDone : ''}`}
+              aria-label={`${ci + 1}: ${joined[i] ? tp.joined : tp.notJoined}`}
+            >
               <span className={styles.legendDot} style={{ background: PIPE_COLORS[ci].pipe }}>{ci + 1}</span>
-              <span>{joined[i] ? `✓ ${tp.joined}` : tp.notJoined}</span>
+              <span aria-hidden="true">{joined[i] ? '✓' : '…'}</span>
             </span>
           );
         })}
@@ -480,7 +484,7 @@ function PipeGame({ difficulty, onComplete, reportScore, reportRound, playClick,
       </div>
 
       <p className={styles.status} aria-live="polite">
-        {hintAt ? `💡 ${tp.hintDone}` : won ? ' ' : `${fill(tp.pairsJoined, { n: joinedCount, total: puzzle.colorPairs.length })} · ${tp.tapTip}`}
+        {hintAt ? `💡 ${tp.hintDone}` : won ? ' ' : history.length ? fill(tp.pairsJoined, { n: joinedCount, total: puzzle.colorPairs.length }) : tp.tapTip}
       </p>
 
       <div className={styles.tools}>

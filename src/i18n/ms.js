@@ -241,6 +241,7 @@ export default {
       description: "Pusing jubin untuk sambungkan titik berwarna sama.",
       instructions: "Ketik jubin paip untuk memusingkannya. Sambungkan setiap pasangan titik yang sama nombor dan warna dengan satu paip yang tidak terputus.",
       instructionsHelp: "Tiada jam. Petunjuk memusingkan satu jubin untuk anda, Buat asal membatalkan satu pusingan dan Mula semula menetapkan semula teka-teki. Selesaikan tanpa petunjuk untuk 3 bintang.",
+      puzzleShort: "Teka-teki {n}/{total}",
       puzzleOf: "Teka-teki {n} daripada {total}",
       pairsJoined: "{n} daripada {total} pasangan bersambung",
       tapTip: "Ketik paip untuk memusingkannya",
