@@ -227,17 +227,18 @@ function LumenoGame({ difficulty, onComplete, reportScore, reportRound, playClic
   return (
     <div className={styles.wrap}>
       <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>
+        <div className={styles.hudLeft}>
+          <span className={styles.roundLabel}>
             {tx.puzzleOf.replace('{n}', puzzle + 1).replace('{total}', cfg.puzzles)}
           </span>
         </div>
-        <div className={styles.infoBadge}>
-          <span className={styles.infoBadgeNum}>{score}</span>
-          <span className={styles.infoBadgeSub}>/ {maxScore} ★</span>
+        <div className={styles.infoBadge} aria-label={`${score} / ${maxScore} ★`}>
+          <span key={score} className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>★</span>
         </div>
       </div>
 
+      <div className={styles.playArea}>
       <div className={styles.goals} aria-label={tx.goal}>
         <span className={styles.goalLabel}>{tx.goal}</span>
         {goals.map(g => {
@@ -325,6 +326,7 @@ function LumenoGame({ difficulty, onComplete, reportScore, reportRound, playClic
         >
           {tx.clear}
         </button>
+      </div>
       </div>
     </div>
   );
