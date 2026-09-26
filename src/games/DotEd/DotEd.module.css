@@ -11,8 +11,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
-  gap: 20px;
+  min-height: 0;
+  gap: 12px;
   width: 100%;
   padding: 0;
   background: #2d6a4f;
@@ -29,16 +29,18 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 12px;
   width: 100%;
+  padding-bottom: 12px;
 }
 
 /* ── Grid board ───────────────────────────────────────── */
 .board {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(var(--cols, 2), 72px);
-  grid-auto-rows: 72px;
+  --cell: clamp(48px, min(calc((100dvh - 340px) / var(--rows, 1)), calc((100vw - 56px) / var(--cols, 2))), 72px);
+  grid-template-columns: repeat(var(--cols, 2), var(--cell));
+  grid-auto-rows: var(--cell);
   gap: 0px;
   animation: popIn 0.4s ease both;
   user-select: none;
@@ -63,8 +65,8 @@
 
 /* ── Source (red circle) ──────────────────────────────── */
 .source {
-  width: 56px;
-  height: 56px;
+  width: calc(var(--cell) * 0.78);
+  height: calc(var(--cell) * 0.78);
   border-radius: 50%;
   background: #e8685a;
   display: flex;
@@ -108,8 +110,8 @@
 
 /* ── Target (blue rounded square) ─────────────────────── */
 .target {
-  width: 50px;
-  height: 50px;
+  width: calc(var(--cell) * 0.72);
+  height: calc(var(--cell) * 0.72);
   border-radius: 12px;
   background: #3b5998;
   display: flex;
@@ -146,13 +148,14 @@
 /* ── Message line ─────────────────────────────────────── */
 .message {
   margin: 0;
-  min-height: 3em;
+  min-height: 2.8em;
   max-width: 460px;
-  padding: 10px 16px;
+  margin: 0 12px;
+  padding: 6px 14px;
   border-radius: 14px;
   background: rgba(0, 0, 0, 0.3);
   color: #fff;
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 600;
   line-height: 1.4;
   text-align: center;
@@ -172,15 +175,19 @@
 /* ── Controls ─────────────────────────────────────────── */
 .controls {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
-  gap: 10px;
-  padding: 0 12px 16px;
+  gap: 8px;
+  padding: 0 12px;
+  width: 100%;
+  max-width: 480px;
 }
 .ctrlBtn {
+  flex: 1 1 0;
+  min-width: 0;
   min-height: 52px;
-  min-width: 96px;
-  padding: 0 18px;
+  padding: 0 8px;
+  white-space: nowrap;
   border-radius: 14px;
   border: 2px solid rgba(255, 255, 255, 0.85);
   background: rgba(0, 0, 0, 0.25);
@@ -225,7 +232,7 @@
 }
 
 /* ── HUD stars ────────────────────────────────────────── */
-.starsNow { font-size: 1.2rem; letter-spacing: 2px; line-height: 1; }
+.starsNow { font-size: 1rem; letter-spacing: 2px; line-height: 1; }
 .starOn  { color: #f59e0b; }
 .starOff { color: var(--color-text-muted); opacity: 0.4; }
 
@@ -283,31 +290,9 @@
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* ── Responsive ───────────────────────────────────────── */
-@media (max-width: 480px) {
-  .wrapper {
-    padding: 0;
-    min-height: 50vh;
-  }
-  .board {
-    grid-template-columns: repeat(var(--cols, 2), 60px);
-    grid-auto-rows: 60px;
-  }
-  .source {
-    width: 46px;
-    height: 46px;
-  }
-  .target {
-    width: 46px;
-    height: 46px;
-    font-size: 1.3rem;
-  }
-}
-
-/* ── Info header — WordRecall style ── */
+/* ── Info header — house HUD (matches NumberSort) ── */
 .infoHeader {
   background: var(--color-surface);
-  border-radius: 0;
   padding: var(--space-4) var(--space-5);
   display: flex;
   align-items: center;
@@ -315,24 +300,18 @@
   gap: var(--space-4);
   width: calc(100% + var(--space-4) * 2);
   margin: 0 calc(-1 * var(--space-4));
+  border-radius: 0;
   position: sticky;
   top: 0;
   z-index: 5;
 }
-
-.infoHeaderText {
+.hudLeft {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
 }
-
-
-.infoHeaderSub {
-  font-size: var(--text-base, 1rem);
-  font-weight: 700;
-  color: var(--color-text-muted);
-}
-
+.roundLabel { font-size: var(--text-sm); font-weight: 700; color: var(--color-text-muted); white-space: nowrap; }
 .infoBadge {
   background: var(--color-primary-light);
   border-radius: var(--radius-xl);
@@ -342,16 +321,20 @@
   gap: 4px;
   flex-shrink: 0;
 }
-
+@keyframes badgeBump {
+  0% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
 .infoBadgeNum {
+  display: inline-block;
   font-size: var(--text-lg);
   font-weight: var(--font-weight-bold);
   color: var(--color-primary);
   font-variant-numeric: tabular-nums;
   line-height: 1;
+  animation: badgeBump 220ms cubic-bezier(0.23, 1, 0.32, 1);
 }
-
 .infoBadgeSub {
-  font-size: 1rem;
+  font-size: var(--text-xs);
   color: var(--color-primary);
 }

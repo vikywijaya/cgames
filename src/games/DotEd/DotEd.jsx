@@ -375,8 +375,8 @@ function DotEdGame({ difficulty, onComplete, reportScore, reportRound, playPop, 
   return (
     <div className={styles.wrapper}>
       <div className={styles.infoHeader}>
-        <div className={styles.infoHeaderText}>
-          <span className={styles.infoHeaderSub}>{tn.puzzle} {levelIdx + 1} {tn.of} {total}</span>
+        <div className={styles.hudLeft}>
+          <span className={styles.roundLabel}>{tn.puzzle} {levelIdx + 1}/{total}</span>
           <span className={styles.starsNow} aria-label={`${potentialStars} ${tn.stars}`}>
             {[1, 2, 3].map(i => (
               <span key={i} className={i <= potentialStars ? styles.starOn : styles.starOff} aria-hidden="true">★</span>
@@ -400,7 +400,7 @@ function DotEdGame({ difficulty, onComplete, reportScore, reportRound, playPop, 
               {banner.text} {'★'.repeat(banner.stars)}
             </div>
           )}
-          <div key={levelIdx} className={styles.board} ref={boardRef} style={{ '--cols': cols }}>
+          <div key={levelIdx} className={styles.board} ref={boardRef} style={{ '--cols': cols, '--rows': grid.length }}>
             <svg className={styles.svgOverlay} width="100%" height="100%" aria-hidden="true">
               {lineSegs.map((l, i) => <line key={i} className={styles.connectionLine} {...l} />)}
               {dragSegs.map((l, i) => <line key={`d${i}`} className={styles.dragLine} {...l} />)}
