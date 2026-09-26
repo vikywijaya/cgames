@@ -692,7 +692,7 @@ export default {
       tapNumberThenSlot: 'Tap a number below, then tap an empty box',
       slotsLeft: '{n} empty box(es) left',
       tapToTakeBack: 'Tap a number in the grid to take it back',
-      puzzleOf: 'Puzzle {n} of {total}',
+      puzzleOf: 'Puzzle {n}/{total}',
       starsLabel: 'STARS',
       numbersLabel: 'Numbers to place',
       hint: 'Hint',

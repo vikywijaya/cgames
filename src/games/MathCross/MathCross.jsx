@@ -405,22 +405,31 @@ function MathCrossGame({ difficulty, onComplete, reportScore, reportRound, playC
     ? fill(tx.slotsLeft, { n: emptyCount })
     : tx.tapToTakeBack;
 
-  const cellSize = 'clamp(52px, 16vw, 64px)';
+  const cellSize = 'var(--mc-cell)';
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.hud}>
-        <div className={styles.hudBlock}>
-          <span className={styles.hudLabel}>{tx.label}</span>
-          <span className={styles.hudValue}>{fill(tx.puzzleOf, { n: round + 1, total })}</span>
+      <div className={styles.infoHeader}>
+        <div className={styles.hudLeft}>
+          <span className={styles.roundLabel}>{fill(tx.puzzleOf, { n: round + 1, total })}</span>
         </div>
-        <div className={styles.hudBlock} aria-live="polite">
-          <span className={styles.hudLabel}>{tx.starsLabel}</span>
-          <span className={styles.hudValue}>★ {score} / {total * STARS_PER_PUZZLE}</span>
+        <div className={styles.infoBadge} aria-live="polite" aria-label={`${tx.starsLabel} ${score} / ${total * STARS_PER_PUZZLE}`}>
+          <span key={score} className={styles.infoBadgeNum}>{score}</span>
+          <span className={styles.infoBadgeSub}>/ {total * STARS_PER_PUZZLE} ★</span>
         </div>
       </div>
 
-      <p className={styles.guide} aria-live="polite">{guide}</p>
+      <div className={styles.playArea}>
+      <div className={styles.bannerSlot} aria-live="polite">
+        {banner ? (
+          <div className={`${styles.banner} ${styles[`banner_${banner.kind}`]}`}>
+            {banner.kind === 'good' && <span className={styles.bannerStars}>{'★'.repeat(banner.stars)}{'☆'.repeat(3 - banner.stars)}</span>}
+            <span>{banner.text}</span>
+          </div>
+        ) : (
+          <p className={styles.guide}>{guide}</p>
+        )}
+      </div>
 
       <div
         className={`${styles.grid} ${solved ? styles.gridSolved : ''}`}
@@ -474,16 +483,6 @@ function MathCrossGame({ difficulty, onComplete, reportScore, reportRound, playC
         })}
       </div>
 
-      <div className={styles.bannerSlot} aria-live="assertive">
-        {banner && (
-          <div className={`${styles.banner} ${styles[`banner_${banner.kind}`]}`}>
-            {banner.kind === 'good' && <span className={styles.bannerStars}>{'★'.repeat(banner.stars)}{'☆'.repeat(3 - banner.stars)}</span>}
-            <span>{banner.text}</span>
-          </div>
-        )}
-      </div>
-
-      <div className={styles.trayLabel}>{tx.numbersLabel}</div>
       <div className={styles.tray} role="group" aria-label={tx.numbersLabel}>
         {puzzle.tray.map((val, idx) => {
           const used = usedTray.has(idx);
@@ -509,6 +508,7 @@ function MathCrossGame({ difficulty, onComplete, reportScore, reportRound, playC
         <button type="button" className={styles.actionBtn} onClick={handleHint} disabled={solved}>💡 {tx.hint}</button>
         <button type="button" className={styles.actionBtn} onClick={handleUndo} disabled={solved || history.length === 0}>↶ {tx.undo}</button>
         <button type="button" className={styles.actionBtn} onClick={handleReset} disabled={solved || emptyCount === puzzle.slots.length}>⟲ {tx.reset}</button>
+      </div>
       </div>
     </div>
   );

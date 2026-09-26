@@ -16,51 +16,80 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   width: 100%;
-  max-width: 560px;
-  margin: 0 auto;
+  flex: 1;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Board cell size: fits the width and leaves room for tray + buttons */
+  --mc-cell: clamp(46px, min(15vw, calc((100dvh - 390px) / 5.6)), 64px);
 }
 
-/* ── HUD ── */
-.hud {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-3);
-  width: 100%;
-  padding: var(--space-3) var(--space-4);
+/* ── HUD (house style, as NumberSort) ── */
+.infoHeader {
   background: var(--color-surface);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: calc(100% + var(--space-4) * 2);
+  margin: 0 calc(-1 * var(--space-4));
+  border-radius: 0;
+  position: sticky;
+  top: 0;
+  z-index: 5;
 }
-.hudBlock { display: flex; flex-direction: column; gap: 2px; }
-.hudBlock:last-child { text-align: right; }
-.hudLabel {
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--color-text-muted);
+.hudLeft { display: flex; align-items: center; gap: var(--space-3); min-width: 0; }
+.roundLabel { font-size: var(--text-sm); font-weight: 700; color: var(--color-text-muted); white-space: nowrap; }
+.infoBadge {
+  background: var(--color-primary-light);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2) var(--space-4);
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex-shrink: 0;
 }
-.hudValue {
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--color-text);
+@keyframes badgeBump {
+  0% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+.infoBadgeNum {
+  display: inline-block;
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  animation: badgeBump 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.infoBadgeSub { font-size: var(--text-xs); color: var(--color-primary); }
+
+.playArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
 }
 
 .guide {
   margin: 0;
-  min-height: 1.5em;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--color-text-muted);
   text-align: center;
+  line-height: 1.25;
 }
 
 /* ── Board ── */
 .grid {
   display: grid;
   gap: 4px;
-  padding: var(--space-2);
+  padding: 4px;
   animation: popIn 0.3s ease-out both;
 }
 .gridSolved { filter: none; }
@@ -146,35 +175,32 @@
   border: 3px solid #1E7A52;
 }
 
-/* ── Banner ── */
+/* ── Banner / guide line (share one slot so nothing jumps) ── */
 .bannerSlot {
-  min-height: 56px;
+  min-height: 48px;
   width: 100%;
   display: flex;
+  align-items: center;
   justify-content: center;
 }
 .banner {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-lg);
-  font-size: 18px;
+  font-size: 16px;
+  line-height: 1.25;
   font-weight: 700;
   text-align: center;
   animation: bannerIn 0.25s ease-out both;
 }
 .banner_good { background: #1E7A52; color: #FFFFFF; }
 .banner_bad  { background: #FEF0EF; color: #7A1D14; border: 2px solid #C0392B; }
-.banner_info { background: #F0EBF8; color: #3F2A66; border: 2px solid #7B5EA7; }
+.banner_info { background: var(--color-primary-light); color: var(--color-primary); }
 .bannerStars { font-size: 22px; color: #FFD34D; letter-spacing: 2px; }
 
 /* ── Tray ── */
-.trayLabel {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-text-muted);
-}
 .tray {
   display: flex;
   flex-wrap: wrap;
@@ -182,15 +208,15 @@
   gap: var(--space-2);
 }
 .trayNum {
-  min-width: 60px;
-  height: 60px;
+  min-width: 52px;
+  height: 52px;
   padding: 0 var(--space-2);
   border-radius: var(--radius-md);
   border: 2px solid #3D72E8;
   background: #FFFFFF;
   color: #1A2233;
   font-family: inherit;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 800;
   cursor: pointer;
   transition: transform 0.12s ease;
@@ -213,25 +239,29 @@
 /* ── Help buttons ── */
 .actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
   gap: var(--space-2);
-  margin-top: var(--space-2);
+  width: 100%;
 }
 .actionBtn {
-  min-height: 52px;
-  padding: 0 var(--space-4);
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 180px;
+  min-height: 48px;
+  padding: 0 var(--space-2);
+  white-space: nowrap;
   border-radius: var(--radius-lg);
   border: 2px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text);
   font-family: inherit;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
 }
 .actionBtn:disabled { opacity: 0.45; cursor: default; }
 
 @media (prefers-reduced-motion: reduce) {
-  .grid, .slotPop, .banner { animation: none; }
+  .grid, .slotPop, .banner, .infoBadgeNum { animation: none; }
 }
