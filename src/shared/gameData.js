@@ -69,7 +69,7 @@ export const GAME_GROUPS = [
       { id: 'pipe-puzzle',   title: 'Pipe Puzzle',  icon: '🔧', domain: 'Spatial Reasoning', description: 'Rotate tiles to connect the same-coloured dots with an unbroken pipe.' },
       { id: 'block-puzzle',  title: 'Blocks',       icon: '🟧', domain: 'Spatial Reasoning', description: 'Place block pieces on the board to fill every empty cell.' },
       { id: 'ring-sort',     title: 'Rings',        icon: '🔴', domain: 'Logic & Sorting',  description: 'Sort the coloured rings so each rod has only one colour.' },
-      { id: 'slither-escape', title: 'Slither Escape', icon: '🐍', domain: 'Spatial Reasoning', description: 'Slide coloured snakes to their matching exits without getting tangled!' },
+      { id: 'slither-escape', title: 'Slither Escape', icon: '🐍', domain: 'Spatial Reasoning', description: 'Guide each snake head-first along the stone path to its matching exit!' },
       { id: 'flappy-numbers', title: 'Flappy Numbers', icon: '🔢', domain: 'Number Recognition', description: 'Flap through the tile that matches your number — avoid the rest!' },
       { id: 'sokoban', title: 'Sokoban', icon: '📦', domain: 'Spatial Reasoning', description: 'Push all the boxes onto the targets in this classic warehouse puzzle!' },
       { id: 'zip', title: 'Zip', icon: '🔗', domain: 'Logic Puzzles', description: 'Draw a single path through every cell, hitting numbered waypoints in order.' },
