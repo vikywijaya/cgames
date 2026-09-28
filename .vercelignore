@@ -1,0 +1,9 @@
+# Keep uploads small: Vercel builds from source.
+.claude
+.impeccable
+node_modules
+dist
+docs
+server
+Dockerfile
+fly.toml
