@@ -33,7 +33,7 @@ export const GAME_GROUPS = [
       { id: 'quick-maths',      title: 'Quick Maths',      icon: '➕', domain: 'Mental Arithmetic',   description: 'Solve addition, subtraction and multiplication problems fast.' },
       { id: 'sumix',             title: 'Sumix',            icon: '🧮', domain: 'Numeric Logic',      description: 'Activate numbers so each row and column sums to its target.' },
       { id: 'math-cross',       title: 'Math Cross',      icon: '✖️', domain: 'Mental Arithmetic',  description: 'Place numbers into a crossword of equations to make them all correct.' },
-      { id: 'dot-ed',             title: 'Dot.ed',          icon: '🔴', domain: 'Logic Puzzles',      description: 'Connect red dots to blue targets — match every capacity and need.', comingSoon: true },
+      { id: 'dot-ed',             title: 'Dot.ed',          icon: '🔴', domain: 'Logic Puzzles',      description: 'Connect red dots to blue targets — match every capacity and need.' },
     ],
   },
   {
@@ -46,7 +46,7 @@ export const GAME_GROUPS = [
       { id: 'odd-one-out',         title: 'Odd One Out',         icon: '🔎', domain: 'Visual Reasoning', description: 'Spot the one emoji that doesn\'t belong.' },
       { id: 'spot-difference',     title: 'Spot the Difference', icon: '🔍', domain: 'Visual Scanning',  description: 'Find the tiles that differ between two emoji grids.' },
       { id: 'letter-count',        title: 'Letter Count',        icon: '🔠', domain: 'Visual Attention', description: 'Count how many times a letter appears in a word.' },
-      { id: 'tangram',              title: 'Tangram',             icon: '🔺', domain: 'Spatial Reasoning', description: 'Tap a piece, then tap the space where it fits — no dragging needed.', comingSoon: true },
+      { id: 'tangram',              title: 'Tangram',             icon: '🔺', domain: 'Spatial Reasoning', description: 'Tap a piece, then tap the space where it fits — no dragging needed.' },
     ],
   },
   {
@@ -69,7 +69,7 @@ export const GAME_GROUPS = [
       { id: 'pipe-puzzle',   title: 'Pipe Puzzle',  icon: '🔧', domain: 'Spatial Reasoning', description: 'Rotate tiles to connect the same-coloured dots with an unbroken pipe.' },
       { id: 'block-puzzle',  title: 'Blocks',       icon: '🟧', domain: 'Spatial Reasoning', description: 'Place block pieces on the board to fill every empty cell.' },
       { id: 'ring-sort',     title: 'Rings',        icon: '🔴', domain: 'Logic & Sorting',  description: 'Sort the coloured rings so each rod has only one colour.' },
-      { id: 'slither-escape', title: 'Slither Escape', icon: '🐍', domain: 'Spatial Reasoning', description: 'Slide coloured snakes to their matching exits without getting tangled!', comingSoon: true },
+      { id: 'slither-escape', title: 'Slither Escape', icon: '🐍', domain: 'Spatial Reasoning', description: 'Slide coloured snakes to their matching exits without getting tangled!' },
       { id: 'flappy-numbers', title: 'Flappy Numbers', icon: '🔢', domain: 'Number Recognition', description: 'Flap through the tile that matches your number — avoid the rest!' },
       { id: 'sokoban', title: 'Sokoban', icon: '📦', domain: 'Spatial Reasoning', description: 'Push all the boxes onto the targets in this classic warehouse puzzle!' },
       { id: 'zip', title: 'Zip', icon: '🔗', domain: 'Logic Puzzles', description: 'Draw a single path through every cell, hitting numbered waypoints in order.' },
