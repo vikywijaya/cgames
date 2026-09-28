@@ -10,6 +10,9 @@ import { useGameContext } from '../../context/GameContext';
 import { useTranslation } from '../../i18n/useTranslation';
 import styles from './GameShell.module.css';
 
+const NEXT_LEVEL = { easy: 'medium', medium: 'hard' };
+const LEVEL_UP_AT = 0.7; // score share that earns the "try a harder level" invite
+
 /**
  * Shared game shell that handles the idle → playing → finished state machine.
  * All games delegate their start/end/HUD rendering to this component.
@@ -139,6 +142,15 @@ export function GameShell({
     setRound({ current: 0, total: 0 });
   }
 
+  // After a good game on easy or medium, one tap starts the next level up.
+  function handleLevelUp() {
+    clearTimeout(countdownTimerRef.current);
+    setCountdown(null);
+    setLocalDifficulty(NEXT_LEVEL[localDifficulty]);
+    setGameKey(k => k + 1);
+    handleStart();
+  }
+
   // Format seconds as MM:SS
   function formatTime(secs) {
     if (secs === null) return null;
@@ -168,6 +180,17 @@ export function GameShell({
   const isUrgent = secondsLeft !== null && secondsLeft <= 10;
 
   const pct = phase === 'finished' && result.maxScore > 0 ? result.score / result.maxScore : 0;
+  // Only invite a harder level when the player did well, could have picked the
+  // level themselves (not locked by the host or the daily challenge), and a
+  // harder level exists.
+  const nextLevel = NEXT_LEVEL[localDifficulty];
+  const canLevelUp = phase === 'finished' && result.completed && pct >= LEVEL_UP_AT
+    && !!nextLevel && !shouldHideDifficulty && !isDailyChallenge;
+  const endNote = phase !== 'finished' ? null
+    : canLevelUp ? t.shell.levelUpNote
+    : pct < LEVEL_UP_AT ? t.shell.retryNote
+    : localDifficulty === 'hard' ? t.shell.topLevelNote
+    : null;
   const headline =
     pct >= 0.9 ? t.shell.excellent : pct >= 0.7 ? t.shell.wellDone : pct >= 0.5 ? t.shell.greatEffort : t.shell.keepPractising;
 
@@ -329,8 +352,14 @@ export function GameShell({
               {t.shell.completedIn} {result.durationSeconds} {result.durationSeconds !== 1 ? t.shell.secondsPlural : t.shell.seconds}
             </p>
           </div>
+          {endNote && <p className={styles.endNote}>{endNote}</p>}
           <div className={styles.endButtonGroup}>
-            <Button size="large" onClick={handlePlayAgain} autoFocus>
+            {canLevelUp && (
+              <Button size="large" onClick={handleLevelUp} autoFocus>
+                {t.shell.levelUpBtn.replace('{level}', t.shell[nextLevel])}
+              </Button>
+            )}
+            <Button size="large" variant={canLevelUp ? 'secondary' : 'primary'} onClick={handlePlayAgain} autoFocus={!canLevelUp}>
               {t.shell.playAgain}
             </Button>
             {!isDailyChallenge && onBack && (

@@ -389,6 +389,16 @@
 .endScoreMax  { font-size: var(--text-sm); color: var(--color-text-muted); }
 .endDuration  { font-size: var(--text-sm); color: var(--color-text-muted); }
 
+.endNote {
+  margin: 0;
+  max-width: 400px;
+  font-size: var(--text-md);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-text);
+  text-align: center;
+}
+
 .endButtonGroup {
   /* Stacked, full width. Side by side, each large button got ~160px, but
      "Back to Games" at the large 22px size needs ~230px with its padding,
