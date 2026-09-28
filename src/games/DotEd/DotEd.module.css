@@ -148,7 +148,8 @@
 /* ── Message line ─────────────────────────────────────── */
 .message {
   margin: 0;
-  min-height: 2.8em;
+  /* Room for three lines, so a shorter message never pulls the board up. */
+  min-height: calc(4.2em + 12px);
   max-width: 460px;
   margin: 0 12px;
   padding: 6px 14px;

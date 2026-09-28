@@ -9,8 +9,9 @@ export const S = (id, capacity) => ({ type: 'source', id, capacity });
 export const T = (id, need)     => ({ type: 'target', id, need });
 const _ = null;
 
-/* Fewer, better puzzles. Every one is checked solvable in logic.test.js. */
-export const LEVELS = {
+/* Hand-made puzzles, kept as a fallback pool if generation ever fails.
+   Every one is checked solvable in logic.test.js. */
+export const HAND_LEVELS = {
   easy: [
     { grid: [[ S('s1',2), T('t1',2) ]] },
     { grid: [
@@ -204,3 +205,157 @@ export function starsFor(helps) {
   if (helps <= 2) return 2;
   return 1;
 }
+
+/* ── Random level generation ─────────────────────────────────────────
+   Puzzles are built on a small rectangular grid (with the occasional
+   notch, like the hand-made ones) so every cell is reachable from every
+   other cell — that keeps the "every dollar of capacity can reach every
+   need" invariant true, which is what actually makes these solvable. */
+
+const GEN_PARAMS = {
+  easy:   { cells: [2, 4],  targets: [1, 1], cap: [1, 3], rows: [1, 2] },
+  medium: { cells: [4, 7],  targets: [1, 2], cap: [1, 4], rows: [2, 3] },
+  hard:   { cells: [7, 10], targets: [1, 2], cap: [1, 5], rows: [2, 4] },
+};
+
+function randInt(min, max) {
+  return min + Math.floor(Math.random() * (max - min + 1));
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/* True if every non-null cell can be reached from every other one. */
+function isConnected(grid) {
+  let start = null;
+  let count = 0;
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      if (grid[r][c]) { count++; if (!start) start = { r, c }; }
+    }
+  }
+  if (!start) return false;
+  const seen = new Set([`${start.r},${start.c}`]);
+  const queue = [start];
+  while (queue.length) {
+    const cur = queue.shift();
+    for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const n = { r: cur.r + dr, c: cur.c + dc };
+      const key = `${n.r},${n.c}`;
+      if (grid[n.r]?.[n.c] && !seen.has(key)) { seen.add(key); queue.push(n); }
+    }
+  }
+  return count === seen.size;
+}
+
+/* Build one random grid for a difficulty, or null if this attempt didn't
+   come out shaped right (caller retries). */
+function buildRandomGrid(difficulty) {
+  const p = GEN_PARAMS[difficulty] ?? GEN_PARAMS.easy;
+  const cellCount = randInt(p.cells[0], p.cells[1]);
+  const targetCount = Math.min(randInt(p.targets[0], p.targets[1]), Math.max(1, cellCount - 1));
+  const sourceCount = cellCount - targetCount;
+  if (sourceCount < 1) return null;
+
+  const rows = randInt(p.rows[0], Math.min(p.rows[1], cellCount));
+  const cols = Math.ceil(cellCount / rows);
+
+  // Lay cells out row-major, leaving a short last row (a "notch") when the
+  // rectangle doesn't divide evenly — matches the hand-made shapes.
+  const grid = [];
+  let placed = 0;
+  for (let r = 0; r < rows; r++) {
+    const row = [];
+    for (let c = 0; c < cols; c++) {
+      row.push(placed < cellCount ? {} : null);
+      if (placed < cellCount) placed++;
+    }
+    grid.push(row);
+  }
+  if (!isConnected(grid)) return null;
+
+  // Assign source capacities first.
+  const sourceCaps = Array.from({ length: sourceCount }, () => randInt(p.cap[0], p.cap[1]));
+  const total = sourceCaps.reduce((a, b) => a + b, 0);
+  if (total <= 0) return null;
+
+  // Split that total across the targets, each getting at least 1.
+  const needs = Array(targetCount).fill(0);
+  if (targetCount === 1) {
+    needs[0] = total;
+  } else {
+    let remaining = total - targetCount; // reserve 1 each up front
+    if (remaining < 0) return null;
+    for (let i = 0; i < targetCount; i++) needs[i] = 1;
+    while (remaining > 0) {
+      needs[randInt(0, targetCount - 1)]++;
+      remaining--;
+    }
+  }
+
+  // Drop capacities/needs onto the shuffled cell positions.
+  const positions = [];
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) if (grid[r][c]) positions.push({ r, c });
+  }
+  const order = shuffle(positions);
+  let sIdx = 0, tIdx = 0;
+  const kinds = shuffle([
+    ...Array(sourceCount).fill('source'),
+    ...Array(targetCount).fill('target'),
+  ]);
+  order.forEach((pos, i) => {
+    const kind = kinds[i];
+    if (kind === 'source') {
+      grid[pos.r][pos.c] = S(`s${sIdx + 1}`, sourceCaps[sIdx]);
+      sIdx++;
+    } else {
+      grid[pos.r][pos.c] = T(`t${tIdx + 1}`, needs[tIdx]);
+      tIdx++;
+    }
+  });
+
+  return grid;
+}
+
+/* Build one solvable, non-trivial puzzle for a difficulty, or null if
+   generation didn't succeed within the attempt budget (caller falls back
+   to a hand-made level). Keeps each attempt to plain array work, so this
+   comfortably runs well under 50ms per puzzle. */
+export function generateLevel(difficulty, attempts = 30) {
+  for (let i = 0; i < attempts; i++) {
+    const grid = buildRandomGrid(difficulty);
+    if (!grid) continue;
+    if (isSolved(grid)) continue; // every need was already 0 — not a puzzle
+    if (!isSolvable(grid)) continue;
+    return { grid };
+  }
+  return null;
+}
+
+/* A fresh set of `count` puzzles for a difficulty: generated where
+   possible, falling back to a (cloned) hand-made level otherwise, so a
+   round never repeats the exact same puzzles twice in a row. */
+export function buildLevelPool(difficulty, count) {
+  const fallback = HAND_LEVELS[difficulty] ?? HAND_LEVELS.easy;
+  const fallbackOrder = shuffle(fallback);
+  const pool = [];
+  for (let i = 0; i < count; i++) {
+    const generated = generateLevel(difficulty);
+    if (generated) {
+      pool.push(generated);
+    } else {
+      const pick = fallbackOrder[i % fallbackOrder.length];
+      pool.push({ grid: cloneGrid(pick.grid) });
+    }
+  }
+  return pool;
+}
+
+export const LEVEL_COUNTS = { easy: 4, medium: 5, hard: 5 };

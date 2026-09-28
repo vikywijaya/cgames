@@ -5,7 +5,8 @@ import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './DotEd.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
 import {
-  LEVELS, cloneGrid, findPos, isSolved, findPath, transfer, isSolvable, findHint, starsFor,
+  cloneGrid, findPos, isSolved, findPath, transfer, isSolvable, findHint, starsFor,
+  buildLevelPool, LEVEL_COUNTS,
 } from './logic';
 
 const TIME_LIMITS = { easy: null, medium: null, hard: null };
@@ -67,7 +68,10 @@ FlyingCircle.propTypes = {
 function DotEdGame({ difficulty, onComplete, reportScore, reportRound, playPop, playSuccess, playClick, playFail }) {
   const t = useTranslation();
   const tn = t.games['dot-ed'];
-  const levels = LEVELS[difficulty] ?? LEVELS.easy;
+  const levels = useMemo(
+    () => buildLevelPool(difficulty, LEVEL_COUNTS[difficulty] ?? LEVEL_COUNTS.easy),
+    [difficulty],
+  );
   const total = levels.length;
   const maxScore = total * 3;
 
