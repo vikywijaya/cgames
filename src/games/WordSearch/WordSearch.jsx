@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import { GAME_IDS } from '../../utils/gameIds';
-import { DIFFICULTY_CONFIG, generatePuzzle, cellsOnLine, matchSelection, starsFor } from './useWordSearch';
+import { DIFFICULTY_CONFIG, generatePuzzle, cellsOnLine, matchSelection } from './useWordSearch';
 import styles from './WordSearch.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
 
@@ -14,19 +14,17 @@ function WordSearchGame({ difficulty, onComplete, reportScore, reportRound, play
   const t = useTranslation();
   const tx = t.games['word-search'];
   const config = DIFFICULTY_CONFIG[difficulty] ?? DIFFICULTY_CONFIG.easy;
-  const maxScore = config.puzzles * 3;
+  // One point per word found; every puzzle always holds wordCount words.
+  const maxScore = config.puzzles * config.wordCount;
 
   const [puzzleIdx, setPuzzleIdx] = useState(0);
   const [puzzle, setPuzzle] = useState(() => generatePuzzle(config, tx.words));
   const [found, setFound] = useState(() => new Map()); // word -> cells
   const [start, setStart] = useState(null);
   const [flash, setFlash] = useState(null); // { cells, kind: 'miss' | 'found' }
-  const [hintCells, setHintCells] = useState(null);
-  const [hints, setHints] = useState(0);
-  const [hintLevel, setHintLevel] = useState({}); // word -> times hinted
   const [message, setMessage] = useState(null); // { text, tone }
   const [score, setScore] = useState(0);
-  const [solved, setSolved] = useState(null); // stars for the solved puzzle
+  const [solved, setSolved] = useState(false);
 
   // Timers cleared on unmount (StrictMode-safe).
   const timers = useRef([]);
@@ -50,17 +48,10 @@ function WordSearchGame({ difficulty, onComplete, reportScore, reportRound, play
     return s;
   }, [found]);
   const flashSet = useMemo(() => new Set((flash?.cells ?? []).map(({ row, col }) => key(row, col))), [flash]);
-  const hintSet = useMemo(() => new Set((hintCells ?? []).map(({ row, col }) => key(row, col))), [hintCells]);
 
-  const finishPuzzle = useCallback((hintsUsed) => {
-    const stars = starsFor(hintsUsed);
-    setScore((s) => s + stars);
-    setSolved(stars);
-    playSuccess();
-  }, [playSuccess]);
 
   const handleCell = useCallback((row, col) => {
-    if (solved !== null) return;
+    if (solved) return;
     playClick();
     if (!start) {
       setStart({ row, col });
@@ -84,10 +75,12 @@ function WordSearchGame({ difficulty, onComplete, reportScore, reportRound, play
       const next = new Map(found);
       next.set(word, cells);
       setFound(next);
-      setHintCells(null);
+      setScore((s) => s + 1);
       setFlash(null);
       if (next.size === placed.length) {
-        finishPuzzle(hints);
+        setSolved(true);
+        setMessage(null);
+        playSuccess();
       } else {
         playSuccess();
         setMessage({ text: fill(tx.foundWord, { word }), tone: 'good' });
@@ -98,25 +91,7 @@ function WordSearchGame({ difficulty, onComplete, reportScore, reportRound, play
       setMessage({ text: tx.notWord, tone: 'miss' });
       later(() => setFlash(null), 1000);
     }
-  }, [solved, start, grid, placed, found, hints, tx, playClick, playSuccess, playFail, finishPuzzle, later]);
-
-  const handleHint = useCallback(() => {
-    if (solved !== null) return;
-    const target = placed.find((p) => !found.has(p.word));
-    if (!target) return;
-    playClick();
-    const level = hintLevel[target.word] ?? 0;
-    setHints((h) => h + 1);
-    setHintLevel((m) => ({ ...m, [target.word]: level + 1 }));
-    setStart(null);
-    if (level === 0) {
-      setHintCells([target.cells[0]]);
-      setMessage({ text: fill(tx.hintStart, { word: target.word }), tone: 'info' });
-    } else {
-      setHintCells(target.cells);
-      setMessage({ text: fill(tx.hintWhole, { word: target.word }), tone: 'info' });
-    }
-  }, [solved, placed, found, hintLevel, tx, playClick]);
+  }, [solved, start, grid, placed, found, tx, playClick, playSuccess, playFail, later]);
 
   const handleNext = useCallback(() => {
     playClick();
@@ -130,14 +105,11 @@ function WordSearchGame({ difficulty, onComplete, reportScore, reportRound, play
     setFound(new Map());
     setStart(null);
     setFlash(null);
-    setHintCells(null);
-    setHints(0);
-    setHintLevel({});
     setMessage(null);
-    setSolved(null);
+    setSolved(false);
   }, [puzzleIdx, config, score, maxScore, tx.words, onComplete, playClick]);
 
-  const statusText = message?.text ?? (start ? tx.tapLast : tx.tapFirst);
+  const statusText = solved ? '' : message?.text ?? (start ? tx.tapLast : tx.tapFirst);
   const toneClass = message?.tone === 'good' ? styles.statusGood : message?.tone === 'miss' ? styles.statusMiss : '';
   const fontScale = size >= 9 ? styles.gridSmall : size >= 8 ? styles.gridMid : '';
 
@@ -150,7 +122,7 @@ function WordSearchGame({ difficulty, onComplete, reportScore, reportRound, play
         </div>
         <div className={styles.infoBadge} aria-label={`${score} / ${maxScore}`}>
           <span key={score} className={styles.infoBadgeNum}>{score}</span>
-          <span className={styles.infoBadgeSub}>★</span>
+          <span className={styles.infoBadgeSub}>/ {maxScore}</span>
         </div>
       </div>
 
@@ -183,7 +155,6 @@ function WordSearchGame({ difficulty, onComplete, reportScore, reportRound, play
               styles.cell,
               foundSet.has(k) ? styles.found : '',
               flashSet.has(k) ? styles.miss : '',
-              hintSet.has(k) ? styles.hinted : '',
               isStart ? styles.start : '',
             ].filter(Boolean).join(' ');
             return (
@@ -208,11 +179,8 @@ function WordSearchGame({ difficulty, onComplete, reportScore, reportRound, play
         {statusText}
       </p>
 
-      {solved === null ? (
+      {!solved ? (
         <div className={styles.controls}>
-          <button type="button" className={styles.hintBtn} onClick={handleHint}>
-            💡 {tx.hint}
-          </button>
           {start && (
             <button type="button" className={styles.ghostBtn} onClick={() => { setStart(null); setMessage(null); }}>
               {tx.clearSelection}
@@ -221,10 +189,7 @@ function WordSearchGame({ difficulty, onComplete, reportScore, reportRound, play
         </div>
       ) : (
         <div className={styles.banner} role="status">
-          <p className={styles.bannerTitle}>{solved === 3 ? tx.perfect : tx.solved}</p>
-          <p className={styles.bannerStars} aria-label={fill(tx.starsLabel, { n: solved })}>
-            {'★'.repeat(solved)}<span className={styles.starOff}>{'☆'.repeat(3 - solved)}</span>
-          </p>
+          <p className={styles.bannerTitle}>{tx.solved}</p>
           <button type="button" className={styles.nextBtn} onClick={handleNext}>
             {puzzleIdx + 1 >= config.puzzles ? tx.seeResults : tx.nextPuzzle}
           </button>

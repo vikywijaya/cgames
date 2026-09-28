@@ -53,6 +53,10 @@ export function generatePuzzle(config, bank, rand = Math.random) {
     const placed = [];
     for (const cand of shuffle(candidates, rand)) {
       if (placed.length >= wordCount) break;
+      // Skip a word hidden inside another (TEA in TEAPOT): finding one would
+      // look like finding the other.
+      const rev = [...cand.letters].reverse().join('');
+      if (placed.some((p) => p.word.includes(cand.word) || p.word.includes(rev) || cand.word.includes(p.word))) continue;
       const spots = [];
       for (const dir of directions) {
         const [dr, dc] = DELTAS[dir];
@@ -110,11 +114,4 @@ export function matchSelection(cells, grid, placed, found) {
   const rev = [...cells].reverse().map(({ row, col }) => grid[row][col]).join('');
   const hit = placed.find((p) => !found.has(p.word) && (p.word === text || p.word === rev));
   return hit ? hit.word : null;
-}
-
-/** 3 stars with no hints, 2 with one hint, 1 with more. */
-export function starsFor(hints) {
-  if (hints === 0) return 3;
-  if (hints === 1) return 2;
-  return 1;
 }

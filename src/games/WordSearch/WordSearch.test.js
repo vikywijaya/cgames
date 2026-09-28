@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DIFFICULTY_CONFIG, generatePuzzle, cellsOnLine, matchSelection, starsFor, splitLetters } from './useWordSearch';
+import { DIFFICULTY_CONFIG, generatePuzzle, cellsOnLine, matchSelection, splitLetters } from './useWordSearch';
 import en from '../../i18n/en';
 import zh from '../../i18n/zh';
 import ta from '../../i18n/ta';
@@ -39,7 +39,13 @@ describe('Word Search puzzles', () => {
     expect(cellsOnLine({ row: 0, col: 0 }, { row: 1, col: 2 })).toBe(null);
   });
 
-  it('awards stars by hints used', () => {
-    expect([starsFor(0), starsFor(1), starsFor(4)]).toEqual([3, 2, 1]);
+  it('never puts a word inside another word in the same puzzle', () => {
+    const bank = ['TEA', 'TEAPOT', 'CAT', 'CATS', 'SUN', 'NUS', 'DOG', 'BIRD', 'FISH', 'MILK'];
+    for (let n = 0; n < 50; n++) {
+      const words = generatePuzzle(DIFFICULTY_CONFIG.hard, bank).placed.map((p) => p.word);
+      for (const a of words) for (const b of words) {
+        if (a !== b) expect(b.includes(a) || b.includes([...a].reverse().join(''))).toBe(false);
+      }
+    }
   });
 });

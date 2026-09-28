@@ -2,10 +2,6 @@
   0%   { opacity: 0; transform: scale(0.6); }
   100% { opacity: 1; transform: scale(1); }
 }
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 3px #B45309; }
-  50%      { box-shadow: 0 0 0 6px #B45309; }
-}
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   25%      { transform: translateX(-4px); }
@@ -140,13 +136,6 @@
   animation: shake 0.3s ease;
 }
 
-/* Hint: amber ring that pulses. */
-.cell.hinted {
-  background: #FEF3C7;
-  color: #1A2233;
-  animation: pulse 1s ease-in-out infinite;
-}
-
 /* First tapped letter: thick amber fill with dark text. */
 .cell.start {
   background: #F59E0B;
@@ -174,13 +163,14 @@
 .statusMiss { color: #B42318; }
 
 .controls {
+  /* Keep room for the Cancel button so the grid never shifts under a finger. */
+  min-height: 48px;
   display: flex;
   gap: var(--space-3);
   flex-wrap: nowrap;
   justify-content: center;
 }
 
-.hintBtn,
 .ghostBtn,
 .nextBtn {
   min-height: 48px;
@@ -190,12 +180,6 @@
   font-weight: 700;
   cursor: pointer;
   font-family: inherit;
-}
-
-.hintBtn {
-  background: #FEF3C7;
-  color: #78350F;
-  border: 2px solid #B45309;
 }
 
 .ghostBtn {
@@ -225,8 +209,6 @@
   animation: popIn 0.3s ease-out both;
 }
 .bannerTitle { margin: 0; font-size: var(--text-lg); font-weight: 700; color: var(--color-text); }
-.bannerStars { margin: 0; font-size: 1.75rem; line-height: 1; color: #B45309; letter-spacing: 0.1em; }
-.starOff { color: var(--color-text-muted); }
 
 /* ── HUD (house style, see NumberSort) ─────────── */
 .infoHeader {
@@ -271,6 +253,5 @@
 .infoBadgeSub { font-size: 1rem; color: var(--color-primary); }
 
 @media (prefers-reduced-motion: reduce) {
-  .cell, .banner, .cell.hinted, .cell.miss, .infoBadgeNum { animation: none; }
-  .cell.hinted { box-shadow: 0 0 0 4px #B45309; }
+  .cell, .banner, .cell.miss, .infoBadgeNum { animation: none; }
 }
