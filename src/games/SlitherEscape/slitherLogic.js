@@ -13,9 +13,9 @@ export const DIRS = { up: [-1, 0], down: [1, 0], left: [0, -1], right: [0, 1] };
 export const DIR_NAMES = ['up', 'down', 'left', 'right'];
 
 export const DIFFICULTY_CONFIG = {
-  easy: { puzzles: 4 },
-  medium: { puzzles: 5 },
-  hard: { puzzles: 5 },
+  easy: { puzzles: 9 },
+  medium: { puzzles: 10 },
+  hard: { puzzles: 10 },
 };
 
 const key = (r, c) => `${r},${c}`;
@@ -388,6 +388,9 @@ export function generatePuzzle(difficulty, i, rnd = Math.random) {
   if (i === 0) return tutorialLevel(rnd);
   if (i === 1) return bentCorridorLevel(rnd, { turns: 1, len: 3 });
   if (i === 2) return bentCorridorLevel(rnd, { turns: 2, len: 3 });
+  // After the first room, mix longer winding corridors in between rooms.
+  if (i === 4) return bentCorridorLevel(rnd, { turns: 3, len: 4 });
+  if (i === 6) return bentCorridorLevel(rnd, { turns: 2, len: 4 });
   return roomLevel('easy', rnd);
 }
 
