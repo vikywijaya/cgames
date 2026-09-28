@@ -115,9 +115,6 @@ GAMES = [
      f"Background: a single uniform deep navy solid colour covering the entire canvas edge to edge. {STYLE}"),
 
     # ── Coming-soon games (optional) ──
-    ("dot-ed",
-     f"Hero: glowing 3D red dots and blue target rings connected by smooth bright lines across a soft grid. "
-     f"Background: a single uniform deep indigo solid colour covering the entire canvas edge to edge. {STYLE}"),
 
     ("tangram",
      f"Hero: seven flat 3D geometric tangram pieces — triangles, a square and a parallelogram in red, teal, yellow and blue — arranged into a neat abstract figure. "

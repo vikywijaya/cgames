@@ -33,7 +33,6 @@ import { MathCross }       from './games/MathCross/MathCross';
 import { Tangram }         from './games/Tangram/Tangram';
 import { SlitherEscape }  from './games/SlitherEscape/SlitherEscape';
 import { FlappyNumbers }  from './games/FlappyNumbers/FlappyNumbers';
-import { DotEd }          from './games/DotEd/DotEd';
 import { Zip }            from './games/Zip/Zip';
 import { Sokoban }        from './games/Sokoban/Sokoban';
 import { saveScore, getAllScores, getFavorites, toggleFavorite, saveTotalScore, getTotalScore } from './utils/scoreStore';
@@ -96,7 +95,6 @@ const GAME_MAP = {
   'tangram':           Tangram,
   'slither-escape':    SlitherEscape,
   'flappy-numbers':    FlappyNumbers,
-  'dot-ed':            DotEd,
   'zip':               Zip,
   'sokoban':           Sokoban,
 };

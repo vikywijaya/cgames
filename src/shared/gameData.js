@@ -33,7 +33,6 @@ export const GAME_GROUPS = [
       { id: 'quick-maths',      title: 'Quick Maths',      icon: '➕', domain: 'Mental Arithmetic',   description: 'Solve addition, subtraction and multiplication problems fast.' },
       { id: 'sumix',             title: 'Sumix',            icon: '🧮', domain: 'Numeric Logic',      description: 'Activate numbers so each row and column sums to its target.' },
       { id: 'math-cross',       title: 'Math Cross',      icon: '✖️', domain: 'Mental Arithmetic',  description: 'Place numbers into a crossword of equations to make them all correct.' },
-      { id: 'dot-ed',             title: 'Dot.ed',          icon: '🔴', domain: 'Logic Puzzles',      description: 'Connect red dots to blue targets — match every capacity and need.' },
     ],
   },
   {
