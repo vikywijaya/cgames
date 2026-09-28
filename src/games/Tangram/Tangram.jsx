@@ -4,7 +4,7 @@ import { GameShell } from '../../components/GameShell/GameShell';
 import { useGameCallback } from '../../hooks/useGameCallback';
 import styles from './Tangram.module.css';
 import { useTranslation } from '../../i18n/useTranslation';
-import { PUZZLES, piecePoints, fitsSlot, turnForSlot, starsFor, bounds, makePieces } from './tangramData';
+import { pickPuzzles, piecePoints, fitsSlot, turnForSlot, starsFor, bounds, makePieces } from './tangramData';
 
 /*
  * Tangram — tap a piece, then tap the space where it belongs.
@@ -43,7 +43,7 @@ function TangramGame({ difficulty, onComplete, reportScore, reportRound, playCli
   const t = useTranslation();
   const tt = t.games['tangram'];
   const config = CONFIG[difficulty] ?? CONFIG.easy;
-  const puzzles = PUZZLES[difficulty] ?? PUZZLES.easy;
+  const [puzzles] = useState(() => pickPuzzles(difficulty));
   const maxScore = puzzles.length * 3;
 
   const [idx, setIdx] = useState(0);

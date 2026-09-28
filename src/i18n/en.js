@@ -702,7 +702,7 @@ export default {
     'tangram': {
       title: 'Tangram',
       label: 'TANGRAM',
-      description: 'Drag seven geometric pieces to fill the silhouette.',
+      description: 'Tap a piece, then tap the space where it fits — no dragging needed.',
       instructions: "Build the picture with the coloured pieces. Tap a piece, then tap the space on the board where it fits. Use Turn to rotate the selected piece. Tap a placed piece to take it back. There is no time limit. If you get stuck, tap Hint and the right space will glow. Solve a puzzle without hints for 3 stars.",
       progress: "Puzzle {n} of {total}",
       makeThe: "Make the {name}",
@@ -726,7 +726,7 @@ export default {
       wrongShape: "That space needs a different shape",
       hintMsg: "Place the chosen piece in the glowing space",
       shapes: { L: "Large triangle", M: "Medium triangle", S: "Small triangle", Q: "Square", P: "Parallelogram" },
-      names: { fish: "fish", arrow: "arrow", house: "house", sail: "sail", cottage: "cottage", rocket: "rocket", square: "square", mountain: "mountain", slope: "slope", boot: "boot" },
+      names: { fish: "fish", arrow: "arrow", house: "house", sail: "sail", cottage: "cottage", rocket: "rocket", square: "square", mountain: "mountain", slope: "slope", boot: "boot", boat: "boat", heart: "heart", mountains: "mountains", gem: "gem", sailboat: "sailboat", cat: "cat", angelfish: "angelfish" },
     },
     'slither-escape': {
       title: 'Slither Escape',
