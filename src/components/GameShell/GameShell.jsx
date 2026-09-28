@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import { CaretLeft, QuestionMark } from '@phosphor-icons/react';
+import { DifficultyIcon } from '../DifficultyIcon/DifficultyIcon';
 import { useCountdown } from '../../hooks/useCountdown';
 import { useSoundFx } from '../../hooks/useSoundFx';
 import { Button } from '../Button/Button';
@@ -198,9 +200,7 @@ export function GameShell({
         <div className={styles.topBarLeft}>
           {onBack && (
             <button className={styles.topBarBack} onClick={onBack} aria-label={t.shell.back}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M15 18l-6-6 6-6"/>
-              </svg>
+              <CaretLeft size={26} weight="fill" aria-hidden="true" />
               <span className={styles.topBarBackLabel}>{t.shell.back}</span>
             </button>
           )}
@@ -215,7 +215,7 @@ export function GameShell({
               onClick={() => setShowHowToPlay(true)}
               aria-label="How to play"
             >
-              ?
+              <QuestionMark size={22} weight="bold" aria-hidden="true" />
             </button>
           )}
         </div>
@@ -235,23 +235,7 @@ export function GameShell({
                   aria-checked={localDifficulty === level}
                 >
                   <span className={styles.difficultyDot} aria-hidden="true">
-                    {level === 'easy' && (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 21V11" />
-                        <path d="M12 11c0-4.5 3.5-8 8-8 0 4.5-3.5 8-8 8Z" fill="currentColor" stroke="none" />
-                      </svg>
-                    )}
-                    {level === 'medium' && (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2.5c3 3.5 5.5 6.8 5.5 10.2a5.5 5.5 0 1 1-11 0c0-3.4 2.5-6.7 5.5-10.2Z" />
-                      </svg>
-                    )}
-                    {level === 'hard' && (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2c3.5 4 6.5 8 6.5 12a6.5 6.5 0 1 1-13 0c0-4 3-8 6.5-12Z" />
-                        <path d="M12 10c1.3 1.6 2.2 2.9 2.2 4.3a2.2 2.2 0 1 1-4.4 0c0-1.4.9-2.7 2.2-4.3Z" fill="#fff" fillOpacity="0.55" />
-                      </svg>
-                    )}
+                    <DifficultyIcon level={level} />
                   </span>
                   {t.shell[level]}
                 </button>

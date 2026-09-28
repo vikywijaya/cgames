@@ -1765,3 +1765,11 @@
 
 /* .musicToggle removed — sound control is now in the TopBar component */
 
+
+/* Phosphor icon colours */
+.floatingBack svg { color: var(--color-primary); }
+.difficultyBtn_easy   .difficultyIcon { color: #249A6A; }
+.difficultyBtn_medium .difficultyIcon { color: #D6822A; }
+.difficultyBtn_hard   .difficultyIcon { color: #D03A2E; }
+.difficultyBtnActive  .difficultyIcon { color: #fff; }
+.scoreNewPill svg { color: #E0A100; }

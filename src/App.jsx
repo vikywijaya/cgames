@@ -1,4 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
+import { House, CheckCircle, PlayCircle, Check, Sparkle, CaretDown, Heart, GameController, PuzzlePiece, UsersThree, Trophy, Target, Lightning, SquaresFour, Brain, Calculator, Shapes, Globe, Joystick } from '@phosphor-icons/react';
+import { DifficultyIcon } from './components/DifficultyIcon/DifficultyIcon';
+
+// Phosphor icons for GAME_GROUPS categories, by index (gameData.js keeps its emoji for the API).
+const CATEGORY_ICONS = [Brain, Target, Calculator, Shapes, Globe, Joystick];
+const CATEGORY_COLORS = ['#8154f6', '#E07820', '#3D72E8', '#0F9E8E', '#2DAF7B', '#E5484D'];
+function CategoryIcon({ index, bare = false }) {
+  const Icon = CATEGORY_ICONS[index] || SquaresFour;
+  return <Icon size="1em" weight="fill" color={CATEGORY_COLORS[index] || '#3D72E8'} aria-hidden="true" style={bare ? undefined : { verticalAlign: '-0.125em' }} />;
+}
 import { MemoryMatch }      from './games/MemoryMatch/MemoryMatch';
 import { WordRecall }       from './games/WordRecall/WordRecall';
 import { DailyArithmetic }  from './games/DailyArithmetic/DailyArithmetic';
@@ -394,7 +404,7 @@ export function App() {
     return (
       <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
         {showBackButtons && (
-          <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+          <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
         <div className={styles.dailyPreview}>
           <h2 className={styles.dailyPreviewTitle}>{t.app.todaysChallenge}</h2>
@@ -412,7 +422,7 @@ export function App() {
                   <h3 className={styles.gameCardTitle}>
                     {game.title}
                     {previewScores[game.id] != null && (
-                      <svg className={styles.playedCheck} width="18" height="18" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Played"><g clipPath="url(#pc3)"><path d="M15 0C6.76113 0 0 6.76113 0 15C0 23.2389 6.76113 30 15 30C23.2389 30 30 23.2389 30 15C30 6.76113 23.2389 0 15 0ZM13.1847 21.8227L6.61605 15.2541L9.10172 12.7684L13.2997 16.9664L21.7274 9.30516L24.0929 11.9058L13.1847 21.8227Z" fill="#1CB37C"/></g><defs><clipPath id="pc3"><rect width="30" height="30" fill="white"/></clipPath></defs></svg>
+                      <CheckCircle className={styles.playedCheck} size={18} weight="fill" color="#1CB37C" aria-label="Played" />
                     )}
                   </h3>
                   <div className={styles.gameCardFooter}>
@@ -460,7 +470,7 @@ export function App() {
     return (
       <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
         {showBackButtons && (
-          <button className={styles.floatingBack} onClick={abortDailyChallenge} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+          <button className={styles.floatingBack} onClick={abortDailyChallenge} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
         <div className={styles.interResult}>
         <div className={styles.interProgress}>
@@ -520,7 +530,7 @@ export function App() {
     return (
       <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
         {showBackButtons && (
-          <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+          <button className={styles.floatingBack} onClick={() => { setView('home'); setDailyChallenge(null); }} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
         <div className={styles.dailyResult}>
         <div className={styles.resultTrophy}>{trophy}</div>
@@ -574,7 +584,7 @@ export function App() {
     return (
       <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
         {showBackButtons && (
-          <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+          <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
         <div className={styles.scoresView}>
         <div className={styles.scoresHeader}>
@@ -615,17 +625,17 @@ export function App() {
             </div>
             <div className={styles.rankStats}>
               <div className={styles.rankStat}>
-                <span className={`${styles.rankStatIcon} ${styles.rankStatIconGames}`} aria-hidden="true">🎮</span>
+                <span className={`${styles.rankStatIcon} ${styles.rankStatIconGames}`} aria-hidden="true"><GameController size="1em" weight="fill" /></span>
                 <span className={styles.rankStatVal}>{achievement.played}</span>
                 <span className={styles.rankStatLabel}>{t.app.statGamesPlayed}</span>
               </div>
               <div className={styles.rankStat}>
-                <span className={`${styles.rankStatIcon} ${styles.rankStatIconAvg}`} aria-hidden="true">🎯</span>
+                <span className={`${styles.rankStatIcon} ${styles.rankStatIconAvg}`} aria-hidden="true"><Target size="1em" weight="fill" /></span>
                 <span className={styles.rankStatVal}>{achievement.avgBest}%</span>
                 <span className={styles.rankStatLabel}>{t.app.statAvgBest}</span>
               </div>
               <div className={styles.rankStat}>
-                <span className={`${styles.rankStatIcon} ${styles.rankStatIconSessions}`} aria-hidden="true">⚡</span>
+                <span className={`${styles.rankStatIcon} ${styles.rankStatIconSessions}`} aria-hidden="true"><Lightning size="1em" weight="fill" /></span>
                 <span className={styles.rankStatVal}>{achievement.totalPlays}</span>
                 <span className={styles.rankStatLabel}>{t.app.statSessions}</span>
               </div>
@@ -636,7 +646,7 @@ export function App() {
         {translatedGroups.map(group => (
           <section key={group.category} className={styles.scoreSection}>
             <h2 className={styles.scoreSectionTitle}>
-              <span aria-hidden="true">{group.icon}</span> {group.category}
+              <CategoryIcon index={translatedGroups.indexOf(group)} /> {group.category}
             </h2>
             <div className={styles.scoreTable}>
               {group.games.map(game => {
@@ -653,7 +663,7 @@ export function App() {
                         : <span className={styles.scoreThumbEmoji} aria-hidden="true">{game.icon}</span>}
                       {sc && (
                         <span className={styles.scoreCheck} style={{ background: tierColor }} aria-label="Played">
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7" /></svg>
+                          <Check size={13} weight="bold" color="#fff" aria-hidden="true" />
                         </span>
                       )}
                     </div>
@@ -669,7 +679,7 @@ export function App() {
                         </div>
                       ) : (
                         <span className={styles.scoreNewPill}>
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z" /></svg>
+                          <Sparkle size={13} weight="fill" aria-hidden="true" />
                           {t.app.newTryIt}
                         </span>
                       )}
@@ -682,10 +692,7 @@ export function App() {
                         onClick={() => { setView('games'); setSelectedGame(game.id); }}
                         aria-label={`Play ${game.title}`}
                       >
-                        <svg width="52" height="52" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                          <path d="M57 28.5C57 44.2403 44.2403 57 28.5 57C12.7597 57 0 44.2403 0 28.5C0 12.7597 12.7597 0 28.5 0C44.2403 0 57 12.7597 57 28.5Z" fill="#3777FF"/>
-                          <path d="M40.1751 27.0179L24.1439 16.3304C23.5972 15.9665 22.8949 15.9325 22.3156 16.2422C21.7368 16.5522 21.375 17.1558 21.375 17.8125V39.1875C21.375 39.8442 21.7368 40.4478 22.3156 40.7578C22.8949 41.0675 23.5972 41.0335 24.1439 40.6696L40.1751 29.9821C40.6709 29.6515 40.9683 29.0953 40.9683 28.5C40.9683 27.9047 40.6709 27.3484 40.1751 27.0179Z" fill="white"/>
-                        </svg>
+                        <PlayCircle size={52} weight="fill" color="#3777FF" aria-hidden="true" />
                       </button>
                     )}
                   </div>
@@ -708,7 +715,7 @@ export function App() {
     return (
       <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
         {showBackButtons && (
-          <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+          <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
         <MultiplayerGames
           t={t}
@@ -727,7 +734,7 @@ export function App() {
     return (
       <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
         {showBackButtons && (
-          <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+          <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
         <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
           <MultiplayerChessSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
@@ -740,7 +747,7 @@ export function App() {
     return (
       <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
         {showBackButtons && (
-          <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+          <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
         <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
           <MultiplayerXiangqiSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
@@ -753,7 +760,7 @@ export function App() {
     return (
       <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
         {showBackButtons && (
-          <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+          <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
         <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
           <MultiplayerGinRummySession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
@@ -766,7 +773,7 @@ export function App() {
     return (
       <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
         {showBackButtons && (
-          <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+          <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
         <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
           <MultiplayerCrazyEightsSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
@@ -779,7 +786,7 @@ export function App() {
     return (
       <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
         {showBackButtons && (
-          <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+          <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
         <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
           <MultiplayerSingaporeTriviaSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
@@ -792,7 +799,7 @@ export function App() {
     return (
       <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
         {showBackButtons && (
-          <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+          <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
         <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
           <MultiplayerCongkakSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
@@ -807,7 +814,7 @@ export function App() {
     return (
       <div className={`${styles.dailyWrapper} ${!showBackButtons ? styles.dailyWrapperNoBack : ''}`}>
         {showBackButtons && (
-          <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Home" title="Home"><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style={{verticalAlign:'middle'}}><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+          <button className={styles.floatingBack} onClick={() => setView('home')} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
         <div className={styles.lobby}>
         <div className={styles.categoryRow} ref={categoryMenuRef}>
@@ -817,7 +824,7 @@ export function App() {
               const isFav = cat === 'Favorites';
               const group = translatedGroups.find(g => g.category === cat);
               const count = cat === 'All' ? translatedAllGames.length : isFav ? favorites.size : group?.games.length;
-              const icon = isFav ? '❤️' : group ? group.icon : '📋';
+              const icon = isFav ? <Heart size="1em" weight="fill" color="#E5484D" /> : group ? <CategoryIcon index={translatedGroups.indexOf(group)} bare /> : <SquaresFour size="1em" weight="fill" color="#3D72E8" />;
               const displayName = cat === 'All' ? t.app.all : cat === 'Favorites' ? t.app.favorites : cat;
               return { icon, displayName, count };
             };
@@ -835,9 +842,7 @@ export function App() {
                   <span className={styles.categoryIconBadge} aria-hidden="true">{current.icon}</span>
                   <span className={styles.categoryTriggerLabel}>{current.displayName}</span>
                   <span className={styles.categoryCountBadge}>{current.count}</span>
-                  <svg className={`${styles.categoryCaret} ${categoryMenuOpen ? styles.categoryCaretOpen : ''}`} width="14" height="14" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">
-                    <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/>
-                  </svg>
+                  <CaretDown className={`${styles.categoryCaret} ${categoryMenuOpen ? styles.categoryCaretOpen : ''}`} size={14} weight="fill" aria-hidden="true" />
                 </button>
                 {categoryMenuOpen && (
                   <ul className={styles.categoryMenu} role="listbox" aria-label="Filter by category">
@@ -880,23 +885,7 @@ export function App() {
                 onChange={() => setSelectedDifficulty(level)}
               />
               <span className={styles.difficultyIcon} aria-hidden="true">
-                {level === 'easy' && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 21V11" />
-                    <path d="M12 11c0-4.5 3.5-8 8-8 0 4.5-3.5 8-8 8Z" fill="currentColor" stroke="none" />
-                  </svg>
-                )}
-                {level === 'medium' && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2.5c3 3.5 5.5 6.8 5.5 10.2a5.5 5.5 0 1 1-11 0c0-3.4 2.5-6.7 5.5-10.2Z" />
-                  </svg>
-                )}
-                {level === 'hard' && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2c3.5 4 6.5 8 6.5 12a6.5 6.5 0 1 1-13 0c0-4 3-8 6.5-12Z" />
-                    <path d="M12 10c1.3 1.6 2.2 2.9 2.2 4.3a2.2 2.2 0 1 1-4.4 0c0-1.4.9-2.7 2.2-4.3Z" fill="#fff" fillOpacity="0.55" />
-                  </svg>
-                )}
+                <DifficultyIcon level={level} />
               </span>
               {t.shell[level]}
             </label>
@@ -906,7 +895,7 @@ export function App() {
         {selectedCategory === 'Favorites' ? (
           <section className={styles.gameSection} aria-label="Favorites">
             <h2 className={styles.sectionTitle}>
-              <span aria-hidden="true">❤️</span> {t.app.favorites}
+              <Heart size="1em" weight="fill" color="#E5484D" aria-hidden="true" style={{verticalAlign:'-0.125em'}} /> {t.app.favorites}
             </h2>
             {favorites.size === 0 ? (
               <p className={styles.favoritesEmpty}>{t.app.favoritesEmpty}</p>
@@ -928,7 +917,7 @@ export function App() {
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setFavorites(toggleFavorite(game.id, urlMemberId)); } }}
                     aria-label={`Remove ${game.title} from favorites`}
                   >
-                    <svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/></svg>
+                    <Heart size={20} weight="fill" aria-hidden="true" />
                   </span>
                   <span className={styles.gameDomain}>{game.domain}</span>
                   <div className={styles.gameIconBox} aria-hidden="true">
@@ -940,14 +929,14 @@ export function App() {
                     <h3 className={styles.gameCardTitle}>
                       {game.title}
                       {lobbyScores[game.id] != null && (
-                        <svg className={styles.playedCheck} width="18" height="18" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Played"><g clipPath="url(#pc1)"><path d="M15 0C6.76113 0 0 6.76113 0 15C0 23.2389 6.76113 30 15 30C23.2389 30 30 23.2389 30 15C30 6.76113 23.2389 0 15 0ZM13.1847 21.8227L6.61605 15.2541L9.10172 12.7684L13.2997 16.9664L21.7274 9.30516L24.0929 11.9058L13.1847 21.8227Z" fill="#1CB37C"/></g><defs><clipPath id="pc1"><rect width="30" height="30" fill="white"/></clipPath></defs></svg>
+                        <CheckCircle className={styles.playedCheck} size={18} weight="fill" color="#1CB37C" aria-label="Played" />
                       )}
                     </h3>
                       <div className={styles.gameCardFooter}>
                       {game.beta && <span className={styles.betaBadge}>Beta</span>}
                       {game.comingSoon
                         ? <span className={styles.comingSoonBadge}>{t.app.comingSoon}</span>
-                        : <span className={styles.playButton} aria-hidden="true"><svg width="52" height="52" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg"><g clipPath="url(#pb)"><path d="M57 28.5C57 44.2403 44.2403 57 28.5 57C12.7597 57 0 44.2403 0 28.5C0 12.7597 12.7597 0 28.5 0C44.2403 0 57 12.7597 57 28.5Z" fill="#3777FF"/><path d="M40.1751 27.0179L24.1439 16.3304C23.5972 15.9665 22.8949 15.9325 22.3156 16.2422C21.7368 16.5522 21.375 17.1558 21.375 17.8125V39.1875C21.375 39.8442 21.7368 40.4478 22.3156 40.7578C22.8949 41.0675 23.5972 41.0335 24.1439 40.6696L40.1751 29.9821C40.6709 29.6515 40.9683 29.0953 40.9683 28.5C40.9683 27.9047 40.6709 27.3484 40.1751 27.0179Z" fill="white"/></g><defs><clipPath id="pb"><rect width="57" height="57" fill="white"/></clipPath></defs></svg></span>}
+                        : <span className={styles.playButton} aria-hidden="true"><PlayCircle size={52} weight="fill" color="#3777FF" aria-hidden="true" /></span>}
                     </div>
                   </div>
                 </button>
@@ -960,7 +949,7 @@ export function App() {
           .map(group => (
           <section key={group.category} className={styles.gameSection} aria-label={group.category}>
             <h2 className={styles.sectionTitle}>
-              <span aria-hidden="true">{group.icon}</span> {group.category}
+              <CategoryIcon index={translatedGroups.indexOf(group)} /> {group.category}
             </h2>
             <div className={styles.gameGrid} role="list">
               {group.games.map(game => (
@@ -979,11 +968,7 @@ export function App() {
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); setFavorites(toggleFavorite(game.id, urlMemberId)); } }}
                     aria-label={favorites.has(game.id) ? `Remove ${game.title} from favorites` : `Add ${game.title} to favorites`}
                   >
-                    <svg viewBox="0 0 24 24" width="20" height="20">
-                      {favorites.has(game.id)
-                        ? <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="currentColor"/>
-                        : <path d="M16.5 3c-1.74 0-3.41.81-4.5 2.09C10.91 3.81 9.24 3 7.5 3 4.42 3 2 5.42 2 8.5c0 3.78 3.4 6.86 8.55 11.54L12 21.35l1.45-1.32C18.6 15.36 22 12.28 22 8.5 22 5.42 19.58 3 16.5 3zm-4.4 15.55l-.1.1-.1-.1C7.14 14.24 4 11.39 4 8.5 4 6.5 5.5 5 7.5 5c1.54 0 3.04.99 3.57 2.36h1.87C13.46 5.99 14.96 5 16.5 5c2 0 3.5 1.5 3.5 3.5 0 2.89-3.14 5.74-7.9 10.05z" fill="currentColor"/>}
-                    </svg>
+                    <Heart size={20} weight={favorites.has(game.id) ? 'fill' : 'bold'} aria-hidden="true" />
                   </span>
                   <span className={styles.gameDomain}>{game.domain}</span>
                   <div className={styles.gameIconBox} aria-hidden="true">
@@ -995,14 +980,14 @@ export function App() {
                     <h3 className={styles.gameCardTitle}>
                       {game.title}
                       {lobbyScores[game.id] != null && (
-                        <svg className={styles.playedCheck} width="18" height="18" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Played"><g clipPath="url(#pc2)"><path d="M15 0C6.76113 0 0 6.76113 0 15C0 23.2389 6.76113 30 15 30C23.2389 30 30 23.2389 30 15C30 6.76113 23.2389 0 15 0ZM13.1847 21.8227L6.61605 15.2541L9.10172 12.7684L13.2997 16.9664L21.7274 9.30516L24.0929 11.9058L13.1847 21.8227Z" fill="#1CB37C"/></g><defs><clipPath id="pc2"><rect width="30" height="30" fill="white"/></clipPath></defs></svg>
+                        <CheckCircle className={styles.playedCheck} size={18} weight="fill" color="#1CB37C" aria-label="Played" />
                       )}
                     </h3>
                       <div className={styles.gameCardFooter}>
                       {game.beta && <span className={styles.betaBadge}>Beta</span>}
                       {game.comingSoon
                         ? <span className={styles.comingSoonBadge}>{t.app.comingSoon}</span>
-                        : <span className={styles.playButton} aria-hidden="true"><svg width="52" height="52" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg"><g clipPath="url(#pb)"><path d="M57 28.5C57 44.2403 44.2403 57 28.5 57C12.7597 57 0 44.2403 0 28.5C0 12.7597 12.7597 0 28.5 0C44.2403 0 57 12.7597 57 28.5Z" fill="#3777FF"/><path d="M40.1751 27.0179L24.1439 16.3304C23.5972 15.9665 22.8949 15.9325 22.3156 16.2422C21.7368 16.5522 21.375 17.1558 21.375 17.8125V39.1875C21.375 39.8442 21.7368 40.4478 22.3156 40.7578C22.8949 41.0675 23.5972 41.0335 24.1439 40.6696L40.1751 29.9821C40.6709 29.6515 40.9683 29.0953 40.9683 28.5C40.9683 27.9047 40.6709 27.3484 40.1751 27.0179Z" fill="white"/></g><defs><clipPath id="pb"><rect width="57" height="57" fill="white"/></clipPath></defs></svg></span>}
+                        : <span className={styles.playButton} aria-hidden="true"><PlayCircle size={52} weight="fill" color="#3777FF" aria-hidden="true" /></span>}
                     </div>
                   </div>
                 </button>
@@ -1073,7 +1058,7 @@ export function App() {
           <span className={styles.focusBlob} aria-hidden="true" />
           <span className={styles.focusInner}>
             <span className={styles.focusHead}>
-              <span className={styles.focusIconBox} aria-hidden="true">🧩</span>
+              <span className={styles.focusIconBox} aria-hidden="true"><PuzzlePiece size="1em" weight="fill" color="#fff" /></span>
               <span className={styles.focusHeadText}>
                 <span className={styles.focusTitle}>{t.app.dailyChallenge}</span>
                 <span className={styles.focusEyebrow}>{t.app.dailyChallengeCardDesc}</span>
@@ -1089,20 +1074,7 @@ export function App() {
         <div className={styles.tileRow}>
           <button className={styles.tile} onClick={() => setView('games')} aria-label="Browse all cognitive games">
             <span className={`${styles.tileIconBox} ${styles.tileIconGames}`} aria-hidden="true">
-              <svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="gamepadBody" x1="4" y1="12" x2="44" y2="38" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#5C90F5" />
-                    <stop offset="100%" stopColor="#2D5EC7" />
-                  </linearGradient>
-                </defs>
-                <path d="M13.5 13h21a8 8 0 0 1 7.86 6.56l2.3 12.6a5.2 5.2 0 0 1-9.4 4.06L32.2 32.6a3 3 0 0 0-2.46-1.3H18.26a3 3 0 0 0-2.46 1.3l-3.06 3.62a5.2 5.2 0 0 1-9.4-4.06l2.3-12.6A8 8 0 0 1 13.5 13Z" fill="url(#gamepadBody)"/>
-                <path d="M13.5 13h21a8 8 0 0 1 7.86 6.56l1.02 5.6c-3.02-3.86-8-6.66-13.88-6.66h-11c-5.88 0-10.86 2.8-13.88 6.66l1.02-5.6A8 8 0 0 1 13.5 13Z" fill="#fff" fillOpacity="0.16"/>
-                <rect x="12.5" y="20.5" width="3" height="9" rx="1.2" fill="#fff"/>
-                <rect x="9.5" y="23.5" width="9" height="3" rx="1.2" fill="#fff"/>
-                <circle cx="34" cy="21.5" r="2.6" fill="#FFD24A"/>
-                <circle cx="28.5" cy="27" r="2.6" fill="#E07820"/>
-              </svg>
+              <GameController size={40} weight="fill" color="#3777FF" />
             </span>
             <span className={styles.tileText}>
               <span className={styles.tileTitle}>{t.app.browseGames}</span>
@@ -1112,7 +1084,7 @@ export function App() {
             </span>
           </button>
           <button className={styles.tile} onClick={() => setView('multiplayer')} aria-label="Play with a friend online">
-            <span className={`${styles.tileIconBox} ${styles.tileIconMultiplayer}`} aria-hidden="true">👥</span>
+            <span className={`${styles.tileIconBox} ${styles.tileIconMultiplayer}`} aria-hidden="true"><UsersThree size="1em" weight="fill" color="#8154f6" /></span>
             <span className={styles.tileText}>
               <span className={styles.tileTitle}>{t.app.playWithFriend}</span>
               <span className={styles.tileSub}>{t.app.playWithFriendShort}</span>
@@ -1125,7 +1097,7 @@ export function App() {
           <span className={styles.focusBlob} aria-hidden="true" />
           <span className={`${styles.focusInner} ${styles.scoresInner}`}>
             <span className={styles.focusHead}>
-              <span className={styles.focusIconBox} aria-hidden="true">🏆</span>
+              <span className={styles.focusIconBox} aria-hidden="true"><Trophy size="1em" weight="fill" color="#fff" /></span>
               <span className={styles.focusHeadText}>
                 <span className={styles.focusTitle}>{t.app.yourScores}</span>
                 <span className={styles.focusEyebrow}>{t.app.scoresShort}</span>

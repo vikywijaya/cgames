@@ -554,3 +554,9 @@
 @media (prefers-reduced-motion: reduce) {
   .countdownNum { animation: none; }
 }
+
+/* Phosphor icon colours (match lobby difficulty picker) */
+.difficultyOption_easy   .difficultyDot { color: #249A6A; }
+.difficultyOption_medium .difficultyDot { color: #D6822A; }
+.difficultyOption_hard   .difficultyDot { color: #D03A2E; }
+.difficultyOptionActive  .difficultyDot { color: #fff; }
