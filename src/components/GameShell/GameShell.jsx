@@ -40,7 +40,7 @@ export function GameShell({
   onGameComplete,
   onBack,
 }) {
-  const { hideDifficulty: ctxHideDifficulty, isDailyChallenge } = useGameContext();
+  const { hideDifficulty: ctxHideDifficulty, hideHeader, isDailyChallenge } = useGameContext();
   const t = useTranslation();
   const shouldHideDifficulty = hideDifficulty || ctxHideDifficulty;
   const [localDifficulty, setLocalDifficulty] = useState(difficulty);
@@ -218,8 +218,8 @@ export function GameShell({
         </div>
       )}
 
-      {/* ── TOP BAR (all phases) ── */}
-      <header className={styles.topBar}>
+      {/* ── TOP BAR (all phases; hidden via ?header=hide) ── */}
+      {!hideHeader && <header className={styles.topBar}>
         <div className={styles.topBarLeft}>
           {onBack && (
             <button className={styles.topBarBack} onClick={onBack} aria-label={t.shell.back}>
@@ -242,7 +242,7 @@ export function GameShell({
             </button>
           )}
         </div>
-      </header>
+      </header>}
 
       {/* ── HOW TO PLAY (idle) ── */}
       {phase === 'idle' && (

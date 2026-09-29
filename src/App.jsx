@@ -127,6 +127,7 @@ const urlTotalScore   = params.get('total_score');
 const urlLangCode     = params.get('langCode')     ?? 'en';
 const urlMode         = params.get('mode') === 'mobile' ? 'mobile' : 'web';
 const showBackButtons = urlMode === 'web';
+const urlHideHeader   = params.get('header') === 'hide';
 
 // Persist total_score from URL into localStorage on every load (if provided)
 if (urlTotalScore !== null && !isNaN(Number(urlTotalScore))) {
@@ -361,7 +362,7 @@ export function App() {
   if (urlGameId && GAME_MAP[urlGameId]) {
     const GameComponent = GAME_MAP[urlGameId];
     return (
-      <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
+      <GameContext.Provider value={{ hideDifficulty: false, hideHeader: urlHideHeader, langCode: urlLangCode }}>
         <GameComponent
           memberId={urlMemberId}
           difficulty={urlDifficulty}
@@ -380,7 +381,7 @@ export function App() {
   if (selectedGame) {
     const GameComponent = GAME_MAP[selectedGame];
     return (
-      <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
+      <GameContext.Provider value={{ hideDifficulty: false, hideHeader: urlHideHeader, langCode: urlLangCode }}>
         <div className={styles.gameWrapper}>
           <GameComponent
             memberId={urlMemberId}
@@ -448,7 +449,7 @@ export function App() {
 
     return (
       <div className={styles.gameWrapper}>
-        <GameContext.Provider value={{ hideDifficulty: true, langCode: urlLangCode, isDailyChallenge: true }}>
+        <GameContext.Provider value={{ hideDifficulty: true, hideHeader: urlHideHeader, langCode: urlLangCode, isDailyChallenge: true }}>
           <GameComponent
             key={`daily-${game.id}-${index}`}
             memberId={urlMemberId}
@@ -736,7 +737,7 @@ export function App() {
         {showBackButtons && (
           <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
-        <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
+        <GameContext.Provider value={{ hideDifficulty: false, hideHeader: urlHideHeader, langCode: urlLangCode }}>
           <MultiplayerChessSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
         </GameContext.Provider>
       </div>
@@ -749,7 +750,7 @@ export function App() {
         {showBackButtons && (
           <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
-        <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
+        <GameContext.Provider value={{ hideDifficulty: false, hideHeader: urlHideHeader, langCode: urlLangCode }}>
           <MultiplayerXiangqiSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
         </GameContext.Provider>
       </div>
@@ -762,7 +763,7 @@ export function App() {
         {showBackButtons && (
           <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
-        <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
+        <GameContext.Provider value={{ hideDifficulty: false, hideHeader: urlHideHeader, langCode: urlLangCode }}>
           <MultiplayerGinRummySession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
         </GameContext.Provider>
       </div>
@@ -775,7 +776,7 @@ export function App() {
         {showBackButtons && (
           <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
-        <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
+        <GameContext.Provider value={{ hideDifficulty: false, hideHeader: urlHideHeader, langCode: urlLangCode }}>
           <MultiplayerCrazyEightsSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
         </GameContext.Provider>
       </div>
@@ -788,7 +789,7 @@ export function App() {
         {showBackButtons && (
           <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
-        <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
+        <GameContext.Provider value={{ hideDifficulty: false, hideHeader: urlHideHeader, langCode: urlLangCode }}>
           <MultiplayerSingaporeTriviaSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
         </GameContext.Provider>
       </div>
@@ -801,7 +802,7 @@ export function App() {
         {showBackButtons && (
           <button className={styles.floatingBack} onClick={() => setView('multiplayer')} aria-label="Home" title="Home"><House size={24} weight="fill" aria-hidden="true" style={{verticalAlign:'middle'}} /></button>
         )}
-        <GameContext.Provider value={{ hideDifficulty: false, langCode: urlLangCode }}>
+        <GameContext.Provider value={{ hideDifficulty: false, hideHeader: urlHideHeader, langCode: urlLangCode }}>
           <MultiplayerCongkakSession memberId={urlMemberId} callbackUrl={urlCallbackUrl} accessToken={urlAccessToken} />
         </GameContext.Provider>
       </div>
